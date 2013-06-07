@@ -1,0 +1,14 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+<file>images/save.gif</file>
+<file>images/open.gif</file>
+<file>images/fwd.png</file>
+<file>images/pause.png</file>
+<file>images/play.png</file>
+<file>images/playRev.png</file>
+<file>images/rev.png</file>
+<file>images/stepFwd.png</file>
+<file>images/stepRev.png</file>
+<file>images/rec.png</file>
+</qresource>
+</RCC>

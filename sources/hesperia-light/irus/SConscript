@@ -1,0 +1,73 @@
+import os
+import os.path
+# Import environment for build
+Import('IMPORTED_ENVIRONMENT')
+# Name of the module was exported in SConstruct.
+Import('MODULE_NAME')
+# Define install targets? TODO: Find a better way to
+# avoid the warnings 
+Import('INSTALL')
+# Does the user want to select the testsuites to run
+Import('SELECTOR')
+
+# Create a clone of the global environment to add the module's 
+# include directory without affecting other modules.
+env = IMPORTED_ENVIRONMENT.Clone( )
+env.Append(CPPPATH = 'include/')
+env.Append(CCFLAGS = '-Wno-error=unused-parameter -Wno-error=effc++ -Weffc++ -Wall -Werror -Wextra -Wfloat-equal -Wshadow -Wpointer-arith -Wwrite-strings -Wpacked -Wredundant-decls -Wmissing-format-attribute -ansi -pipe' )
+
+# Collect source files (*.cpp) from all directories
+# in ./src.
+sourceFiles = env.RecursiveGlob('src', '*.cpp')
+
+# Create static library from source files.
+staticLibrary = env.StaticLibrary(MODULE_NAME, sourceFiles)
+#env.Append(LIBS = staticLibrary)
+
+# Add library for carolocup
+env.Append(CPPPATH = ['/opt/msv/' + os.environ['GROUP'] + '/include/'])
+env.Append(LIBPATH = ['/opt/msv/' + os.environ['GROUP'] + '/lib/'])
+env.Append(LIBS = ['libmsv-data'])
+
+# Collect application files.
+applicationFiles = env.Glob('apps/*.cpp')    
+# Create applications using the static library.
+binaries = []
+for application in applicationFiles:
+    filename, extension = os.path.splitext(application.abspath)
+    files = []
+    files.append(application)
+    files.append(sourceFiles)
+    binary = env.Program(filename, files)
+    binaries.extend(binary)
+
+# TestSuites
+generatedTestPrograms = []
+executedTests = []
+generatedReports = []
+
+allSuites = env.Glob('testsuites/*.h')
+if (allSuites == []):
+    print "Keine Testfaelle vorhanden: " + MODULE_NAME
+else:
+    if (SELECTOR):
+        testsuites = env.selectTestSuites(allSuites)
+    else:
+        testsuites = allSuites
+                
+    generatedTestPrograms, executedTests, generatedReports = env.Test(MODULE_NAME, sourceFiles, testsuites, "report-coverage.txt", "report-valgrind.txt")
+    
+# Install Targets
+if (INSTALL):
+    # Deploy to install_dir specified by the commandline..
+    install = IMPORTED_ENVIRONMENT.Install(IMPORTED_ENVIRONMENT['install_dir'] + '/bin', binaries)
+    
+    IMPORTED_ENVIRONMENT.Alias('install-' + MODULE_NAME, install)
+    IMPORTED_ENVIRONMENT.Alias('install-all', 'install-' + MODULE_NAME)
+    
+    # Add install dependencies to the shared libraries.
+    IMPORTED_ENVIRONMENT.Depends('install-' + MODULE_NAME, 'install-libs')
+
+# Return binaries, static library and install-targets to use
+# them in the SConstruct file.
+Return ("staticLibrary", "binaries", "generatedTestPrograms", "executedTests", "generatedReports")

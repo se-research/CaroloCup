@@ -1,0 +1,265 @@
+# Call the same function that SCons does for the --site-dir option.
+import SCons.Script
+SCons.Script.Main._load_site_scons_dir(SCons.Node.FS.get_default_fs().SConstruct_dir, './_buildtools/site_scons')
+
+import os.path
+import sys
+import hesperia_version
+import hesperia_libraries
+
+###############################################################################
+# SCons Environment 
+############################################################################### 
+globalEnv = Environment(tools = ['default', 
+                                 'CxxTest', 
+                                 'Tools', 
+                                 'ccache', 
+                                 'qt4',
+                                 'Valgrind',
+                                 'Coverage',
+                                 'Testing'])
+
+globalEnv.EnableQt4Modules(['QtCore', 'QtOpenGL'], debug=False)
+
+
+# Kommandozeilenoptionen fuer scons festlegen und das Environment anhand 
+# benoetigter Bibliotheken und Header konfigurieren. Siehe hesperia-libraries.py 
+# fuer mehr Informationen.
+vars = Variables()
+vars.Add(PathVariable('build_dir', 
+                          'Directory for built artifacts', 
+                          './build',
+                          PathVariable.PathIsDirCreate))
+
+vars.Add(PathVariable('install_dir', 
+                          'Installation Directory', 
+                          '/usr/local',
+                          PathVariable.PathIsDirCreate))
+    
+vars.Add(ListVariable('debug', 
+                          'Enables different useful compiler flags for debugging',
+                          'none',
+                          ['symbols', 'symbols_std', 'profile', 'coverage'] ))
+
+vars.Add(BoolVariable('valgrind', 
+                      'Enables memory analysis using Valgrind',
+                      '1'))
+
+vars.Add(BoolVariable('noGUI', 
+                      'Disables TestsuiteComposer and runs all testsuites',
+                      False))
+
+vars.Add(ListVariable('tests', 
+                      'How to do tests?',
+                      'report',
+                      ['no', 'fast', 'report', 'select']))
+
+
+vars.Update(globalEnv)
+globalEnv = hesperia_libraries.configureEnvironment(globalEnv)
+ 
+print "   Generating libcore/include/core/version.h"
+
+hesperia_version.generateVersionHeader('./libcore/include/core/version.h', 
+                                       './libcore/include/core/version.template',
+                                       1, False )
+
+try:
+    if (os.environ['CxxTestXmlFilePrinter'] == "1"):
+        globalEnv.Replace(CXXTEST_PRINTER = 'XmlFilePrinter')
+        globalEnv.Replace(TESTING_BUILDSERVER = True)
+        globalEnv['tests'] = 'report'
+except: pass
+
+#print env['CXXTEST_PRINTER']
+###############################################################################
+# Compiler-Flags
+###############################################################################
+CompilerFlags_Default = '-Wno-deprecated -Wno-error=effc++ -Weffc++ -Wall -Werror -Wextra -Wfloat-equal -Wshadow -Wpointer-arith -Wwrite-strings -Wpacked -Wredundant-decls -Wmissing-format-attribute -ansi -pipe'
+CompilerFlags_Symbols = ' -g -ggdb'
+CompilerFlags_SymbolsSTD = ' -D_GLIBCXX_DEBUG'
+CompilerFlags_Profiling = ' -pg'
+CompilerFlags_Coverage = ' -fprofile-arcs -ftest-coverage'
+CompilerFlags_Optimization = '-g -O3 -fmodulo-sched -ftree-loop-linear -ftree-loop-im -funswitch-loops -fivopts -ftree-vectorize -ftracer -fprefetch-loop-arrays -fweb -mtune=pentium-m -march=pentium-m -mmmx -msse -msse2 -mfpmath=sse'
+
+globalEnv.Append(CCFLAGS = CompilerFlags_Default )
+
+if 'optimize' in globalEnv['debug']:
+    print 'Optimization enabled'
+    globalEnv.Append(CCFLAGS = CompilerFlags_Optimization)
+    
+if 'symbols' in globalEnv['debug']:
+    print 'Debug symbols enabled'
+    globalEnv.Append(CCFLAGS = CompilerFlags_Symbols)
+    
+if 'symbols_std' in globalEnv['debug']:
+    print 'Debug version of STD enabled'
+    globalEnv.Append(CCFLAGS = CompilerFlags_Symbols + CompilerFlags_SymbolsSTD)
+    
+if 'profile' in globalEnv['debug']:
+    print 'Profiling with gprof enabled for release builds. See "man gprof" for details'
+    globalEnv.Append(CCFLAGS = CompilerFlags_Symbols + CompilerFlags_Profiling)
+    globalEnv.Append(LINKFLAGS = CompilerFlags_Profiling)
+    
+if 'coverage' in globalEnv['debug']:
+    print 'Coverage analysis with gcov enabled for release builds. See "man gcov" for details'
+    globalEnv.Append(CCFLAGS = CompilerFlags_Symbols + CompilerFlags_Coverage)
+    globalEnv.Append(LINKFLAGS = CompilerFlags_Coverage)        
+
+###############################################################################
+# Globale Include Pfade 
+###############################################################################
+globalEnv.Append(CPPPATH = ['#libhesperia/include/'])
+globalEnv.Append(CPPPATH = ['#libcore/include/'])
+# Includes fuer CxxTest
+globalEnv.Append(CPPPATH = ['#_buildtools/cxxtest/'])
+globalEnv.Append(CPPPATH = ['#'])
+globalEnv.Append(CPPPATH = ['/usr/include/qt4/Qt'])
+globalEnv.Append(CPPPATH = ['/usr/include/qt4/QtGui'])
+
+###############################################################################
+# Suchpfade fuer shared libraries 
+###############################################################################
+globalEnv.Append( LINKFLAGS = Split('-z origin') )
+globalEnv.Append(RPATH=[globalEnv.Literal('\\$$ORIGIN/../../../libhesperia/release')])
+globalEnv.Append(RPATH=[globalEnv.Literal('\\$$ORIGIN/../../../libcore/release')])
+globalEnv.Append(RPATH=[globalEnv.Literal('\\$$ORIGIN/../lib')])
+
+###############################################################################
+# Verbose bzw. kein Verbose macht die Ausgabe uebersichtlicher
+###############################################################################
+if ARGUMENTS.get('VERBOSE') != "1":
+    globalEnv['CCCOMSTR'] = "RELEASE: Compiling $SOURCE"
+    globalEnv['LINKCOMSTR'] = "RELEASE: Linking $TARGET"
+    globalEnv['CXXCOMSTR'] = "RELEASE: Compiling (static) $SOURCE"
+    globalEnv['LINKCOMSTR'] = "RELEASE: Linking $TARGET"
+    globalEnv['SHCXXCOMSTR'] = "RELEASE: Compiling (dynamic) $SOURCE"
+    globalEnv['SHLINKCOMSTR'] = "RELEASE: Linking shared library $TARGET"
+      
+
+###############################################################################
+# Testing Environment 
+###############################################################################
+testingEnv = globalEnv.Clone()
+testingEnv.Append(CCFLAGS = CompilerFlags_Symbols + CompilerFlags_Coverage)
+testingEnv.Append(LINKFLAGS = CompilerFlags_Coverage)
+
+if ARGUMENTS.get('VERBOSE') != "1":
+    testingEnv['CCCOMSTR'] = "TESTING: Compiling $SOURCE"
+    testingEnv['LINKCOMSTR'] = "TESTING: Linking $TARGET"
+    testingEnv['CXXCOMSTR'] = "TESTING: Compiling (static) $SOURCE"
+    testingEnv['LINKCOMSTR'] = "TESTING: Linking $TARGET"
+    testingEnv['SHCXXCOMSTR'] = "TESTING: Compiling (dynamic) $SOURCE"
+    testingEnv['SHLINKCOMSTR'] = "TESTING: Linking shared library $TARGET"
+
+###############################################################################
+# Projekt-Erstellung
+###############################################################################
+enableTestSuiteSelector = False
+if 'select' in globalEnv['tests']:
+    enableTestSuiteSelector = True
+    globalEnv['tests'] = 'report'
+
+LIBS = [ 
+        'libcore',
+        'libhesperia',
+       ]
+
+for lib in LIBS:
+    releaseLib, releaseBin, releaseTest, releaseExecution, releaseReport = SConscript(lib+'/SConscript',
+                                variant_dir = globalEnv['build_dir']+'/' + lib + '/release',
+                                exports = { 'LIBRARY_NAME' : lib,
+                                            'ENVIRONMENT' : globalEnv ,
+                                            'INSTALL' : True,
+                                            'SELECTOR' : enableTestSuiteSelector
+                                          },
+                                duplicate=0)
+    
+    debugLib, debugBin, debugTest, debugExecution, debugReport = SConscript(lib + '/SConscript',
+                                variant_dir = globalEnv['build_dir']+'/' + lib + '/debug',
+                                exports = { 'LIBRARY_NAME' : lib,
+                                            'ENVIRONMENT' : testingEnv,
+                                            'INSTALL' : False,
+                                            'SELECTOR' : enableTestSuiteSelector 
+                                          },
+                                duplicate=1)    
+    # Testfall
+    if 'no' in globalEnv['tests']:        
+        globalEnv.Alias(lib, [releaseLib, releaseBin] )
+        
+    if 'fast' in globalEnv['tests']:
+        print 'Fast tests are not available for libraries. Executing test with reports'
+        globalEnv.Depends(releaseBin, [debugLib, debugTest, debugExecution, debugReport])
+        globalEnv.Depends(releaseLib, [debugLib, debugTest, debugExecution, debugReport])
+        globalEnv.Alias(lib, [debugLib, debugTest, debugExecution, debugReport, releaseLib, releaseBin])
+        #globalEnv.Alias(lib, [releaseLib, releaseTest, releaseExecution, releaseBin])
+        
+    if 'report' in globalEnv['tests']:
+        globalEnv.Depends(releaseBin, [debugLib, debugTest, debugExecution, debugReport])
+        globalEnv.Depends(releaseLib, [debugLib, debugTest, debugExecution, debugReport])
+        globalEnv.Alias(lib, [debugLib, debugTest, debugExecution, debugReport, releaseLib, releaseBin])
+    
+    libName = releaseLib[0].name
+    libPath = '#/'+globalEnv['build_dir'] + '/' + lib + '/release/'
+    globalEnv.Append(LIBS = libName)
+    globalEnv.Append(LIBPATH = libPath)    
+    testingEnv.Append(LIBS = libName)
+    testingEnv.Append(LIBPATH = libPath)
+        
+
+Export('globalEnv', 'testingEnv')
+#monitor
+releaseMonitor = SConscript('monitor/SConscript',
+                            build_dir = globalEnv['build_dir'] + '/monitor/release',
+                            duplicate=0)
+testingMonitor = SConscript('monitor/SConscriptTesting',
+                            build_dir = globalEnv['build_dir'] + '/monitor/testing',
+                            duplicate=1)
+   
+globalEnv.Depends(releaseMonitor, testingMonitor) 
+globalEnv.Alias('monitor', [testingMonitor, releaseMonitor])
+    
+# Module bauen
+MODULES = [ 'supercomponent',
+                 'recorder',
+                 'player',
+                 'egocontroller',
+                 'camgen',
+                 'rec2stdout',
+                 'rec2video',
+                 'vehicle',
+                 'drivenpath',
+                 'irus' ] 
+
+
+for module in MODULES:
+    releaseLib, releaseBin, releaseTest, releaseExecution, releaseReport = SConscript(module + '/SConscript',
+                                variant_dir = 'build/' + module + '/release',
+                                exports = { 'MODULE_NAME' : module,
+                                            'IMPORTED_ENVIRONMENT' : globalEnv ,
+                                            'INSTALL' : True,
+                                            'SELECTOR' : enableTestSuiteSelector
+                                          },
+                                duplicate=0)
+
+    debugLib, debugBin, debugTest, debugExecution, debugReport = SConscript(module + '/SConscript',
+                                variant_dir = 'build/' + module + '/debug',
+                                exports = { 'MODULE_NAME' : module,
+                                            'IMPORTED_ENVIRONMENT' : testingEnv,
+                                            'INSTALL' : False,
+                                            'SELECTOR' : enableTestSuiteSelector 
+                                          },
+                                duplicate=1)    
+    # Testfall
+    if 'no' in globalEnv['tests']:        
+        globalEnv.Alias(module, [releaseBin] )
+        
+    if 'fast' in globalEnv['tests']:
+        globalEnv.Depends(releaseBin, releaseExecution) 
+        globalEnv.Alias(module, [releaseTest, releaseExecution, releaseBin])
+        
+    if 'report' in globalEnv['tests']:
+        globalEnv.Depends(releaseBin, debugReport)
+        globalEnv.Alias(module, [debugTest, debugExecution, debugReport, releaseBin])
+        
+Default(LIBS, MODULES)

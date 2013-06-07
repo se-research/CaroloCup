@@ -1,0 +1,14 @@
+/*
+ * OpenDaVINCI.
+ *
+ * This software is open source. Please see COPYING and AUTHORS for further information.
+ */
+
+#ifndef OPENDAVINCI_CORE_CONFIG_H_
+#define OPENDAVINCI_CORE_CONFIG_H_
+
+/* These configuration parameters are determined by CMake and set automagically. */
+#cmakedefine HAVE_BOOST_LIBRARIES /* This flag indicates if Boost is available. */
+#cmakedefine HAVE_BOOST_NEWSPIRIT /* This flag indicates if a Boost version newer than 1.37 is available. */
+
+#endif // OPENDAVINCI_CORE_CONFIG_H_

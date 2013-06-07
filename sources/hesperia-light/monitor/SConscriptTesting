@@ -1,0 +1,24 @@
+###############################################################################
+# Setup
+###############################################################################
+Import('testingEnv')
+#Import('libhesperia_Testing')
+#Import('libhesperia_Release')
+
+MODULE_NAME = 'monitor'
+
+env = testingEnv.Clone()
+env.Append(CPPPATH = 'include/')
+#env.Append(LIBS = libhesperia_Release)
+
+SOURCE_FILES = env.RecursiveGlob('src', '*.cpp')
+SOURCE_FILES.remove(env.File('src/MainModule.cpp'))
+TESTSUITES = Glob('testsuites/*.h')
+
+if (TESTSUITES == []):
+    print "Keine Testfaelle vorhanden: " + MODULE_NAME
+    Return()
+
+result = env.Test__DEPRECATED(MODULE_NAME, SOURCE_FILES, TESTSUITES, "report-coverage.txt", "report-valgrind.txt")
+
+Return ("result")
