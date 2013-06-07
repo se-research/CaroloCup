@@ -31,7 +31,7 @@ void mypwmInit(void){
   /*
    * Initializes the PWM driver 4, routes the TIM4 outputs to the board LEDs.
    */
-  pwmStart(&PWMD4, &pwmcfg);
+  pwmStart(&PWMD3, &pwmcfg);
   palSetPadMode(GPIOD, GPIOD_LED4, PAL_MODE_ALTERNATE(2));      /* Green.   */
   palSetPadMode(GPIOD, GPIOD_LED3, PAL_MODE_ALTERNATE(2));      /* Orange.  */
   palSetPadMode(GPIOD, GPIOD_LED5, PAL_MODE_ALTERNATE(2));      /* Red.     */

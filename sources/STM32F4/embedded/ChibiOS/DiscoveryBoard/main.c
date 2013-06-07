@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #include "ch.h"
 #include "hal.h"
@@ -9,64 +10,61 @@
 #include "chprintf.h"
 
 #include "PWM/PWM.h"
-#include "ADC/ADC.h"
 #include "USB/USB.h"
 #include "Misc/Misc.h"
 #include "SPI/SPI.h"
-#include "IMU/IMU.h"
+#include "msv/include/RAZOR.h"
+#include "msv/include/protocol_byte.h"
+#include "msv/include/motor.h"
+#include "msv/include/ultrasonic.h"
+#include "msv/include/IMU.h"
+#include "msv/include/ir.h"
 
+int rcvData[3]={0,0,0}; 
 
-
-
-/*
- * assert Shell Commands to functions
- */
-
-static const ShellCommand commands[] = {
-  {"mem", cmd_mem},
-  {"threads", cmd_threads},
-  {"measure", cmd_measure},
-  {"m", cmd_measure},
-  {"measureAnalog", cmd_measureA},
-  {"ma", cmd_measureA},
-  {"vref", cmd_Vref},
-  {"v", cmd_Vref},
-  {"temperature", cmd_Temperature},
-  {"te", cmd_Temperature},
-  {"measureDirect", cmd_measureDirect},
-  {"md", cmd_measureDirect},
-  {"measureContinuous", cmd_measureCont},
-  {"mc", cmd_measureCont},
-  {"readContinuousData", cmd_measureRead},
-  {"rd", cmd_measureRead},
-  {"stopContinuous", cmd_measureStop},
-  {"sc", cmd_measureStop},
-  {"printAccel", cmd_printAccel},
-  {"pa", cmd_printAccel},
-  {NULL, NULL}
+const SerialConfig portConfig2 = {
+    115000,
+    0,
+    USART_CR2_STOP1_BITS | USART_CR2_LINEN,
+    USART_CR3_CTSE
 };
 
+void parse(char *str) {
+  char tmp[4][4];
+  int len =strlen(str);
+  int x=0,y=0,i=0,j=0;
+  //delete all in temp
+  for (i=0;i<4;i++)
+      for (j=0;j<4;j++)
+          tmp[i][j]=' ';
+  //pharse to array of string
+  for (i=0;i<len;i++)
+  {
+    if (str[i]!=',')tmp[x][y]=str[i];
+    y++;	  
+    if (str[i]==','){
+        tmp[x][y]='\0';
+        x++;
+	y=0; 
+    }
+  }
+  //convert small string to array
+  for (i=0;i<4;i++) rcvData[i]=atoi (tmp[i]);
+}
 
 /*
- * Shell configuration
- */
-
-#define SHELL_WA_SIZE   THD_WA_SIZE(2048)
-
-static const ShellConfig shell_cfg1 = {
-  (BaseSequentialStream *)&SDU1,
-  commands
-};
-
-
-/*
- * Application entry point.
- */
+* Application entry point.
+*/
 int main(void) {
-  /*
-   * Shell thread
-   */
-  Thread *shelltp = NULL;
+  int8_t accelData[2]={0,0};     	   // Discovery Board's Accelerometer
+  uint8_t receivedBuff[4]={0,0,0,0}; 	   // Received request/information from PandaBoard
+  uint8_t sentData[4] = {0,0,0,0}; // Returned Information (reply) to the PandaBoard
+  float imuData[7]={0,0,0,0,0,0,0};        	   // IMU calculated data based on Razor Boad
+  int* razorInfo;                  // Razor Board Data
+  int steering = 0;
+  int speed = 0;
+  int ir_data[3]={0,0,0}; 
+  int16_t us_data[3]={0,0,0};
 
   /*
    * System initializations.
@@ -76,39 +74,56 @@ int main(void) {
    *   RTOS is active.
    */
   halInit();
-  chSysInit();
-
-  /*
-   * Activate custom stuff
-   */
+  chSysInit(); 
+  
   mypwmInit();
-  myADCinit();
-  mySPIinit();
+   
+ // Initializing Motor
+  motorInit();
 
-  /*
-   * Activates the USB driver and then the USB bus pull-up on D+.
-   */
+  // Initializing IR Thread
+  ADCinit();
+
+  // Initializing US Thread
+ // myUltrasonicInit();
+  
+  // Initializing Discovery Board's Accelerometer
+  //mySPIinit();
+
+  // Initializing Razor Board
+  myRazorInit();
+
+  // Activates the USB driver and then the USB bus pull-up on D+.
   myUSBinit();
 
-  /*
-   * Initialize IMU.
-   */
+  // Initializing IMU Calculations. 
   initIMU();
 
-
+  //Starting the usb configuration
+  sdStart(&SDU1,&portConfig2);
+  char receivedInfo[11];
+ 
   /*
-   * Main loop, does nothing except spawn a shell when the old one was terminated
+   * Main loop, it takes care of reciving the requests from Panda Board using USB protocol,
+   * and reply with the requested data.
    */
   while (TRUE) {
-    if (!shelltp && isUsbActive())
-      {
-        shelltp = shellCreate(&shell_cfg1, SHELL_WA_SIZE, NORMALPRIO);
-      }
-    else if (chThdTerminated(shelltp)) {
-      chThdRelease(shelltp);    /* Recovers memory of the previous shell.   */
-      shelltp = NULL;           /* Triggers spawning of a new shell.        */
-    }
+   receivedInfo[0]='T';
+   sdRead(&SDU1, receivedInfo, 10);
+   
+  // getImuValues(imuData);
+   //   getAccel(accelData);
+  // getIR(ir_data);  
+   //  getUS(us_data);
 
-    chThdSleepMilliseconds(1000);
-  }
+   if(receivedInfo[0] != 'T'){
+	receivedInfo[11]='\0';
+	parse(receivedInfo);
+      
+	//setMotorData(-(rcvData[1]-28),rcvData[2]-2);
+        setMotorData(rcvData[1],1550);
+	translate(rcvData[0],ir_data,us_data,razorInfo,imuData,accelData,sentData);
+       	sdWrite(&SDU1, sentData, 4);
+    }
+  }   
 }

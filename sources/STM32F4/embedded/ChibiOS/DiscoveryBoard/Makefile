@@ -92,7 +92,12 @@ CSRC = $(PORTSRC) \
        USB/USB.c \
        Misc/Misc.c \
        SPI/SPI.c \
-       IMU/IMU.c
+       msv/src/motor.c \
+       msv/src/ultrasonic.c \
+       msv/src/IMU.c \
+       msv/src/ir.c \
+       msv/src/RAZOR.c \
+       msv/src/protocol_byte.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
@@ -183,7 +188,7 @@ DINCDIR =
 DLIBDIR =
 
 # List all default libraries here
-DLIBS = -lm
+DLIBS = -lm 
 
 #
 # End of default section

@@ -7,6 +7,7 @@ static Mutex accelMtx;
 
 void cmd_printAccel(BaseSequentialStream *chp, int argc, char *argv[]);
 void cmd_printAccelContinuously(BaseSequentialStream *chp, int argc, char *argv[]);
+void getAccel(int8_t accelData[2]);
 
 void readAccel(void);
 
