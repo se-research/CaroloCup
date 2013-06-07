@@ -172,7 +172,11 @@ class StringProtocolTest : public CxxTest::TestSuite, public core::wrapper::Stri
             data = ntohl(data);
             dataStream.write(reinterpret_cast<char*>(&data), sizeof(uint32_t));
 
+            // The protocol buffer must be zero.
+            TS_ASSERT(protocol.getSizeOfUnhandledData() == 0);
             protocol.receivedPartialString(dataStream.str());
+            // The protocol buffer must be still be zero because it has been completely handled.
+            TS_ASSERT(protocol.getSizeOfUnhandledData() == 0);
 
             TS_ASSERT_DELTA(m_razor.yaw, -1 * YAW, 1e-5);
             TS_ASSERT_DELTA(m_razor.roll, 0, 1e-5);
@@ -209,7 +213,11 @@ class StringProtocolTest : public CxxTest::TestSuite, public core::wrapper::Stri
             data = ntohl(data);
             dataStream.write(reinterpret_cast<char*>(&data), sizeof(uint32_t));
 
+            // The protocol buffer must be zero.
+            TS_ASSERT(protocol.getSizeOfUnhandledData() == 0);
             protocol.receivedPartialString(dataStream.str());
+            // The protocol buffer must be still be zero because it has been completely handled.
+            TS_ASSERT(protocol.getSizeOfUnhandledData() == 0);
 
             TS_ASSERT_DELTA(m_razor.mag_X, MAG_X, 1e-5);
             TS_ASSERT_DELTA(m_razor.mag_Y, -1 * MAG_Y, 1e-5);
@@ -246,7 +254,11 @@ class StringProtocolTest : public CxxTest::TestSuite, public core::wrapper::Stri
             data = ntohl(data);
             dataStream.write(reinterpret_cast<char*>(&data), sizeof(uint32_t));
 
+            // The protocol buffer must be zero.
+            TS_ASSERT(protocol.getSizeOfUnhandledData() == 0);
             protocol.receivedPartialString(dataStream.str());
+            // The protocol buffer must be still be zero because it has been completely handled.
+            TS_ASSERT(protocol.getSizeOfUnhandledData() == 0);
 
             TS_ASSERT_DELTA(m_razor.gyro_X, GYRO_X, 1e-5);
             TS_ASSERT_DELTA(m_razor.gyro_Y, -1 * GYRO_Y, 1e-5);
@@ -283,7 +295,11 @@ class StringProtocolTest : public CxxTest::TestSuite, public core::wrapper::Stri
             data = ntohl(data);
             dataStream.write(reinterpret_cast<char*>(&data), sizeof(uint32_t));
 
+            // The protocol buffer must be zero.
+            TS_ASSERT(protocol.getSizeOfUnhandledData() == 0);
             protocol.receivedPartialString(dataStream.str());
+            // The protocol buffer must be still be zero because it has been completely handled.
+            TS_ASSERT(protocol.getSizeOfUnhandledData() == 0);
 
             TS_ASSERT_DELTA(m_razor.acc_X, ACC_X, 1e-5);
             TS_ASSERT_DELTA(m_razor.acc_Y, -1 * ACC_Y, 1e-5);
@@ -320,7 +336,11 @@ class StringProtocolTest : public CxxTest::TestSuite, public core::wrapper::Stri
             data = ntohl(data);
             dataStream.write(reinterpret_cast<char*>(&data), sizeof(uint32_t));
 
+            // The protocol buffer must be zero.
+            TS_ASSERT(protocol.getSizeOfUnhandledData() == 0);
             protocol.receivedPartialString(dataStream.str());
+            // The protocol buffer must be still be zero because it has been completely handled.
+            TS_ASSERT(protocol.getSizeOfUnhandledData() == 0);
 
             TS_ASSERT_DELTA(m_acc.acc_X, ACC_X, 1e-5);
             TS_ASSERT_DELTA(m_acc.acc_Y, -1 * ACC_Y, 1e-5);
@@ -357,7 +377,11 @@ class StringProtocolTest : public CxxTest::TestSuite, public core::wrapper::Stri
             data = ntohl(data);
             dataStream.write(reinterpret_cast<char*>(&data), sizeof(uint32_t));
 
+            // The protocol buffer must be zero.
+            TS_ASSERT(protocol.getSizeOfUnhandledData() == 0);
             protocol.receivedPartialString(dataStream.str());
+            // The protocol buffer must be still be zero because it has been completely handled.
+            TS_ASSERT(protocol.getSizeOfUnhandledData() == 0);
 
             TS_ASSERT_DELTA(m_VD.getPosition().getX(), POS_X/100.0, 1e-5);
             TS_ASSERT_DELTA(m_VD.getPosition().getY(), POS_Y * (-1)/100.0, 1e-5);
@@ -389,7 +413,11 @@ class StringProtocolTest : public CxxTest::TestSuite, public core::wrapper::Stri
             data = ntohl(data);
             dataStream.write(reinterpret_cast<char*>(&data), sizeof(uint32_t));
 
+            // The protocol buffer must be zero.
+            TS_ASSERT(protocol.getSizeOfUnhandledData() == 0);
             protocol.receivedPartialString(dataStream.str());
+            // The protocol buffer must be still be zero because it has been completely handled.
+            TS_ASSERT(protocol.getSizeOfUnhandledData() == 0);
 
             TS_ASSERT_DELTA(m_VD.getRelTraveledPath(), 0.315, 1e-5);
             TS_ASSERT_DELTA(m_VD.getAbsTraveledPath(), 327.675, 1e-5);
@@ -425,7 +453,11 @@ class StringProtocolTest : public CxxTest::TestSuite, public core::wrapper::Stri
             data = ntohl(data);
             dataStream.write(reinterpret_cast<char*>(&data), sizeof(uint32_t));
 
+            // The protocol buffer must be zero.
+            TS_ASSERT(protocol.getSizeOfUnhandledData() == 0);
             protocol.receivedPartialString(dataStream.str());
+            // The protocol buffer must be still be zero because it has been completely handled.
+            TS_ASSERT(protocol.getSizeOfUnhandledData() == 0);
 
             TS_ASSERT_DELTA(m_VD.getVelocity().getX(), VEL_X/100.0, 1e-5);
             TS_ASSERT_DELTA(m_VD.getVelocity().getY(), VEL_Y * (-1)/100.0, 1e-5);
@@ -455,7 +487,11 @@ class StringProtocolTest : public CxxTest::TestSuite, public core::wrapper::Stri
             data = ntohl(data);
             dataStream.write(reinterpret_cast<char*>(&data), sizeof(uint32_t));
 
+            // The protocol buffer must be zero.
+            TS_ASSERT(protocol.getSizeOfUnhandledData() == 0);
             protocol.receivedPartialString(dataStream.str());
+            // The protocol buffer must be still be zero because it has been completely handled.
+            TS_ASSERT(protocol.getSizeOfUnhandledData() == 0);
 
             TS_ASSERT_DELTA(m_VD.getHeading(), fmod(2047/1000.0*core::data::Constants::PI, 2*core::data::Constants::PI), 1e-5);
         }
@@ -508,7 +544,11 @@ class StringProtocolTest : public CxxTest::TestSuite, public core::wrapper::Stri
             data = ntohl(data);
             dataStream.write(reinterpret_cast<char*>(&data), sizeof(uint32_t));
 
+            // The protocol buffer must be zero.
+            TS_ASSERT(protocol.getSizeOfUnhandledData() == 0);
             protocol.receivedPartialString(dataStream.str());
+            // The protocol buffer must be still be zero because it has been completely handled.
+            TS_ASSERT(protocol.getSizeOfUnhandledData() == 0);
 
             TS_ASSERT(m_IR.size() == 3);
             TS_ASSERT(m_IR.at(0).address == 200);
@@ -575,7 +615,11 @@ class StringProtocolTest : public CxxTest::TestSuite, public core::wrapper::Stri
             data = ntohl(data);
             dataStream.write(reinterpret_cast<char*>(&data), sizeof(uint32_t));
 
+            // The protocol buffer must be zero.
+            TS_ASSERT(protocol.getSizeOfUnhandledData() == 0);
             protocol.receivedPartialString(dataStream.str());
+            // The protocol buffer must be still be zero because it has been completely handled.
+            TS_ASSERT(protocol.getSizeOfUnhandledData() == 0);
 
             TS_ASSERT(m_IR.size() == 3);
             TS_ASSERT(m_IR.at(0).address == 200);
@@ -623,7 +667,11 @@ class StringProtocolTest : public CxxTest::TestSuite, public core::wrapper::Stri
                 data = ntohl(data);
                 dataStream.write(reinterpret_cast<char*>(&data), sizeof(uint32_t));
 
+                // The protocol buffer must be zero.
+                TS_ASSERT(protocol.getSizeOfUnhandledData() == 0);
                 protocol.receivedPartialString(dataStream.str());
+                // The protocol buffer must be still be zero because it has been completely handled.
+                TS_ASSERT(protocol.getSizeOfUnhandledData() == 0);
 
                 TS_ASSERT(m_IR.size() == 3);
                 TS_ASSERT(m_IR.at(0).address == 200);
@@ -668,7 +716,11 @@ class StringProtocolTest : public CxxTest::TestSuite, public core::wrapper::Stri
                 data = ntohl(data);
                 dataStream.write(reinterpret_cast<char*>(&data), sizeof(uint32_t));
 		
+                // The protocol buffer must be zero.
+                TS_ASSERT(protocol.getSizeOfUnhandledData() == 0);
                 protocol.receivedPartialString(dataStream.str());
+                // The protocol buffer must be still be zero because it has been completely handled.
+                TS_ASSERT(protocol.getSizeOfUnhandledData() == 0);
 
                 TS_ASSERT(m_US.size() == 3);
                 TS_ASSERT(m_US.at(0).address == 100);

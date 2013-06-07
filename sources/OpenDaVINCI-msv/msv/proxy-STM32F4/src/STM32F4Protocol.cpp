@@ -28,13 +28,13 @@ namespace msv {
     STM32F4Protocol::~STM32F4Protocol() {
         setSTM32F4DataListener(NULL);
     }
-	std::string itos(int n)
-	{
-	   const int max_size = std::numeric_limits<int>::digits10 + 1 /*sign*/ + 1 /*0-terminator*/;
-	   char buffer[max_size] = {0};
-	   sprintf(buffer, "%d", n);
-	   return std::string(buffer);
-	}
+
+    std::string itos(int  n){
+	// const int max_size = std::numeric_limits<int>::digits10 + 1 /*sign*/ + 1 /*0-terminator*/;
+	char buffer[3] = {0};
+	sprintf(buffer, "%d", n);
+	return std::string(buffer);
+    }
 
     void STM32F4Protocol::setSTM32F4DataListener(STM32F4DataListener *listener) {
         Lock l(m_dataListenerMutex);
@@ -51,9 +51,6 @@ namespace msv {
         if (speed > 2.0) {
             tmpSpeed = 2.0;
         }
-        const double SPEED_RANGE = 2.0 * 2;
-        const double BITS = 63;
-        uint16_t mappedSpeed = (uint8_t)((tmpSpeed + 2.0)/(SPEED_RANGE/BITS));
             
         double tmpSteeringWheelAngle = steeringWheelAngle;
         if (steeringWheelAngle < -28.0) {
@@ -62,13 +59,33 @@ namespace msv {
         if (steeringWheelAngle > 28.0) {
             tmpSteeringWheelAngle = 28.0;
         }
-        const double STEERINGWHEELANGLE_RANGE = 28.0 * 2;
-        uint16_t mappedSteeringWheelAngle = (uint8_t)((tmpSteeringWheelAngle + 2.0)/(STEERINGWHEELANGLE_RANGE/BITS));
 
-        uint16_t data = 0;
-        data = r | (mappedSpeed << 4) | (mappedSteeringWheelAngle << 10);
-	
-	sendByStringSender(itos(data));
+	string steerStr = itos(tmpSteeringWheelAngle);
+	string speedStr = itos(tmpSpeed);
+	string rStr = itos(r);
+
+	if (steerStr.length() ==1) 
+            steerStr = "0"+steerStr;
+	if (speedStr.length() ==1) 
+            speedStr = "0"+speedStr;
+	if (tmpSteeringWheelAngle>=0) 
+            steerStr = "+"+steerStr;
+	if (tmpSpeed>=0)
+            speedStr = "+"+speedStr;
+   	if (rStr.length()==1)
+            rStr = "0"+rStr;
+
+	string sendData = rStr+","+steerStr+","+speedStr;
+	sendByStringSender(sendData);
+    }
+
+    uint32_t STM32F4Protocol::getSizeOfUnhandledData() {
+        // Get the size of received data.
+        m_partialData.seekg(0, ios_base::end);
+        const uint32_t streamSize = m_partialData.tellg();
+        m_partialData.seekg(0, ios_base::beg);
+
+        return streamSize;
     }
 
     void STM32F4Protocol::receivedPartialString(const string &s) {
@@ -82,6 +99,8 @@ namespace msv {
         uint32_t streamSize = m_partialData.tellg();
         m_partialData.seekg(0, ios_base::beg);
 
+        uint32_t packetCounter = 0;
+
         // Decode as much as possible from the currently received data (currently assuming that we will not loose any data).
         while (streamSize >= PACKET_SIZE) {
             // Read next packet.
@@ -94,7 +113,12 @@ namespace msv {
             handlePacket(nextPacket);
 
             streamSize -= PACKET_SIZE;
+            packetCounter++;
         }
+
+        // Remove the received packets from the stream.
+        m_partialData.str(m_partialData.str().substr(packetCounter * PACKET_SIZE));
+
         // Put the write pointer to the end of the stream.
         m_partialData.seekp(0, ios_base::end);
     }
@@ -111,7 +135,8 @@ namespace msv {
         STM32F4Request r = (STM32F4Request)getValueFromPacket(packet, 0, 4);
         uint32_t packetTerminator = getValueFromPacket(packet, 30, 2);
 
-        cout << "(STM32F4Protocol): request: " << (uint32_t)(r) << ", packetTerminator: " << packetTerminator << endl;
+        cout << "(STM32F4Protocol): request: " << (uint32_t)(r) << ", packetTerminator: " << packetTerminator << endl; 
+       printf("PACKET :%x", packet);
 
         switch (r) {
             case NoData:
@@ -373,8 +398,8 @@ namespace msv {
                 cout << "(STM32F4Protocol): STM32F4-TraveledPath: relTraveledPath: " << relTraveledPath
                                                             << ", absTraveledPath: " << absTraveledPath << endl;
 
-                m_vehicleData.setRelTraveledPath(relTraveledPath/2.0/100.0);
-                m_vehicleData.setAbsTraveledPath(absTraveledPath/2.0/100.0);
+                m_vehicleData.setRelTraveledPath((relTraveledPath*2.0)/100.0);
+                m_vehicleData.setAbsTraveledPath((absTraveledPath*2.0)/100.0);
 
                 {
                     Lock l(m_dataListenerMutex);

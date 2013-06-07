@@ -402,7 +402,7 @@ namespace core {
 
             void POSIXSerialPort::sendImplementation(const std::string &data) {
                 m_socketMutex->lock();
-                int32_t numBytes = ::write(m_fileDescriptor, data.c_str(), data.length());
+                int32_t numBytes = ::write(m_fileDescriptor, data.c_str(), 10);
 
                 if ( numBytes == -1) {
                     // Handle error.

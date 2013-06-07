@@ -391,6 +391,13 @@ namespace msv {
 
             virtual void receivedPartialString(const string &partialData);
 
+            /**
+             * Size of the received unhandled data.
+             *
+             * @return the size of the unhandled data.
+             */
+            uint32_t getSizeOfUnhandledData();
+
         private:
             /**
              * This method handles the actual data for this protocol.

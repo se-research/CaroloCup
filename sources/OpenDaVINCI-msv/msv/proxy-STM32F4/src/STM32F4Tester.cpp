@@ -95,47 +95,55 @@ namespace msv {
         serialPort->start();
 
         uint32_t counter = 0;
+        double degree = -28;
+	int step = 1;
         while (getModuleState() == ModuleState::RUNNING) {
             counter++;
             if (counter == 1) {
-                p.request(STM32F4Protocol::AllInfrareds, 0, 0);
+                p.request(STM32F4Protocol::AllInfrareds, 0, degree);
             }
             if (counter == 2) {
-                p.request(STM32F4Protocol::AllUltrasonics, 0, 0);
+                p.request(STM32F4Protocol::AllUltrasonics, 1, degree);
             }
             if (counter == 3) {
-                p.request(STM32F4Protocol::YawData, 0, 0);
+                p.request(STM32F4Protocol::YawData, 2, degree);
             }
             if (counter == 4) {
-                p.request(STM32F4Protocol::Magnetometer, 0, 0);
+                p.request(STM32F4Protocol::Magnetometer, 3, degree);
             }
             if (counter == 5) {
-                p.request(STM32F4Protocol::Gyroscope, 0, 0);
+                p.request(STM32F4Protocol::Gyroscope, 4, degree);
             }
             if (counter == 6) {
-                p.request(STM32F4Protocol::AccelerometerRazor, 0, 0);
+                p.request(STM32F4Protocol::AccelerometerRazor, 5,degree);
             }
             if (counter == 7) {
-                p.request(STM32F4Protocol::AccelerometerSTM32, 0, 0);
+                p.request(STM32F4Protocol::AccelerometerSTM32, 6, degree);
             }
             if (counter == 8) {
-                p.request(STM32F4Protocol::RazorAll, 0, 0);
+                p.request(STM32F4Protocol::RazorAll, 7, degree);
             }
             if (counter == 9) {
-                p.request(STM32F4Protocol::RazorAllSTM32, 0, 0);
+                p.request(STM32F4Protocol::RazorAllSTM32,8,degree);
             }
             if (counter == 10) {
-                p.request(STM32F4Protocol::CurrentPosition, 0, 0);
+                p.request(STM32F4Protocol::CurrentPosition, 0, degree);
             }
             if (counter == 11) {
-                p.request(STM32F4Protocol::TraveledPath, 0, 0);
+                p.request(STM32F4Protocol::TraveledPath, 0, degree);
             }
             if (counter == 12) {
-                p.request(STM32F4Protocol::Velocity, 0, 0);
+                p.request(STM32F4Protocol::Velocity, 0, degree);
             }
             if (counter == 13) {
-                p.request(STM32F4Protocol::Orientation, 0, 0);
+                p.request(STM32F4Protocol::Orientation, 0, degree);
             }
+
+            if(degree > 28)
+            	step=-1;
+            if(degree < -28) 
+		step=1;
+	    degree+=step;
             if (counter > 13) counter = 0;
         }
 

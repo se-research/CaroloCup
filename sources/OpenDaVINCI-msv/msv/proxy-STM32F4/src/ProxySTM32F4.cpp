@@ -159,10 +159,10 @@ namespace msv {
         const string SERIAL_PORT = u.getResource();
         const uint32_t SERIAL_SPEED = kv.getValue<uint32_t>("proxy-STM32F4.serial_speed");
 
-        const double WHEELBASE = kv.getValue<double>("proxy-STM32F4.wheelbase");
+       /* const double WHEELBASE = kv.getValue<double>("proxy-STM32F4.wheelbase");
         const double MAX_STEERING_LEFT_RAD = atan(WHEELBASE/kv.getValue<double>("proxy-STM32F4.minimumTurningRadiusLeft") );
         const double MAX_STEERING_RIGHT_RAD = atan(WHEELBASE/kv.getValue<double>("proxy-STM32F4.minimumTurningRadiusRight"));
-        const bool INVERTED_STEERING = (kv.getValue<int32_t>("proxy-STM32F4.invertedSteering") != 0) ? true : false;
+        const bool INVERTED_STEERING = (kv.getValue<int32_t>("proxy-STM32F4.invertedSteering") != 0) ? true : false;*/
         const double SPEED_MAX = kv.getValue<double>("proxy-STM32F4.speed.max");
 
         const string USER_START_BUTTON_FILE = kv.getValue<string>("proxy-STM32F4.user_start_button_file");
@@ -502,6 +502,7 @@ namespace msv {
                 // Transform data from VehicleControl to UDP_Server packet data.
                 // Transform vc.getSteeringWheelAngle() (-MAX_STEERING_LEFT_RAD .. 0 (straight) .. MAX_STEERING_RIGHT_RAD (max right)) to +255 (max left) .. 127 (straight) .. 0 (max right) in the regular case
                 // Transform vc.getSteeringWheelAngle() (MAX_STEERING_LEFT_RAD .. 0 (straight) .. -MAX_STEERING_RIGHT_RAD (max right)) to +255 (max left) .. 127 (straight) .. 0 (max right) in the inverted case
+/*
                 if (fabs(vc.getSteeringWheelAngle()) < 1e-2) {
                     // Straight forward.
                     steering = 127;
@@ -558,7 +559,8 @@ namespace msv {
                         }
                     }
                 }
-
+*/
+		steering = vc.getSteeringWheelAngle();
                 speed = vc.getSpeed();
                 if (speed < -SPEED_MAX) {
                     speed = -SPEED_MAX;
