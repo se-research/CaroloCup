@@ -15,6 +15,11 @@
 void initializeUltrasonic(void);
 
 /**
+ * @return The associated thread for handling the ultrasonic sensors.
+ */
+Thread* getThreadUltrasonic(void);
+
+/**
  * This method transfers the distances measured
  * by the infrared sensors to a data structure that
  * will be handled as part of a protocol.

@@ -10,6 +10,8 @@
 // Data structures and configuation.
 ///////////////////////////////////////////////////////////////////////////////
 
+static Thread *ThreadRazor9DoFIMU = NULL;
+
 // Configuration of the Razor 9DoF IMU communication.
 const SerialConfig portConfig = {
     57600,
@@ -26,6 +28,10 @@ static uint8_t buf[64];
 ///////////////////////////////////////////////////////////////////////////////
 // Interface methods.
 ///////////////////////////////////////////////////////////////////////////////
+
+Thread* getThreadRazor9DoFIMU(void) {
+    return ThreadRazor9DoFIMU;
+}
 
 void getRazor9DoFIMUData(int data[3]) {
     (void)data;
@@ -136,8 +142,9 @@ void readRazor9DoFIMU(void) {
 static WORKING_AREA(workingAreaThread_Razor9DoFIMU, 512);
 static msg_t Thread_Razor9DoFIMU(void *arg) {
     (void)arg;
-
     chRegSetThreadName("Razor9DoFIMU");
+
+    waitForCompletingInitialization();
 
     while (TRUE) {
         readRazor9DoFIMU();
@@ -164,7 +171,8 @@ void initializeRazor9DoFIMU(void) {
     palSetPadMode(GPIOD, 9, PAL_MODE_ALTERNATE(7));
 
     // Start infrared reading thread.
-//    chThdCreateStatic(workingAreaThread_Razor9DoFIMU, sizeof(workingAreaThread_Razor9DoFIMU),
-//                      NORMALPRIO + 10, Thread_Razor9DoFIMU, NULL);
+    ThreadRazor9DoFIMU = chThdCreateStatic(workingAreaThread_Razor9DoFIMU,
+                                           sizeof(workingAreaThread_Razor9DoFIMU),
+                                           NORMALPRIO + 10, Thread_Razor9DoFIMU, NULL);
 }
 

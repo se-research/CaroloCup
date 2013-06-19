@@ -10,6 +10,8 @@
 // Data structures and configuation.
 ///////////////////////////////////////////////////////////////////////////////
 
+static Thread *ThreadUltrasonic = NULL;
+
 // I2C interface configuration.
 static const I2CConfig i2cConfiguration = {
     OPMODE_I2C,
@@ -38,6 +40,10 @@ void setUltrasonicAddress(BaseSequentialStream *chp, int oldAddress, int newAddr
 ///////////////////////////////////////////////////////////////////////////////
 // Interface methods.
 ///////////////////////////////////////////////////////////////////////////////
+
+Thread * getThreadUltrasonic(void) {
+    return ThreadUltrasonic;
+}
 
 void getUltrasonicData(int16_t data[3]) {
     data[0] = (int)dUS0;
@@ -189,8 +195,9 @@ void readUltrasonic(void) {
 static WORKING_AREA(workingAreaThread_Ultrasonic, 512);
 static msg_t Thread_Ultrasonic(void *arg) {
     (void)arg;
-
     chRegSetThreadName("Ultrasonic");
+
+    waitForCompletingInitialization();
 
     while (TRUE) {
         if (!hasShell() || continuousMeasurements) {
@@ -215,8 +222,9 @@ void initializeUltrasonic(void) {
     palSetPadMode(GPIOB, 6, PAL_MODE_ALTERNATE(4) | PAL_STM32_OTYPE_OPENDRAIN); // SCL
     palSetPadMode(GPIOB, 9, PAL_MODE_ALTERNATE(4) | PAL_STM32_OTYPE_OPENDRAIN); // SDA
 
-    // Start temperature reading thread.
-    chThdCreateStatic(workingAreaThread_Ultrasonic, sizeof(workingAreaThread_Ultrasonic),
-                      NORMALPRIO + 10, Thread_Ultrasonic, NULL);
+    // Start ultrasonic reading thread.
+    ThreadUltrasonic = chThdCreateStatic(workingAreaThread_Ultrasonic,
+                                         sizeof(workingAreaThread_Ultrasonic),
+                                         NORMALPRIO + 10, Thread_Ultrasonic, NULL);
 }
 

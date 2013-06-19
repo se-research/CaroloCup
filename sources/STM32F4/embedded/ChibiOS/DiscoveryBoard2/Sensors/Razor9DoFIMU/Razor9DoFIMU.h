@@ -15,6 +15,11 @@
 void initializeRazor9DoFIMU(void);
 
 /**
+ * @return The associated thread for handling the Razor 9DoF IMU.
+ */
+Thread* getThreadRazor9DoFIMU(void);
+
+/**
  * This method transfers the 9DoF data measured
  * by the Razor 9DoF IMU sensor to a data structure that
  * will be handled as part of a protocol.

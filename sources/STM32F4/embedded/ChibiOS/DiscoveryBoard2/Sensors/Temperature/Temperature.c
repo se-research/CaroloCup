@@ -10,6 +10,8 @@
 // Data structures and configuation.
 ///////////////////////////////////////////////////////////////////////////////
 
+static Thread *ThreadTemperature = NULL;
+
 #define TEMPERATURE_ADC_GRP_NUM_CHANNELS    1
 #define TEMPERATURE_ADC_GRP_BUF_DEPTH       8
 #define V25                                 0.760
@@ -36,6 +38,10 @@ static const ADCConversionGroup temperatureSensor = {
 ///////////////////////////////////////////////////////////////////////////////
 // Interface methods.
 ///////////////////////////////////////////////////////////////////////////////
+
+Thread* getThreadTemperature(void) {
+    return ThreadTemperature;
+}
 
 void getTemperatureData(int8_t data[1]) {
     data[0] = (int8_t)temp;
@@ -74,8 +80,9 @@ void readTemperature(void) {
 static WORKING_AREA(workingAreaThread_Temperature, 512);
 static msg_t Thread_Temperature(void *arg) {
     (void)arg;
-
     chRegSetThreadName("Temperature");
+
+    waitForCompletingInitialization();
 
     while (TRUE) {
         readTemperature();
@@ -97,7 +104,8 @@ void initializeTemperature(void) {
     adcSTM32EnableTSVREFE();
 
     // Start temperature reading thread.
-    chThdCreateStatic(workingAreaThread_Temperature, sizeof(workingAreaThread_Temperature),
-                      NORMALPRIO + 10, Thread_Temperature, NULL);
+    ThreadTemperature = chThdCreateStatic(workingAreaThread_Temperature,
+                                          sizeof(workingAreaThread_Temperature),
+                                          NORMALPRIO + 5, Thread_Temperature, NULL);
 }
 

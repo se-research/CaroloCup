@@ -58,6 +58,19 @@ void parse(char *str) {
         receiveBuffer[i] = atoi(tmp[i]);
 }
 
+void activityIndicator(void) {
+    static int counter = 0;
+
+    if (counter < 3) {
+        changeStateLED(GREEN, ON);
+    }
+    if (counter >= 3 && counter < 6) {
+        changeStateLED(GREEN, OFF);
+    }
+    if (counter >= 6) counter = 0;
+    counter++;
+}
+
 void runProtocol(void) {
     int8_t accelData[2] = {0,0}; // Data from STM32F4 Discovery Board's onboard accelerometer.
     int ir_data[3] = {0,0,0}; // Data from the three connected infrared sensors. 
@@ -74,6 +87,9 @@ void runProtocol(void) {
     sdStart((struct SerialDriver*)&SDU1,&portConfig2);
 
     while (TRUE) {
+        // Indicate activity to the user.
+        activityIndicator();
+
         // Update internal data structures.
         getOnboardAccelerometerData(accelData);
         getInfraredData(ir_data);
@@ -88,8 +104,8 @@ void runProtocol(void) {
             receivedInfo[11]='\0';
             parse(receivedInfo);
 
-            // Set the data values for the motor (not implemented yet).
-            //setMotorData(receiveBuffer[1],1550);
+            // Set the data values for the steering servo and the acceleration motor.
+            setMotorData(receiveBuffer[1], 1550);
 
             // Encode our reply according to the requested data into sentData.
             translate(receiveBuffer[0], ir_data, us_data, razorInfo, imuData, accelData, sentData);

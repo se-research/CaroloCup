@@ -15,6 +15,11 @@
 void initializeOnboardAccelerometer(void);
 
 /**
+ * @return The associated thread for handling the onboard accelerometer.
+ */
+Thread* getThreadOnboardAccelerometer(void);
+
+/**
  * This method transfers the onboard accelerometer
  * data to a data structure the will be handled
  * as part of a protocol.

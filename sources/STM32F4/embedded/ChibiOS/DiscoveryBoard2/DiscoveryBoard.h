@@ -17,6 +17,9 @@
 #include "shell.h"
 #include "chprintf.h"
 
+// Here, all the header files for interacting with actors are collected.
+#include "Actors/SteeringAcceleration/SteeringAcceleration.h"
+
 // Here, all the header files for interacting with sensors are collected.
 #include "Sensors/Infrared/Infrared.h"
 //#include "Sensors/Razor9DoFIMU/Razor9DoFIMU.h"

@@ -15,6 +15,11 @@
 void initializeInfrared(void);
 
 /**
+ * @return The associated thread for handling the infrared sensors.
+ */
+Thread* getThreadInfrared(void);
+
+/**
  * This method transfers the distances measured
  * by the infrared sensors to a data structure that
  * will be handled as part of a protocol.

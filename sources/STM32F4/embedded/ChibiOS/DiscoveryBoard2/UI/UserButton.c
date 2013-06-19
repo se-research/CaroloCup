@@ -28,9 +28,9 @@ int isUserButtonPressed(unsigned int timeOut) {
             chThdSleepMilliseconds(FIVE_HUNDRED_MILLISECONDS);
         }
         else {
-            changeStateLED(GREEN, ON);
+            changeStateLED(BLUE, ON);
             chThdSleepMilliseconds(FIVE_HUNDRED_MILLISECONDS);
-            changeStateLED(GREEN, OFF);
+            changeStateLED(BLUE, OFF);
             chThdSleepMilliseconds(FIVE_HUNDRED_MILLISECONDS);
         }
     }

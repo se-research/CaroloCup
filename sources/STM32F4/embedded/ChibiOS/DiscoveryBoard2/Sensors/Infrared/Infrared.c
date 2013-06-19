@@ -10,6 +10,8 @@
 // Data structures and configuation.
 ///////////////////////////////////////////////////////////////////////////////
 
+static Thread *ThreadInfrared = NULL;
+
 #define INFRARED_ADC_GRP_NUM_CHANNELS   3
 #define INFRARED_ADC_GRP_BUF_DEPTH      32
 
@@ -19,6 +21,7 @@ static float dIR0 = 0;
 static float dIR1 = 0;
 static float dIR2 = 0;
 
+// Configuration for the analog inputs.
 static const ADCConversionGroup infraredSensors = {
     FALSE, // No circular buffer mode.
     INFRARED_ADC_GRP_NUM_CHANNELS, // Number of the analog channels.
@@ -36,6 +39,10 @@ static const ADCConversionGroup infraredSensors = {
 ///////////////////////////////////////////////////////////////////////////////
 // Interface methods.
 ///////////////////////////////////////////////////////////////////////////////
+
+Thread * getThreadInfrared(void) {
+    return ThreadInfrared;
+}
 
 void getInfraredData(int data[3]) {
     data[0] = (int)dIR0;
@@ -82,8 +89,9 @@ void readInfrared(void) {
 static WORKING_AREA(workingAreaThread_Infrared, 512);
 static msg_t Thread_Infrared(void *arg) {
     (void)arg;
-
     chRegSetThreadName("Infrared");
+
+    waitForCompletingInitialization();
 
     while (TRUE) {
         readInfrared();
@@ -111,7 +119,8 @@ void initializeInfrared(void) {
 	palSetGroupMode(GPIOC, PAL_PORT_BIT(5), 0, PAL_MODE_INPUT_ANALOG);
 
     // Start infrared reading thread.
-    chThdCreateStatic(workingAreaThread_Infrared, sizeof(workingAreaThread_Infrared),
-                      NORMALPRIO + 10, Thread_Infrared, NULL);
+    ThreadInfrared = chThdCreateStatic(workingAreaThread_Infrared,
+                                       sizeof(workingAreaThread_Infrared),
+                                       NORMALPRIO + 12, Thread_Infrared, NULL);
 }
 

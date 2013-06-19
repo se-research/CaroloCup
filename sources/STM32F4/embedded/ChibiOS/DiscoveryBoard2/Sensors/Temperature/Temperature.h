@@ -15,6 +15,11 @@
 void initializeTemperature(void);
 
 /**
+ * @return The associated thread for handling the temperature sensor.
+ */
+Thread* getThreadTemperature(void);
+
+/**
  * This method transfers the onboard temperature
  * data to a data structure the will be handled
  * as part of a protocol.

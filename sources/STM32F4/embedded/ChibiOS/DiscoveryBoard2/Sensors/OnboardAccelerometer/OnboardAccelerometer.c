@@ -12,6 +12,8 @@
 // Data structures and configuation.
 ///////////////////////////////////////////////////////////////////////////////
 
+static Thread *ThreadOnboardAccelerometer = NULL;
+
 // Four samples are read from the sensor.
 #define MAX_ACCELEROMETER_SAMPLES 4
 
@@ -37,6 +39,10 @@ static const SPIConfig spi1cfg = {
 ///////////////////////////////////////////////////////////////////////////////
 // Interface methods.
 ///////////////////////////////////////////////////////////////////////////////
+
+Thread * getThreadOnboardAccelerometer(void) {
+    return ThreadOnboardAccelerometer;
+}
 
 void getOnboardAccelerometerData(int8_t data[2]) {
     // This method simply returns the accelerometer data for x and y.
@@ -79,8 +85,9 @@ void readOnboardAccelerometer(void) {
 static WORKING_AREA(workingAreaThread_OnboardAccelerometer, 512);
 static msg_t Thread_OnboardAccelerometer(void *arg) {
     (void)arg;
-
     chRegSetThreadName("OnboardAccelerometer");
+
+    waitForCompletingInitialization();
 
     while (TRUE) {
         readOnboardAccelerometer();
@@ -104,7 +111,8 @@ void initializeOnboardAccelerometer(void) {
     lis302dlWriteRegister(&SPID1, LIS302DL_CTRL_REG3, 0x00);
 
     // Start accelerator reading thread.
-    chThdCreateStatic(workingAreaThread_OnboardAccelerometer, sizeof(workingAreaThread_OnboardAccelerometer),
-                     NORMALPRIO + 10, Thread_OnboardAccelerometer, NULL);
+    ThreadOnboardAccelerometer = chThdCreateStatic(workingAreaThread_OnboardAccelerometer,
+                                                    sizeof(workingAreaThread_OnboardAccelerometer),
+                                                    NORMALPRIO + 10, Thread_OnboardAccelerometer, NULL);
 }
 

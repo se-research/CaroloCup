@@ -95,11 +95,12 @@ CSRC = $(PORTSRC) \
        USB/USB.c \
        Protocol/Protocol.c \
        Protocol/ProtocolHandler.c \
+       Actors/SteeringAcceleration/SteeringAcceleration.c \
        Sensors/Infrared/Infrared.c \
        Sensors/OnboardAccelerometer/OnboardAccelerometer.c \
        Sensors/Temperature/Temperature.c \
        Sensors/Ultrasonic/Ultrasonic.c
-#       Sensors/Razor9DoFIMU/Razor9DoFIMU.c \
+#       Sensors/Razor9DoFIMU/Razor9DoFIMU.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.

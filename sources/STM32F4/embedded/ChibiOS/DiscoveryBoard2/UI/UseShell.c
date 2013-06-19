@@ -24,8 +24,14 @@ int useShell(void) {
     if (HAS_SHELL)
         changeStateLED(RED, ON);
     else
-        changeStateLED(GREEN, ON);
+        changeStateLED(BLUE, ON);
 
     return HAS_SHELL;
+}
+
+void waitForCompletingInitialization(void) {
+    Thread *tp = chMsgWait();
+    msg_t msg = chMsgGet(tp);
+    chMsgRelease(tp, msg);
 }
 

@@ -10,6 +10,14 @@
 #include "DiscoveryBoard.h"
 
 /**
+ * This method is invoked as the first call in newly created
+ * threads to suspend the further execution unless the
+ * initialization period with waiting for the user pressing
+ * the button has passed.
+ */
+void waitForCompletingInitialization(void);
+
+/**
  * @return 1 if the user wants to use the shell, 0 otherwise.
  */
 int hasShell(void);
