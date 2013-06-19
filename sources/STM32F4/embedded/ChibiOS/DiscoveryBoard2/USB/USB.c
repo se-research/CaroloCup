@@ -8,7 +8,7 @@
 
 // This code bases on https://github.com/Mathias-L/STM32F4-Discovery-example-code
 
-#include "usb_cdc.h"
+#include "serial_usb.h"
 #include "USB/USB.h"
 #include "USB/usbdescriptor.h"
 
@@ -101,11 +101,11 @@ static void usb_event(USBDriver *usbp, usbevent_t event) {
             /* Enables the endpoints specified into the configuration.
                Note, this callback is invoked from an ISR so I-Class functions
                must be used.*/
-            usbInitEndpointI(usbp, USB_CDC_DATA_REQUEST_EP, &ep1config);
-            usbInitEndpointI(usbp, USB_CDC_INTERRUPT_REQUEST_EP, &ep2config);
+            usbInitEndpointI(usbp, USBD1_DATA_REQUEST_EP, &ep1config);
+            usbInitEndpointI(usbp, USBD1_INTERRUPT_REQUEST_EP, &ep2config);
 
             /* Resetting the state of the CDC subsystem.*/
-            sduConfigureHookI(usbp);
+            sduConfigureHookI(&SDU1);
 
             chSysUnlockFromIsr();
         return;
@@ -132,8 +132,11 @@ const USBConfig usbcfg = {
 /*
  * Serial over USB driver configuration.
  */
-const SerialUSBConfig serusbcfg = {
-    &USBD1
+static const SerialUSBConfig serusbcfg = {
+    &USBD1,
+    USBD1_DATA_REQUEST_EP,
+    USBD1_DATA_AVAILABLE_EP,
+    USBD1_INTERRUPT_REQUEST_EP
 };
 
 int isUSBActive(void) {
