@@ -1,0 +1,25 @@
+# Compiled Object files
+*.slo
+*.lo
+*.o
+
+# Compiled Dynamic libraries
+*.so
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+bin
+build
+.dep
+
+# SConstruct log file
+config.log
+
+# Temporary editor files.
+*~
+
+# .DS_Store on Mac.
+.DS_Store
+
