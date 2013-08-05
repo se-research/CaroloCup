@@ -103,6 +103,33 @@
 #endif
 
 /**
+ * @brief   ICUD12 driver enable switch.
+ * @details If set to @p TRUE the support for ICUD12 is included.
+ * @note    The default is @p TRUE.
+ */
+#if !defined(STM32_ICU_USE_TIM12) || defined(__DOXYGEN__)
+#define STM32_ICU_USE_TIM12                  FALSE
+#endif
+
+/**
+ * @brief   ICUD13 driver enable switch.
+ * @details If set to @p TRUE the support for ICUD13 is included.
+ * @note    The default is @p TRUE.
+ */
+#if !defined(STM32_ICU_USE_TIM13) || defined(__DOXYGEN__)
+#define STM32_ICU_USE_TIM13                  FALSE
+#endif
+
+/**
+ * @brief   ICUD14 driver enable switch.
+ * @details If set to @p TRUE the support for ICUD14 is included.
+ * @note    The default is @p TRUE.
+ */
+#if !defined(STM32_ICU_USE_TIM14) || defined(__DOXYGEN__)
+#define STM32_ICU_USE_TIM14                  FALSE
+#endif
+
+/**
  * @brief   ICUD1 interrupt priority level setting.
  */
 #if !defined(STM32_ICU_TIM1_IRQ_PRIORITY) || defined(__DOXYGEN__)
@@ -150,6 +177,27 @@
 #if !defined(STM32_ICU_TIM9_IRQ_PRIORITY) || defined(__DOXYGEN__)
 #define STM32_ICU_TIM9_IRQ_PRIORITY         7
 #endif
+
+/**
+ * @brief   ICUD12 interrupt priority level setting.
+ */
+#if !defined(STM32_ICU_TIM12_IRQ_PRIORITY) || defined(__DOXYGEN__)
+#define STM32_ICU_TIM12_IRQ_PRIORITY        7
+#endif
+
+/**
+ * @brief   ICUD13 interrupt priority level setting.
+ */
+#if !defined(STM32_ICU_TIM13_IRQ_PRIORITY) || defined(__DOXYGEN__)
+#define STM32_ICU_TIM13_IRQ_PRIORITY        7
+#endif
+
+/**
+ * @brief   ICUD14 interrupt priority level setting.
+ */
+#if !defined(STM32_ICU_TIM14_IRQ_PRIORITY) || defined(__DOXYGEN__)
+#define STM32_ICU_TIM14_IRQ_PRIORITY        7
+#endif
 /** @} */
 
 /*===========================================================================*/
@@ -184,10 +232,23 @@
 #error "TIM9 not present in the selected device"
 #endif
 
+#if STM32_ICU_USE_TIM12 && !STM32_HAS_TIM12
+#error "TIM12 not present in the selected device"
+#endif
+
+#if STM32_ICU_USE_TIM13 && !STM32_HAS_TIM13
+#error "TIM13 not present in the selected device"
+#endif
+
+#if STM32_ICU_USE_TIM14 && !STM32_HAS_TIM14
+#error "TIM14 not present in the selected device"
+#endif
+
 #if !STM32_ICU_USE_TIM1 && !STM32_ICU_USE_TIM2 &&                           \
     !STM32_ICU_USE_TIM3 && !STM32_ICU_USE_TIM4 &&                           \
     !STM32_ICU_USE_TIM5 && !STM32_ICU_USE_TIM8 &&                           \
-    !STM32_ICU_USE_TIM9
+    !STM32_ICU_USE_TIM9 && !STM32_ICU_USE_TIM12 &&                          \
+    !STM32_ICU_USE_TIM13 && !STM32_ICU_USE_TIM14
 #error "ICU driver activated but no TIM peripheral assigned"
 #endif
 
@@ -224,6 +285,21 @@
 #if STM32_ICU_USE_TIM9 &&                                                   \
     !CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_ICU_TIM9_IRQ_PRIORITY)
 #error "Invalid IRQ priority assigned to TIM9"
+#endif
+
+#if STM32_ICU_USE_TIM12 &&                                                   \
+    !CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_ICU_TIM12_IRQ_PRIORITY)
+#error "Invalid IRQ priority assigned to TIM12"
+#endif
+
+#if STM32_ICU_USE_TIM13 &&                                                   \
+    !CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_ICU_TIM13_IRQ_PRIORITY)
+#error "Invalid IRQ priority assigned to TIM13"
+#endif
+
+#if STM32_ICU_USE_TIM14 &&                                                   \
+    !CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_ICU_TIM14_IRQ_PRIORITY)
+#error "Invalid IRQ priority assigned to TIM14"
 #endif
 
 /*===========================================================================*/
@@ -383,6 +459,18 @@ extern ICUDriver ICUD8;
 
 #if STM32_ICU_USE_TIM9 && !defined(__DOXYGEN__)
 extern ICUDriver ICUD9;
+#endif
+
+#if STM32_ICU_USE_TIM12 && !defined(__DOXYGEN__)
+extern ICUDriver ICUD12;
+#endif
+
+#if STM32_ICU_USE_TIM13 && !defined(__DOXYGEN__)
+extern ICUDriver ICUD13;
+#endif
+
+#if STM32_ICU_USE_TIM14 && !defined(__DOXYGEN__)
+extern ICUDriver ICUD14;
 #endif
 
 #ifdef __cplusplus

@@ -1,2 +1,0 @@
-from SCons.Script import *
-

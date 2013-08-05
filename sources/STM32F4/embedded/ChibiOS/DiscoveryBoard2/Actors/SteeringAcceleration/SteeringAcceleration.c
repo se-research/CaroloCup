@@ -16,6 +16,8 @@ static Thread *ThreadSteering = NULL;
 #define CENTER_STEERING 1500 // Depends on the concrete vehicle.
 #define NO_ACCELERATION 1478 // Pulse width for no acceleration.
 #define ACCELERATION_PULSE 1485 // If the battery has more power just increase the pulse variable.
+#define TIM3_CHANNEL3 2
+#define TIM3_CHANNEL4 3
 
 static int steeringServo = 0; // 1265 mapping require 
 static int accelerationMotor = 0; // min 1490 max over 2000 for forward movement.
@@ -133,7 +135,7 @@ static msg_t Thread_Acceleration(void *arg) {
     waitForCompletingInitialization();
 
     while (TRUE) {
-        pwmEnableChannel(&PWMD3, 2, accelerationMotor);
+        pwmEnableChannel(&PWMD3, TIM3_CHANNEL3, accelerationMotor);
         chThdSleepMilliseconds(10);  
     }
 
@@ -149,7 +151,7 @@ static msg_t Thread_Steering(void *arg) {
     waitForCompletingInitialization();
 
     while (TRUE) {
-        pwmEnableChannel(&PWMD3, 3, steeringServo);
+        pwmEnableChannel(&PWMD3, TIM3_CHANNEL4, steeringServo);
         chThdSleepMilliseconds(10);
     }
 
@@ -162,19 +164,19 @@ static msg_t Thread_Steering(void *arg) {
 
 void initializeSteeringAcceleration(void) {
 	// ESC for the acceleration motor is connected to pin PC8.	
-    palSetPadMode(GPIOC, 8, PAL_MODE_ALTERNATE(2));
+    palSetPadMode(GPIOC, 8, PAL_MODE_ALTERNATE(STM32F4GPIO_AF_TIM3));
 
 	// Steering servo for steering is connected to pin PC9.	
-    palSetPadMode(GPIOC, 9, PAL_MODE_ALTERNATE(2)); //650
+    palSetPadMode(GPIOC, 9, PAL_MODE_ALTERNATE(STM32F4GPIO_AF_TIM3)); //650
 
-    // Initializes the PWM driver 3 in order to control the actors.
+    // Initialize the PWM driver 3 in order to control the actors.
     pwmStart(&PWMD3, &pwmConfiguration);
 
     // Enable the connection to the acceleration motor.
-    pwmEnableChannel(&PWMD3, 2, NO_ACCELERATION);
+    pwmEnableChannel(&PWMD3, TIM3_CHANNEL3, NO_ACCELERATION);
 
     // Enable the connection to the steering servo.
-    pwmEnableChannel(&PWMD3, 3, CENTER_STEERING);
+    pwmEnableChannel(&PWMD3, TIM3_CHANNEL4, CENTER_STEERING);
 
     // Wait until the motors are enabled.
     chThdSleepMilliseconds(100);

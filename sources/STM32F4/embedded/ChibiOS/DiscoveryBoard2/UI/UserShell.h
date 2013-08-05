@@ -31,6 +31,10 @@ static const ShellCommand commands[] = {
     {"scumoff", commandStopContinuousUltrasonicMeasurements},
     {"controlSteeringAccelerationMotors", commandControlSteeringAccelerationMotors},
     {"csam", commandControlSteeringAccelerationMotors},
+    {"printRCReceiver", commandPrintRCReceiver},
+    {"prc", commandPrintRCReceiver},
+    {"printWheelEncoder", commandPrintWheelEncoder},
+    {"pwe", commandPrintWheelEncoder},
 //    {"printRazor9DoFIMU", commandPrintRazor9DoFIMU},
 //    {"pr", commandPrintRazor9DoFIMU},
     {NULL, NULL}

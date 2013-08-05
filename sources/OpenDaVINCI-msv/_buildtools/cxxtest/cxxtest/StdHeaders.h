@@ -10,10 +10,6 @@
 #   pragma warning( push, 1 )
 #endif // _MSC_VER
 
-#ifdef PANDABOARD
-	#include <stdc-predef.h>
-#endif
-
 #include <complex>
 #include <deque>
 #include <list>

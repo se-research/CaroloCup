@@ -219,8 +219,8 @@ void initializeUltrasonic(void) {
     // Initializes the I2C driver 1 in order to access the distance values via I2C bus.
     i2cStart(&I2CD1, &i2cConfiguration);
 
-    palSetPadMode(GPIOB, 6, PAL_MODE_ALTERNATE(4) | PAL_STM32_OTYPE_OPENDRAIN); // SCL
-    palSetPadMode(GPIOB, 9, PAL_MODE_ALTERNATE(4) | PAL_STM32_OTYPE_OPENDRAIN); // SDA
+    palSetPadMode(GPIOB, 6, PAL_MODE_ALTERNATE(STM32F4GPIO_AF_I2C1) | PAL_STM32_OTYPE_OPENDRAIN); // SCL
+    palSetPadMode(GPIOB, 9, PAL_MODE_ALTERNATE(STM32F4GPIO_AF_I2C1) | PAL_STM32_OTYPE_OPENDRAIN); // SDA
 
     // Start ultrasonic reading thread.
     ThreadUltrasonic = chThdCreateStatic(workingAreaThread_Ultrasonic,

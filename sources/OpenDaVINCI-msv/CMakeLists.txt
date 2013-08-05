@@ -47,16 +47,11 @@ ENDIF(CXXTEST_FOUND)
 # Add subdirectories.
 ADD_SUBDIRECTORY (3rdParty)
 ADD_SUBDIRECTORY (libopendavinci)
+ADD_SUBDIRECTORY (hesperia)
 ADD_SUBDIRECTORY (supercomponent)
-ADD_SUBDIRECTORY (recorder)
-ADD_SUBDIRECTORY (player)
-ADD_SUBDIRECTORY (spy)
-ADD_SUBDIRECTORY (cockpit)
+ADD_SUBDIRECTORY (tools)
 ADD_SUBDIRECTORY (examples)
 
-# Mini-Smart-Vehicles sources.
-ADD_SUBDIRECTORY (msv)
-
-# Add CaroloCup sources.
-#ADD_SUBDIRECTORY (carolocup2013)
+# Apps contains msv, carolocup2013, ...
+ADD_SUBDIRECTORY (apps)
 

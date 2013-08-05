@@ -7,10 +7,6 @@
 #ifndef EXAMPLE4_H_
 #define EXAMPLE4_H_
 
-#ifdef PANDABOARD
-	#include <stdc-predef.h>
-#endif
-
 #include <opencv/highgui.h>
 
 #include "core/base/ConferenceClientModule.h"

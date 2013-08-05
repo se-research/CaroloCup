@@ -15,6 +15,8 @@ void initializePeripherals(void) {
     //initializeTemperature(); // STM32F4 onboard temperature sensor (MUST NOT BE USED TOGETHER WITH INFRARED!!!).
     initializeInfrared(); // Three infrared sensors, connected to PC1, PC4, and PC5.
     initializeUltrasonic(); // Three ultrasonic sensors, connected via I2C to PB6 (SCL) and PB9 (SDA).
+    initializeRCReceiver(); // RC-Receiver ICU sensor, connected via ICU to PA8 (RC channel 0), PC6 (RC channel 1), PE5 (RC channel 2).
+    initializeWheelEncoder(); // WheelEncoder ICU sensor, connected via ICU to PB7 (first sensor left wheel), PB8 (first sensor right wheel).
     //initializeRazor9DoFIMU(); // Razor 9DoF IMU, connected via PD8 (TX) and PD9 (RX).
 
     // Initialize actors.
@@ -26,6 +28,8 @@ void wakeThreads(void) {
     //chMsgSend(getThreadTemperature(), '1'); chThdSleepMilliseconds(2);
     chMsgSend(getThreadInfrared(), '1'); chThdSleepMilliseconds(2);
     chMsgSend(getThreadUltrasonic(), '1'); chThdSleepMilliseconds(2);
+    // RCReceiver is not a thread!
+    // WheelEncoder is not a thread!
     //chMsgSend(getThreadRazor9DoFIMU(), '1'); chThdSleepMilliseconds(5);
 
     chMsgSend(getThreadAcceleration(), '1'); chThdSleepMilliseconds(2);

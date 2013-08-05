@@ -150,7 +150,9 @@ namespace core {
         OPENDAVINCI_CORE_DECLARE_EXCEPTION(DMCPServerNotFoundException);
         OPENDAVINCI_CORE_DECLARE_EXCEPTION(DMCPServerConnectionException);
         OPENDAVINCI_CORE_DECLARE_EXCEPTION(DMCPClientConfigurationException);
-
+        OPENDAVINCI_CORE_DECLARE_EXCEPTION(SCNXScenarioFileNotFoundException);
+        OPENDAVINCI_CORE_DECLARE_EXCEPTION(SCNScenarioVisitorException);
+        OPENDAVINCI_CORE_DECLARE_EXCEPTION(SITSituationVisitorException);
 
     }
 } // core::exceptions

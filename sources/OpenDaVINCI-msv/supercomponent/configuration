@@ -15,14 +15,10 @@
 #
 # GLOBAL CONFIGURATION
 #
-global.car = ../../Scenarios/Models/FordEscape.objx
-global.scenario = file://../../Scenarios/NoObstacles_NoStopLines.scnx
+global.car = Scenarios/Models/FordEscape.objx
+#global.car = Scenarios/Models/RedRocketCar.objx
+global.scenario = file://Scenarios/NoObstacles_NoStopLines.scnx
 global.showGrid = 0
-
-
-#
-# CONFIGURATION FOR SUPERCOMPONENT
-#
 
 
 #
@@ -37,27 +33,6 @@ lanedetector.debug = 1      # set to 0 to disable any windows and further output
 #
 VCR.camera_id = 2  # select here the proper camera
 VCR.debug = 1      # set to 0 to disable any windows and further output
-
-
-#
-# CONFIGURATION FOR CAMERA
-#
-camera.doCalibration = 1 # 0 don't perform calibration, 1 perform calibration
-camera.sharedimagegrabber.name = CamGen
-camera.sharedimagegrabber.calibration.intrinsic.fx = 418.7490
-camera.sharedimagegrabber.calibration.intrinsic.fy = 558.6650
-camera.sharedimagegrabber.calibration.intrinsic.cx = 236.8528
-camera.sharedimagegrabber.calibration.intrinsic.cy = 322.7346
-camera.sharedimagegrabber.calibration.intrinsic.k1 = -0.0019
-camera.sharedimagegrabber.calibration.intrinsic.k2 = 0.0161
-camera.sharedimagegrabber.calibration.intrinsic.p1 = 0.0011
-camera.sharedimagegrabber.calibration.intrinsic.p2 = -0.0016
-camera.sharedimagegrabber.calibration.extrinsic.translation.x = 1.39257
-camera.sharedimagegrabber.calibration.extrinsic.translation.y = -0.00236801
-camera.sharedimagegrabber.calibration.extrinsic.translation.z = 0.196623
-camera.sharedimagegrabber.calibration.extrinsic.rotation.x = -2.21325
-camera.sharedimagegrabber.calibration.extrinsic.rotation.y = 0.00834896
-camera.sharedimagegrabber.calibration.extrinsic.rotation.z = -2.22575
 
 
 #
@@ -119,35 +94,6 @@ irus.sensor5.angleFOV = 20                 # In degrees.
 irus.sensor5.distanceFOV = 40              # In meters.
 irus.sensor5.clampDistance = 39            # Any distances greater than this distance will be ignored and -1 will be returned.
 irus.sensor5.showFOV = 1                   # Show FOV in monitor.
-
-
-#
-# CONFIGURATION FOR SIMPLEDRIVER
-#
-simpledriver.gain = 0.1                   # Gain for control.
-simpledriver.minimumPercentageSpeed = 2   # Minimum speed for sharp curves.
-simpledriver.maximumPercentageSpeed = 3   # Maximum allowed speed.
-simpledriver.brakeThreshold = 2           # If the resulting speed is below this level, start braking.
-simpledriver.percentageBrake = 1          # Brake if velocity < minimum speed (must be less than minimumPercentageSpeed (because the vehicle would stuck otherwise).
-simpledriver.scaleSteering = 100          # Scaling factor steering [0 .. 100] BE CAREFUL!
-simpledriver.lengthSteeringDrawbar = 5    # Length (> 0) of the drawbar used for steering control.
-simpledriver.lengthVelocityDrawbar = 15   # Length (> 0) of the drawbar used for velocity control.
-simpledriver.offsetSteeringWheelPercentage = 0 # Offset of steering wheel in percentage.
-simpledriver.useSpline = 1                # Use spline (1 = true, 0 = false).
-simpledriver.BSplineOrder = 5             # Order of B-spline.
-
-# Optiml run on 2009-08-06 for XGV.
-#simpledriver.gain = 0.1                   # Gain for control.
-#simpledriver.minimumPercentageSpeed = 1   # Minimum speed for sharp curves.
-#simpledriver.maximumPercentageSpeed = 2.6 # Maximum allowed speed.
-#simpledriver.brakeThreshold = 2           # If the resulting speed is below this level, start braking.
-#simpledriver.percentageBrake = 95         # Brake if velocity < minimum speed (must be less than minimumPercentageSpeed (because the vehicle would stuck otherwise).
-#simpledriver.scaleSteering = 75           # Scaling factor steering [0 .. 100] BE CAREFUL!
-#simpledriver.lengthSteeringDrawbar = 7    # Length (> 0) of the drawbar used for steering control.
-#simpledriver.lengthVelocityDrawbar = 15   # Length (> 0) of the drawbar used for velocity control.
-#simpledriver.offsetSteeringWheelPercentage = 12 # Offset of steering wheel in percentage.
-#simpledriver.useSpline = 1                # Use spline (1 = true, 0 = false).
-#simpledriver.BSplineOrder = 5             # Order of B-spline.
 
 
 #
@@ -304,7 +250,7 @@ proxy-STM32F4.sensor5.clampDistance = 0.4           # Any distances greater than
 Vehicle.posX = 0                     # Initial position X in cartesian coordinates.
 Vehicle.posY = 0                     # Initial position Y in cartesian coordinates.
 Vehicle.headingDEG = 90
-Vehicle.model=LinearBicycleModelNew  # Which motion model to be used: LinearBicycleModelNew or LinearBicycleModel.
+Vehicle.model=LinearBicycleModelNew  # Which motion model to be used: LinearBicycleModelNew or LinearBicycleModel (for CaroloCup 2013!).
 Vehicle.LinearBicycleModelNew.withSpeedController=1          # iff 1: use the VehicleControl.m_speed field; otherwise, ignore m_speed and use VehicleControl.m_acceleration field
 Vehicle.LinearBicycleModelNew.minimumTurningRadiusLeft=4.85  # Minimum turning radius to the left (for calculating maximum steering angle to the left); Attention! we used data from the miniature vehicle Meili and thus, all values are scaled by factor 10 to be compatible with the simulation!
 Vehicle.LinearBicycleModelNew.minimumTurningRadiusRight=5.32 # Minimum turning radius to the right (for calculating maximum steering angle to the right); Attention! we used data from the miniature vehicle Meili and thus, all values are scaled by factor 10 to be compatible with the simulation!

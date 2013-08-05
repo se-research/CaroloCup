@@ -158,8 +158,24 @@ namespace core {
                     return "SharedImage";
                 case POSITION:
                     return "Position";
+                case CONTOUREDOBJECT:
+                    return "ContouredObject";
+                case CONTOUREDOBJECTS:
+                    return "ContouredObject";
+                case EGOSTATE:
+                    return "EgoState";
                 case FORCECONTROL:
                     return "ForceControl";
+                case LMS291MESSAGE:
+                    return "LMS291Message";
+                case OBSTACLE:
+                    return "Obstacle";
+                case OTHERVEHICLESTATE:
+                    return "OtherVehicleState";
+                case POINTSHAPEDOBJECT:
+                    return "PointShapedObject";
+                case ROUTE:
+                    return "Route";
                 case VEHICLEDATA:
                     return "VehicleData";
                 case DRAW_LINE:

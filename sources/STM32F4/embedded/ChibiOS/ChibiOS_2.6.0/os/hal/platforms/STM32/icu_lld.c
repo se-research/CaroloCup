@@ -95,6 +95,31 @@ ICUDriver ICUD8;
 ICUDriver ICUD9;
 #endif
 
+/**
+ * @brief   ICUD12 driver identifier.
+ * @note    The driver ICUD12 allocates the timer TIM12 when enabled.
+ */
+#if STM32_ICU_USE_TIM12 || defined(__DOXYGEN__)
+ICUDriver ICUD12;
+#endif
+
+/**
+ * @brief   ICUD13 driver identifier.
+ * @note    The driver ICUD13 allocates the timer TIM13 when enabled.
+ */
+#if STM32_ICU_USE_TIM13 || defined(__DOXYGEN__)
+ICUDriver ICUD13;
+#endif
+
+/**
+ * @brief   ICUD14 driver identifier.
+ * @note    The driver ICUD14 allocates the timer TIM14 when enabled.
+ */
+#if STM32_ICU_USE_TIM14 || defined(__DOXYGEN__)
+ICUDriver ICUD14;
+#endif
+
+
 /*===========================================================================*/
 /* Driver local variables and types.                                         */
 /*===========================================================================*/
@@ -327,6 +352,63 @@ CH_IRQ_HANDLER(STM32_TIM9_HANDLER) {
 }
 #endif /* STM32_ICU_USE_TIM9 */
 
+#if STM32_ICU_USE_TIM12
+/**
+ * @brief   TIM12 compare interrupt handler.
+ * @note    It is assumed that the various sources are only activated if the
+ *          associated callback pointer is not equal to @p NULL in order to not
+ *          perform an extra check in a potentially critical interrupt handler.
+ *
+ * @isr
+ */
+CH_IRQ_HANDLER(TIM8_BRK_IRQHandler) {  /* Bracket part is from hal_lld.h */
+
+  CH_IRQ_PROLOGUE();
+
+  icu_lld_serve_interrupt(&ICUD12);
+
+  CH_IRQ_EPILOGUE();
+}
+#endif /* STM32_ICU_USE_TIM12 */
+
+#if STM32_ICU_USE_TIM13
+/**
+ * @brief   TIM13 compare interrupt handler.
+ * @note    It is assumed that the various sources are only activated if the
+ *          associated callback pointer is not equal to @p NULL in order to not
+ *          perform an extra check in a potentially critical interrupt handler.
+ *
+ * @isr
+ */
+CH_IRQ_HANDLER(TIM8_UP_IRQHandler) {  /* Bracket part is from hal_lld.h */
+
+  CH_IRQ_PROLOGUE();
+
+  icu_lld_serve_interrupt(&ICUD13);
+
+  CH_IRQ_EPILOGUE();
+}
+#endif /* STM32_ICU_USE_TIM13 */
+
+#if STM32_ICU_USE_TIM14
+/**
+ * @brief   TIM14 compare interrupt handler.
+ * @note    It is assumed that the various sources are only activated if the
+ *          associated callback pointer is not equal to @p NULL in order to not
+ *          perform an extra check in a potentially critical interrupt handler.
+ *
+ * @isr
+ */
+CH_IRQ_HANDLER(TIM8_TRG_COM_IRQHandler) {  /* Bracket part is from hal_lld.h */
+
+  CH_IRQ_PROLOGUE();
+
+  icu_lld_serve_interrupt(&ICUD14);
+
+  CH_IRQ_EPILOGUE();
+}
+#endif /* STM32_ICU_USE_TIM14 */
+
 /*===========================================================================*/
 /* Driver exported functions.                                                */
 /*===========================================================================*/
@@ -378,6 +460,24 @@ void icu_lld_init(void) {
   /* Driver initialization.*/
   icuObjectInit(&ICUD9);
   ICUD9.tim = STM32_TIM9;
+#endif
+
+#if STM32_ICU_USE_TIM12
+  /* Driver initialization.*/
+  icuObjectInit(&ICUD12);
+  ICUD12.tim = STM32_TIM12;
+#endif
+
+#if STM32_ICU_USE_TIM13
+  /* Driver initialization.*/
+  icuObjectInit(&ICUD13);
+  ICUD13.tim = STM32_TIM13;
+#endif
+
+#if STM32_ICU_USE_TIM14
+  /* Driver initialization.*/
+  icuObjectInit(&ICUD14);
+  ICUD14.tim = STM32_TIM14;
 #endif
 }
 
@@ -461,6 +561,33 @@ void icu_lld_start(ICUDriver *icup) {
       rccResetTIM9();
       nvicEnableVector(STM32_TIM9_NUMBER,
                        CORTEX_PRIORITY_MASK(STM32_ICU_TIM9_IRQ_PRIORITY));
+      icup->clock = STM32_TIMCLK1;
+    }
+#endif
+#if STM32_ICU_USE_TIM12
+    if (&ICUD12 == icup) {
+      rccEnableTIM12(FALSE);
+      rccResetTIM12();
+      nvicEnableVector(TIM8_BRK_TIM12_IRQn,
+                       CORTEX_PRIORITY_MASK(STM32_ICU_TIM12_IRQ_PRIORITY));  //First part stm32f4xx.h and Second mcuconf.h
+      icup->clock = STM32_TIMCLK1;
+    }
+#endif
+#if STM32_ICU_USE_TIM13
+    if (&ICUD13 == icup) {
+      rccEnableTIM13(FALSE);
+      rccResetTIM13();
+      nvicEnableVector(TIM8_UP_TIM13_IRQn,
+                       CORTEX_PRIORITY_MASK(STM32_ICU_TIM13_IRQ_PRIORITY));
+      icup->clock = STM32_TIMCLK1;
+    }
+#endif
+#if STM32_ICU_USE_TIM14
+    if (&ICUD14 == icup) {
+      rccEnableTIM14(FALSE);
+      rccResetTIM14();
+      nvicEnableVector(TIM8_TRG_COM_TIM14_IRQn,
+                       CORTEX_PRIORITY_MASK(STM32_ICU_TIM14_IRQ_PRIORITY));
       icup->clock = STM32_TIMCLK1;
     }
 #endif
@@ -589,6 +716,24 @@ void icu_lld_stop(ICUDriver *icup) {
     if (&ICUD9 == icup) {
       nvicDisableVector(STM32_TIM9_NUMBER);
       rccDisableTIM9(FALSE);
+    }
+#endif
+#if STM32_ICU_USE_TIM12
+    if (&ICUD12 == icup) {
+      nvicDisableVector(TIM8_BRK_TIM12_IRQn); // This part comes from stm32f4xx.h
+      rccDisableTIM12(FALSE);
+    }
+#endif
+#if STM32_ICU_USE_TIM13
+    if (&ICUD13 == icup) {
+      nvicDisableVector(TIM8_UP_TIM13_IRQn);  // This part comes from stm32f4xx.h
+      rccDisableTIM13(FALSE);
+    }
+#endif
+#if STM32_ICU_USE_TIM14
+    if (&ICUD14 == icup) {
+      nvicDisableVector(TIM8_TRG_COM_TIM14_IRQn); // This part comes from stm32f4xx.h
+      rccDisableTIM14(FALSE);
     }
 #endif
   }

@@ -166,9 +166,9 @@ void initializeRazor9DoFIMU(void) {
     sdStart(&SD3, &portConfig);
 
     // PD8 (TX) transmit data to the Razor 9DoF IMU.
-    palSetPadMode(GPIOD, 8, PAL_MODE_ALTERNATE(7));
+    palSetPadMode(GPIOD, 8, PAL_MODE_ALTERNATE(STM32F4GPIO_AF_USART3));
     // PD9 (RX) receive data from the Razor 9DoF IMU.
-    palSetPadMode(GPIOD, 9, PAL_MODE_ALTERNATE(7));
+    palSetPadMode(GPIOD, 9, PAL_MODE_ALTERNATE(STM32F4GPIO_AF_USART3));
 
     // Start infrared reading thread.
     ThreadRazor9DoFIMU = chThdCreateStatic(workingAreaThread_Razor9DoFIMU,
