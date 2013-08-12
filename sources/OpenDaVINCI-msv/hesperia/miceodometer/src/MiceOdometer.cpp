@@ -63,6 +63,8 @@ namespace miceodometer {
         // Integral of the measured values.
         double d = 0;
         double phi = 0;
+        double x = 0;
+        double y = 0;
 
         while (getModuleState() == ModuleState::RUNNING) {
             TimeStamp currentTime;
@@ -115,6 +117,8 @@ namespace miceodometer {
                     cout << "Case: moving straight forward." << endl;
 
                     dotD = lengthLeft * timeStep;
+                    // TODO: compare with: dotD = ((lengthLeft + lengthRight)/2.0) * timeStep;
+                    // TODO: compare with weighted lengthLeft and lengthRight depending on where to come from with aging factor.
                     dotPhi = 0;
                 }
                 else if (lengthLeft > lengthRight) {
@@ -123,7 +127,7 @@ namespace miceodometer {
 
                     const double X = D / ( (lengthLeft/lengthRight) - 1 );
 
-                    // Calculate length of deltaY without being dependent on the mouse's coordinate frame.
+                    // Calculate length of deltaYRight without being dependent on the mouse's coordinate frame.
                     const double t1 = (2*X*X - lengthRight*lengthRight)/(2*X);
                     const double deltaYRight = sqrt(X*X - t1*t1);
 
@@ -137,7 +141,7 @@ namespace miceodometer {
 
                     const double X = D / ( (lengthRight/lengthLeft) - 1 );
 
-                    // Calculate length of deltaY without being dependent on the mouse's coordinate frame.
+                    // Calculate length of deltaYLeft without being dependent on the mouse's coordinate frame.
                     const double t1 = (2*X*X - lengthLeft*lengthLeft)/(2*X);
                     const double deltaYLeft = sqrt(X*X - t1*t1);
 
@@ -154,13 +158,20 @@ namespace miceodometer {
                 d += dotD;
                 phi += dotPhi;
 
-                // Map heading into range 0..2pi.
+                const double dotX = dotD * cos(phi);
+                const double dotY = dotD * sin(phi);
+                x += dotX;
+                y += dotY;
+
+                // Map phi into range 0..2pi.
                 while (phi < 0) {
                     phi += 2 * Constants::PI;
                 }
                 while (phi > 2 * Constants::PI) {
                     phi -= 2 * Constants::PI;
                 }
+
+                // Map headingCar into range 0..2pi.
                 while (headingCar < 0) {
                     headingCar += 2 * Constants::PI;
                 }
@@ -172,7 +183,8 @@ namespace miceodometer {
                 const double errorD = (egostateD - d);
                 const double errorHeading = (headingCar - phi);
 
-                cout << "dotD = " << dotD << ", dotPhi = " << dotPhi << ", d = " << d << ", phi = " << phi << endl; 
+                cout << "dotD = " << dotD << ", dotPhi = " << dotPhi << ", d = " << d << ", phi = " << phi << endl;
+                cout << "X = " << x << ", Y = " << y << endl;
                 cout << "carD = " << egostateD << ", carHeading = " << headingCar << endl;
                 cout << "errorD = " << errorD << ", errorHeading = " << errorHeading << endl;
             }
