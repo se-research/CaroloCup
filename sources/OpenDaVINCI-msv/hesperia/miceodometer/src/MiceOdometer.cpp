@@ -102,13 +102,9 @@ namespace miceodometer {
             // Run from second cycle on.
             if (!init) {
                 // Algorithm for measuring and integrating driven distance and heading from two optical mice.
-                const double deltaYLeft = (currPositionLeftMouse - prevPositionLeftMouse).getY(); // TODO: Use real mice values here.
-                const double deltaYRight = (currPositionRightMouse - prevPositionRightMouse).getY(); // TODO: Use real mice values here.
-
                 const double lengthLeft = (currPositionLeftMouse - prevPositionLeftMouse).lengthXY(); // TODO: Use real mice values here.
                 const double lengthRight = (currPositionRightMouse - prevPositionRightMouse).lengthXY(); // TODO: Use real mice values here.
 
-                cout << "deltaYLeft = " << deltaYLeft << ", deltaYRight = " << deltaYRight << endl;
                 cout << "lengthLeft = " << lengthLeft << ", lengthRight = " << lengthRight << endl;
 
                 double dotD = 0;
@@ -126,6 +122,11 @@ namespace miceodometer {
                     cout << "Case: turning to right." << endl;
 
                     const double X = D / ( (lengthLeft/lengthRight) - 1 );
+
+                    // Calculate length of deltaY without being dependent on the mouse's coordinate frame.
+                    const double t1 = (2*X*X - lengthRight*lengthRight)/(2*X);
+                    const double deltaYRight = sqrt(X*X - t1*t1);
+
                     const double PHI = asin(deltaYRight / X);
                     dotD = (X + 0.5*D) * PHI * timeStep;
                     dotPhi = (-1) * PHI * timeStep;
@@ -135,6 +136,11 @@ namespace miceodometer {
                     cout << "Case: turning to left." << endl;
 
                     const double X = D / ( (lengthRight/lengthLeft) - 1 );
+
+                    // Calculate length of deltaY without being dependent on the mouse's coordinate frame.
+                    const double t1 = (2*X*X - lengthLeft*lengthLeft)/(2*X);
+                    const double deltaYLeft = sqrt(X*X - t1*t1);
+
                     const double PHI = asin(deltaYLeft / X);
                     dotD = (X + 0.5*D) * PHI * timeStep;
                     dotPhi = PHI * timeStep;
@@ -147,6 +153,20 @@ namespace miceodometer {
                 // Integrate readings over time.
                 d += dotD;
                 phi += dotPhi;
+
+                // Map heading into range 0..2pi.
+                while (phi < 0) {
+                    phi += 2 * Constants::PI;
+                }
+                while (phi > 2 * Constants::PI) {
+                    phi -= 2 * Constants::PI;
+                }
+                while (headingCar < 0) {
+                    headingCar += 2 * Constants::PI;
+                }
+                while (headingCar > 2 * Constants::PI) {
+                    headingCar -= 2 * Constants::PI;
+                }
 
                 // Calculate integration error (not accessible on real car).
                 const double errorD = (egostateD - d);
