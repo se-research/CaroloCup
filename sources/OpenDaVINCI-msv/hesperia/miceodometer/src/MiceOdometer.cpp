@@ -14,6 +14,7 @@
 #include "core/data/TimeStamp.h"
 
 #include "core/data/environment/Point3.h"
+#include "core/data/environment/VehicleData.h"
 #include "hesperia/data/environment/EgoState.h"
 
 #include "MiceOdometer.h"
@@ -66,6 +67,8 @@ namespace miceodometer {
         double x = 0;
         double y = 0;
 
+        double direction = 1; // < 0 backwards, >0 forwards.
+
         while (getModuleState() == ModuleState::RUNNING) {
             TimeStamp currentTime;
             double timeStep = (currentTime.toMicroseconds() - prevTime.toMicroseconds()) / (1000.0 * 1000.0);
@@ -74,18 +77,30 @@ namespace miceodometer {
             Container c = kvs.get(Container::EGOSTATE);
             EgoState es = c.getData<EgoState>();
 
+            // Get driving direction (not directly accessible on real car).
+            c = kvs.get(Container::VEHICLEDATA);
+            VehicleData vd = c.getData<VehicleData>();
+            direction = (vd.getSpeed() > 0) ? 1 : ((vd.getSpeed() < 0) ? -1 : 0);
+            cout << "Direction: " << direction << endl;
+            // TODO: Replace by a direction estimator based on mice input.
+
             // Get global data from vehicle (not accessible on real car) - also used for reference.
             Point3 positionCar = es.getPosition();
             double headingCar = es.getRotation().getAngleXY();
             if (init) {
+                // This is only required to compare the estimated heading with the real vehicle's heading.
+                // On the real vehicle, this value can be discared each time the algorithm restarts. The
+                // only difference is that the depending internal maps will be oriented with a different
+                // starting angle; but internally, they are consistent.
                 INITIAL_ROTATION_CAR = headingCar;
                 phi = INITIAL_ROTATION_CAR;
             }
             if (!init) {
+                // This is only required to compare the estimated driven path with the real vehicle's driven path.
                 egostateD += (positionCar - prevEs.getPosition()).lengthXY();
             }
 
-            // Model in the simulation of the two mice.
+            // Model in the simulation for the two mice.
             // Mounting position left mouse.
             currPositionLeftMouse = Point3(1, 0, 0);
             currPositionLeftMouse *= D/2.0;
@@ -101,14 +116,15 @@ namespace miceodometer {
             // Current absolute position of the two mice (not accessible on the real car).
             cout << currPositionLeftMouse.toString() << " - " << currPositionRightMouse.toString() << endl;
 
-            // Run from second cycle on.
+            // Run mice odometer algorithm from second cycle on.
             if (!init) {
                 // Algorithm for measuring and integrating driven distance and heading from two optical mice.
-                const double lengthLeft = (currPositionLeftMouse - prevPositionLeftMouse).lengthXY(); // TODO: Use real mice values here.
-                const double lengthRight = (currPositionRightMouse - prevPositionRightMouse).lengthXY(); // TODO: Use real mice values here.
+                const double lengthLeft = (currPositionLeftMouse - prevPositionLeftMouse).lengthXY(); // TODO: Use values from real mice.
+                const double lengthRight = (currPositionRightMouse - prevPositionRightMouse).lengthXY(); // TODO: Use values from real mice.
 
                 cout << "lengthLeft = " << lengthLeft << ", lengthRight = " << lengthRight << endl;
 
+                // These two variables will contain the increments for the estimated heading and estimated driven path.
                 double dotD = 0;
                 double dotPhi = 0;
                 
@@ -117,8 +133,9 @@ namespace miceodometer {
                     cout << "Case: moving straight forward." << endl;
 
                     dotD = lengthLeft * timeStep;
-                    // TODO: compare with: dotD = ((lengthLeft + lengthRight)/2.0) * timeStep;
-                    // TODO: compare with weighted lengthLeft and lengthRight depending on where to come from with aging factor.
+                    // TODO for paper: compare with: dotD = ((lengthLeft + lengthRight)/2.0) * timeStep;
+                    // TODO for paper: compare with weighted lengthLeft and lengthRight depending on where to come from with aging factor.
+
                     dotPhi = 0;
                 }
                 else if (lengthLeft > lengthRight) {
@@ -150,16 +167,20 @@ namespace miceodometer {
                     dotPhi = PHI * timeStep;
                 }
 
-                // Correction factor for simulation:
+                // Correction factor for simulation (not accessible/required on real car --> validate with real mice):
                 dotD *= getFrequency();
                 dotPhi *= getFrequency();
 
-                // Integrate readings over time.
+                // Consider forwards/backwards driving (TODO: Derive direction from mice input).
+                dotPhi *= direction;
+
+                // Integrate readings over time to get globally driven path and global heading.
                 d += dotD;
                 phi += dotPhi;
 
-                const double dotX = dotD * cos(phi);
-                const double dotY = dotD * sin(phi);
+                // Integrate estimated position over time and consider forwards/backwards driving.
+                const double dotX = dotD * cos(phi) * direction;
+                const double dotY = dotD * sin(phi) * direction;
                 x += dotX;
                 y += dotY;
 
@@ -171,7 +192,7 @@ namespace miceodometer {
                     phi -= 2 * Constants::PI;
                 }
 
-                // Map headingCar into range 0..2pi.
+                // Map headingCar into range 0..2pi (not accessible on real car).
                 while (headingCar < 0) {
                     headingCar += 2 * Constants::PI;
                 }
@@ -183,10 +204,12 @@ namespace miceodometer {
                 const double errorD = (egostateD - d);
                 const double errorHeading = (headingCar - phi);
 
+                // Print out some statistics for the algorithm's quality.
                 cout << "dotD = " << dotD << ", dotPhi = " << dotPhi << ", d = " << d << ", phi = " << phi << endl;
                 cout << "X = " << x << ", Y = " << y << endl;
                 cout << "carD = " << egostateD << ", carHeading = " << headingCar << endl;
                 cout << "errorD = " << errorD << ", errorHeading = " << errorHeading << endl;
+                cout << endl;
             }
 
             // Save data from this cycle.
