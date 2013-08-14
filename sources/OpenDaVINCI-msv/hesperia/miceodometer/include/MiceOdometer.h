@@ -9,6 +9,8 @@
 
 #include "core/base/ConferenceClientModule.h"
 
+#include <opencv2/video/tracking.hpp>
+
 namespace miceodometer {
 
     using namespace std;
@@ -64,8 +66,20 @@ namespace miceodometer {
             double m_x;
             double m_y;
 
-            // Algorithm for estimating the vehicle's position based on readings from two mice.
-            void estimatePosition(const double &deltaXLeft, const double &deltaYLeft, const double &deltaXRight, const double &deltaYRight, const double &timeStep, const double &direction);
+            cv::KalmanFilter m_KF;
+            float m_processNoise;
+            float m_measurementNoise;
+            float m_errorCovariance;
+
+            double m_estimatedX;
+            double m_estimatedY;
+
+            // Algorithm for calculating the vehicle's position based on readings from two mice.
+            void calculatePosition(const double &deltaXLeft, const double &deltaYLeft, const double &deltaXRight, const double &deltaYRight, const double &timeStep, const double &direction);
+
+            // Algorithm for estimating the vehicle's position using a Kalman filter.
+            void initializeKalmanFilter();
+            void estimatePosition();
     };
 
 } // miceodometer

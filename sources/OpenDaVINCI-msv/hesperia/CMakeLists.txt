@@ -10,7 +10,7 @@ IF (NOT "${PANDABOARD}" STREQUAL "YES")
     ADD_SUBDIRECTORY (libhesperia)
 
     # hesperia depends on OpenCV.
-    SET (OpenCV_LIBS opencv_core opencv_imgproc opencv_highgui)
+    SET (OpenCV_LIBS opencv_core opencv_imgproc opencv_highgui opencv_video)
     SET (LIBS ${LIBS} ${OpenCV_LIBS})
 
     ADD_SUBDIRECTORY (camgen)

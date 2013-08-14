@@ -7,6 +7,9 @@
 #include <iostream>
 #include <limits>
 
+#include <cstdlib>
+#include <ctime>
+
 #include "core/macros.h"
 
 #include "core/data/Constants.h"
@@ -22,6 +25,7 @@
 namespace miceodometer {
 
     using namespace std;
+    using namespace cv;
     using namespace core::base;
     using namespace core::data;
     using namespace core::io;
@@ -34,7 +38,13 @@ namespace miceodometer {
         m_phi(0),
         m_d(0),
         m_x(0),
-        m_y(0) {}
+        m_y(0),
+        m_KF(),
+        m_processNoise(0),
+        m_measurementNoise(0),
+        m_errorCovariance(0),
+        m_estimatedX(0),
+        m_estimatedY(0) {}
 
     MiceOdometer::~MiceOdometer() {}
 
@@ -42,7 +52,41 @@ namespace miceodometer {
 
     void MiceOdometer::tearDown() {}
 
-    void MiceOdometer::estimatePosition(const double &deltaXLeft, const double &deltaYLeft, const double &deltaXRight, const double &deltaYRight, const double &timeStep, const double &direction) {
+    void MiceOdometer::initializeKalmanFilter() {
+        m_processNoise = 5e-2; // Influence of process errors: The smaller this parameter the greater is the distance between measured and estimated point.
+        m_measurementNoise = 1e-4; // Influence of measurement errors: The smaller this parameter the greater is the influence of the measured points. 
+        m_errorCovariance = 1e-1;
+
+        m_KF = KalmanFilter(2 /*Number of dynamic parameters.*/, 2 /*Number of measured parameters.*/, 0 /*Number of control parameters.*/),
+
+        m_KF.statePre.at<float>(0) = m_x; // Initialize the estimated global X position.
+        m_KF.statePre.at<float>(1) = m_y; // Initialize the estimated global Y position.
+        m_KF.transitionMatrix = Mat::eye(2,2,CV_32F); // The transition matrix is in our case: (1 0; 0 1), i.e. the parameters do not influence each other.
+
+        setIdentity(m_KF.measurementMatrix);
+        setIdentity(m_KF.processNoiseCov, Scalar::all(m_processNoise));
+        setIdentity(m_KF.measurementNoiseCov, Scalar::all(m_measurementNoise));
+        setIdentity(m_KF.errorCovPost, Scalar::all(m_errorCovariance));
+    }
+
+    void MiceOdometer::estimatePosition() {
+        // Predict the next state.
+        Mat predict = m_KF.predict();
+
+        // Measurements are in our case the calculated position (m_x, m_y).
+        Mat measurement(2, 1, CV_32F);
+        measurement.at<float>(0) = m_x;
+        measurement.at<float>(1) = m_y;
+
+        // Correct Kalman filter by measurement.
+        Mat estimation = m_KF.correct(measurement);
+
+        // Get estimated position.
+        m_estimatedX = estimation.at<float>(0);
+        m_estimatedY = estimation.at<float>(1);
+    }
+
+    void MiceOdometer::calculatePosition(const double &deltaXLeft, const double &deltaYLeft, const double &deltaXRight, const double &deltaYRight, const double &timeStep, const double &direction) {
         // Algorithm for measuring and integrating driven distance and heading from two optical mice.
 
         const double lengthLeft = sqrt(deltaXLeft * deltaXLeft + deltaYLeft * deltaYLeft);
@@ -104,7 +148,7 @@ namespace miceodometer {
         m_d += dotD;
         m_phi += dotPhi;
 
-        // Integrate estimated position over time and consider forwards/backwards driving.
+        // Integrate calculated position over time and consider forwards/backwards driving.
         const double dotX = dotD * cos(m_phi) * direction;
         const double dotY = dotD * sin(m_phi) * direction;
         m_x += dotX;
@@ -124,9 +168,12 @@ namespace miceodometer {
     ModuleState::MODULE_EXITCODE MiceOdometer::body() {
         KeyValueDataStore &kvs = getKeyValueDataStore();
 
+        // Initialize random seed to simulate noise.
+        srand(time(NULL));
+
         bool init = true;
         TimeStamp prevTime;
-        EgoState prevEs;
+        EgoState prevEgoState;
         double egostateD = 0;
 
         // This parameter needs to be defined in the configuration: What is the initial global rotation of the car?
@@ -173,7 +220,7 @@ namespace miceodometer {
             }
             if (!init) {
                 // This is only required to compare the estimated driven path with the real vehicle's driven path.
-                egostateD += (positionCar - prevEs.getPosition()).lengthXY();
+                egostateD += (positionCar - prevEgoState.getPosition()).lengthXY();
             }
 
             // Model in the simulation for the two mice.
@@ -192,6 +239,9 @@ namespace miceodometer {
             // Current absolute position of the two mice (not accessible on the real car).
             cout << currPositionLeftMouse.toString() << " - " << currPositionRightMouse.toString() << endl;
 
+            // Initialize Kalman filter.
+            initializeKalmanFilter();
+
             // Run mice odometer algorithm from second cycle on.
             if (!init) {
                 // Calculate input values as we would get them from optical mice. TODO: Put here values read from real mice.
@@ -201,7 +251,10 @@ namespace miceodometer {
                 const double deltaYRight = currPositionRightMouse.getY() - prevPositionRightMouse.getY();
 
                 // Call algorithm for measuring and integrating driven distance and heading from two optical mice.
-                estimatePosition(deltaXLeft, deltaYLeft, deltaXRight, deltaYRight, timeStep, direction);
+                calculatePosition(deltaXLeft, deltaYLeft, deltaXRight, deltaYRight, timeStep, direction);
+
+                // Update estimated position using Kalman filter.
+                estimatePosition();
 
                 // Map headingCar into range 0..2pi (not accessible on real car).
                 while (headingCar < 0) {
@@ -215,17 +268,26 @@ namespace miceodometer {
                 const double errorD = (egostateD - m_d);
                 const double errorHeading = (headingCar - m_phi);
 
+                Point3 calculatedPosition = Point3(m_x, m_y, 0);
+                Point3 estimatedPosition = Point3(m_estimatedX, m_estimatedY, 0);
+
                 // Print out some statistics for the algorithm's quality.
                 cout << "d = " << m_d << ", phi = " << m_phi << endl;
-                cout << "X = " << m_x << ", Y = " << m_y << endl;
+                cout << "Actual position: " << positionCar.toString() << endl; 
+                cout << "Calculated position: " << calculatedPosition.toString() << ", e: " << (positionCar - calculatedPosition).lengthXY() << endl;
+                cout << "Estimated position:  " << estimatedPosition.toString() << ", e: " << (positionCar - estimatedPosition).lengthXY() << endl;
                 cout << "carD = " << egostateD << ", carHeading = " << headingCar << endl;
                 cout << "errorD = " << errorD << ", errorHeading = " << errorHeading << endl;
                 cout << endl;
+
+                // Add noise to position data (equally distributed between -0.001 .. 0.001.
+                //m_x += ((rand() % 20) - 10)/10000.0;
+                //m_y += ((rand() % 20) - 10)/10000.0;
             }
 
             // Save data from this cycle.
             prevTime = currentTime;
-            prevEs = es;
+            prevEgoState = es;
 
             prevPositionLeftMouse = currPositionLeftMouse;
             prevPositionRightMouse = currPositionRightMouse;
