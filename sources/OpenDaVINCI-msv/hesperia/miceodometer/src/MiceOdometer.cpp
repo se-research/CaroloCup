@@ -42,8 +42,11 @@ namespace miceodometer {
 
     void MiceOdometer::tearDown() {}
 
-    void MiceOdometer::estimatePosition(const double &lengthLeft, const double &lengthRight, const double &timeStep, const double &direction) {
+    void MiceOdometer::estimatePosition(const double &deltaXLeft, const double &deltaYLeft, const double &deltaXRight, const double &deltaYRight, const double &timeStep, const double &direction) {
         // Algorithm for measuring and integrating driven distance and heading from two optical mice.
+
+        const double lengthLeft = sqrt(deltaXLeft * deltaXLeft + deltaYLeft * deltaYLeft);
+        const double lengthRight = sqrt(deltaXRight * deltaXRight + deltaYRight * deltaYRight);
 
         cout << "lengthLeft = " << lengthLeft << ", lengthRight = " << lengthRight << endl;
 
@@ -67,11 +70,11 @@ namespace miceodometer {
 
             const double X = D / ( (lengthLeft/lengthRight) - 1 );
 
-            // Calculate length of deltaYRight without being dependent on the mouse's coordinate frame.
+            // Calculate length of the perpendicular hX without being dependent on the mouse's coordinate frame.
             const double t1 = (2*X*X - lengthRight*lengthRight)/(2*X);
-            const double deltaYRight = sqrt(X*X - t1*t1);
+            const double hX = sqrt(X*X - t1*t1);
 
-            const double PHI = asin(deltaYRight / X);
+            const double PHI = asin(hX / X);
             dotD = (X + 0.5*D) * PHI * timeStep;
             dotPhi = (-1) * PHI * timeStep;
         }
@@ -81,11 +84,11 @@ namespace miceodometer {
 
             const double X = D / ( (lengthRight/lengthLeft) - 1 );
 
-            // Calculate length of deltaYLeft without being dependent on the mouse's coordinate frame.
+            // Calculate length of the perpendicular hX without being dependent on the mouse's coordinate frame.
             const double t1 = (2*X*X - lengthLeft*lengthLeft)/(2*X);
-            const double deltaYLeft = sqrt(X*X - t1*t1);
+            const double hX = sqrt(X*X - t1*t1);
 
-            const double PHI = asin(deltaYLeft / X);
+            const double PHI = asin(hX / X);
             dotD = (X + 0.5*D) * PHI * timeStep;
             dotPhi = PHI * timeStep;
         }
@@ -191,11 +194,14 @@ namespace miceodometer {
 
             // Run mice odometer algorithm from second cycle on.
             if (!init) {
-                const double lengthLeft = (currPositionLeftMouse - prevPositionLeftMouse).lengthXY(); // TODO: Use values from real mice.
-                const double lengthRight = (currPositionRightMouse - prevPositionRightMouse).lengthXY(); // TODO: Use values from real mice.
+                // Calculate input values as we would get them from optical mice. TODO: Put here values read from real mice.
+                const double deltaXLeft = currPositionLeftMouse.getX() - prevPositionLeftMouse.getX();
+                const double deltaYLeft = currPositionLeftMouse.getY() - prevPositionLeftMouse.getY();
+                const double deltaXRight = currPositionRightMouse.getX() - prevPositionRightMouse.getX();
+                const double deltaYRight = currPositionRightMouse.getY() - prevPositionRightMouse.getY();
 
                 // Call algorithm for measuring and integrating driven distance and heading from two optical mice.
-                estimatePosition(lengthLeft, lengthRight, timeStep, direction);
+                estimatePosition(deltaXLeft, deltaYLeft, deltaXRight, deltaYRight, timeStep, direction);
 
                 // Map headingCar into range 0..2pi (not accessible on real car).
                 while (headingCar < 0) {

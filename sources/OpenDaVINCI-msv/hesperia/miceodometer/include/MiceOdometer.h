@@ -65,7 +65,7 @@ namespace miceodometer {
             double m_y;
 
             // Algorithm for estimating the vehicle's position based on readings from two mice.
-            void estimatePosition(const double &lengthLeft, const double &lengthRight, const double &timeStep, const double &direction);
+            void estimatePosition(const double &deltaXLeft, const double &deltaYLeft, const double &deltaXRight, const double &deltaYRight, const double &timeStep, const double &direction);
     };
 
 } // miceodometer
