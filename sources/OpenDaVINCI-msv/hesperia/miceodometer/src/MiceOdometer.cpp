@@ -98,11 +98,12 @@ namespace miceodometer {
         double dotD = 0;
         double dotPhi = 0;
         
-        if (fabs(lengthLeft - lengthRight) < 1e-5) {
+        if (fabs(lengthLeft - lengthRight) < 1e-6) {
             // Case: moving straight forward.
             cout << "Case: moving straight forward." << endl;
 
-            dotD = lengthLeft * timeStep;
+//            dotD = lengthLeft * timeStep;
+            dotD = ((lengthLeft + lengthRight)/2.0) * timeStep;
             // TODO for paper: compare with: dotD = ((lengthLeft + lengthRight)/2.0) * timeStep;
             // TODO for paper: compare with weighted lengthLeft and lengthRight depending on where to come from with aging factor.
 
