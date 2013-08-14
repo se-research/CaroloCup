@@ -9,6 +9,8 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/video/tracking.hpp>
 
+#include "core/data/TimeStamp.h"
+
 #include "Example6.h"
 
 namespace mousetracker {
@@ -16,12 +18,17 @@ namespace mousetracker {
     using namespace std;
     using namespace cv;
     using namespace core::base;
+    using namespace core::data;
 
-    struct MouseCoordinates { int x, y; } mouseReadings;
+    struct MouseCoordinates { int x, y; double dx, dy; } mouseReadings, mouseReadingsOld;
 
     void mouseMoveEvent(int /*event*/, int x, int y, int /*flags*/, void* /*param*/) {
 	    mouseReadings.x = x;
 	    mouseReadings.y = y;
+        mouseReadings.dx = (mouseReadingsOld.x - x);
+        mouseReadings.dy = (mouseReadingsOld.y - y);
+        
+        mouseReadingsOld = mouseReadings;
     }
 
     MouseTracker::MouseTracker(const int32_t &argc, char **argv) :
@@ -42,20 +49,28 @@ namespace mousetracker {
         setMouseCallback("MouseTracker", mouseMoveEvent, 0);
 
         vector<Point> listOfMousePoints;
+        vector<Point> listOfPredictedPoints;
         vector<Point> listOfEstimatedPoints;
 
         // Initialize mouseReadings struct.
+        mouseReadingsOld.x = 0;
+        mouseReadingsOld.y = 0;
+
         mouseReadings.x = 0;
         mouseReadings.y = 0;
+        mouseReadings.dx = 0;
+        mouseReadings.dy = 0;
 
-        const float processNoise = 1e-3; // Influence of process errors: The smaller this parameter the greater is the distance between measured and estimated point.
+        const float processNoise = 1e-4; // Influence of process errors: The smaller this parameter the greater is the distance between measured and estimated point.
         const float measurementNoise = 1e-1; // Influence of measurement errors: The smaller this parameter the greater is the influence of the measured points. 
         const float errorCovariance = 1e-1;
 
-        KalmanFilter KF(2 /*Number of dynamic parameters.*/, 2 /*Number of measured parameters.*/, 0 /*Number of control parameters.*/);
+        KalmanFilter KF(4 /*Number of dynamic parameters.*/, 4 /*Number of measured parameters.*/, 0 /*Number of control parameters.*/);
         KF.statePre.at<float>(0) = mouseReadings.x;
         KF.statePre.at<float>(1) = mouseReadings.y;
-        KF.transitionMatrix = Mat::eye(2,2,CV_32F); // The transition matrix is in our case: (1 0; 0 1).
+        KF.statePre.at<float>(2) = mouseReadings.dx;
+        KF.statePre.at<float>(3) = mouseReadings.dy;
+        KF.transitionMatrix = *(Mat_<float>(4, 4) << 1,0,1,0,   0,1,0,1,  0,0,1,0,  0,0,0,1);
 
         setIdentity(KF.measurementMatrix);
         setIdentity(KF.processNoiseCov, Scalar::all(processNoise));
@@ -65,11 +80,17 @@ namespace mousetracker {
     	while (getModuleState() == ModuleState::RUNNING) {
             // Predict the next state.
             Mat predicted = KF.predict();
-	
+
+            // Store for plotting predicted data.
+	        Point predictedPoint(predicted.at<float>(0), predicted.at<float>(1));
+	        listOfPredictedPoints.push_back(predictedPoint);
+
             // Set the next measurement from mouse.
-            Mat measurement(2, 1, CV_32F);
+            Mat measurement(4, 1, CV_32F);
             measurement.at<float>(0) = mouseReadings.x;
 	        measurement.at<float>(1) = mouseReadings.y;
+	        measurement.at<float>(2) = mouseReadings.dx;
+	        measurement.at<float>(3) = mouseReadings.dy;
 
             // Store for plotting real measurements.
 	        Point measuredPoint(measurement.at<float>(0), measurement.at<float>(1));
@@ -84,14 +105,18 @@ namespace mousetracker {
 	
             // Clear current image to have a nice visualization of where the estimated and measured mouse pointers are located.
             img = Scalar::all(0);
-            drawCross(img, measuredPoint, 5, 255, 255, 255); 
+            drawCross(img, measuredPoint, 5, 255, 255, 255);
             drawCross(img, estimatedPoint, 5, 0, 0, 255);
+            drawCross(img, predictedPoint, 5, 255, 0, 0);
 
 	        for (unsigned int i = 0; i < listOfMousePoints.size() - 1; i++) {
 		        line(img, listOfMousePoints[i], listOfMousePoints[i+1], Scalar(255, 255, 255), 1);
 	        }
 	        for (unsigned int i = 0; i < listOfEstimatedPoints.size() - 1; i++) {
 		        line(img, listOfEstimatedPoints[i], listOfEstimatedPoints[i+1], Scalar(0, 0, 255), 1);
+	        }
+	        for (unsigned int i = 0; i < listOfPredictedPoints.size() - 1; i++) {
+		        line(img, listOfPredictedPoints[i], listOfPredictedPoints[i+1], Scalar(255, 0, 0), 1);
 	        }
 	
             imshow("MouseTracker", img);

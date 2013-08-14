@@ -65,8 +65,11 @@ namespace miceodometer {
             double m_d;
             double m_x;
             double m_y;
+            double m_dx;
+            double m_dy;
 
             cv::KalmanFilter m_KF;
+            cv::Mat m_transitionMatrix;
             float m_processNoise;
             float m_measurementNoise;
             float m_errorCovariance;
@@ -79,7 +82,7 @@ namespace miceodometer {
 
             // Algorithm for estimating the vehicle's position using a Kalman filter.
             void initializeKalmanFilter();
-            void estimatePosition();
+            void estimatePosition(const double &timeStep);
     };
 
 } // miceodometer

@@ -39,7 +39,10 @@ namespace miceodometer {
         m_d(0),
         m_x(0),
         m_y(0),
+        m_dx(0),
+        m_dy(0),
         m_KF(),
+        m_transitionMatrix(),
         m_processNoise(0),
         m_measurementNoise(0),
         m_errorCovariance(0),
@@ -57,11 +60,15 @@ namespace miceodometer {
         m_measurementNoise = 1e-4; // Influence of measurement errors: The smaller this parameter the greater is the influence of the measured points. 
         m_errorCovariance = 1e-1;
 
-        m_KF = KalmanFilter(2 /*Number of dynamic parameters.*/, 2 /*Number of measured parameters.*/, 0 /*Number of control parameters.*/),
+        m_KF = KalmanFilter(4 /*Number of dynamic parameters.*/, 4 /*Number of measured parameters.*/, 0 /*Number of control parameters.*/),
 
         m_KF.statePre.at<float>(0) = m_x; // Initialize the estimated global X position.
         m_KF.statePre.at<float>(1) = m_y; // Initialize the estimated global Y position.
-        m_KF.transitionMatrix = Mat::eye(2,2,CV_32F); // The transition matrix is in our case: (1 0; 0 1), i.e. the parameters do not influence each other.
+        m_KF.statePre.at<float>(2) = m_dx; // Initialize the estimated global delta X position.
+        m_KF.statePre.at<float>(3) = m_dy; // Initialize the estimated global delta Y position.
+
+        m_transitionMatrix = (Mat_<float>(4, 4) << 1,0,1,0,   0,1,0,1,  0,0,1,0,  0,0,0,1);
+        m_KF.transitionMatrix = m_transitionMatrix;
 
         setIdentity(m_KF.measurementMatrix);
         setIdentity(m_KF.processNoiseCov, Scalar::all(m_processNoise));
@@ -69,14 +76,16 @@ namespace miceodometer {
         setIdentity(m_KF.errorCovPost, Scalar::all(m_errorCovariance));
     }
 
-    void MiceOdometer::estimatePosition() {
+    void MiceOdometer::estimatePosition(const double &timeStep) {
         // Predict the next state.
-        Mat predict = m_KF.predict();
+        m_KF.predict();
 
-        // Measurements are in our case the calculated position (m_x, m_y).
-        Mat measurement(2, 1, CV_32F);
+        // Measurements are in our case the calculated position (m_x, m_y) and the difference to last cycle.
+        Mat measurement(4, 1, CV_32F);
         measurement.at<float>(0) = m_x;
         measurement.at<float>(1) = m_y;
+        measurement.at<float>(2) = m_dx/timeStep;
+        measurement.at<float>(3) = m_dy/timeStep;
 
         // Correct Kalman filter by measurement.
         Mat estimation = m_KF.correct(measurement);
@@ -155,6 +164,9 @@ namespace miceodometer {
         m_x += dotX;
         m_y += dotY;
 
+        m_dx = dotX;
+        m_dy = dotY;
+
         // Map phi into range 0..2pi.
         while (m_phi < 0) {
             m_phi += 2 * Constants::PI;
@@ -192,6 +204,18 @@ namespace miceodometer {
         Point3 currPositionRightMouse;
 
         double direction = 1; // < 0 backwards, >0 forwards.
+
+        double maxErrorD = 0;
+        double minErrorD = 1;
+
+        double maxErrorPhi = 0;
+        double minErrorPhi = 1;
+
+        double maxErrorDiffEstimatedPos = 0;
+        double minErrorDiffEstimatedPos = 1;
+
+        double maxErrorDiffCalculatedPos = 0;
+        double minErrorDiffCalculatedPos = 1;
 
         while (getModuleState() == ModuleState::RUNNING) {
             TimeStamp currentTime;
@@ -255,7 +279,8 @@ namespace miceodometer {
                 calculatePosition(deltaXLeft, deltaYLeft, deltaXRight, deltaYRight, timeStep, direction);
 
                 // Update estimated position using Kalman filter.
-                estimatePosition();
+                for(int i=0;i<10;i++)
+                    estimatePosition(timeStep);
 
                 // Map headingCar into range 0..2pi (not accessible on real car).
                 while (headingCar < 0) {
@@ -269,8 +294,22 @@ namespace miceodometer {
                 const double errorD = (egostateD - m_d);
                 const double errorHeading = (headingCar - m_phi);
 
+                maxErrorD = (maxErrorD < fabs(errorD) && fabs(errorD) > 0) ? fabs(errorD) : maxErrorD;
+                minErrorD = (minErrorD > fabs(errorD) && fabs(errorD) > 0) ? fabs(errorD) : minErrorD;
+
+                maxErrorPhi = (maxErrorPhi < fabs(errorHeading) && fabs(errorHeading) > 0) ? fabs(errorHeading) : maxErrorPhi;
+                minErrorPhi = (minErrorPhi > fabs(errorHeading) && fabs(errorHeading) > 0) ? fabs(errorHeading) : minErrorPhi;
+
                 Point3 calculatedPosition = Point3(m_x, m_y, 0);
                 Point3 estimatedPosition = Point3(m_estimatedX, m_estimatedY, 0);
+
+                const double errorCalculatedPosition = (positionCar - calculatedPosition).lengthXY();
+                maxErrorDiffCalculatedPos = (maxErrorDiffCalculatedPos < fabs(errorCalculatedPosition) && fabs(errorCalculatedPosition) > 0) ? fabs(errorCalculatedPosition) : maxErrorDiffCalculatedPos;
+                minErrorDiffCalculatedPos = (minErrorDiffCalculatedPos > fabs(errorCalculatedPosition) && fabs(errorCalculatedPosition) > 0) ? fabs(errorCalculatedPosition) : minErrorDiffCalculatedPos;
+
+                const double errorEstimatedPosition = (positionCar - estimatedPosition).lengthXY();
+                maxErrorDiffEstimatedPos = (maxErrorDiffEstimatedPos < fabs(errorEstimatedPosition) && fabs(errorEstimatedPosition) > 0) ? fabs(errorEstimatedPosition) : maxErrorDiffEstimatedPos;
+                minErrorDiffEstimatedPos = (minErrorDiffEstimatedPos > fabs(errorEstimatedPosition) && fabs(errorEstimatedPosition) > 0) ? fabs(errorEstimatedPosition) : minErrorDiffEstimatedPos;
 
                 // Print out some statistics for the algorithm's quality.
                 cout << "d = " << m_d << ", phi = " << m_phi << endl;
@@ -279,11 +318,15 @@ namespace miceodometer {
                 cout << "Estimated position:  " << estimatedPosition.toString() << ", e: " << (positionCar - estimatedPosition).lengthXY() << endl;
                 cout << "carD = " << egostateD << ", carHeading = " << headingCar << endl;
                 cout << "errorD = " << errorD << ", errorHeading = " << errorHeading << endl;
+                cout << "minErrorD = " << minErrorD << ", maxErrorD = " << maxErrorD << endl;
+                cout << "minErrorPhi = " << minErrorPhi << ", maxErrorPhi = " << maxErrorPhi << endl;
+                cout << "minErrorDiffCalculatedPos = " << minErrorDiffCalculatedPos << ", maxErrorDiffCalculatedPos = " << maxErrorDiffCalculatedPos << endl;
+                cout << "minErrorDiffEstimatedPos = " << minErrorDiffEstimatedPos << ", maxErrorDiffEstimatedPos = " << maxErrorDiffEstimatedPos << endl;
                 cout << endl;
 
-                // Add noise to position data (equally distributed between -0.001 .. 0.001.
-                //m_x += ((rand() % 20) - 10)/10000.0;
-                //m_y += ((rand() % 20) - 10)/10000.0;
+                // Add noise to position data (equally distributed between -0.005 .. 0.005.
+                m_x += ((rand() % 100) - 50)/10000.0;
+                m_y += ((rand() % 100) - 50)/10000.0;
             }
 
             // Save data from this cycle.
