@@ -15,6 +15,9 @@ namespace mousetracker {
 
     using namespace std;
 
+    /**
+     * Example for how to use a Kalman filter with OpenCV. Run with ./example6 --cid=X --freq=1000
+     */
     class MouseTracker : public core::base::ConferenceClientModule {
         private:
             enum {
