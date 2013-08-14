@@ -29,13 +29,94 @@ namespace miceodometer {
     using namespace hesperia::data::environment;
 
     MiceOdometer::MiceOdometer(const int32_t &argc, char **argv) :
-        ConferenceClientModule(argc, argv, "MiceOdometer") {}
+        ConferenceClientModule(argc, argv, "MiceOdometer"),
+        D(2),
+        m_phi(0),
+        m_d(0),
+        m_x(0),
+        m_y(0) {}
 
     MiceOdometer::~MiceOdometer() {}
 
     void MiceOdometer::setUp() {}
 
     void MiceOdometer::tearDown() {}
+
+    void MiceOdometer::estimatePosition(const double &lengthLeft, const double &lengthRight, const double &timeStep, const double &direction) {
+        // Algorithm for measuring and integrating driven distance and heading from two optical mice.
+
+        cout << "lengthLeft = " << lengthLeft << ", lengthRight = " << lengthRight << endl;
+
+        // These two variables will contain the increments for the estimated heading and estimated driven path.
+        double dotD = 0;
+        double dotPhi = 0;
+        
+        if (fabs(lengthLeft - lengthRight) < 1e-5) {
+            // Case: moving straight forward.
+            cout << "Case: moving straight forward." << endl;
+
+            dotD = lengthLeft * timeStep;
+            // TODO for paper: compare with: dotD = ((lengthLeft + lengthRight)/2.0) * timeStep;
+            // TODO for paper: compare with weighted lengthLeft and lengthRight depending on where to come from with aging factor.
+
+            dotPhi = 0;
+        }
+        else if (lengthLeft > lengthRight) {
+            // Case: turning to right.
+            cout << "Case: turning to right." << endl;
+
+            const double X = D / ( (lengthLeft/lengthRight) - 1 );
+
+            // Calculate length of deltaYRight without being dependent on the mouse's coordinate frame.
+            const double t1 = (2*X*X - lengthRight*lengthRight)/(2*X);
+            const double deltaYRight = sqrt(X*X - t1*t1);
+
+            const double PHI = asin(deltaYRight / X);
+            dotD = (X + 0.5*D) * PHI * timeStep;
+            dotPhi = (-1) * PHI * timeStep;
+        }
+        else if (lengthLeft < lengthRight) {
+            // Case: turning to left.
+            cout << "Case: turning to left." << endl;
+
+            const double X = D / ( (lengthRight/lengthLeft) - 1 );
+
+            // Calculate length of deltaYLeft without being dependent on the mouse's coordinate frame.
+            const double t1 = (2*X*X - lengthLeft*lengthLeft)/(2*X);
+            const double deltaYLeft = sqrt(X*X - t1*t1);
+
+            const double PHI = asin(deltaYLeft / X);
+            dotD = (X + 0.5*D) * PHI * timeStep;
+            dotPhi = PHI * timeStep;
+        }
+
+        // Correction factor for simulation (not accessible/required on real car --> validate with real mice):
+        dotD *= getFrequency();
+        dotPhi *= getFrequency();
+
+        // Consider forwards/backwards driving (TODO: Derive direction from mice input).
+        dotPhi *= direction;
+
+        // Integrate readings over time to get globally driven path and global heading.
+        m_d += dotD;
+        m_phi += dotPhi;
+
+        // Integrate estimated position over time and consider forwards/backwards driving.
+        const double dotX = dotD * cos(m_phi) * direction;
+        const double dotY = dotD * sin(m_phi) * direction;
+        m_x += dotX;
+        m_y += dotY;
+
+        // Map phi into range 0..2pi.
+        while (m_phi < 0) {
+            m_phi += 2 * Constants::PI;
+        }
+        while (m_phi > 2 * Constants::PI) {
+            m_phi -= 2 * Constants::PI;
+        }
+
+        cout << "dotD = " << dotD << ", dotPhi = " << dotPhi << endl;
+    }
 
     ModuleState::MODULE_EXITCODE MiceOdometer::body() {
         KeyValueDataStore &kvs = getKeyValueDataStore();
@@ -48,8 +129,6 @@ namespace miceodometer {
         // This parameter needs to be defined in the configuration: What is the initial global rotation of the car?
         double INITIAL_ROTATION_CAR = 0;
 
-        // Distance between the two mice.
-        const double D = 2;
         const double ROT_LEFT = 90.0 * Constants::DEG2RAD; // Left mouse is mounted pi/4 to the left from the vehicle's heading.
         const double ROT_RIGHT = -90.0 * Constants::DEG2RAD; // Right mouse is mounted pi/4 to the right from the vehicle's heading.
 
@@ -60,12 +139,6 @@ namespace miceodometer {
         // Data from current cycle.
         Point3 currPositionLeftMouse;
         Point3 currPositionRightMouse;
-
-        // Integral of the measured values.
-        double d = 0;
-        double phi = 0;
-        double x = 0;
-        double y = 0;
 
         double direction = 1; // < 0 backwards, >0 forwards.
 
@@ -93,7 +166,7 @@ namespace miceodometer {
                 // only difference is that the depending internal maps will be oriented with a different
                 // starting angle; but internally, they are consistent.
                 INITIAL_ROTATION_CAR = headingCar;
-                phi = INITIAL_ROTATION_CAR;
+                m_phi = INITIAL_ROTATION_CAR;
             }
             if (!init) {
                 // This is only required to compare the estimated driven path with the real vehicle's driven path.
@@ -118,79 +191,11 @@ namespace miceodometer {
 
             // Run mice odometer algorithm from second cycle on.
             if (!init) {
-                // Algorithm for measuring and integrating driven distance and heading from two optical mice.
                 const double lengthLeft = (currPositionLeftMouse - prevPositionLeftMouse).lengthXY(); // TODO: Use values from real mice.
                 const double lengthRight = (currPositionRightMouse - prevPositionRightMouse).lengthXY(); // TODO: Use values from real mice.
 
-                cout << "lengthLeft = " << lengthLeft << ", lengthRight = " << lengthRight << endl;
-
-                // These two variables will contain the increments for the estimated heading and estimated driven path.
-                double dotD = 0;
-                double dotPhi = 0;
-                
-                if (fabs(lengthLeft - lengthRight) < 1e-5) {
-                    // Case: moving straight forward.
-                    cout << "Case: moving straight forward." << endl;
-
-                    dotD = lengthLeft * timeStep;
-                    // TODO for paper: compare with: dotD = ((lengthLeft + lengthRight)/2.0) * timeStep;
-                    // TODO for paper: compare with weighted lengthLeft and lengthRight depending on where to come from with aging factor.
-
-                    dotPhi = 0;
-                }
-                else if (lengthLeft > lengthRight) {
-                    // Case: turning to right.
-                    cout << "Case: turning to right." << endl;
-
-                    const double X = D / ( (lengthLeft/lengthRight) - 1 );
-
-                    // Calculate length of deltaYRight without being dependent on the mouse's coordinate frame.
-                    const double t1 = (2*X*X - lengthRight*lengthRight)/(2*X);
-                    const double deltaYRight = sqrt(X*X - t1*t1);
-
-                    const double PHI = asin(deltaYRight / X);
-                    dotD = (X + 0.5*D) * PHI * timeStep;
-                    dotPhi = (-1) * PHI * timeStep;
-                }
-                else if (lengthLeft < lengthRight) {
-                    // Case: turning to left.
-                    cout << "Case: turning to left." << endl;
-
-                    const double X = D / ( (lengthRight/lengthLeft) - 1 );
-
-                    // Calculate length of deltaYLeft without being dependent on the mouse's coordinate frame.
-                    const double t1 = (2*X*X - lengthLeft*lengthLeft)/(2*X);
-                    const double deltaYLeft = sqrt(X*X - t1*t1);
-
-                    const double PHI = asin(deltaYLeft / X);
-                    dotD = (X + 0.5*D) * PHI * timeStep;
-                    dotPhi = PHI * timeStep;
-                }
-
-                // Correction factor for simulation (not accessible/required on real car --> validate with real mice):
-                dotD *= getFrequency();
-                dotPhi *= getFrequency();
-
-                // Consider forwards/backwards driving (TODO: Derive direction from mice input).
-                dotPhi *= direction;
-
-                // Integrate readings over time to get globally driven path and global heading.
-                d += dotD;
-                phi += dotPhi;
-
-                // Integrate estimated position over time and consider forwards/backwards driving.
-                const double dotX = dotD * cos(phi) * direction;
-                const double dotY = dotD * sin(phi) * direction;
-                x += dotX;
-                y += dotY;
-
-                // Map phi into range 0..2pi.
-                while (phi < 0) {
-                    phi += 2 * Constants::PI;
-                }
-                while (phi > 2 * Constants::PI) {
-                    phi -= 2 * Constants::PI;
-                }
+                // Call algorithm for measuring and integrating driven distance and heading from two optical mice.
+                estimatePosition(lengthLeft, lengthRight, timeStep, direction);
 
                 // Map headingCar into range 0..2pi (not accessible on real car).
                 while (headingCar < 0) {
@@ -201,12 +206,12 @@ namespace miceodometer {
                 }
 
                 // Calculate integration error (not accessible on real car).
-                const double errorD = (egostateD - d);
-                const double errorHeading = (headingCar - phi);
+                const double errorD = (egostateD - m_d);
+                const double errorHeading = (headingCar - m_phi);
 
                 // Print out some statistics for the algorithm's quality.
-                cout << "dotD = " << dotD << ", dotPhi = " << dotPhi << ", d = " << d << ", phi = " << phi << endl;
-                cout << "X = " << x << ", Y = " << y << endl;
+                cout << "d = " << m_d << ", phi = " << m_phi << endl;
+                cout << "X = " << m_x << ", Y = " << m_y << endl;
                 cout << "carD = " << egostateD << ", carHeading = " << headingCar << endl;
                 cout << "errorD = " << errorD << ", errorHeading = " << errorHeading << endl;
                 cout << endl;

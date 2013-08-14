@@ -54,6 +54,18 @@ namespace miceodometer {
             virtual void setUp();
 
             virtual void tearDown();
+
+        private:
+            // Distance between the two mice.
+            const double D;
+
+            double m_phi;
+            double m_d;
+            double m_x;
+            double m_y;
+
+            // Algorithm for estimating the vehicle's position based on readings from two mice.
+            void estimatePosition(const double &lengthLeft, const double &lengthRight, const double &timeStep, const double &direction);
     };
 
 } // miceodometer
