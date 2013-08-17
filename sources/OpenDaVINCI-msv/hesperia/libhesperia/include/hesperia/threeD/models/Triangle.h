@@ -53,7 +53,7 @@ namespace hesperia {
 
                     virtual ~Triangle();
 
-                    virtual void render(const RenderingConfiguration &renderingConfiguration) const;
+                    virtual void render(RenderingConfiguration &renderingConfiguration);
 
                     /**
                      * This method sets the triangle's vertices.

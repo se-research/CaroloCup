@@ -38,7 +38,7 @@ namespace hesperia {
 
             HeightGridRenderer::~HeightGridRenderer() {}
 
-            void HeightGridRenderer::render(const RenderingConfiguration &renderingConfiguration) const {
+            void HeightGridRenderer::render(RenderingConfiguration &renderingConfiguration) {
                 if ((getNodeDescriptor().getName().size() == 0) || (renderingConfiguration.getNodeRenderingConfiguration(getNodeDescriptor()).hasParameter(NodeRenderingConfiguration::ENABLED))) {
                     glPushMatrix();
                     {
@@ -200,7 +200,7 @@ namespace hesperia {
                 }
             }
 
-            void HeightGrid::render(const RenderingConfiguration &renderingConfiguration) const {
+            void HeightGrid::render(RenderingConfiguration &renderingConfiguration) {
                 // Delegate rendering.
                 if (m_heightImage != NULL) {
                     m_heightImageNode->render(renderingConfiguration);

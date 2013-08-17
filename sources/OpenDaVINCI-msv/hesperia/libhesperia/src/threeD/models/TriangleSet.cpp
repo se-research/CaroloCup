@@ -100,7 +100,7 @@ namespace hesperia {
             }
 
 
-            void TriangleSet::render(const RenderingConfiguration &renderingConfiguration) const {
+            void TriangleSet::render(RenderingConfiguration &renderingConfiguration) {
                 if ((getNodeDescriptor().getName().size() == 0) || (renderingConfiguration.getNodeRenderingConfiguration(getNodeDescriptor()).hasParameter(NodeRenderingConfiguration::ENABLED))) {
                     glPushMatrix();
                     {

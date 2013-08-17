@@ -38,7 +38,7 @@ namespace hesperia {
 
             AerialImageRenderer::~AerialImageRenderer() {}
 
-            void AerialImageRenderer::render(const RenderingConfiguration &renderingConfiguration) const {
+            void AerialImageRenderer::render(RenderingConfiguration &renderingConfiguration) {
                 if ((getNodeDescriptor().getName().size() == 0) || (renderingConfiguration.getNodeRenderingConfiguration(getNodeDescriptor()).hasParameter(NodeRenderingConfiguration::ENABLED))) {
                     glPushMatrix();
                     {
@@ -176,7 +176,7 @@ namespace hesperia {
                 }
             }
 
-            void AerialImage::render(const RenderingConfiguration &renderingConfiguration) const {
+            void AerialImage::render(RenderingConfiguration &renderingConfiguration) {
                 // Delegate rendering.
                 if (m_image != NULL) {
                     m_aerialImageNode->render(renderingConfiguration);

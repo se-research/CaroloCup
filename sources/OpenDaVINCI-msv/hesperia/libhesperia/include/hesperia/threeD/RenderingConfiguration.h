@@ -66,7 +66,7 @@ namespace hesperia {
                  * @param nd NodeDescriptor.
                  * @return NodeRenderingConfiguration.
                  */
-                const NodeRenderingConfiguration getNodeRenderingConfiguration(const NodeDescriptor &nd) const;
+                const NodeRenderingConfiguration& getNodeRenderingConfiguration(const NodeDescriptor &nd);
 
                 /**
                  * This method sets a NodeRenderingConfiguration

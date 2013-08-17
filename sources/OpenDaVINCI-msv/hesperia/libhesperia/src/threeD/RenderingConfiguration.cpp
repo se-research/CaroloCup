@@ -34,9 +34,8 @@ namespace hesperia {
             m_drawTextures = drawTextures;
         }
 
-        const NodeRenderingConfiguration RenderingConfiguration::getNodeRenderingConfiguration(const NodeDescriptor &nd) const {
-            map<NodeDescriptor, NodeRenderingConfiguration, NodeDescriptorComparator> nodesRenderingConfiguration = m_nodesRenderingConfiguration;
-            return nodesRenderingConfiguration[nd];
+        const NodeRenderingConfiguration& RenderingConfiguration::getNodeRenderingConfiguration(const NodeDescriptor &nd) {
+            return m_nodesRenderingConfiguration[nd];
         }
 
         void RenderingConfiguration::setNodeRenderingConfiguration(const NodeDescriptor &nd, const NodeRenderingConfiguration &nrc) {

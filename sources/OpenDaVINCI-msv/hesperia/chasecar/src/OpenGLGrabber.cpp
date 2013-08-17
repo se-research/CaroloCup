@@ -203,7 +203,8 @@ namespace chasecar {
     }
 
     void OpenGLGrabber::renderNextImageInCar() {
-        m_root->render(RenderingConfiguration());
+        RenderingConfiguration r = RenderingConfiguration();
+        m_root->render(r);
     }
 
     void OpenGLGrabber::renderNextImageChaseCar() {
@@ -237,17 +238,18 @@ namespace chasecar {
                       0, 0, 1);
 
             // Draw scene.
-            m_root->render(RenderingConfiguration());
+            RenderingConfiguration r = RenderingConfiguration();
+            m_root->render(r);
 
             // Update ego position.
             Point3 dir(0, 0, m_egoState.getRotation().getAngleXY());
             m_car->setRotation(dir);
             m_car->setTranslation(m_egoState.getPosition());
-            m_car->render(RenderingConfiguration());
+            m_car->render(r);
 
             if (renderSensors) {
                 // Render sensor FOVs
-                m_sensors->render(RenderingConfiguration());
+                m_sensors->render(r);
             }
 
         glPopMatrix();

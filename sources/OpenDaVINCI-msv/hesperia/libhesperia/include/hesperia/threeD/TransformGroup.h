@@ -57,7 +57,7 @@ namespace hesperia {
 
                 virtual ~TransformGroup();
 
-                virtual void render(const RenderingConfiguration &renderingConfiguration) const;
+                virtual void render(RenderingConfiguration &renderingConfiguration);
 
                 /**
                  * This method sets the translation.

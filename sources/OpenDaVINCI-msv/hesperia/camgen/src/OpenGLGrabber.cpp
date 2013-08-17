@@ -146,21 +146,24 @@ namespace camgen {
 //                          0, 3,  0,
 //                          0, 0,  -1); // -1 is necessary to rotate the entire model by PI around the y-axis.
 
-        m_root->render(RenderingConfiguration());
+        RenderingConfiguration r = RenderingConfiguration();
+        m_root->render(r);
     }
 
     void OpenGLGrabber::renderNextImageFromIntrinsicCalibrationBody() {
         glClearColor(0.5, 0.5, 0.5, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        m_intrinsicCalibrationRoot->render(RenderingConfiguration());
+        RenderingConfiguration r = RenderingConfiguration();
+        m_intrinsicCalibrationRoot->render(r);
     }
 
     void OpenGLGrabber::renderNextImageFromExtrinsicCalibrationBody() {
         glClearColor(0.5, 0.5, 0.5, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        m_extrinsicCalibrationRoot->render(RenderingConfiguration());
+        RenderingConfiguration r = RenderingConfiguration();
+        m_extrinsicCalibrationRoot->render(r);
 /*
         double *m_model = new double[16];
         double *m_projection = new double[16];

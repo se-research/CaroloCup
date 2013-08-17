@@ -46,7 +46,7 @@ namespace hesperia {
             deleteAllChildren();
         }
 
-        void TransformGroup::render(const RenderingConfiguration &renderingConfiguration) const {
+        void TransformGroup::render(RenderingConfiguration &renderingConfiguration) {
             Lock l(m_listOfChildrenMutex);
 
             // Render if unnamed or not disabled.
@@ -67,7 +67,7 @@ namespace hesperia {
                     // Draw all existing children.
                     vector<Node*>::const_iterator it = m_listOfChildren.begin();
                     while (it != m_listOfChildren.end()) {
-                        const Node *n = (*it++);
+                        Node *n = (*it++);
                         if (n != NULL) {
                             n->render(renderingConfiguration);
                         }

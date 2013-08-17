@@ -53,7 +53,7 @@ namespace hesperia {
 
                     virtual ~Line();
 
-                    virtual void render(const RenderingConfiguration &renderingConfiguration) const;
+                    virtual void render(RenderingConfiguration &renderingConfiguration);
 
                 private:
                     core::data::environment::Point3 m_positionA;

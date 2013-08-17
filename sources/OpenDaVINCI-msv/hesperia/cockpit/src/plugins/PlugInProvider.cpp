@@ -15,6 +15,7 @@
 
 #include "plugins/PlugInProvider.h"
 
+#include "plugins/birdseyemap/BirdsEyeMapPlugIn.h"
 #include "plugins/configurationviewer/ConfigurationViewerPlugIn.h"
 #include "plugins/controller/ControllerPlugIn.h"
 #include "plugins/cutter/CutterPlugIn.h"
@@ -53,6 +54,7 @@ namespace cockpit {
             m_listOfAvailablePlugIns.push_back("Controller");
             m_listOfAvailablePlugIns.push_back("Cutter");
 #ifndef PANDABOARD
+            m_listOfAvailablePlugIns.push_back("BirdsEyeMap");
             m_listOfAvailablePlugIns.push_back("EnvironmentViewer");
             m_listOfAvailablePlugIns.push_back("ForceControlViewer");
             m_listOfAvailablePlugIns.push_back("IrUsCharts");
@@ -68,6 +70,7 @@ namespace cockpit {
             m_listOfDescriptions["Controller"] = tr("This plugin allows the control of the vehicle by the arrow keys.").toStdString();
             m_listOfDescriptions["Cutter"] = tr("This plugin allows to filter & cut recordings.").toStdString();
 #ifndef PANDABOARD
+            m_listOfDescriptions["BirdsEyeMap"] = tr("This plugin shows the entire environment in 2D.").toStdString();
             m_listOfDescriptions["EnvironmentViewer"] = tr("This plugin shows the entire environment in 3D.").toStdString();
             m_listOfDescriptions["ForceControlViewer"] = tr("This plugin displays the values of ForceControl over time.").toStdString();
             m_listOfDescriptions["IrUsCharts"] = tr("This plugin displays the values of SensorBoardData over time.").toStdString();
@@ -117,6 +120,10 @@ namespace cockpit {
                 plugIn = core::SharedPointer<PlugIn>(new cutter::CutterPlugIn("Cutter", m_kvc, m_parent));
             }
 #ifndef PANDABOARD
+            else if (name == "BirdsEyeMap") {
+                cerr << "Creating BirdsEyeMap" << endl;
+                plugIn = core::SharedPointer<PlugIn>(new birdseyemap::BirdsEyeMapPlugIn("BirdsEyeMap", m_kvc, m_parent));
+            }
             else if (name == "EnvironmentViewer") {
                 cerr << "Creating EnvironmentViewer" << endl;
                 plugIn = core::SharedPointer<PlugIn>(new environmentviewer::EnvironmentViewerPlugIn("EnvironmentViewer", m_kvc, m_parent));

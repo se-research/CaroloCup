@@ -42,7 +42,7 @@ namespace hesperia {
                 return (*this);
             }
 
-            void Point::render(const RenderingConfiguration &renderingConfiguration) const {
+            void Point::render(RenderingConfiguration &renderingConfiguration) {
                 if ((getNodeDescriptor().getName().size() == 0) || (renderingConfiguration.getNodeRenderingConfiguration(getNodeDescriptor()).hasParameter(NodeRenderingConfiguration::ENABLED))) {
                     glPushMatrix();
                     {

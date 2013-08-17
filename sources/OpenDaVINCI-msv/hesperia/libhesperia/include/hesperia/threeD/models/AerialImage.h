@@ -52,7 +52,7 @@ namespace hesperia {
 
                     virtual ~AerialImageRenderer();
 
-                    virtual void render(const RenderingConfiguration &renderingConfiguration) const;
+                    virtual void render(RenderingConfiguration &renderingConfiguration);
 
                 private:
                     uint32_t m_textureHandle;
@@ -95,7 +95,7 @@ namespace hesperia {
 
                     virtual ~AerialImage();
 
-                    virtual void render(const RenderingConfiguration &renderingConfiguration) const;
+                    virtual void render(RenderingConfiguration &renderingConfiguration);
 
                 private:
                     const core::wrapper::Image *m_image;

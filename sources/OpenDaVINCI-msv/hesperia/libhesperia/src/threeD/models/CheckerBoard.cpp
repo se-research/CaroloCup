@@ -48,7 +48,7 @@ namespace hesperia {
                 return (*this);
             }
 
-            void CheckerBoard::render(const RenderingConfiguration &renderingConfiguration) const {
+            void CheckerBoard::render(RenderingConfiguration &renderingConfiguration) {
                 if ((getNodeDescriptor().getName().size() == 0) || (renderingConfiguration.getNodeRenderingConfiguration(getNodeDescriptor()).hasParameter(NodeRenderingConfiguration::ENABLED))) {
                     glPushMatrix();
                     {

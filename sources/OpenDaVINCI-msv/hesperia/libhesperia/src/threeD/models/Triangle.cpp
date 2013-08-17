@@ -78,7 +78,7 @@ namespace hesperia {
                 return m_textureCoordinates;
             }
 
-            void Triangle::render(const RenderingConfiguration &renderingConfiguration) const {
+            void Triangle::render(RenderingConfiguration &renderingConfiguration) {
                 if ((getNodeDescriptor().getName().size() == 0) || (renderingConfiguration.getNodeRenderingConfiguration(getNodeDescriptor()).hasParameter(NodeRenderingConfiguration::ENABLED))) {
                     glPushMatrix();
                     {

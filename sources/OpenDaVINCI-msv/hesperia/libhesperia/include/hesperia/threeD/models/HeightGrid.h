@@ -54,7 +54,7 @@ namespace hesperia {
 
                     virtual ~HeightGridRenderer();
 
-                    virtual void render(const RenderingConfiguration &renderingConfiguration) const;
+                    virtual void render(RenderingConfiguration &renderingConfiguration);
 
                 private:
                     uint32_t m_callList;
@@ -103,7 +103,7 @@ namespace hesperia {
 
                     virtual ~HeightGrid();
 
-                    virtual void render(const RenderingConfiguration &renderingConfiguration) const;
+                    virtual void render(RenderingConfiguration &renderingConfiguration);
 
                 private:
                     const core::wrapper::Image *m_heightImage;

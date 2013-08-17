@@ -40,7 +40,7 @@ namespace hesperia {
                 return (*this);
             }
 
-            void XYZAxes::render(const RenderingConfiguration &renderingConfiguration) const {
+            void XYZAxes::render(RenderingConfiguration &renderingConfiguration) {
                 // Render if unnamed or not disabled.
                 if ((getNodeDescriptor().getName().size() == 0) || (renderingConfiguration.getNodeRenderingConfiguration(getNodeDescriptor()).hasParameter(NodeRenderingConfiguration::ENABLED))) {
                     glPushMatrix();

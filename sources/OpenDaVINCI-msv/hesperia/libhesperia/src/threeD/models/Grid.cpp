@@ -36,7 +36,7 @@ namespace hesperia {
                 return (*this);
             }
 
-            void Grid::render(const RenderingConfiguration &renderingConfiguration) const {
+            void Grid::render(RenderingConfiguration &renderingConfiguration) {
                 if ((getNodeDescriptor().getName().size() == 0) || (renderingConfiguration.getNodeRenderingConfiguration(getNodeDescriptor()).hasParameter(NodeRenderingConfiguration::ENABLED))) {
                     glPushMatrix();
                     {

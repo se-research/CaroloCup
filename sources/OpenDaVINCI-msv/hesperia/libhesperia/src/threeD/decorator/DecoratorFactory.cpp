@@ -72,12 +72,14 @@ namespace hesperia {
                     tg->addChild(ai);
                 }
                 if (scnxArchive.getHeightImage() != NULL) {
-                    clog << "HeightImage loaded." << endl;
+                    clog << "HeightImage available but will be skipped." << endl;
+/*
                     Point3 origin(scenario.getGround().getHeightImage().getOriginX(), scenario.getGround().getHeightImage().getOriginY(), 0);
                     Point3 scaling(scenario.getGround().getHeightImage().getMeterPerPixelX(), scenario.getGround().getHeightImage().getMeterPerPixelY(), 0);
 
                     HeightGrid *hg = new HeightGrid(NodeDescriptor("HeightGrid"), scnxArchive.getHeightImage(), origin, scaling, static_cast<float>(scenario.getGround().getHeightImage().getRotationZ()), static_cast<float>(scenario.getGround().getHeightImage().getGroundHeight()), static_cast<float>(scenario.getGround().getHeightImage().getMinimumHeight()), static_cast<float>(scenario.getGround().getHeightImage().getMaximumHeight()));
                     tg->addChild(hg);
+*/
                 }
 
                 ScenarioOpenGLSceneTransformation scnOpenGL(showLaneConnectors);

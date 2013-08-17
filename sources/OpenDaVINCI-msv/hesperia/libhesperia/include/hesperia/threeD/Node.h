@@ -56,7 +56,7 @@ namespace hesperia {
                  *
                  * @param renderingConfiguration Configuration for the rendering process.
                  */
-                virtual void render(const RenderingConfiguration &renderingConfiguration) const = 0;
+                virtual void render(RenderingConfiguration &renderingConfiguration) = 0;
 
                 /**
                  * This method returns this node's description.

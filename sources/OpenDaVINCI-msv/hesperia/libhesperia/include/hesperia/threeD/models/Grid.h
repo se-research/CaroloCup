@@ -48,7 +48,7 @@ namespace hesperia {
                      */
                     Grid& operator=(const Grid &obj);
 
-                    virtual void render(const RenderingConfiguration &renderingConfiguration) const;
+                    virtual void render(RenderingConfiguration &renderingConfiguration);
 
                 private:
                     uint32_t m_size;

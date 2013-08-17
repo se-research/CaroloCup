@@ -54,7 +54,7 @@ namespace hesperia {
                      */
                     XYZAxes& operator=(const XYZAxes &obj);
 
-                    virtual void render(const RenderingConfiguration &renderingConfiguration) const;
+                    virtual void render(RenderingConfiguration &renderingConfiguration);
 
                 private:
                     float m_lineWidth;

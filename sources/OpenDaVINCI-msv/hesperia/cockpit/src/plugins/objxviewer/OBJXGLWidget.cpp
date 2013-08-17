@@ -103,7 +103,8 @@ namespace cockpit {
             void OBJXGLWidget::drawScene() {
                 Lock l(m_modelMutex);
                 if (m_root != NULL) {
-                    m_root->render(RenderingConfiguration());
+                    RenderingConfiguration r = RenderingConfiguration();
+                    m_root->render(r);
                 }
             }
         }
