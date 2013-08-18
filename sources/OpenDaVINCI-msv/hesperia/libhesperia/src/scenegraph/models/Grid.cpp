@@ -39,8 +39,8 @@ namespace hesperia {
             Grid::~Grid() {}
 
             void Grid::createGrid() {
-                const double MIN_AXES = -500;
-                const double MAX_AXES = 500;
+                const double MIN_AXES = -150;
+                const double MAX_AXES = 150;
 
                 for(int32_t y = MIN_AXES; y <= MAX_AXES; y++) {
                     Point3 yAxisGridLineA(MIN_AXES, y, 0);
