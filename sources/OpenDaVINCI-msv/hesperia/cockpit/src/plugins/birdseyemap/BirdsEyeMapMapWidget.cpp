@@ -5,6 +5,7 @@
  */
 
 #include <sstream>
+#include <map>
 #include <vector>
 
 #include "core/macros.h"
@@ -17,6 +18,7 @@
 #include "core/data/Constants.h"
 #include "core/data/environment/Point3.h"
 #include "hesperia/data/environment/Obstacle.h"
+#include "hesperia/data/sensor/TSDDistances.h"
 #include "hesperia/scenario/SCNXArchive.h"
 #include "hesperia/scenario/SCNXArchiveFactory.h"
 
@@ -41,6 +43,7 @@ namespace cockpit {
             using namespace core::io;
             using namespace core::data::environment;
             using namespace hesperia::data::environment;
+            using namespace hesperia::data::sensor;
             using namespace hesperia::scenegraph;
             using namespace hesperia::scenegraph::models;
             using namespace hesperia::scenegraph::renderer;
@@ -70,7 +73,10 @@ namespace cockpit {
                 m_egoCar(NULL),
                 m_egoCarTrace(NULL),
                 m_obstaclesRoot(NULL),
-                m_mapOfObstacles() {
+                m_mapOfObstacles(),
+                m_tsdRoot(NULL),
+                m_translationSLL(),
+                m_rotationZSLL(0) {
 
                 m_root->addChild(m_scales);
                 m_root->addChild(m_stationaryElements);
@@ -78,6 +84,10 @@ namespace cockpit {
                 m_root->addChild(m_measurements);
 
                 createSceneGraph();
+
+                // SLL visualization.
+                m_translationSLL = Point3(plugIn.getKeyValueConfiguration().getValue<string>("sll.translation"));
+                m_rotationZSLL = plugIn.getKeyValueConfiguration().getValue<double>("sll.rotZ");
 
                 // Setup selectable scene graph.
                 m_selectableNodeDescriptorTree = new TreeNode<SelectableNodeDescriptor>();
@@ -164,6 +174,9 @@ namespace cockpit {
                 // Measurements.
                 m_obstaclesRoot = new SceneNode(SceneNodeDescriptor("Obstacles"));
                 m_measurements->addChild(m_obstaclesRoot);
+
+                m_tsdRoot = new SceneNode(SceneNodeDescriptor("360 Degree Lidar"));
+                m_measurements->addChild(m_tsdRoot);
             }
 
             void BirdsEyeMapMapWidget::setZoomLevel(float val) {
@@ -308,6 +321,37 @@ namespace cockpit {
                         m_egoCarTrace->addChild(line);
 
                         m_lastEgoState = m_egoState;
+                    }
+                }
+
+                if (c.getDataType() == Container::TSDDISTANCES) {
+                    if (m_tsdRoot != NULL) {
+                        Lock l(m_rootMutex);
+                        TSDDistances tsd = c.getData<TSDDistances>();
+
+                        stringstream tsdName;
+                        tsdName << "360 Degree Lidar";
+
+                        m_tsdRoot->deleteAllChildren();
+
+                        map<uint32_t, double> distanceMap = tsd.getDistanceMap();
+                        map<uint32_t, double>::const_iterator it = distanceMap.begin();
+                        for (; it != distanceMap.end(); it++) {
+                            const uint32_t angle = it->first;
+                            const double d = it->second;
+cerr << angle << " = " << d << endl;
+
+
+                            if (d > 0) {
+                                Point3 measuredPoint(d, 0, 0);
+                                measuredPoint.rotateZ(m_egoState.getRotation().getAngleXY() + m_rotationZSLL*Constants::DEG2RAD + angle*Constants::DEG2RAD);
+                                measuredPoint += m_egoState.getPosition() + m_translationSLL;
+                            
+                                hesperia::scenegraph::primitives::Point *p = new hesperia::scenegraph::primitives::Point(SceneNodeDescriptor(tsdName.str()), measuredPoint, Point3(1, 0, 0), 2);
+
+                                m_tsdRoot->addChild(p);
+                            }
+                        }
                     }
                 }
 

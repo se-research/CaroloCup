@@ -122,6 +122,10 @@ namespace cockpit {
                     hesperia::scenegraph::SceneNode *m_obstaclesRoot;
                     map<uint32_t, hesperia::scenegraph::SceneNode*> m_mapOfObstacles;
 
+                    hesperia::scenegraph::SceneNode *m_tsdRoot;
+                    core::data::environment::Point3 m_translationSLL;
+                    double m_rotationZSLL;
+
                     void createSceneGraph();
 
                     void modifyRenderingConfiguration(core::base::TreeNode<SelectableNodeDescriptor> *node);

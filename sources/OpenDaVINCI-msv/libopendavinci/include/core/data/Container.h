@@ -53,6 +53,7 @@ namespace core {
                     VEHICLEDATA                  = 39,
                     DRAW_LINE                    = 40,
                     VEHICLECONTROL               = 41,
+                    TSDDISTANCES                 = 42,
 
                     USER_BUTTON                  = 999,
                     USER_DATA_0                  = 1000,

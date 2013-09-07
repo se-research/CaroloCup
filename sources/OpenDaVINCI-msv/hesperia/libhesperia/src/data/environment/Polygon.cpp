@@ -13,7 +13,6 @@
 #include "core/base/SerializationFactory.h"
 #include "core/base/Serializer.h"
 
-#include "hesperia/data/environment/Line.h"
 #include "hesperia/data/environment/Polygon.h"
 
 namespace hesperia {
@@ -139,6 +138,34 @@ namespace hesperia {
                     }
 
                     retVal = ((alpha == 4) || (alpha == -4));
+                }
+
+                return retVal;
+            }
+
+            Point3 Polygon::intersectIgnoreZ(const Line &l) const {
+                // Algorithm:
+                // For every pair<Vertex, Vertex> from this determine the intersection point P.
+
+                Point3 retVal(0, 0, -1);
+
+                vector<Point3> thisPolygon = getVertices();
+
+                if (thisPolygon.size() > 0) {
+                    // Modify vertices by adding the first vertex at the end of both lists for closing the polygon.
+                    thisPolygon.push_back((*thisPolygon.begin()));
+
+                    for(uint32_t i = 0; i < thisPolygon.size() - 1; i++) {
+                        Point3 thisA = thisPolygon.at(i);
+                        Point3 thisB = thisPolygon.at(i+1);
+                        Line thisLine(thisA, thisB);
+
+                        Point3 result;
+                        if (thisLine.intersectIgnoreZ(l, result)) {
+                            retVal = result;
+                            retVal.setZ(0);
+                        }
+                    }
                 }
 
                 return retVal;

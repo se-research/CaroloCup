@@ -14,6 +14,7 @@
 
 #include "core/data/SerializableData.h"
 #include "core/data/environment/Point3.h"
+#include "hesperia/data/environment/Line.h"
 
 namespace hesperia {
     namespace data {
@@ -86,6 +87,16 @@ namespace hesperia {
                      * @return true, if p is within this polygon.
                      */
                     bool containsIgnoreZ(const Point3 &p) const;
+
+                    /**
+                     * This method intersects this polygon with
+                     * the given line ignoring Z.
+                     *
+                     * @param l Line to intersect with this polygon.
+                     * @return Intersection point; if no intersection
+                     * point has been found, Z coordinate is set to -1
+                     */
+                    Point3 intersectIgnoreZ(const hesperia::data::environment::Line &l) const;
 
                     /**
                      * This method intersects this polygon with
