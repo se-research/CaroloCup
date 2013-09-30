@@ -15,8 +15,23 @@ get_pic() ->
 show_pic(F) ->
     ?NIF_STUB.
 
+deinit_camera() ->
+    ?NIF_STUB.
+
 
 %% INTERNAL
+
+% retrieves 1000 test images, and saves them to /c_src/images
+test_stream()->
+    test_stream(100).
+
+test_stream(0) ->
+  ok;
+test_stream(X) ->
+  {ok, Ref} = get_pic(),
+  show_pic(Ref),
+  test_stream(X-1).  
+
 
     
     

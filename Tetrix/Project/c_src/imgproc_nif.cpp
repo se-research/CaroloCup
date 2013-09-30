@@ -3,8 +3,12 @@
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-#include "erl_nif.h"
+#include "/usr/lib/erlang/usr/include/erl_nif.h"
+#include "camera_functions.hpp"
 #include "iostream"
+#include <ostream>
+#include <sstream>
+#include <string>
 #include <sys/time.h>
 #include <opencv/highgui.h>
 #include <opencv/cv.h>
@@ -14,7 +18,7 @@ using namespace std;
 
 
 ErlNifResourceType* frame_res = NULL;
-
+int counter = 0; // counter used for naming saved .jpg files
 
 typedef struct _frame_t {
   IplImage* _frame;
@@ -35,24 +39,27 @@ static int load(ErlNifEnv* env, void** priv, ERL_NIF_TERM load_info)
   frame_res = enif_open_resource_type(env, "niftest", "ocv_frame",
 				      &frame_cleanup,
 				      flags, 0);
+
+	//Initializes the camera
+  init_camera();
+
   return 0;
 }
 
-
+/* Retrieves an image form the uEye camera, and assigns the data to the frame
+ * struct
+*/
 static ERL_NIF_TERM get_pic(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
 
-  IplImage* src = cvLoadImage("/home/khashayar/Downloads/pic.png");
+	// Retrieving a pointer of the image, and assigning it to an IplImage
+  char* imgPointer = get_image();
+  IplImage* src = cvCreateImage(cvSize(752,480), IPL_DEPTH_8U, 1);
+  src -> imageData = imgPointer;
 
-  //  cout << src->width << endl;
-
-  IplImage* gray = cvCreateImage(cvGetSize(src), IPL_DEPTH_8U, 1);
-  cvCvtColor(src, gray, CV_RGB2GRAY);
-
-
+	// Assigning  IplImage data to the frame struct
   frame_t* frame = (frame_t*)enif_alloc_resource(frame_res, sizeof(frame_t));
-
-  frame->_frame = gray ;
+  frame->_frame = src ;
 
   ERL_NIF_TERM term = enif_make_resource_binary(env, frame, frame ,6);
 
@@ -62,7 +69,9 @@ static ERL_NIF_TERM get_pic(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   
 }
 
-
+/* Retrieves image data from the frame struct, and saves the image as jpg file
+ * in images folder
+*/
 static ERL_NIF_TERM show_pic(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]){
 
   frame_t* frame;
@@ -70,18 +79,40 @@ static ERL_NIF_TERM show_pic(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
     return enif_make_badarg(env);
  } 
 
+  counter++;
+  string basename = "images/fish_image";
+  ostringstream filename;
+  filename << basename << counter << ".jpg";
+  cvSaveImage(filename.str().c_str(), frame -> _frame);  
+  cvWaitKey(30);
+
+	/*
   cvShowImage("YOOHOO", frame->_frame);
 
   cvWaitKey(30);
+	*/
   
   return enif_make_atom(env, "ok");
 }
 
+/* Deinitializes the uEye camera. If Erlang code runs get_pic, and exits
+ * without running this function (deinit_camera), this can cause the camera's 
+ * bus to crash and will require the system to be restarted
+*/
+static ERL_NIF_TERM deinit_camera(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]){
 
+  deinit_camera();
+
+  return enif_make_atom(env, "ok");
+ 
+}
+
+/* Nif function definitions */
 static ErlNifFunc nif_funcs[] =
   {
     {"show_pic", 1, show_pic},
     {"get_pic", 0, get_pic},
+		{"deinit_camera", 0, deinit_camera}
   };
 
 ERL_NIF_INIT(niftest,nif_funcs,load,NULL,NULL,NULL)
