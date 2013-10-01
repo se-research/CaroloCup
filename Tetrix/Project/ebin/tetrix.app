@@ -1,0 +1,10 @@
+{application,tetrix,
+             [{description,[]},
+              {vsn,"1"},
+              {registered,[]},
+              {applications,[kernel,stdlib]},
+              {mod,{tetrix_app,[]}},
+              {env,[]},
+              {modules,[car_ai,cunit,hardware_data,image_proc,imgproc_nif,
+                        map_gen,position_calc,tetrix_app,tetrix_sup,
+                        vehicle_data]}]}.

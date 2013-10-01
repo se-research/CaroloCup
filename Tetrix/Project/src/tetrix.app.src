@@ -1,0 +1,12 @@
+{application, tetrix,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { tetrix_app, []}},
+  {env, []}
+ ]}.

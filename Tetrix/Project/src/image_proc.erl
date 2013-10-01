@@ -1,4 +1,4 @@
--module(imgproc).
+-module(image_proc).
 
 -export([start/0, init/1]).
 
