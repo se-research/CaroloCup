@@ -4,7 +4,7 @@
 #include <opencv/cv.h>
 using namespace cv;
 
-void init_camera();
-char* get_image();
-void deinit_camera();
+bool init_camera();
+bool get_image(char*& img);
+bool deinit_camera();
 #endif

@@ -36,14 +36,17 @@ static int load(ErlNifEnv* env, void** priv, ERL_NIF_TERM load_info)
 {
 
   ErlNifResourceFlags flags = (ErlNifResourceFlags) (ERL_NIF_RT_CREATE | ERL_NIF_RT_TAKEOVER);
-  frame_res = enif_open_resource_type(env, "niftest", "ocv_frame",
+  frame_res = enif_open_resource_type(env, "imgproc_nif", "ocv_frame",
 				      &frame_cleanup,
 				      flags, 0);
 
 	//Initializes the camera
-  init_camera();
+  bool result = init_camera();
 
-  return 0;
+  if (result)
+    return 0;
+  else
+    return 1;
 }
 
 /* Retrieves an image form the uEye camera, and assigns the data to the frame
@@ -53,7 +56,8 @@ static ERL_NIF_TERM get_pic(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
 
 	// Retrieving a pointer of the image, and assigning it to an IplImage
-  char* imgPointer = get_image();
+  char* imgPointer;
+  bool img_retrieved = get_image(imgPointer);
   IplImage* src = cvCreateImage(cvSize(752,480), IPL_DEPTH_8U, 1);
   src -> imageData = imgPointer;
 
@@ -65,7 +69,11 @@ static ERL_NIF_TERM get_pic(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 
   //enif_release_resource(frame);
 
-  return enif_make_tuple2(env, enif_make_atom(env, "ok"), term); 
+  // returns tuple with ok if successful, otherwise returns image_not_retrieved
+  if(img_retrieved)
+    return enif_make_tuple2(env, enif_make_atom(env, "ok"), term); 
+  else
+    return enif_make_tuple2(env, enif_make_atom(env, "image_not_retrieved"), term); 
   
 }
 
@@ -78,19 +86,19 @@ static ERL_NIF_TERM show_pic(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
   if (!enif_get_resource(env, argv[0], frame_res, (void**) &frame)) {
     return enif_make_badarg(env);
  } 
-
+  /*
   counter++;
   string basename = "images/fish_image";
   ostringstream filename;
   filename << basename << counter << ".jpg";
   cvSaveImage(filename.str().c_str(), frame -> _frame);  
   cvWaitKey(30);
-
-	/*
+  */
+	
   cvShowImage("YOOHOO", frame->_frame);
 
   cvWaitKey(30);
-	*/
+	
   
   return enif_make_atom(env, "ok");
 }
@@ -115,5 +123,5 @@ static ErlNifFunc nif_funcs[] =
 		{"deinit_camera", 0, deinit_camera}
   };
 
-ERL_NIF_INIT(niftest,nif_funcs,load,NULL,NULL,NULL)
+ERL_NIF_INIT(imgproc_nif,nif_funcs,load,NULL,NULL,NULL)
 
