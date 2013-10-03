@@ -32,6 +32,7 @@ handle_call(_Request, _From, State) ->
 %%--------------------------------------------------------------------
 
 handle_cast({add_frame, Points, CarPos}, State) ->
+    
     {noreply, State};
 
 handle_cast(_Msg, State) ->

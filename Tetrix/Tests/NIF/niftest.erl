@@ -28,6 +28,9 @@ process_complete(Ptr) ->
 trace_pic(Ptr) ->
       "NIF library not loaded".
 
+fuck() ->
+    haha.
+
 %% INTERNAL
 
 reader(Ptr,Number) ->

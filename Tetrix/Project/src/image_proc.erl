@@ -12,11 +12,17 @@ init(State) ->
     process(State).
 
 process(State) ->
+    CarPos = {0,0}, %% gen_server:call(vehicle_data, get_pos)
+    Side = right,
+    List = imgproc_nif:get_pic(),
+    gen_server:cast(map_gen, {add_frame, List, CarPos}),
+    process(State).
+        
     %% query frame
     %% get car position
     %% get road side
     %% process image
     %% send valid data
     %% process(State)
-    ok.
+    %%ok.
 
