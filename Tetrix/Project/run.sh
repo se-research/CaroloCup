@@ -4,7 +4,7 @@ echo -e "\033[1m--> Compiling C and C++ Modules: \033[0m"
 echo ""
 
 cd "c_src"
-if g++ -fPIC -shared -o ebin/imgproc_nif.so imgproc_nif.cpp camera_functions.cpp -lopencv_core -lopencv_imgproc -lopencv_highgui -lueye_api; then
+if g++ -fPIC -shared -o ../ebin/imgproc_nif.so imgproc_nif.cpp camera_functions.cpp -lopencv_core -lopencv_imgproc -lopencv_highgui -lueye_api; then
 
 echo -e "\033[1mG++ Compilation Complete ! \033[0m";
 else
