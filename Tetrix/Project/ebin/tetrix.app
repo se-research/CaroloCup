@@ -5,6 +5,6 @@
               {applications,[kernel,stdlib]},
               {mod,{tetrix_app,[]}},
               {env,[]},
-              {modules,[car_ai,cunit,cunit_nif,hardware_data,image_proc,
-                        imgproc_nif,map_gen,position_calc,tetrix_app,
-                        tetrix_sup,vehicle_data]}]}.
+              {modules,[car_ai,car_ai2,cunit,cunit_nif,hardware_data,
+                        image_proc,imgproc_nif,map_gen,position_calc,
+                        tetrix_app,tetrix_sup,vehicle_data]}]}.
