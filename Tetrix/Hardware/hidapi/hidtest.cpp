@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
 	startUsb();
 	while (str[0]!='x'){
 		printf ("Enter speed value, x to exit:");
-  		bytes_read=getline (&str, &nbytes, stdin);
+  		bytes_read=getline (&str, (size_t*)&nbytes, stdin);
 		str[bytes_read-1]=0;
 		sprintf (cSpeed, "%.1f", getAxelSpeed());
 		setDisplay("Hello");
