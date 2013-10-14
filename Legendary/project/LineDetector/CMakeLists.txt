@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 2.8)
+project( Main )
+find_package( OpenCV REQUIRED )
+set(CMAKE_BUILD_TYPE Debug)
+add_executable( Main src/Main.cpp src/LineDetector.cpp src/DBSCAN.cpp)
+target_link_libraries( Main ${OpenCV_LIBS} )
+include_directories("include")
