@@ -5,7 +5,7 @@ using namespace std;
 using namespace cv;
 
 LineDetector::LineDetector(vector<Vec4i>& lines, float eps, int minPts)
-/*: m_dashLine(0)*/
+: m_dashLine(NULL)
 {
   vector<Point> points;
 
@@ -14,6 +14,7 @@ LineDetector::LineDetector(vector<Vec4i>& lines, float eps, int minPts)
     points.push_back(Point((*it)[2],(*it)[3]));
   }
 
+  // Attila: Only for debugging
   m_clusters = new Dbscan(&points, eps, minPts);
 
 }
@@ -26,7 +27,10 @@ Clusters* LineDetector::getClusters() {
   return m_clusters->getClusters();
 }
 
-Vec4i LineDetector::getDashLine() {
+Line* LineDetector::getDashLine() {
+  if (m_dashLine) {
+    m_dashLine = new Vec4i(10,10,10,10);
+  }
   return m_dashLine;
 }
 

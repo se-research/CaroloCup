@@ -11,9 +11,10 @@ using namespace std;
 
 class LineDetector {
 public:
+  // TODO: replace change esp to int for performanc reasons
   LineDetector(vector<Vec4i>& lines, float eps, int minPts);
   virtual ~LineDetector();
-  Line getDashLine();
+  Line* getDashLine();
 
   Clusters* getClusters(); // Attila: Only debugging
   /*
@@ -25,8 +26,8 @@ public:
 
 private:
   Dbscan* m_clusters;
-  Line m_dashLine;
-  Line m_solidLine;
+  Line* m_dashLine;
+  Line* m_solidLine;
 };
 
 #endif
