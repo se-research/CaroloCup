@@ -46,7 +46,7 @@ bool init_camera()
 }
 
 /* Deinitializes the uEye camera. Returns true if deinitialization is
- * successful, otherwise returns false */
+* successful, otherwise returns false */
 bool deinit_camera()
 {
 
