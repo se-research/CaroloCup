@@ -1,0 +1,245 @@
+'********************************************************
+' * Author:    Zlatan Habul
+' * Created:   12.10.2013
+' * Source code for Mikroelektronika basic compiler
+' * This PIC MPU is USB HID device, it also
+' * read IR sensors, showing display, controlling led
+' * and communicating with arduino thrue serial port
+' ********************************************************/
+
+program tetrix
+
+
+dim 
+    tmpDisp1,tmpDisp2,oldDisp1,oldDisp2,newDisp1,newDisp2 as string[16]
+    carMode,strIr1,strIr2 as string[10]
+    readbuff as char[64] absolute 0x500           ' Buffers should be in USB RAM, please consult datasheet
+    writebuff as char[64] absolute 0x540
+    serialOut as char[64]
+    serialIn as char[64]
+    j,menuMode,underMenuMode,carTmpMode as byte
+    LCD_RS as sbit  at RB4_bit
+    LCD_EN as sbit  at RB5_bit
+    LCD_D4 as sbit  at RB0_bit
+    LCD_D5 as sbit  at RB1_bit
+    LCD_D6 as sbit  at RB2_bit
+    LCD_D7 as sbit  at RB3_bit
+
+    LCD_RS_Direction as sbit at TRISB4_bit
+    LCD_EN_Direction as sbit at TRISB5_bit
+    LCD_D4_Direction as sbit at TRISB0_bit
+    LCD_D5_Direction as sbit at TRISB1_bit
+    LCD_D6_Direction as sbit at TRISB2_bit
+    LCD_D7_Direction as sbit at TRISB3_bit
+
+
+sub procedure Interrupt()
+   USB_Interrupt_Proc()                           ' USB servicing is done inside the interrupt
+end sub
+
+sub procedure pharse (dim byref buff as char[64] ,dim byref led as byte, dim byref speedAngle,text1,text2 as string[16])
+        dim i,x,z as  byte
+        dim words as char [10][33]
+        x=0
+        z=0
+        for i=0 to 64
+            if buff[i] = "," then
+               words[x][i-z]=0
+               z=i+1
+               x=x+1
+            else
+                words[x][i-z]=buff[i]
+            end if
+        next i
+        strcpy(speedAngle,"%")
+        strcat(speedAngle,words[0])
+        strcat(speedAngle,",")
+        strcat(speedAngle,words[1])
+        strcat(speedAngle,"|")
+        text1= words[2]
+        text2 = words[3]
+        led= StrToInt(words[4])
+        
+end sub
+
+sub procedure ledsActivity(dim led as byte)
+    dim sigLeft,brake,sigRight as byte
+    sigLeft = (led>>2) and 1
+    sigRight = (led>>1) and 1
+    brake = (led >>0) and 1
+    if (sigLeft =1) then 
+       PORTD=PORTD or 1
+    else
+       PORTD=PORTD and 254
+    end if
+    if (sigRight =1) then
+       PORTD=PORTD or 2
+    else
+       PORTD=PORTD and 253
+    end if
+    if (brake =1) then
+       PORTD=PORTD or 4
+    else
+       PORTD=PORTD and 251
+    end if
+end sub
+
+sub function delSpaces(dim byref source as string[10], dim size as short ) as string[10]
+     dim i,j as short
+     dim res as string[10]
+     j=0
+     for i= 0 to size
+         if (source[i]<>" ") then
+            res[j]=source[i]
+            j=j+1
+         end if
+     next i
+     result = res
+end sub
+sub function findBegining(dim byref source as string[64]) as string[64]
+     dim i,j as short
+     dim found as boolean
+     dim res as string[64]
+     j=0
+     found = false
+     for i= 0 to 63
+         if (source[i-1]="%") then
+            j=i
+            found = true
+         end if
+        if (found = true) then 
+           res[i-j]= source[i]
+        end if
+     next i
+     result = res
+end sub
+sub procedure startDisplay()
+       menuMode=0
+       underMenuMode=0
+       carTmpMode=0
+       carMode=0
+       strcpy(carMode,"0")
+       strcpy(newDisp1,"Tetrix          ")
+       strcpy(newDisp2,"welcome         ")
+       strcpy(oldDisp1,newDisp1)
+       strcpy(oldDisp2,newDisp2)
+       strcpy(tmpDisp1,newDisp1)
+       strcpy(tmpDisp2,newDisp2)
+       Lcd_Init()
+       Lcd_Cmd(_LCD_CLEAR)            ' Clear display
+       Lcd_Cmd(_LCD_CURSOR_OFF)       ' Cursor off
+       Lcd_Out(1,1,newDisp1)              ' Write text in first row
+       Lcd_Out(2,1,newDisp2)              ' Write text in second row
+end sub
+sub procedure setDisplay()
+    if ((strcmp(newDisp1,oldDisp1)<>0) or (strcmp(newDisp2,oldDisp2)<>0))then
+       Lcd_Cmd(_LCD_CLEAR)            ' Clear display
+       Lcd_Cmd(_LCD_CURSOR_OFF)       ' Cursor off
+       Lcd_Out(1,1,newDisp1)              ' Write text in first row
+       Lcd_Out(2,1,newDisp2)              ' Write text in second row
+       strcpy(oldDisp1,newDisp1)
+       strcpy(oldDisp2,newDisp2)
+  end if
+end sub
+sub procedure readIR()
+    dim analogRead0,analogRead1 as word
+    analogRead0 = ADC_Read(0)                  'read ir sensor 1
+    analogRead1 = ADC_Read(1)                   'read ir sensor 2
+    wordToStr(analogRead0,strIr1)
+    strIr1=delSpaces(strIr1,10)                 
+    wordToStr(analogRead1,strIr2)
+    strIr2=delSpaces(strIr2,10)
+end sub
+sub procedure showMode(dim chose as short)
+    select case chose
+       case 1
+            strcpy(newDisp2,"Mode 1          ")
+       case 2
+            strcpy(newDisp2,"Mode 2          ")
+       case 3
+            strcpy(newDisp2,"Mode 3          ")
+       case 4
+            strcpy(newDisp2,"Mode 4          ")
+       case 5
+            strcpy(newDisp2,"Mode 5          ")
+       case 6
+            strcpy(newDisp2,"Mode 6          ")
+       case else
+            strcpy(newDisp2,"Mode 0          ")
+       end select
+end sub
+sub procedure ChoseMode()
+    if ((PORTB.6=1)and (menuMode=0)) then
+       menuMode=1
+    end if
+    if ((PORTB.6=0)and (menuMode=1)) then
+       menuMode=2
+       strcpy(newDisp1,"Chose mode:0-6  ")
+       showMode(carTmpMode)
+    end if
+    if ((PORTB.6=1)and (menuMode=2)and (underMenuMode=0)) then
+       underMenuMode=1
+    end if
+    if ((PORTB.6=0)and (menuMode=2) and (underMenuMode=1)) then
+       inc(carTmpMode)
+       if (carTmpMode>6) then carTmpMode=0 end if
+       showMode(carTmpMode)
+       underMenuMode=0
+    end if
+    if ((PORTB.6=0)and (menuMode=0)) then
+       strcpy(newDisp1,tmpDisp1)
+       strcpy(newDisp2,tmpDisp2)   
+    end if
+    if ((PORTB.7=1)and (menuMode=2)) then
+       menuMode=3
+    end if
+    if ((PORTB.7=0)and (menuMode=3)) then
+       shortToStr(carTmpMode,carMode)
+       carMode=delSpaces(carMode,10)
+       menuMode=0       
+    end if
+    setDisplay()
+end sub
+
+
+main:
+  dim speed,angle,led as byte
+      speedAngle as char[16]
+      answ,serialRead as char[64]
+
+  ADCON1 = ADCON1 or 0x0C                         ' AN0 and AN1 enabled
+  CMCON  = CMCON or 7                             ' Disable comparators
+  TRISA  = 0xFF
+  TRISD = 0
+  PORTD = 0
+  PORTB = 0x3F
+  TRISB = 0x3F
+
+  startDisplay()
+  HID_Enable(@readbuff,@writebuff)                ' Enable HID communication
+  UART1_Init(115200)
+  
+  while TRUE
+     ChoseMode()
+     readIR()
+    
+    if (HID_Read() <> 0) then
+       pharse (readbuff,led,speedAngle,tmpDisp1,tmpDisp2)
+       ledsActivity(led) 
+       UART1_Write_Text(speedAngle)
+    end if
+    if (UART1_Data_Ready() = 1)  then           ' if data is received      
+    UART1_Read_Text(serialRead, "|", 64)  ' reads text until 'OK' is found 
+    writebuff=findBegining(serialRead)
+    strcat(writebuff,",")
+    strcat(writebuff,carMode)
+    strcat(writebuff,",")
+    strcat(writebuff,strIr1)
+    strcat(writebuff,",")
+    strcat(writebuff,strIr2)
+      while(HID_Write(@writebuff,64) = 0)
+    wend
+
+    end if
+  wend
+end.
