@@ -2,7 +2,7 @@
 % Provides offset calculations for lane markings
 -module(offsetCalculation).
 
--include("../include/offsetCalculation.hrl").
+-include("offsetCalculation.hrl").
 
 %% API
 -export([start_link/0, calcOffsetList/3]).
@@ -33,7 +33,7 @@ calcOffsetList(InputLane, OutputType, Input) ->
     receive
         {ok,OffsetList} -> OffsetList
     end,
-    io:format("Answer: ~p", [OffsetList]), 
+    %io:format("Answer: ~p", [OffsetList]), 
     OffsetList.
 %%--------------------------------------------------------------------
 % Callback Definitions 
