@@ -1,89 +1,65 @@
 /*
- * OpenDaVINCI.
- *
- * This software is open source. Please see COPYING and AUTHORS for further information.
- */
+* Mini-Smart-Vehicles.
+*
+* This software is open source. Please see COPYING and AUTHORS for further information.
+*/
 
-#include "core/base/Hash.h"
-#include "core/base/Deserializer.h"
-#include "core/base/SerializationFactory.h"
-#include "core/base/Serializer.h"
+#ifndef LaneDetectionData_H_
+#define LaneDetectionData_H_
 
-#include "LaneDetectionData.h"
+// core/platform.h must be included to setup platform-dependent header files and configurations.
+#include "core/platform.h"
 
-namespace carolocup {
+#include "core/data/SerializableData.h"
+
+namespace msv {
 
 	using namespace std;
-	using namespace core::base;
 
-	LaneDetectionData::LaneDetectionData() : m_numericalValue(0),
-								   m_distance(0) {}
+/**
+* This is an example how you can send data from one component to another.
+*/
+	class LaneDetectionData : public core::data::SerializableData {
+	public:
+		LaneDetectionData();
 
-	LaneDetectionData::LaneDetectionData(const LaneDetectionData &obj) :
-			SerializableData(),
-			m_numericalValue(obj.m_numericalValue),
-			m_distance(obj.m_distance) {}
+		virtual ~LaneDetectionData();
 
-	LaneDetectionData::~LaneDetectionData() {}
+		/**
+		 * Copy constructor.
+		 *
+		 * @param obj Reference to an object of this class.
+		 */
+		LaneDetectionData(const LaneDetectionData &obj);
 
-	LaneDetectionData& LaneDetectionData::operator=(const LaneDetectionData &obj) {
-		m_numericalValue = obj.m_numericalValue;
-		m_distance = obj.m_distance;
+		/**
+		 * Assignment operator.
+		 *
+		 * @param obj Reference to an object of this class.
+		 * @return Reference to this instance.
+		 */
+		LaneDetectionData& operator=(const LaneDetectionData &obj);
 
-		return (*this);
-	}
+		/**
+		 * This method returns the example data.
+		 *
+		 * @return example data.
+		 */
+		double getLaneDetectionData() const;
 
-	uint32_t LaneDetectionData::getNumericalValue() const {
-		return m_numericalValue;
-	}
+		/**
+		 * This method sets the example data.
+		 *
+		 * @param e Example data.
+		 */
+		void setLaneDetectionData(const double &e);
+		virtual ostream& operator<<(ostream &out) const;
+		virtual istream& operator>>(istream &in);
+		virtual const string toString() const;
+		private:
+		Lines m_lines;
+	};
 
-	void LaneDetectionData::setNumericalValue(const uint32_t &nv) {
-		m_numericalValue = nv;
-	}
+} // msv
 
-	double LaneDetectionData::getDistance() const {
-		return m_distance;
-	}
-
-	void LaneDetectionData::setDistance(const double &d){
-		m_distance = d;
-	}
-
-	const string LaneDetectionData::toString() const {
-		stringstream s;
-		s << m_numericalValue;
-		s << " ";
-		s << m_distance;
-		return s.str();
-	}
-
-	ostream& LaneDetectionData::operator<<(ostream &out) const {
-		SerializationFactory sf;
-
-		Serializer &s = sf.getSerializer(out);
-
-		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL3('n', 'u', 'm') >::RESULT,
-				m_numericalValue);
-
-		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL4('d', 'i', 's','t') >::RESULT,
-				m_distance);
-
-		return out;
-	}
-
-	istream& LaneDetectionData::operator>>(istream &in) {
-		SerializationFactory sf;
-
-		Deserializer &d = sf.getDeserializer(in);
-
-		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL3('n', 'u', 'm') >::RESULT,
-			   m_numericalValue);
-
-		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL4('d', 'i', 's','t') >::RESULT,
-			   m_distance);
-
-		return in;
-	}
-
-
-} // examples
+#endif /*LaneDetectionData_H_*/
