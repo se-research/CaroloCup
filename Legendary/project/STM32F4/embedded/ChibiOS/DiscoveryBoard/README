@@ -1,0 +1,75 @@
+DiscoveryBoard
+==============================
+
+This is a fork of ChibiOS/RT example project originally written by resset, available on GitHub (https://github.com/resset/STM32F4-Discovery-example-code/).
+
+To compile the code, you need the GCC-ARM C-compiler. You get it from here for example:
+
+http://www.cse.chalmers.se/~bergerc/msv/gcc-arm-none-eabi-4_7-2013q1-20130313-linux.tar.bz2
+
+Unpack the archive to: /opt
+
+I added the code to read the accelerometer data as an example.
+
+Adapted README
+===============
+
+This is my example code for the STM32F4 Discovers using the RTOS ChibiOS.
+
+requirements
+------------
+* Chibios 2.5.0+ (or a recent development snapshot)
+* arm toolchain (e.g. arm-none-eabi from summon-arm)
+
+features
+--------
+* serial over USB console
+* PWM initialization and control
+* ADC measuring, continuous and single scan
+* Accelerometer readings
+* code structured into separate files
+
+usage
+-----
+* PATH=$PATH:/opt/gcc-arm-none-eabi-4_7-2013q1/bin make
+* connect the STM32F4 Discovery with both USB connectors
+* flash the STM32F4 by using qstlink2, find the file build/ch.bin, and click on send
+* use your favorite terminal programm to connect to the Serial Port (/dev/ttyACM0 for me, for example screen /dev/ttyACM0, probably COM1 on Windows)
+
+console commands
+----------------
+* help
+* exit
+* info
+* systime
+* mem
+* threads
+* toggle 1/2/3/4 (toggles #led, short: t)
+* blinkspeed #speed (changes blinker period to #speed ms, short: bs)
+* cycle #duty (changes the duty cycle of PWM1 to #duty, short: c)
+* ramp #from #to #step \[delay\] (creates a ramp for PWM1 with the given parameters, short: r)
+* measure (measures 16384 analog samples on pin PC1 and prints the first and the average, short: m)
+* measureAnalog (measures 16384 samples and converts the average to Volts, short: ma)
+* measureDirect (measures 16384 samples and prints them all, short: md)
+* measureContinuous (starts a background analog conversion, short: mc)
+* readContinuousData (prints what has been collected by the background conversion, short: rd)
+* stopContinuous (stops the analog conversion, short sc)
+* printAccel (prints the current accelerometer data, short pa)
+
+
+
+
+
+disclaimer
+----------
+Neither am I a good C programmer nor do I have extensive knowledge about 
+ChibiOS, the STM32F4 or uCs in general. I wrote this code to make myself
+familiar with the STM32F4 Discovery and I figured ChibiOS was a usefull tool.
+From my POV the code is not that bad, but your opinion may differ. In
+that case, please don't laugh at my code but provide constructive criticism.
+I just realized: I'm no pro at Git, Github and Markdown either...
+
+Since I started from the USB-CDC code example from ChibiOS which is GPLv3,
+I think I am forced to release this code under GPLv3 though I don't care what you do
+with the code. I asked Giovanni and he said "there is not much meat" in it anyways.
+
