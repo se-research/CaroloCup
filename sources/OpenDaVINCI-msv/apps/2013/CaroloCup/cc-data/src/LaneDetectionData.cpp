@@ -1,8 +1,12 @@
 /*
- * OpenDaVINCI.
- *
- * This software is open source. Please see COPYING and AUTHORS for further information.
- */
+* Mini-Smart-Vehicles.
+*
+* This software is open source. Please see COPYING and AUTHORS for further information.
+*/
+
+#ifdef PANDABOARD
+#include <stdc-predef.h>
+#endif
 
 #include "core/base/Hash.h"
 #include "core/base/Deserializer.h"
@@ -11,79 +15,54 @@
 
 #include "LaneDetectionData.h"
 
-namespace carolocup {
+namespace msv {
 
 	using namespace std;
 	using namespace core::base;
 
-	LaneDetectionData::LaneDetectionData() : m_numericalValue(0),
-								   m_distance(0) {}
+	LaneDetectionData::LaneDetectionData() :
+	m_lines(0) {}
 
 	LaneDetectionData::LaneDetectionData(const LaneDetectionData &obj) :
 			SerializableData(),
-			m_numericalValue(obj.m_numericalValue),
-			m_distance(obj.m_distance) {}
+			m_lines(obj.m_lines) {}
 
 	LaneDetectionData::~LaneDetectionData() {}
 
 	LaneDetectionData& LaneDetectionData::operator=(const LaneDetectionData &obj) {
-		m_numericalValue = obj.m_numericalValue;
-		m_distance = obj.m_distance;
-
+		m_lines = obj.m_lines;
 		return (*this);
 	}
 
-	uint32_t LaneDetectionData::getNumericalValue() const {
-		return m_numericalValue;
+	double LaneDetectionData::getLaneDetectionData() const {
+		return m_lines;
 	}
 
-	void LaneDetectionData::setNumericalValue(const uint32_t &nv) {
-		m_numericalValue = nv;
-	}
-
-	double LaneDetectionData::getDistance() const {
-		return m_distance;
-	}
-
-	void LaneDetectionData::setDistance(const double &d){
-		m_distance = d;
+	void LaneDetectionData::setLaneDetectionData(const Lines &lines) {
+		m_lines = lines;
 	}
 
 	const string LaneDetectionData::toString() const {
 		stringstream s;
-		s << m_numericalValue;
-		s << " ";
-		s << m_distance;
+		s << "Example data: " << getExampleData();
 		return s.str();
 	}
 
 	ostream& LaneDetectionData::operator<<(ostream &out) const {
 		SerializationFactory sf;
-
 		Serializer &s = sf.getSerializer(out);
-
-		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL3('n', 'u', 'm') >::RESULT,
-				m_numericalValue);
-
-		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL4('d', 'i', 's','t') >::RESULT,
-				m_distance);
-
+		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL7('e', 'x', 'a', 'm', 'p', 'l', 'e') >::RESULT,
+				m_lines);
 		return out;
 	}
 
 	istream& LaneDetectionData::operator>>(istream &in) {
 		SerializationFactory sf;
-
 		Deserializer &d = sf.getDeserializer(in);
 
-		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL3('n', 'u', 'm') >::RESULT,
-			   m_numericalValue);
-
-		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL4('d', 'i', 's','t') >::RESULT,
-			   m_distance);
+		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL7('e', 'x', 'a', 'm', 'p', 'l', 'e') >::RESULT,
+				m_lines);
 
 		return in;
 	}
-
-
-} // examples
+} //msv
