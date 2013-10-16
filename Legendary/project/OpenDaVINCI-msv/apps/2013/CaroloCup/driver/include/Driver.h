@@ -52,8 +52,14 @@ namespace carolocup {
 
         private:
             virtual void setUp();
-
             virtual void tearDown();
+			// Define control parameters
+			float controlGains[3];	//For feedback linearization controller
+			float deltaPath, lateralError, angularError, steeringWheelAngle, curvature, curvatureDifferential, oldCurvature, speed;
+			const float ANGLE_TO_CURVATURE = 2.5;
+			const float length = 0.3;
+			const float SCALE_FACTOR = 12000;	//For example, 12000 dpm (dots-per-meter)
+			Lines lines;
     };
 
 } // carolocup

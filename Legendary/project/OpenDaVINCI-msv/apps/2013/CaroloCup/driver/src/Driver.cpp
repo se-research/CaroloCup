@@ -27,17 +27,7 @@ namespace msv {
 	using namespace core::data;
 	using namespace core::data::control;
 	using namespace core::data::environment;
-	// Define control parameters
-	float propGain = 10;	//For P/PI/PID-controller
-	float integrationTime;	//For PI/PID-controller
-	float derivativeTime;	//For PD/PID-controller
-	float filterTime;		//For PID-controller
-	float controlGains[3] = {10,20,30};	//For feedback linearization controller
-	float deltaPath, lateralError, angularError, steeringWheelAngle, curvature, curvatureDifferential, oldCurvature, speed;
-	const float ANGLE_TO_CURVATURE = 2.5;
-	const float length = 0.3;
-	const float SCALE_FACTOR = 12000;	//For example, 12000 dpm (dots-per-meter)
-	Lines lines;
+	
 	
 	// Constructor
 	Driver::Driver(const int32_t &argc, char **argv) :
@@ -50,6 +40,9 @@ namespace msv {
 		// This method will be call automatically _before_ running body().
 		speed = 0.4;
 		oldCurvature = 0;
+		controlGains[0] = 10;
+		controlGains[1] = 20;
+		controlGains[2] = 30;
 	}
 
 	void Driver::tearDown() {
