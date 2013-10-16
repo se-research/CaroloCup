@@ -37,6 +37,21 @@ namespace carolocup {
              */
             Driver& operator=(const Driver &/*obj*/);
 
+			/**
+			 * The control algorithm
+			 * @param lateralError The current lateral error
+			 * @param angularError The current angular error
+			 * @param curvature The current curvature
+			 * @param curvatureDifferential Approximate derivative of the curvature w.r.t. path coordinate s
+			 * @param steeringWheelAngle
+			 * @param The current steering wheel angle
+			 * @param speed The current set speed
+			 * @param controlGains Pointer to vector of control gains
+			 * @return The new desired steeringWheelAngle
+			 */
+			float feedbackLinearizationController(float lateralError, float angularError,
+					float curvature, float curvatureDifferential, float steeringWheelAngle, float speed, float *controlGains)
+
         public:
             /**
              * Constructor.
@@ -59,6 +74,7 @@ namespace carolocup {
 			const float ANGLE_TO_CURVATURE = 2.5;
 			const float length = 0.3;
 			const float SCALE_FACTOR = 12000;	//For example, 12000 dpm (dots-per-meter)
+			const float scaledLength;
 			Lines lines;
     };
 

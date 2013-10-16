@@ -43,6 +43,7 @@ namespace msv {
 		controlGains[0] = 10;
 		controlGains[1] = 20;
 		controlGains[2] = 30;
+		scaledLength = length*SCALE_FACTOR;
 	}
 
 	void Driver::tearDown() {
@@ -51,6 +52,8 @@ namespace msv {
 
 	// This method will do the main data processing job.
 	ModuleState::MODULE_EXITCODE Driver::body() {
+		float x1, x2, x3, x4, x5, y1, y2, y3, y4, y5, k1, k2, m1, m2, k_avg, m_avg;
+		float angularErrorLeft, angularErrorRight;
 
 		while (getModuleState() == ModuleState::RUNNING) {
 			// In the following, you find example for the various data sources that are available:
@@ -71,24 +74,32 @@ namespace msv {
 			//cerr << "Most recent user button data: '" << ubd.toString() << "'" << endl;
 
 			// 4. Get most recent steering data as fill from lanedetector for example:
-			Container containerSteeringData = getKeyValueDataStore().get(Container::USER_DATA_1);
+			Container containerLaneDetectionData = getKeyValueDataStore().get(Container::USER_DATA_1);
 			LaneDetectionData ldd = containerLaneDetectionData.getData<LaneDetectionData> ();
 			cerr << "Most recent lane detection data: '" << sd.toString() << "'" << endl;
 
-			// Design your control algorithm here depending on the input data from above.
+			// The two lines are delivered in a struct containing two Vec4i objects (vector of 4 integers)
 			lines = ldd.getLaneDetectionData();
 			lineRight = lines.solidRight;
 			lineLeft = lines.dashed;
-			float scaledLength = length*SCALE_FACTOR;
-			// Assume: points (Point1, Point2, Point3, Point4)
-			float angularErrorLeft = atan(lineLeft[0]-lineLeft[2], lineLeft[1]-lineLeft[3]);
-			float angularErrorRight = atan(lineRight[0]-lineRight[2], lineRight[1]-lineRight[3]);
+			
+			x1 = lineLeft[0]; y1 = lineLeft[1];
+			x2 = lineLeft[2]; y2 = lineLeft[3];
+			x3 = lineRight[0]; y3 = lineRight[1];
+			x4 = lineRight[2]; y4 = lineRight[3];
+			angularErrorLeft = atan(x1-x2, y1-y2);
+			angularErrorRight = atan(x3-x4, y3-y4);
 			angularError = (angularErrorLeft + angularErrorRight)/2;
-			float k1 = (lineLeft[3]-lineLeft[1])/(lineLeft[2]-lineLeft[0]);
-			float k2 = (lineRight[3]-lineRight[1])/(lineRight[2]-lineRight[0]);
-			float x5 = (length-2*lineLeft[1])/k1 + lineLeft[0];
-			float x6 = (length-2*lineRight[1])/k2 + lineRight[0];
-			float lateralError = (x5 - x6)/SCALE_FACTOR;
+			k1 = (y2-y1)/(x2-x1);
+			k2 = (y4-y3)/(x3-x4);
+			m1 = y1-k1*x1; m2 = y3-k2*x3;
+			k_avg = (k1+k2)/2;
+			m_avg = (m1+m2)/2;
+			x5 = (scaledLength-2*m_avg)*k_avg/(2*(pow(k_avg,2)+1));
+			y5 = scaledLength/2 - (scaledLength-2*m_avg)/(2*(pow(k_avg,2)+1));
+			lateralError = sign(x5)*sqrt(pow(x5,2) + pow(y5+scaledLength/2,2));
+			//Scale from pixels to meters
+			lateralError = lateralError/SCALE_FACTOR;
 
 			//Simple proportional control law, propGain needs to be updated
 			desiredSteeringWheelAngle = lateralError*propGain;
@@ -96,9 +107,9 @@ namespace msv {
 			//A more advanced control law
 			oldCurvature = curvature;
 			curvature = steeringWheelAngle*ANGLE_TO_CURVATURE;
-			deltaPath = speed*samplingTime;
+			deltaPath = speed/getFrequency();
 			curvatureDifferential = (curvature-oldCurvature)/deltaPath;
-			desiredSteeringWheelAngle = FeedbackLinearizationController(lateralError, angularError, curvature, curvatureDifferential,
+			desiredSteeringWheelAngle = feedbackLinearizationController(lateralError, angularError, curvature, curvatureDifferential,
 					steeringWheelAngle, speed, controlGains);
 
 			// Create vehicle control data.
@@ -125,7 +136,7 @@ namespace msv {
 		return ModuleState::OKAY;
 	}
 
-	float FeedbackLinearizationController(float lateralError, float angularError,
+	float feedbackLinearizationController(float lateralError, float angularError,
 			float curvature, float curvatureDifferential, float steeringWheelAngle, float speed, float *controlGains) {
 		float nominator = pow(cos(angularError), 3)*length*curvatureDifferential/pow((1-lateralError*curvature), 3);
 		nominator = nominator + lateralError*sin(angularError)*pow(cos(angularError), 2)*curvatureDifferential*curvature/
