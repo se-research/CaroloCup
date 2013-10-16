@@ -1,65 +1,80 @@
 /*
-* Mini-Smart-Vehicles.
-*
-* This software is open source. Please see COPYING and AUTHORS for further information.
-*/
+ * OpenDaVINCI.
+ *
+ * This software is open source. Please see COPYING and AUTHORS for further information.
+ */
 
-#ifndef LANE_DETECTION_DATA_H_
-#define LANE_DETECTION_DATA_H_
+#ifndef LANEDETECTIONDATA_H_
+#define LANEDETECTIONDATA_H_
 
 // core/platform.h must be included to setup platform-dependent header files and configurations.
 #include "core/platform.h"
 
 #include "core/data/SerializableData.h"
 
-namespace msv {
+namespace carolocup {
 
 	using namespace std;
 
-/**
-* This is an example how you can send data from one component to another.
-*/
 	class LaneDetectionData : public core::data::SerializableData {
-	public:
-		LaneDetectionData();
+		public:
+			LaneDetectionData();
 
-		virtual ~LaneDetectionData();
+			virtual ~LaneDetectionData();
 
-		/**
-		 * Copy constructor.
-		 *
-		 * @param obj Reference to an object of this class.
-		 */
-		LaneDetectionData(const LaneDetectionData &obj);
+			/**
+			 * Copy constructor.
+			 *
+			 * @param obj Reference to an object of this class.
+			 */
+			LaneDetectionData(const LaneDetectionData &obj);
 
-		/**
-		 * Assignment operator.
-		 *
-		 * @param obj Reference to an object of this class.
-		 * @return Reference to this instance.
-		 */
-		LaneDetectionData& operator=(const LaneDetectionData &obj);
+			/**
+			 * Assignment operator.
+			 *
+			 * @param obj Reference to an object of this class.
+			 * @return Reference to this instance.
+			 */
+			LaneDetectionData& operator=(const LaneDetectionData &obj);
 
-		/**
-		 * This method returns the example data.
-		 *
-		 * @return example data.
-		 */
-		double getLaneDetectionData() const;
+			/**
+			 * This method returns the numerical value.
+			 *
+			 * @return Numerical value.
+			 */
+			uint32_t getNumericalValue() const;
 
-		/**
-		 * This method sets the example data.
-		 *
-		 * @param e Example data.
-		 */
-		void setLaneDetectionData(const double &e);
-		virtual ostream& operator<<(ostream &out) const;
-		virtual istream& operator>>(istream &in);
-		virtual const string toString() const;
+			/**
+			 * This method sets the numerical value.
+			 *
+			 * @param nv Numerical value.
+			 */
+			void setNumericalValue(const uint32_t &nv);
+
+			/**
+			 * This method returns the distance.
+			 *
+			 * @return Distance.
+			 */
+			double getDistance() const;
+
+			/**
+			 * This method sets the distance.
+			 *
+			 * @param d distance.
+			 */
+			void setDistance(const double &d);
+
+			virtual ostream& operator<<(ostream &out) const;
+			virtual istream& operator>>(istream &in);
+
+			virtual const string toString() const;
+
 		private:
-		Lines m_lines;
+			uint32_t m_numericalValue;
+			double m_distance;
 	};
 
-} // msv
+}
 
-#endif /*LaneDetectionData_H_*/
+#endif
