@@ -4,62 +4,65 @@
 * This software is open source. Please see COPYING and AUTHORS for further information.
 */
 
-#ifndef LaneDetectionData_H_
-#define LaneDetectionData_H_
+#ifdef PANDABOARD
+#include <stdc-predef.h>
+#endif
 
-// core/platform.h must be included to setup platform-dependent header files and configurations.
-#include "core/platform.h"
+#include "core/base/Hash.h"
+#include "core/base/Deserializer.h"
+#include "core/base/SerializationFactory.h"
+#include "core/base/Serializer.h"
 
-#include "core/data/SerializableData.h"
+#include "LaneDetectionData.h"
 
 namespace msv {
 
 	using namespace std;
+	using namespace core::base;
 
-/**
-* This is an example how you can send data from one component to another.
-*/
-	class LaneDetectionData : public core::data::SerializableData {
-	public:
-		LaneDetectionData();
+	LaneDetectionData::LaneDetectionData() :
+	m_lines(0) {}
 
-		virtual ~LaneDetectionData();
+	LaneDetectionData::LaneDetectionData(const LaneDetectionData &obj) :
+			SerializableData(),
+			m_lines(obj.m_lines) {}
 
-		/**
-		 * Copy constructor.
-		 *
-		 * @param obj Reference to an object of this class.
-		 */
-		LaneDetectionData(const LaneDetectionData &obj);
+	LaneDetectionData::~LaneDetectionData() {}
 
-		/**
-		 * Assignment operator.
-		 *
-		 * @param obj Reference to an object of this class.
-		 * @return Reference to this instance.
-		 */
-		LaneDetectionData& operator=(const LaneDetectionData &obj);
+	LaneDetectionData& LaneDetectionData::operator=(const LaneDetectionData &obj) {
+		m_lines = obj.m_lines;
+		return (*this);
+	}
 
-		/**
-		 * This method returns the example data.
-		 *
-		 * @return example data.
-		 */
-		double getLaneDetectionData() const;
+	double LaneDetectionData::getLaneDetectionData() const {
+		return m_lines;
+	}
 
-		/**
-		 * This method sets the example data.
-		 *
-		 * @param e Example data.
-		 */
-		void setLaneDetectionData(const double &e);
-		virtual ostream& operator<<(ostream &out) const;
-		virtual istream& operator>>(istream &in);
-		virtual const string toString() const;
-		private:
-		Lines m_lines;
-	};
+	void LaneDetectionData::setLaneDetectionData(const Lines &lines) {
+		m_lines = lines;
+	}
 
-} // msv
+	const string LaneDetectionData::toString() const {
+		stringstream s;
+		s << "Example data: " << getExampleData();
+		return s.str();
+	}
 
-#endif /*LaneDetectionData_H_*/
+	ostream& LaneDetectionData::operator<<(ostream &out) const {
+		SerializationFactory sf;
+		Serializer &s = sf.getSerializer(out);
+		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL7('e', 'x', 'a', 'm', 'p', 'l', 'e') >::RESULT,
+				m_lines);
+		return out;
+	}
+
+	istream& LaneDetectionData::operator>>(istream &in) {
+		SerializationFactory sf;
+		Deserializer &d = sf.getDeserializer(in);
+
+		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL7('e', 'x', 'a', 'm', 'p', 'l', 'e') >::RESULT,
+				m_lines);
+
+		return in;
+	}
+} //msv
