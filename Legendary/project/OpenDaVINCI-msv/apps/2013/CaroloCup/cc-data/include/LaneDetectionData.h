@@ -12,9 +12,12 @@
 
 #include "core/data/SerializableData.h"
 
+#include <opencv/cv.h>
+
 namespace msv {
 
 	using namespace std;
+	using namespace cv;
 
 /**
 * This is an example how you can send data from one component to another.
@@ -52,7 +55,12 @@ namespace msv {
 		 *
 		 * @param e Example data.
 		 */
-		void setLaneDetectionData(const double &e);
+		struct Lines {
+			Vec4i leftLine = Vec4i(0,0,0,0);
+			Vec4i rightLine = Vec4i(0,0,0,0);
+			Vec4i dashedLine = Vec4i(0,0,0,0);
+		};
+		void setLaneDetectionData(const Lines &e);
 		virtual ostream& operator<<(ostream &out) const;
 		virtual istream& operator>>(istream &in);
 		virtual const string toString() const;

@@ -19,9 +19,10 @@ namespace msv {
 
 	using namespace std;
 	using namespace core::base;
+	using namespace cv;
 
-	LaneDetectionData::LaneDetectionData() :
-	m_lines(0) {}
+	LaneDetectionData::LaneDetectionData() {
+	}
 
 	LaneDetectionData::LaneDetectionData(const LaneDetectionData &obj) :
 			SerializableData(),
@@ -44,7 +45,7 @@ namespace msv {
 
 	const string LaneDetectionData::toString() const {
 		stringstream s;
-		s << "Example data: " << getExampleData();
+		s << "Example data: " << getSteeringData().rightLine[0];
 		return s.str();
 	}
 
