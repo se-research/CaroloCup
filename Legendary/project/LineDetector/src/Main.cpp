@@ -5,11 +5,11 @@
 using namespace cv;
 
 int th1 = 40, th2 = 10; // Threshold
-int th = 10, rho = 1, theta = 180, maxLineGap = 10, maxLineLength = 10; // HoughLineP trans
+int th = 10, rho = 1, theta = 180, maxLineGap = 1, maxLineLength = 1; // HoughLineP trans
 int thVal = 200, thMax = 200, thTyp = 0; // Canny
 int rows = 16; // HoughCircle trans
 int birdF = 900, birdDist = 100, birdAlpha = 17, birdBeta = 90, birdGamma = 90;
-int eps = 40, minPts = 3;
+int eps = 35, minPts = 5;
 
 enum state_t {
   RUNNING,
@@ -118,14 +118,16 @@ void drawLines(Mat& src, Mat& dst) {
     }
   }
 
-  //Vec4i dash = road.getDashLine();
+  //Line solid = road.getSolidLine();
+  //Line dash = road.getDashLine();
+  //line( dst, Point(dash[0], dash[1]), Point(dash[2], dash[3]), Scalar(0,255,0), 3, CV_AA);
+
   //for( size_t i = 0; i < lines.size(); i++ ) {
     //Vec4i l = lines[i];
     //line( dst, Point(l[0], l[1]), Point(l[0], l[1]), Scalar(0,0,255), 2, CV_AA);
     //line( dst, Point(l[2], l[3]), Point(l[2], l[3]), Scalar(0,255,0), 2, CV_AA);
   //}
 
-  //line( dst, Point(dash[0], dash[1]), Point(dash[2], dash[3]), Scalar(0,255,0), 3, CV_AA);
 }
 
 int main(int argc, char** argv)
