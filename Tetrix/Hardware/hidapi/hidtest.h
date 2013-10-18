@@ -9,23 +9,23 @@
 
 
 long current_timestamp();
-char signalOnOff(void *mem);
+char signalOnOff(long mem);
 
 //Function for export
-void *startUsb();
-void stopUsb(void *mem);
-void setLeftSignalLight(int val,void *mem);
-void setRightSignalLight(int val,void *mem);
-void setBrakeLight(int val,void *mem);
-void setDisplay(char *value,void *mem);
-void setSpeed(int val,void *mem);
-void setAngle(int val,void *mem);
-double getAxelSpeed(void *mem);
-int getModeSwitch(void *mem);
-int getRemoteStatus(void *mem);
-double getVoltage(void *mem);
-double getCurrent(void *mem);
-int getHeading(void *mem);
-double getIrSensor0(void *mem);
-double getIrSensor1(void *mem);
-int getUltraSonic(void *mem);
+long startUsb();
+void stopUsb(long mem);
+void setLeftSignalLight(int val,long mem);
+void setRightSignalLight(int val,long mem);
+void setBrakeLight(int val,long mem);
+void setDisplay(char *value,long mem);
+void setSpeed(int val,long mem);
+void setAngle(int val,long mem);
+double getAxelSpeed(long mem);
+int getModeSwitch(long mem);
+int getRemoteStatus(long mem);
+double getVoltage(long mem);
+double getCurrent(long mem);
+int getHeading(long mem);
+double getIrSensor0(long mem);
+double getIrSensor1(long mem);
+int getUltraSonic(long mem);

@@ -45,7 +45,7 @@ struct tetrixCar {
 };
 
 
-char signalOnOff(void *mem){
+char signalOnOff(long mem){
   char leds = 0;
   struct tetrixCar *ptr =(struct tetrixCar*)mem;
   ptr->mTime=current_timestamp();
@@ -81,12 +81,12 @@ long current_timestamp() {
 }
 
 
-void controll(void *mem) {
+void controll(long mem) {
         struct tetrixCar *ptr =(struct tetrixCar*)mem;
 	int y =0,z=0,res=0;
 	char cSpeed[6],cAngle[6],cLeds[6];
 	unsigned char buf[64],words[32][32];
-	char leds =signalOnOff(ptr); 
+	char leds =signalOnOff((long)ptr); 
 	if (!(ptr->handle)) printf("\nDevice not found\n");
 	leds=leds&7;
 	sprintf (cSpeed, "%d", ptr->speed); //convert int to string
@@ -133,7 +133,7 @@ void* communicationThread(void *mem)
    struct tetrixCar *ptr =(struct tetrixCar*)mem;
     while (ptr->run==true)
 	{
-		controll(mem);	//communicate
+		controll((long)mem);	//communicate
 		usleep(5000);
 	}
     hid_close((hid_device*)(ptr->handle));
@@ -141,8 +141,9 @@ void* communicationThread(void *mem)
     return NULL;
 }
 
-void *startUsb()
+long startUsb()
 {	
+	long addr;	
 	struct tetrixCar *ptr=NULL;
 	pthread_t tid;
 	//Init values inside struct
@@ -168,9 +169,10 @@ void *startUsb()
 	ptr->handle =hid_open(0x0088, 0x0005, NULL);
 	//start thread
 	pthread_create(&tid, NULL, &communicationThread, ptr);
-	return ptr;
+	addr = (long)ptr;
+	return addr;
 }
-void stopUsb(void *mem)
+void stopUsb(long mem)
 {
 	struct tetrixCar *ptr =(struct tetrixCar*)mem;	
 	ptr->run = false;
@@ -180,50 +182,51 @@ int main(int argc, char *argv[])
 	unsigned int nbytes = 32;
 	int bytes_read;
 	char *str;
+	long addr=startUsb();
 	str = (char *) malloc (nbytes+1);	
-	struct tetrixCar *ptr=(struct tetrixCar*)startUsb();	
+	struct tetrixCar *ptr=(struct tetrixCar*)addr;	
 	ptr->run = true;
 	
 	while (str[0]!='x'){
 		printf ("Enter speed value, x to exit:");
   		bytes_read=getline (&str, (size_t*)&nbytes, stdin);
 		str[bytes_read-1]=0;
-		setDisplay("Hello",ptr);
-		//setSpeed(atoi(str),ptr);
-		setAngle(atoi(str),ptr);
-		setBrakeLight(0,ptr);
-		setRightSignalLight(1,ptr);
-		setLeftSignalLight(1,ptr);
-		printf("Speed(m/s): %.1f; ",getAxelSpeed(ptr));
-		printf("Voltage(V): %.1f; ",getVoltage(ptr));
-		printf("Current(A): %.1f; ",getCurrent(ptr));
-		printf("Distance(cm): %d; ",getUltraSonic(ptr));
-		printf("Remote: %d;",getRemoteStatus(ptr));
-		printf("Mode: %d;",getModeSwitch(ptr));
-		printf("Front IR sensor: %.1f;",getIrSensor0(ptr));
-		printf("Back IR sensor: %.1f;",getIrSensor1(ptr));
-		printf("Compas(Heading): %d;",getHeading(ptr));
+		setDisplay("Hello",(long)ptr);
+		//setSpeed(atoi(str),(long)ptr);
+		setAngle(atoi(str),(long)ptr);
+		setBrakeLight(0,(long)ptr);
+		setRightSignalLight(1,(long)ptr);
+		setLeftSignalLight(1,(long)ptr);
+		printf("Speed(m/s): %.1f; ",getAxelSpeed((long)ptr));
+		printf("Voltage(V): %.1f; ",getVoltage((long)ptr));
+		printf("Current(A): %.1f; ",getCurrent((long)ptr));
+		printf("Distance(cm): %d; ",getUltraSonic((long)ptr));
+		printf("Remote: %d;",getRemoteStatus((long)ptr));
+		printf("Mode: %d;",getModeSwitch((long)ptr));
+		printf("Front IR sensor: %.1f;",getIrSensor0((long)ptr));
+		printf("Back IR sensor: %.1f;",getIrSensor1((long)ptr));
+		printf("Compas(Heading): %d;",getHeading((long)ptr));
 		printf("\n");
 	}
-	stopUsb(ptr); //Stop usb communication
+	stopUsb((long)ptr); //Stop usb communication
 	return 0;
 }
-void setLeftSignalLight(int val,void *mem){
+void setLeftSignalLight(int val,long mem){
 	struct tetrixCar *ptr =(struct tetrixCar*)mem;
 	if (val==0) ptr->leftSignalLight = 0;
 	else ptr->leftSignalLight = 1;
 }
-void setRightSignalLight(int val,void *mem){
+void setRightSignalLight(int val,long mem){
 	struct tetrixCar *ptr =(struct tetrixCar*)mem;
 	if (val==0) ptr->rightSignalLight = 0;
 	else ptr->rightSignalLight = 1;
 }
-void setBrakeLight(int val,void *mem){
+void setBrakeLight(int val,long mem){
 	struct tetrixCar *ptr =(struct tetrixCar*)mem;
 	if (val==0) ptr->brakeLight=0;
 	else ptr->brakeLight=1;
 }
-void setDisplay(char *value,void *mem){
+void setDisplay(char *value,long mem){
 	int j =0;
 	int l = 0;
 	struct tetrixCar *ptr =(struct tetrixCar*)mem;
@@ -240,49 +243,49 @@ void setDisplay(char *value,void *mem){
 	}
 	ptr->displayRow2[16]=0;              	
 }
-void setSpeed(int val,void *mem){
+void setSpeed(int val,long mem){
  struct tetrixCar *ptr =(struct tetrixCar*)mem;
  ptr->speed=val;
 }
-void setAngle(int val,void *mem){
+void setAngle(int val,long mem){
  struct tetrixCar *ptr =(struct tetrixCar*)mem;
  ptr->angle=val;
 }
-double getAxelSpeed(void *mem){
+double getAxelSpeed(long mem){
  struct tetrixCar *ptr =(struct tetrixCar*)mem;
  return ptr->axelSpeed;
 }
-int getModeSwitch(void *mem){
+int getModeSwitch(long mem){
  struct tetrixCar *ptr =(struct tetrixCar*)mem;
  return ptr->modeSwitch;
 }
-int getRemoteStatus(void *mem){
+int getRemoteStatus(long mem){
  struct tetrixCar *ptr =(struct tetrixCar*)mem;
  return ptr->remoteStatus;
 }
-double getVoltage(void *mem){
+double getVoltage(long mem){
  struct tetrixCar *ptr =(struct tetrixCar*)mem;
  return ptr->voltage;
 }
-double getCurrent(void *mem){
+double getCurrent(long mem){
  struct tetrixCar *ptr =(struct tetrixCar*)mem;
  return ptr->current;
 }
-int getHeading(void *mem){
+int getHeading(long mem){
  struct tetrixCar *ptr =(struct tetrixCar*)mem;
  return ptr->heading;
 }
-double getIrSensor0(void *mem){
+double getIrSensor0(long mem){
  struct tetrixCar *ptr =(struct tetrixCar*)mem;
  double r =(6.0934*pow(10,-5)*pow(ptr->irSensor0,2)-0.07*ptr->irSensor0+24.08);
  return r;
 }
-double getIrSensor1(void *mem){
+double getIrSensor1(long mem){
  struct tetrixCar *ptr =(struct tetrixCar*)mem;
  double r =(6.0934*pow(10,-5)*pow(ptr->irSensor1,2)-0.07*ptr->irSensor1+24.08);
  return r;
 }
-int getUltraSonic(void *mem){
+int getUltraSonic(long mem){
  struct tetrixCar *ptr =(struct tetrixCar*)mem;
  return ptr->ultraSonic;
 }
