@@ -2,8 +2,6 @@
 /* DBSCAN - density-based spatial clustering of applications with noise */
 // http://en.wikipedia.org/wiki/DBSCAN
 
-#include <vector>
-
 using namespace cv;
 using namespace std;
 
@@ -20,7 +18,9 @@ Dbscan::Dbscan(vector<Point>* points, float eps, int minPts)
     m_visited.push_back(false);
   }
 
+  clock_t start = clock();
   calc();
+  cout << "DBSCAN Time(ms) (points: " << points->size() << ", clusterSize: " << m_clusters.size() << "): " << (difftime(clock(), start) / 1000) << endl;
 }
 
 Dbscan::~Dbscan() {}
@@ -53,9 +53,6 @@ void Dbscan::calc() {
     }
   }
 }
-//bool sortNeighbours(Point p1, Point p2){
-  //return (p1.x > p2.x) || ((p1.x == p2.x)&&(p1.y > p2.y));
-//}
 
 void Dbscan::expandCluster(Point& point, vector<int>& neighborPts) {
   // add P to cluster c
@@ -63,7 +60,6 @@ void Dbscan::expandCluster(Point& point, vector<int>& neighborPts) {
 
   //for each point P' in neighborPts
   for(int j = 0; j < neighborPts.size(); j++) {
-    bool reset = false;
 
     //if P' is not visited
     if(!m_visited[neighborPts[j]]) {
@@ -72,15 +68,7 @@ void Dbscan::expandCluster(Point& point, vector<int>& neighborPts) {
       m_visited[neighborPts[j]] = true;
       neighborPts_ = regionQuery(m_points->at(neighborPts[j]));
       if(neighborPts_.size() >= m_minPts) {
-
-        // Getting the union of the two neighbour vectors, TODO: optimize!!!
-        vector<int> unionNbPts(neighborPts_.size()+neighborPts.size());
-        sort(neighborPts.begin(), neighborPts.end());
-        sort(neighborPts_.begin(), neighborPts_.end());
-        vector<int>::iterator it = set_union(neighborPts.begin(), neighborPts.end(), neighborPts_.begin(), neighborPts_.end(), unionNbPts.begin());
-        unionNbPts.resize(it-unionNbPts.begin());
-        neighborPts.assign(unionNbPts.begin(),unionNbPts.end());
-        reset = true; // OPTIMIZE!!! SLOWS DOWN EVERYTHING!!!
+        neighborPts.insert(neighborPts.end(),neighborPts_.begin(),neighborPts_.end());
       }
     }
 
@@ -89,11 +77,12 @@ void Dbscan::expandCluster(Point& point, vector<int>& neighborPts) {
     if(!m_clustered[neighborPts[j]]) {
       m_clusters[m_c].push_back(m_points->at(neighborPts[j]));
     }
-
-    if (reset == true) {
-      j = 0;
-    }
   }
+
+  vector<int>::iterator it;
+  std::sort(neighborPts.begin(),neighborPts.end());
+  it = unique(neighborPts.begin(), neighborPts.end());
+  neighborPts.resize( std::distance(neighborPts.begin(),it) );
 }
 
 vector<int> Dbscan::regionQuery(Point& point) {
