@@ -18,7 +18,6 @@
 #include <time.h>
 #include <sys/time.h>
 
-pthread_t tid;
 
 struct tetrixCar {
 	bool run;
@@ -145,6 +144,7 @@ void* communicationThread(void *mem)
 void *startUsb()
 {	
 	struct tetrixCar *ptr=NULL;
+	pthread_t tid;
 	//Init values inside struct
 	ptr=(struct tetrixCar *) malloc(sizeof(struct tetrixCar));
 	ptr->run = false;
