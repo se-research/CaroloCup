@@ -4,14 +4,18 @@
  * This software is open source. Please see COPYING and AUTHORS for further information.
  */
 
-#ifndef DRIVER_H_
-#define DRIVER_H_
+#ifndef DRIVER_H_2
+#define DRIVER_H_2
 
 #include "core/base/ConferenceClientModule.h"
+#include "/home/fredrik/2014-CaroloCup/Legendary/project/OpenDaVINCI-msv/apps/2013/CaroloCup/cc-data/include/LaneDetectionData.h"
+#include <opencv/cv.h>
 
 namespace carolocup {
 
     using namespace std;
+	using namespace msv;
+	using namespace cv;
 
     /**
      * This class is a skeleton to send driving commands to Hesperia-light's vehicle driving dynamics simulation.
@@ -49,8 +53,7 @@ namespace carolocup {
 			 * @param controlGains Pointer to vector of control gains
 			 * @return The new desired steeringWheelAngle
 			 */
-			float feedbackLinearizationController(float lateralError, float angularError,
-					float curvature, float curvatureDifferential, float steeringWheelAngle, float speed, float *controlGains)
+			float feedbackLinearizationController();
 
         public:
             /**
@@ -68,14 +71,18 @@ namespace carolocup {
         private:
             virtual void setUp();
             virtual void tearDown();
+			bool hasReceivedLaneDetectionData;
 			// Define control parameters
 			float controlGains[3];	//For feedback linearization controller
 			float deltaPath, lateralError, angularError, steeringWheelAngle, curvature, curvatureDifferential, oldCurvature, speed;
-			const float ANGLE_TO_CURVATURE = 2.5;
-			const float length = 0.3;
-			const float SCALE_FACTOR = 12000;	//For example, 12000 dpm (dots-per-meter)
-			const float scaledLength;
-			Lines lines;
+			float desiredSteeringWheelAngle;
+			float ANGLE_TO_CURVATURE;
+			float length;
+			float SCALE_FACTOR;	//For example, 12000 dpm (dots-per-meter)
+			float scaledLength;
+			Vec4i leftLine;
+			Vec4i rightLine;
+			Vec4i dashedLine;
     };
 
 } // carolocup
