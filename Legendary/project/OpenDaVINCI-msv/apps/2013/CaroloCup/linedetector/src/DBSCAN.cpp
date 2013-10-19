@@ -5,21 +5,20 @@
 using namespace cv;
 using namespace std;
 
-Dbscan::Dbscan(vector<Point>* points, float eps, int minPts)
+Dbscan::Dbscan(vector<Point>* points, int eps, int minPts)
   : m_eps(eps)
   , m_c(0)
   , m_points(points)
   , m_minPts(minPts) {
 
-  for(int p = 0; p < m_points->size(); p++) {
+  for(unsigned int p = 0; p < m_points->size(); p++) {
     m_clustered.push_back(false);
     m_visited.push_back(false);
   }
 
   clock_t start = clock();
   calc();
-  int i;
-  for (i = 0; i < m_clusters.size(); i++) {
+  for (unsigned int i = 0; i < m_clusters.size(); i++) {
     cout << m_clusters[i].size() << " ";
   }
 
@@ -36,7 +35,7 @@ Clusters* Dbscan::getClusters() {
 void Dbscan::calc() {
 
   //for each unvisted point P in dataset points
-  for(int i = 0; i < m_points->size(); i++) {
+  for(unsigned int i = 0; i < m_points->size(); i++) {
     vector<int> neighborPts;
 
     if(m_visited[i]) {
@@ -63,7 +62,7 @@ void Dbscan::expandCluster(Point& point, vector<int>& neighborPts) {
   m_clusters[m_c].push_back(point);
 
   //for each point P' in neighborPts
-  for(int j = 0; j < neighborPts.size(); j++) {
+  for(unsigned int j = 0; j < neighborPts.size(); j++) {
 
     //if P' is not visited
     if(!m_visited[neighborPts[j]]) {
@@ -83,7 +82,7 @@ void Dbscan::expandCluster(Point& point, vector<int>& neighborPts) {
   it = unique(neighborPts.begin(), neighborPts.end());
   neighborPts.resize( std::distance(neighborPts.begin(),it) );
 
-  for(int j = 0; j < neighborPts.size(); j++) {
+  for(unsigned int j = 0; j < neighborPts.size(); j++) {
     if(!m_clustered[neighborPts[j]]) {
       m_clusters[m_c].push_back(m_points->at(neighborPts[j]));
     }
@@ -91,11 +90,11 @@ void Dbscan::expandCluster(Point& point, vector<int>& neighborPts) {
 }
 
 vector<int> Dbscan::regionQuery(Point& point) {
-  float dist;
+  int dist;
   vector<int> retPoints;
-  for(int i = 0; i< m_points->size(); i++) {
+  for(unsigned int i = 0; i< m_points->size(); i++) {
     dist = sqrt(pow((point.x - m_points->at(i).x),2)+pow((point.y - m_points->at(i).y),2));
-    if(dist <= m_eps && dist != 0.0f) {
+    if(dist <= m_eps && dist != 0) {
       retPoints.push_back(i);
     }
   }

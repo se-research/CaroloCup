@@ -2,14 +2,12 @@
 #include "LineDetector.h"
 #include "LineDetectorTypes.h"
 
-using namespace cv;
+//using namespace cv;
 
-int th1 = 40, th2 = 10; // Threshold
-int th = 10, rho = 1, theta = 180, maxLineGap = 1, maxLineLength = 1; // HoughLineP trans
-int thVal = 200, thMax = 200, thTyp = 0; // Canny
-int rows = 16; // HoughCircle trans
-int birdF = 900, birdDist = 100, birdAlpha = 17, birdBeta = 90, birdGamma = 90;
-int eps = 17, minPts = 5;
+
+struct Config {
+  int th1 , th2 , hlTh , hlMaxLineGap , hlMaxLineLength , caThVal , caThMax , caThTyp  ,birdF , birdDist , birdAlpha , birdBeta , birdGamma , dbEps , dbMinPts ;
+};
 
 enum state_t {
   RUNNING,
@@ -17,13 +15,13 @@ enum state_t {
   QUITING
 } state;
 
-Mat translate(Mat& source)
+Mat translate(Mat& source, Config& cfg)
 {
-  double alpha = ((double)birdAlpha-90.)*CV_PI/180 ;
-  double beta = ((double)birdBeta-90.)*CV_PI/180 ;
-  double gamma = ((double)birdGamma-90.)*CV_PI/180 ;
-  double f = birdF;
-  double dist = birdDist;
+  double alpha = ((double)cfg.birdAlpha-90.)*CV_PI/180 ;
+  double beta = ((double)cfg.birdBeta-90.)*CV_PI/180 ;
+  double gamma = ((double)cfg.birdGamma-90.)*CV_PI/180 ;
+  double f = cfg.birdF;
+  double dist = cfg.birdDist;
 
   double w = source.size().width;
   double h = source.size().height;
@@ -76,39 +74,19 @@ Mat translate(Mat& source)
   return transfo;
 }
 
-
-// Attila: Not used right now
-void drawCurves(Mat& src, Mat& dst) {
-  vector<Vec3f> circles;
-
-  // Apply the Hough Transform to find the circles
-  HoughCircles( src, circles, CV_HOUGH_GRADIENT, 1, rows/8, 200, 100, 5, 90 );
-
-  // Draw the circles detected
-  for( size_t i = 0; i < circles.size(); i++ )
-  {
-      Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
-      int radius = cvRound(circles[i][2]);
-      // circle center
-      circle( src, center, 3, Scalar(0,255,0), -1, 8, 0 );
-      // circle outline
-      circle( src, center, radius, Scalar(0,0,255), 3, 8, 0 );
-  }
-}
-
 static Scalar randomColor( RNG& rng )
 {
   int icolor = (unsigned) rng;
   return Scalar( icolor&255, (icolor>>8)&255, (icolor>>16)&255 );
 }
 
-void drawLines(Mat& src, Mat& dst) {
+void drawLines(Mat& src, Mat& dst, Config& cfg) {
   vector<Vec4i> lines;
   RNG rng( 0xFFFFFFFF );
 
-  HoughLinesP(src, lines, rho, CV_PI/theta, th, maxLineLength, maxLineGap );
+  HoughLinesP(src, lines, 1, CV_PI/180, cfg.hlTh, cfg.hlMaxLineLength, cfg.hlMaxLineGap );
 
-  LineDetector road(lines, eps, minPts);
+  LineDetector road(lines, cfg.dbEps, cfg.dbMinPts);
   Clusters* clusters = road.getClusters();
 
   for (vector<Cluster>::iterator it = clusters->begin(); it != clusters->end(); ++it) {
@@ -118,8 +96,8 @@ void drawLines(Mat& src, Mat& dst) {
     }
   }
 
-  Line solid = road.getSolidLine().first;
-  line( dst, Point(solid[0], solid[1]), Point(solid[2], solid[3]), Scalar(0,255,0), 3, CV_AA);
+  //Line solid = road.getSolidLine().first;
+  //line( dst, Point(solid[0], solid[1]), Point(solid[2], solid[3]), Scalar(0,255,0), 3, CV_AA);
   //Line dash = road.getDashLine();
   //line( dst, Point(dash[0], dash[1]), Point(dash[2], dash[3]), Scalar(0,255,0), 3, CV_AA);
 
@@ -131,7 +109,7 @@ void drawLines(Mat& src, Mat& dst) {
 
 }
 
-int main(int argc, char** argv)
+int main(int , char** argv)
 {
   const char* filename = argv[1];
   VideoCapture cap;
@@ -145,37 +123,55 @@ int main(int argc, char** argv)
     return -1;
   }
 
+  Config cfg;
+  cfg.th1 = 40;
+  cfg.th2 = 10;
+  cfg.hlTh = 10;
+  cfg.hlMaxLineGap = 1;
+  cfg.hlMaxLineLength = 1;
+  cfg.hlMaxLineLength = 1;
+  cfg.caThVal = 200;
+  cfg.caThMax = 200;
+  cfg.caThTyp = 0;
+  cfg.birdF = 900;
+  cfg.birdDist = 100;
+  cfg.birdAlpha = 17;
+  cfg.birdBeta = 90;
+  cfg.birdGamma = 90;
+  cfg.dbEps = 17;
+  cfg.dbMinPts = 5;
+
+  //int th1 = 40, th2 = 10; // Threshold
+  //int th = 10, rho = 1, theta = 180, maxLineGap = 1, maxLineLength = 1; // HoughLineP trans
+  //int thVal = 200, thMax = 200, thTyp = 0; // Canny
+  //int birdF = 900, birdDist = 100, birdAlpha = 17, birdBeta = 90, birdGamma = 90;
+  //int eps = 17, minPts = 5;
+
   //namedWindow("original",1);
   //namedWindow("thres",1);
   //namedWindow("canny",1);
   namedWindow("birdView",1);
+  namedWindow("config",1);
   // Canny
-  createTrackbar("th1", "canny", &th1, 250);
-  createTrackbar("th2", "canny", &th2, 250);
+  createTrackbar("th1", "config", &cfg.th1, 250);
+  createTrackbar("th2", "config", &cfg.th2, 250);
   // HoughLineP
-  createTrackbar("th", "original", &th, 250);
-  createTrackbar("rho", "original", &rho, 250);
-  createTrackbar("th", "original", &th, 250);
-  createTrackbar("theta", "original", &theta, 250);
-  createTrackbar("maxLineLength", "original", &maxLineLength, 250);
-  createTrackbar("maxLineGap", "original", &maxLineGap, 250);
+  createTrackbar("th", "config", &cfg.hlTh, 250);
+  createTrackbar("maxLineLength", "config", &cfg.hlMaxLineLength, 250);
+  createTrackbar("maxLineGap", "config", &cfg.hlMaxLineGap, 250);
   // Threshold
-  createTrackbar("thValue", "thres", &thVal, 250);
-  createTrackbar("binMax", "thres", &thMax, 250);
-  createTrackbar("thType", "thres", &thTyp, 4);
-  // Circle
-  //createTrackbar("thValue","circle", &thVal, 250);
-  //createTrackbar("binMax", "circle", &thMax, 250);
-  //createTrackbar("thType", "circle", &thTyp, 4);
+  createTrackbar("thValue", "config", &cfg.caThVal, 250);
+  createTrackbar("binMax", "config", &cfg.caThMax, 250);
+  createTrackbar("thType", "config", &cfg.caThTyp, 4);
   // BirdView
-  createTrackbar("f", "birdView", &birdF, 1500);
-  createTrackbar("dist", "birdView", &birdDist, 500);
-  createTrackbar("alpha", "birdView", &birdAlpha, 25);
-  createTrackbar("beta", "birdView", &birdBeta, 180);
-  createTrackbar("gamma", "birdView", &birdGamma, 360);
+  createTrackbar("f", "config", &cfg.birdF, 1500);
+  createTrackbar("dist", "config", &cfg.birdDist, 500);
+  createTrackbar("alpha", "config", &cfg.birdAlpha, 25);
+  createTrackbar("beta", "config", &cfg.birdBeta, 180);
+  createTrackbar("gamma", "config", &cfg.birdGamma, 360);
   // DBSCAN
-  createTrackbar("eps", "birdView", &eps, 100);
-  createTrackbar("minPts", "birdView", &minPts, 100);
+  createTrackbar("eps", "config", &cfg.dbEps, 100);
+  createTrackbar("minPts", "config", &cfg.dbMinPts, 100);
 
   Mat frame;
   while(state != QUITING) {
@@ -185,9 +181,9 @@ int main(int argc, char** argv)
     }
     original = frame.clone();
     cvtColor(original, thres, CV_BGR2GRAY);
-    threshold( thres, thres, thVal, thMax,thTyp );
+    threshold( thres, thres, cfg.caThVal, cfg.caThMax, cfg.caThTyp );
     GaussianBlur(thres, canny, Size(7,7), 1.5, 1.5);
-    Canny(canny, canny, th1, th2);
+    Canny(canny, canny, cfg.th1, cfg.th2);
 
     //drawLines(canny,original);
     //drawCurves(canny,original);
@@ -196,12 +192,12 @@ int main(int argc, char** argv)
     warpPerspective(
         canny,
         birdView,
-        translate(canny),
+        translate(canny,cfg),
         canny.size(),
         INTER_CUBIC|WARP_INVERSE_MAP);
     birdViewHough = original.clone(); // should be optimized
     birdViewHough.setTo( Scalar(0,0,0));
-    drawLines(birdView,birdViewHough);
+    drawLines(birdView,birdViewHough,cfg);
 
     //imshow("original", original);
     //imshow("thres", thres);
@@ -226,3 +222,6 @@ int main(int argc, char** argv)
 
   return 0;
 }
+
+
+

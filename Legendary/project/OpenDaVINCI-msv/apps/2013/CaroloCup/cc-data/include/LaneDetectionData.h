@@ -19,6 +19,16 @@ namespace msv {
 	using namespace std;
 	using namespace cv;
 
+  struct Lines {
+
+    Vec4i leftLine;
+    Vec4i rightLine;
+    Vec4i dashedLine;
+    //Vec4i leftLine = Vec4i(0,0,0,0);
+    //Vec4i rightLine = Vec4i(0,0,0,0);
+    //Vec4i dashedLine = Vec4i(0,0,0,0);
+  };
+
 /**
 * This is an example how you can send data from one component to another.
 */
@@ -48,19 +58,15 @@ namespace msv {
 		 *
 		 * @return example data.
 		 */
-		double getLaneDetectionData() const;
+		Lines getLaneDetectionData() const;
 
 		/**
 		 * This method sets the example data.
 		 *
 		 * @param e Example data.
 		 */
-		struct Lines {
-			Vec4i leftLine = Vec4i(0,0,0,0);
-			Vec4i rightLine = Vec4i(0,0,0,0);
-			Vec4i dashedLine = Vec4i(0,0,0,0);
-		};
 		void setLaneDetectionData(const Lines &e);
+
 		virtual ostream& operator<<(ostream &out) const;
 		virtual istream& operator>>(istream &in);
 		virtual const string toString() const;

@@ -35,7 +35,7 @@ namespace msv {
 		return (*this);
 	}
 
-	double LaneDetectionData::getLaneDetectionData() const {
+	Lines LaneDetectionData::getLaneDetectionData() const {
 		return m_lines;
 	}
 

@@ -4,8 +4,8 @@ using namespace std;
 using namespace cv;
 
 LineDetector::LineDetector(vector<Vec4i>& lines, float eps, int minPts)
-  : m_dashLine(NULL)
-  , m_solidLine(NULL)
+  : m_lines(NULL)
+  , m_clusters(NULL)
   //, m_maxXth(10)
   //, m_maxyth(40)
   , m_stdevTh(3)
@@ -22,6 +22,9 @@ LineDetector::LineDetector(vector<Vec4i>& lines, float eps, int minPts)
 
 LineDetector::~LineDetector(){
   delete m_clusters;
+  if (NULL != m_lines) {
+    delete m_lines;
+  }
 }
 
 // Attila: Only for debugging
@@ -29,16 +32,7 @@ Clusters* LineDetector::getClusters() {
   return m_clusters->getClusters();
 }
 
-// Does not work right now.
-pair<Line,Line> LineDetector::getSolidLine() {
-  if (!m_solidLines) {
-    m_solidLines = new Vec4i( findSolidLine() );
-  }
-  return *m_solidLines;
-}
-
-// Does not work right now.
-pair<Line,Line> LineDetector::findSolidLine() {
+pair<Line,Line> LineDetector::findSolidLine(Line& dashedLine) {
   Clusters* clusters = m_clusters->getClusters();
   Line solidLineLeft(0,0,0,0);
   Line solidLineRight(0,0,0,0);
@@ -57,63 +51,60 @@ pair<Line,Line> LineDetector::findSolidLine() {
         }
       }
     }
-    if (maxX < 10 && maxY > 40) {
     //if (maxX < m_maxXTh && maxY > m_maxYTh) {
-      solidLineLeft = findBiggestDistance(*it);
-      break;
+    if (maxX < 10 && maxY > 40) {
+      Vec4i line = findBiggestDistance(*it);
+      if (line[0] < dashedLine[0] && line[2] < dashedLine[2]) {
+        solidLineLeft = line;
+      } else if (line[0] > dashedLine[0] && line[2] > dashedLine[2]) {
+        solidLineRight = line;
+      }
     }
   }
-  return make_pari(solidLineLeft,solidLineRight);
-}
 
-// Does not work right now.
-Line LineDetector::getDashLine() {
-  if (!m_dashLine) {
-    m_dashLine = new Vec4i( findDashLine() );
-  }
-  return *m_dashLine;
+  return make_pair(solidLineLeft,solidLineRight);
 }
 
 // Does not work right now.
 // TODO: 'Rectanglness' check missing
 Line LineDetector::findDashLine() {
-  Clusters* clusters = m_clusters->getClusters();
+  //Clusters* clusters = m_clusters->getClusters();
   Line dashLine(0,0,0,0);
 
-  for (vector<Cluster>::iterator it = clusters->begin(); it != clusters->end(); ++it) {
+  //for (vector<Cluster>::iterator it = clusters->begin(); it != clusters->end(); ++it) {
 
-    // Reclustering
-    Dbscan subClusters(&*it, 10, 10);
+    //// Reclustering
+    //Dbscan subClusters(&*it, 10, 10);
 
-    // A dashline cluster should contains multiple subclusters
-    if ( 2 > subClusters.getClusters()->size() ) {
-      continue;
-    }
+    //// A dashline cluster should contains multiple subclusters
+    //if ( 2 > subClusters.getClusters()->size() ) {
+      //continue;
+    //}
 
-    Clusters* dashLineSubclusters = subClusters.getClusters();
-    vector<int> maxs;
+    //Clusters* dashLineSubclusters = subClusters.getClusters();
+    //vector<int> maxs;
 
-    // Find the biggest distance in the subclusters
-    for (vector<Cluster>::iterator subCluster = dashLineSubclusters->begin(); subCluster != dashLineSubclusters->end(); ++subCluster) {
-      int max = 0;
-      for (vector<Point>::iterator it2 = subCluster->begin(); it2 != subCluster->end(); ++it2) {
-        for (vector<Point>::iterator it3 = subCluster->begin(); it3 != subCluster->end(); ++it3) {
-          int dist = calcLength(*it2,*it3);
-          if (dist > max) {
-            max = dist;
-          }
-        }
-      }
-      maxs.push_back(max);
-    }
+    //// Find the biggest distance in the subclusters
+    //for (vector<Cluster>::iterator subCluster = dashLineSubclusters->begin(); subCluster != dashLineSubclusters->end(); ++subCluster) {
+      //int max = 0;
+      //for (vector<Point>::iterator it2 = subCluster->begin(); it2 != subCluster->end(); ++it2) {
+        //for (vector<Point>::iterator it3 = subCluster->begin(); it3 != subCluster->end(); ++it3) {
+          //int dist = calcLength(*it2,*it3);
+          //if (dist > max) {
+            //max = dist;
+          //}
+        //}
+      //}
+      //maxs.push_back(max);
+    //}
 
-    // check if the biggest distances in subclusters are similar
-    if (calcStdev(maxs) > m_stdevTh) {
-      continue;
-    }
+    //// check if the biggest distances in subclusters are similar
+    //if (calcStdev(maxs) > m_stdevTh) {
+      //continue;
+    //}
 
-    dashLine = findBiggestDistance(*it);
-  }
+    //dashLine = findBiggestDistance(*it);
+  //}
 
   return dashLine;
 }
@@ -150,3 +141,17 @@ int LineDetector::calcStdev(vector<int>& v){
   int sq_sum = std::inner_product(v.begin(), v.end(), v.begin(), 0.0);
   return std::sqrt(sq_sum / v.size() - mean * mean);
 }
+
+msv::Lines LineDetector::getLines() {
+  if (NULL == m_lines) {
+    Line dashed = findDashLine();
+    pair<Line,Line> solid = findSolidLine(dashed);
+
+    m_lines = new msv::Lines();
+    m_lines->dashedLine = dashed;
+    m_lines->rightLine = solid.first;
+    m_lines->leftLine = solid.second;
+  }
+  return *m_lines;
+}
+
