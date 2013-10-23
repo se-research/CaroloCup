@@ -16,14 +16,14 @@ Dbscan::Dbscan(vector<Point>* points, int eps, int minPts)
     m_visited.push_back(false);
   }
 
-  clock_t start = clock();
+  //clock_t start = clock();
   calc();
-  for (unsigned int i = 0; i < m_clusters.size(); i++) {
-    cout << m_clusters[i].size() << " ";
-  }
+  //for (unsigned int i = 0; i < m_clusters.size(); i++) {
+    //cout << m_clusters[i].size() << " ";
+  //}
 
-  cout << "DBSCAN Time(ms) clusterSize:"<< m_clusters.size()<<" (points: " << points->size() << "): ";
-  cout << (difftime(clock(), start) / 1000) << endl;
+  //cout << "DBSCAN Time(ms) clusterSize:"<< m_clusters.size()<<" (points: " << points->size() << "): ";
+  //cout << (difftime(clock(), start) / 1000) << endl;
 }
 
 Dbscan::~Dbscan() {}

@@ -3,12 +3,14 @@
 using namespace std;
 using namespace cv;
 
-LineDetector::LineDetector(vector<Vec4i>& lines, float eps, int minPts)
+LineDetector::LineDetector(vector<Vec4i>& lines, float eps, int minPts, int dashMin, int dashMax, int dashWidth,int solidMax, int solidWidth)
   : m_lines(NULL)
   , m_clusters(NULL)
-  //, m_maxXth(10)
-  //, m_maxyth(40)
-  , m_stdevTh(3)
+  , m_dashMin(dashMin)
+  , m_dashMax(dashMax)
+  , m_dashWidth(dashWidth)
+  , m_solidMax(solidMax)
+  , m_solidWidth(solidWidth)
 {
   vector<Point> points;
 
@@ -51,9 +53,10 @@ pair<Line,Line> LineDetector::findSolidLine(Line& dashedLine) {
         }
       }
     }
-    //if (maxX < m_maxXTh && maxY > m_maxYTh) {
-    if (maxX < 10 && maxY > 40) {
-      Vec4i line = findBiggestDistance(*it);
+
+    if (maxX < m_solidWidth*(int)clusters->size() && maxY > m_solidMax) {
+      pair<vector<Point>::iterator,vector<Point>::iterator> points = findBiggestDistance(*it);
+      Vec4i line = Vec4i(points.first->x,points.first->y,points.second->x,points.second->y);
       if (line[0] < dashedLine[0] && line[2] < dashedLine[2]) {
         solidLineLeft = line;
       } else if (line[0] > dashedLine[0] && line[2] > dashedLine[2]) {
@@ -65,64 +68,114 @@ pair<Line,Line> LineDetector::findSolidLine(Line& dashedLine) {
   return make_pair(solidLineLeft,solidLineRight);
 }
 
-// Does not work right now.
-// TODO: 'Rectanglness' check missing
 Line LineDetector::findDashLine() {
-  //Clusters* clusters = m_clusters->getClusters();
-  Line dashLine(0,0,0,0);
+  Clusters* clusters = m_clusters->getClusters();
 
-  //for (vector<Cluster>::iterator it = clusters->begin(); it != clusters->end(); ++it) {
+  vector<Point> dashCluster;
+  for (vector<Cluster>::iterator it = clusters->begin(); it != clusters->end(); ++it) {
+    // TODO: use min norm insteand of it2
+    // Find the biggest distances
+    int maxDist = 0;
+    pair<int,int> x = make_pair(numeric_limits<int>::max(),0);
+    pair<Point,Point> points;
+    //pair<Point,Point> points = make_pair(it->begin(),it->end()); // should this initialization work too
+    for (vector<Point>::iterator it2 = it->begin(); it2 != it->end(); ++it2) {
+      for (vector<Point>::iterator it3 = it->begin(); it3 != it->end(); ++it3) {
+        if (it2 == it3) {
+          continue;
+        }
 
-    //// Reclustering
-    //Dbscan subClusters(&*it, 10, 10);
+        // find min and max x
+        if (it2->x < x.first) {
+          x.first = it2->x;
+        }
+        if (it3->x < x.first) {
+          x.first = it3->x;
+        }
+        if (it2->x > x.second) {
+          x.second = it2->x;
+        }
+        if (it3->x > x.second) {
+          x.second = it3->x;
+        }
 
-    //// A dashline cluster should contains multiple subclusters
-    //if ( 2 > subClusters.getClusters()->size() ) {
-      //continue;
-    //}
+        int dist = calcLength(*it2,*it3);
+        if (dist > maxDist) {
+          maxDist = dist;
+          points = make_pair(*it2,*it3);
+        }
+      }
+      // TODO: break if max exceeded the max possible distance for dash lines.
+    }
 
-    //Clusters* dashLineSubclusters = subClusters.getClusters();
-    //vector<int> maxs;
+    if (maxDist < m_dashMax &&
+        maxDist > m_dashMin &&
+        (x.second - x.first) < m_dashWidth) {
+      dashCluster.push_back(points.first);
+      dashCluster.push_back(points.second);
+    }
+  }
 
-    //// Find the biggest distance in the subclusters
-    //for (vector<Cluster>::iterator subCluster = dashLineSubclusters->begin(); subCluster != dashLineSubclusters->end(); ++subCluster) {
-      //int max = 0;
-      //for (vector<Point>::iterator it2 = subCluster->begin(); it2 != subCluster->end(); ++it2) {
-        //for (vector<Point>::iterator it3 = subCluster->begin(); it3 != subCluster->end(); ++it3) {
-          //int dist = calcLength(*it2,*it3);
-          //if (dist > max) {
-            //max = dist;
-          //}
-        //}
-      //}
-      //maxs.push_back(max);
-    //}
+  if (!dashCluster.size()) {
+    return Vec4i(0,0,0,0);
+  }
 
-    //// check if the biggest distances in subclusters are similar
-    //if (calcStdev(maxs) > m_stdevTh) {
-      //continue;
-    //}
+  // TODO: Refactor the rest of this function!
+  pair<vector<Point>::iterator,vector<Point>::iterator> ps = findBiggestDistance(dashCluster);
+  Vec4i dashLine = Vec4i(ps.first->x,ps.first->y,ps.second->x,ps.second->y);
 
-    //dashLine = findBiggestDistance(*it);
-  //}
+  Point p1 = *ps.first;
+  Point p2 = *ps.second;
+  while (abs(dashLine[0]-dashLine[2]) > m_dashWidth) {
+    Cluster dashCluster1(dashCluster);
+    Cluster dashCluster2(dashCluster);
+    removePoint(dashCluster1,p1);
+    removePoint(dashCluster2,p2);
+    pair<vector<Point>::iterator,vector<Point>::iterator> ps1 = findBiggestDistance(dashCluster1);
+    pair<vector<Point>::iterator,vector<Point>::iterator> ps2 = findBiggestDistance(dashCluster2);
+    Vec4i dashLine1 = Vec4i(ps1.first->x,ps1.first->y,ps1.second->x,ps1.second->y);
+    Vec4i dashLine2 = Vec4i(ps2.first->x,ps2.first->y,ps2.second->x,ps2.second->y);
+    int xDist1 = abs(dashLine1[0]-dashLine1[2]);
+    int xDist2 = abs(dashLine2[0]-dashLine2[2]);
+    if ( xDist1 < xDist2 ) {
+      dashLine = dashLine1;
+      dashCluster = dashCluster1;
+      p1 = *ps1.first;
+      p2 = *ps1.second;
+    } else {
+      dashLine = dashLine2;
+      dashCluster = dashCluster2;
+      p1 = *ps2.first;
+      p2 = *ps2.second;
+    }
+  }
 
   return dashLine;
 }
 
-//find two points with biggest distance in the whole dashLine claster
-Line LineDetector::findBiggestDistance(Cluster& c){
+void LineDetector::removePoint(Cluster& c, Point& p){
+  for (vector<Point>::iterator it = c.begin(); it != c.end();) {
+    if (it->x == p.x && it->y == p.y) {
+      it = c.erase(it);
+    } else {
+      ++it;
+    }
+  }
+}
+
+pair<vector<Point>::iterator,vector<Point>::iterator> LineDetector::findBiggestDistance(Cluster& c){
   int max = 0;
-  Vec4i retLine(0,0,0,0);
+  pair<vector<Point>::iterator,vector<Point>::iterator> ret = make_pair(c.begin(),c.end());
   for (vector<Point>::iterator it2 = c.begin(); it2 != c.end(); ++it2) {
     for (vector<Point>::iterator it3 = c.begin(); it3 != c.end(); ++it3) {
       int dist = calcLength(*it2,*it3);
       if (dist > max) {
         max = dist;
-        retLine = Vec4i(it2->x,it2->y,it3->x,it3->y);
+        ret = make_pair(it2,it3);
       }
     }
   }
-  return retLine;
+  return ret;
 }
 
 int LineDetector::calcLength(const Point& p1, const Point& p2){
@@ -136,6 +189,9 @@ int LineDetector::calcLength(const Vec4i& v){
 }
 
 int LineDetector::calcStdev(vector<int>& v){
+  if (0 == v.size()) {
+    return numeric_limits<int>::max();
+  }
   int sum = std::accumulate(v.begin(), v.end(), 0.0);
   int mean = sum / v.size();
   int sq_sum = std::inner_product(v.begin(), v.end(), v.begin(), 0.0);

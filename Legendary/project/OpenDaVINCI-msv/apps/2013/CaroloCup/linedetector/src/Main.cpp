@@ -6,7 +6,9 @@
 
 
 struct Config {
-  int th1 , th2 , hlTh , hlMaxLineGap , hlMaxLineLength , caThVal , caThMax , caThTyp  ,birdF , birdDist , birdAlpha , birdBeta , birdGamma , dbEps , dbMinPts ;
+  int th1, th2, hlTh, hlMaxLineGap, hlMaxLineLength, caThVal, caThMax, caThTyp,
+      birdF, birdDist, birdAlpha, birdBeta, birdGamma, dbEps, dbMinPts,
+      dashMin, dashMax, dashWidth, solidMax, solidWidth;
 };
 
 enum state_t {
@@ -86,7 +88,7 @@ void drawLines(Mat& src, Mat& dst, Config& cfg) {
 
   HoughLinesP(src, lines, 1, CV_PI/180, cfg.hlTh, cfg.hlMaxLineLength, cfg.hlMaxLineGap );
 
-  LineDetector road(lines, cfg.dbEps, cfg.dbMinPts);
+  LineDetector road(lines, cfg.dbEps, cfg.dbMinPts, cfg.dashMin, cfg.dashMax, cfg.dashWidth, cfg.solidMax, cfg.solidWidth);
   Clusters* clusters = road.getClusters();
 
   for (vector<Cluster>::iterator it = clusters->begin(); it != clusters->end(); ++it) {
@@ -95,6 +97,15 @@ void drawLines(Mat& src, Mat& dst, Config& cfg) {
       line( dst, *it2, *it2, color, 2, CV_AA);
     }
   }
+
+  msv::Lines l = road.getLines();
+  Line dashed = l.dashedLine;
+  Line solidRight = l.rightLine;
+  Line solidLeft = l.leftLine;
+
+  line( dst, Point(dashed[0], dashed[1]), Point(dashed[2], dashed[3]), Scalar(0,255,0), 3, CV_AA);
+  line( dst, Point(solidRight[0], solidRight[1]), Point(solidRight[2], solidRight[3]), Scalar(255,0,0), 3, CV_AA);
+  line( dst, Point(solidLeft[0], solidLeft[1]), Point(solidLeft[2], solidLeft[3]), Scalar(0,0,255), 3, CV_AA);
 
   //Line solid = road.getSolidLine().first;
   //line( dst, Point(solid[0], solid[1]), Point(solid[2], solid[3]), Scalar(0,255,0), 3, CV_AA);
@@ -140,6 +151,11 @@ int main(int , char** argv)
   cfg.birdGamma = 90;
   cfg.dbEps = 17;
   cfg.dbMinPts = 5;
+  cfg.dashMin = 15;
+  cfg.dashMax = 40;
+  cfg.dashWidth = 8;
+  cfg.solidMax = 100;
+  cfg.solidWidth = 30;
 
   //int th1 = 40, th2 = 10; // Threshold
   //int th = 10, rho = 1, theta = 180, maxLineGap = 1, maxLineLength = 1; // HoughLineP trans
@@ -164,14 +180,19 @@ int main(int , char** argv)
   createTrackbar("binMax", "config", &cfg.caThMax, 250);
   createTrackbar("thType", "config", &cfg.caThTyp, 4);
   // BirdView
-  createTrackbar("f", "config", &cfg.birdF, 1500);
-  createTrackbar("dist", "config", &cfg.birdDist, 500);
-  createTrackbar("alpha", "config", &cfg.birdAlpha, 25);
-  createTrackbar("beta", "config", &cfg.birdBeta, 180);
-  createTrackbar("gamma", "config", &cfg.birdGamma, 360);
+  //createTrackbar("f", "config", &cfg.birdF, 1500);
+  //createTrackbar("dist", "config", &cfg.birdDist, 500);
+  //createTrackbar("alpha", "config", &cfg.birdAlpha, 25);
+  //createTrackbar("beta", "config", &cfg.birdBeta, 180);
+  //createTrackbar("gamma", "config", &cfg.birdGamma, 360);
   // DBSCAN
   createTrackbar("eps", "config", &cfg.dbEps, 100);
   createTrackbar("minPts", "config", &cfg.dbMinPts, 100);
+  createTrackbar("dashMin", "config", &cfg.dashMin, 100);
+  createTrackbar("dashMax", "config", &cfg.dashMax, 200);
+  createTrackbar("dashWidth", "config", &cfg.dashWidth, 25);
+  createTrackbar("solidMax", "config", &cfg.solidMax, 200);
+  createTrackbar("solidWidth", "config", &cfg.solidWidth, 50);
 
   Mat frame;
   while(state != QUITING) {
@@ -222,6 +243,4 @@ int main(int , char** argv)
 
   return 0;
 }
-
-
 
