@@ -1,9 +1,7 @@
 #include "opencv2/opencv.hpp"
 #include "LineDetector.h"
-#include "LineDetectorTypes.h"
 
-//using namespace cv;
-
+using namespace carolocup;
 
 struct Config {
   int th1, th2, hlTh, hlMaxLineGap, hlMaxLineLength, caThVal, caThMax, caThTyp,
@@ -98,7 +96,7 @@ void drawLines(Mat& src, Mat& dst, Config& cfg) {
     }
   }
 
-  msv::Lines l = road.getLines();
+  carolocup::Lines l = road.getLines();
   Line dashed = l.dashedLine;
   Line solidRight = l.rightLine;
   Line solidLeft = l.leftLine;
@@ -106,18 +104,6 @@ void drawLines(Mat& src, Mat& dst, Config& cfg) {
   line( dst, Point(dashed[0], dashed[1]), Point(dashed[2], dashed[3]), Scalar(0,255,0), 3, CV_AA);
   line( dst, Point(solidRight[0], solidRight[1]), Point(solidRight[2], solidRight[3]), Scalar(255,0,0), 3, CV_AA);
   line( dst, Point(solidLeft[0], solidLeft[1]), Point(solidLeft[2], solidLeft[3]), Scalar(0,0,255), 3, CV_AA);
-
-  //Line solid = road.getSolidLine().first;
-  //line( dst, Point(solid[0], solid[1]), Point(solid[2], solid[3]), Scalar(0,255,0), 3, CV_AA);
-  //Line dash = road.getDashLine();
-  //line( dst, Point(dash[0], dash[1]), Point(dash[2], dash[3]), Scalar(0,255,0), 3, CV_AA);
-
-  //for( size_t i = 0; i < lines.size(); i++ ) {
-    //Vec4i l = lines[i];
-    //line( dst, Point(l[0], l[1]), Point(l[0], l[1]), Scalar(0,0,255), 2, CV_AA);
-    //line( dst, Point(l[2], l[3]), Point(l[2], l[3]), Scalar(0,255,0), 2, CV_AA);
-  //}
-
 }
 
 int main(int , char** argv)
@@ -243,4 +229,3 @@ int main(int , char** argv)
 
   return 0;
 }
-

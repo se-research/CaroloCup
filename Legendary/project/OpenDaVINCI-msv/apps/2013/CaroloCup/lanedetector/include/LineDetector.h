@@ -11,12 +11,14 @@
 using namespace cv;
 using namespace std;
 
+namespace carolocup {
+
 class LineDetector {
 public:
   // TODO: replace change esp to int for performanc reasons
   LineDetector(vector<Vec4i>& lines, float eps, int minPts, int dashMin, int dashMax, int dashWidth, int solidMax, int solidWidth);
   virtual ~LineDetector();
-  msv::Lines getLines();
+  Lines getLines();
 
   Clusters* getClusters(); // Attila: Only debugging
 
@@ -33,7 +35,7 @@ private:
    */
   pair<vector<Point>::iterator,vector<Point>::iterator> findBiggestDistance(Cluster& c);
 
-  msv::Lines* m_lines;
+  Lines* m_lines;
   Dbscan* m_clusters;
   int m_dashMin;
   int m_dashMax;
@@ -42,4 +44,5 @@ private:
   int m_solidWidth;
 };
 
+}
 #endif

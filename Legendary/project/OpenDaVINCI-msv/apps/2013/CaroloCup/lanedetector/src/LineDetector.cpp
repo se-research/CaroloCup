@@ -1,5 +1,7 @@
 #include "LineDetector.h"
 
+namespace carolocup {
+
 using namespace std;
 using namespace cv;
 
@@ -104,8 +106,13 @@ Line LineDetector::findDashLine() {
           maxDist = dist;
           points = make_pair(*it2,*it3);
         }
+        if (maxDist > m_dashMax) {
+          break;
+        }
       }
-      // TODO: break if max exceeded the max possible distance for dash lines.
+      if (maxDist > m_dashMax) {
+        break;
+      }
     }
 
     if (maxDist < m_dashMax &&
@@ -198,16 +205,14 @@ int LineDetector::calcStdev(vector<int>& v){
   return std::sqrt(sq_sum / v.size() - mean * mean);
 }
 
-msv::Lines LineDetector::getLines() {
+Lines LineDetector::getLines() {
   if (NULL == m_lines) {
     Line dashed = findDashLine();
     pair<Line,Line> solid = findSolidLine(dashed);
 
-    m_lines = new msv::Lines();
-    m_lines->dashedLine = dashed;
-    m_lines->rightLine = solid.first;
-    m_lines->leftLine = solid.second;
+    m_lines = new Lines(solid.first,dashed,solid.second);
   }
   return *m_lines;
 }
 
+}

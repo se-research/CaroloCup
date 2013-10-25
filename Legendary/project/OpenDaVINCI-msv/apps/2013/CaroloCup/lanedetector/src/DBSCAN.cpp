@@ -48,7 +48,7 @@ void Dbscan::calc() {
 
     if(neighborPts.size() < m_minPts) {
       //Mark P as Noise
-      m_noise.push_back(i); // All the neighbour should be noise
+      m_noise.push_back(i);
     } else {
       m_clusters.push_back(vector<Point>());
       expandCluster(m_points->at(i),neighborPts);
