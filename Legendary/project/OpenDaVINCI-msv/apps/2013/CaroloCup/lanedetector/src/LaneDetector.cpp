@@ -356,7 +356,7 @@ pixelsFromTop = 220;
 			!= color_dst->height - 1 && intersec[2].y != color_dst->height - 1
 			&& abs(intersec[0].y - intersec[1].y) < 10 && abs(intersec[1].y
 					- intersec[2].y) < 10 && abs(intersec[2].y - intersec[0].y) < 10) {
-   /     a		 
+   /     a
 
 	}
 */
@@ -364,13 +364,14 @@ pixelsFromTop = 220;
 	cerr << "State " << state << endl;
 
 	// Create an instance of your data structure and set some values.
-	LaneDetectionData theData;
-	theData.setNumericalValue(angle);
+  const Lines dummyLines(Vec4i(0,0,0,0),Vec4i(0,0,0,0),Vec4i(0,0,0,0));
+	LaneDetectionData data;
+  data.setLaneDetectionData(dummyLines);
 
 	// Create a container from your data structure so that it can be transferred.
 	// _remember_ the assigned ID (here 101): It must be used by the receiver to read the data successfully.
 	// The ID must by from within this range: 0-127.
-	Container con(Container::USER_DATA_1, theData);
+	Container con(Container::USER_DATA_1, data);
 
 	// Send the data:
 	getConference().send(con);
@@ -387,8 +388,8 @@ pixelsFromTop = 220;
             str << setfill('0');
             str << "/tmp/img" << setw(5) << counterImg << ".jpg";
             cvSaveImage(str.str().c_str(), color_dst );
-           
-        } 
+
+        }
         counterImg++;
 		}
 	}

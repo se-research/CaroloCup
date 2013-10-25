@@ -15,14 +15,15 @@
 
 #include "LaneDetectionData.h"
 
-namespace msv {
+namespace carolocup {
 
 	using namespace std;
 	using namespace core::base;
 	using namespace cv;
 
-	LaneDetectionData::LaneDetectionData() {
-	}
+	LaneDetectionData::LaneDetectionData() :
+    m_lines(Vec4i(0,0,0,0),Vec4i(0,0,0,0),Vec4i(0,0,0,0)) {
+  }
 
 	LaneDetectionData::LaneDetectionData(const LaneDetectionData &obj) :
 			SerializableData(),
@@ -45,7 +46,10 @@ namespace msv {
 
 	const string LaneDetectionData::toString() const {
 		stringstream s;
-		s << "Example data: " << getSteeringData().rightLine[0];
+
+    // Attila 2 Fredrik: what is this 'getSteeringData'? Dont we need some object or something here?
+		//s << "Example data: " << getSteeringData().rightLine[0];
+
 		return s.str();
 	}
 
@@ -53,7 +57,7 @@ namespace msv {
 		SerializationFactory sf;
 		Serializer &s = sf.getSerializer(out);
 		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL7('e', 'x', 'a', 'm', 'p', 'l', 'e') >::RESULT,
-				m_lines);
+				(void*)&m_lines, sizeof(m_lines));
 		return out;
 	}
 
@@ -62,7 +66,7 @@ namespace msv {
 		Deserializer &d = sf.getDeserializer(in);
 
 		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL7('e', 'x', 'a', 'm', 'p', 'l', 'e') >::RESULT,
-				m_lines);
+				(void*)&m_lines, sizeof(m_lines));
 
 		return in;
 	}

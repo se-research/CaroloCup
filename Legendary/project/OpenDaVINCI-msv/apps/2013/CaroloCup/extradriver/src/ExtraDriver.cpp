@@ -108,10 +108,11 @@ ModuleState::MODULE_EXITCODE ExtraDriver::body() {
 
 		if (hasReceivedLaneDetectionData) {
 			// Do something with your average attribute:
-			angle = theData.getNumericalValue();
+			angle = 0.0; // Dummy value #1. We do not have this in the lanedetection data right now.
+			//angle = theData.getNumericalValue();
 
 			// Do something with your average attribute:
-			parking = theData.getDistance();
+			parking = 0.0; // Dummy value #2. We do not have this in the lanedetection data right now.
 
 			cerr << "Received data from lanedetector: angle=" << angle
 					<< ", parking=" << parking << endl;
@@ -258,7 +259,7 @@ ModuleState::MODULE_EXITCODE ExtraDriver::body() {
 				<< "' Acceleration: '" << fc.getAccelerationForce()
 				<< "' Brake: '" << fc.getBrakeForce() << "'" << endl;
         // Set userData to 3000 => Proxy will filter ForceControl data based on this.
-        // fc.setUserData(3000);  
+        // fc.setUserData(3000);
 		// Create container.
 		Container c(Container::FORCECONTROL, fc);
 

@@ -15,7 +15,7 @@
 #include "core/base/LIFOQueue.h"
 
 // Data structures from msv-data library:
-#include "/home/fredrik/2014-CaroloCup/Legendary/project/OpenDaVINCI-msv/apps/2013/CaroloCup/cc-data/include/SensorBoardData.h"
+#include "SensorBoardData.h"
 //#include "/home/fredrik/2014-CaroloCup/Legendary/project/OpenDaVINCI-msv/apps/2013/CaroloCup/cc-data/include/UserButtonData.h"
 
 #include "Driver.h"
@@ -27,7 +27,7 @@ namespace carolocup {
 	using namespace core::data;
 	using namespace core::data::control;
 	using namespace core::data::environment;
-	
+
 	// Constructor
 	Driver::Driver(const int32_t &argc, char **argv) :
 			ConferenceClientModule(argc, argv, "Driver") {
@@ -98,13 +98,14 @@ namespace carolocup {
 			lifo.clear();
 
 			// The two lines are delivered in a struct containing two Vec4i objects (vector of 4 integers)
-			rightLine = ldd.getRightLine();
-			leftLine = ldd.getDashedLine();
-			
-			x1 = leftLine[0]; y1 = leftLine[1];
-			x2 = leftLine[2]; y2 = leftLine[3];
-			x3 = rightLine[0]; y3 = rightLine[1];
-			x4 = rightLine[2]; y4 = rightLine[3];
+      Lines lines = ldd.getLaneDetectionData();
+			m_rightLine = lines.rightLine;
+			m_leftLine = lines.leftLine;
+
+			x1 = m_leftLine[0]; y1 = m_leftLine[1];
+			x2 = m_leftLine[2]; y2 = m_leftLine[3];
+			x3 = m_rightLine[0]; y3 = m_rightLine[1];
+			x4 = m_rightLine[2]; y4 = m_rightLine[3];
 			angularErrorLeft = atan2(x1-x2, y1-y2);
 			angularErrorRight = atan2(x3-x4, y3-y4);
 			angularError = (angularErrorLeft + angularErrorRight)/2;
