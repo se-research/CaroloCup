@@ -13,6 +13,9 @@ public:
   Clusters* getClusters();
 
 private:
+  Dbscan (const Dbscan&);
+  Dbscan& operator=(const Dbscan&);
+
   int m_eps;
   int m_c;
   vector<Point>* m_points;
@@ -21,6 +24,7 @@ private:
   vector<int> m_noise;
   vector<bool> m_visited;
   Clusters m_clusters;
+
   vector<int> regionQuery(Point& point);
   void expandCluster(Point& point, vector<int>& nbPoints);
   void calc();

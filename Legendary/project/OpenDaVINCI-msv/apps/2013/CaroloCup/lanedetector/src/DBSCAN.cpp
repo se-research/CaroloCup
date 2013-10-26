@@ -9,13 +9,12 @@ Dbscan::Dbscan(vector<Point>* points, int eps, int minPts)
   : m_eps(eps)
   , m_c(0)
   , m_points(points)
-  , m_minPts(minPts) {
-
-  for(unsigned int p = 0; p < m_points->size(); p++) {
-    m_clustered.push_back(false);
-    m_visited.push_back(false);
-  }
-
+  , m_minPts(minPts)
+  , m_clustered(vector<bool>(points->size(),false))
+  , m_noise()
+  , m_visited(vector<bool>(points->size(),false))
+  , m_clusters()
+{
   //clock_t start = clock();
   calc();
   //for (unsigned int i = 0; i < m_clusters.size(); i++) {
@@ -46,6 +45,7 @@ void Dbscan::calc() {
     m_visited[i] = true;
     neighborPts = regionQuery(m_points->at(i));
 
+    // REVIEW: we do not really need to keep the noise points
     if(neighborPts.size() < m_minPts) {
       //Mark P as Noise
       m_noise.push_back(i);

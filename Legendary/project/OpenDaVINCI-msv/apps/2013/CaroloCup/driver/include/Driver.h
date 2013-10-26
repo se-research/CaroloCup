@@ -70,15 +70,32 @@ namespace carolocup {
     private:
       virtual void setUp();
       virtual void tearDown();
-      bool hasReceivedLaneDetectionData;
+
+      bool m_hasReceivedLaneDetectionData;
+
       // Define control parameters
-      float controlGains[3];	//For feedback linearization controller
-      float deltaPath, lateralError, angularError, steeringWheelAngle, curvature, curvatureDifferential, oldCurvature, speed;
-      float desiredSteeringWheelAngle;
-      float ANGLE_TO_CURVATURE;
-      float length;
-      float SCALE_FACTOR;	//For example, 12000 dpm (dots-per-meter)
-      float scaledLength;
+      float m_controlGains[3];	//For feedback linearization controller
+      float m_deltaPath;
+      float m_angularError;
+      float m_steeringWheelAngle;
+      float m_curvature;
+      float m_curvatureDifferential;
+      float m_oldCurvature;
+      float m_speed;
+      float m_lateralError;
+      float m_intLateralError;
+      float m_derLateralError;
+      float m_desiredSteeringWheelAngle;
+      float m_scaledLength;
+      float m_propGain;
+      float m_intGain;
+      float m_derGain;
+      float m_length;
+      const float ANGLE_TO_CURVATURE;
+      const float SCALE_FACTOR;	//For example, 12000 dpm (dots-per-meter)
+
+      time_t m_timestamp;
+
       Vec4i m_leftLine;
       Vec4i m_rightLine;
       Vec4i m_dashedLine;

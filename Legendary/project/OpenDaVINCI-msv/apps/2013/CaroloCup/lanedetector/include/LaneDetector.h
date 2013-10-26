@@ -65,10 +65,7 @@ protected:
 private:
 	bool m_hasAttachedToSharedImageMemory;
 	core::SharedPointer<core::wrapper::SharedMemory> m_sharedImageMemory;
-	IplImage *m_image;
-	IplImage *color_dst;
-  IplImage *dst;
-  CvMemStorage *storage;
+  IplImage *m_image;
   uint32_t m_cameraId;
   bool m_debug;
 
@@ -77,14 +74,6 @@ private:
   virtual void tearDown();
 
   void processImage();
-
-  string getDirection(const double &ang) const;
-
-  void initFont();
-  double calcSumDegree(int , CvPoint* );
-  double calcSumDistanceFromCenter_for_Parking(int,CvPoint* );
-  void drawline(IplImage*, int, int, int, int,CvScalar);
-	void printText(double,IplImage*);
 };
 
 } // carolocup

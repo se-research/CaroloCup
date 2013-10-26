@@ -15,7 +15,6 @@ namespace carolocup {
 
 class LineDetector {
 public:
-  // TODO: replace change esp to int for performanc reasons
   LineDetector(vector<Vec4i>& lines, float eps, int minPts, int dashMin, int dashMax, int dashWidth, int solidMax, int solidWidth);
   virtual ~LineDetector();
   Lines getLines();
@@ -23,16 +22,14 @@ public:
   Clusters* getClusters(); // Attila: Only debugging
 
 private:
+  LineDetector(const LineDetector&);
+  LineDetector& operator=(const LineDetector&);
   Line findDashLine();
   pair<Line,Line> findSolidLine(Line& dashedLine);
   void removePoint(Cluster& c, Point& p);
   int calcLength(const Point& p1, const Point& p2);
   int calcLength(const Vec4i& v);
   int calcStdev(vector<int>& v);
-
-  /*
-   *Find two points with biggest distance in a cluster
-   */
   pair<vector<Point>::iterator,vector<Point>::iterator> findBiggestDistance(Cluster& c);
 
   Lines* m_lines;
