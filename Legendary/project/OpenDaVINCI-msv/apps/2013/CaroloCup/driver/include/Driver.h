@@ -94,7 +94,7 @@ namespace carolocup {
       const float ANGLE_TO_CURVATURE;
       const float SCALE_FACTOR;	//For example, 12000 dpm (dots-per-meter)
 
-      time_t m_timestamp;
+      int32_t m_timestamp;
 
       Vec4i m_leftLine;
       Vec4i m_rightLine;

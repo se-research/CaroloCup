@@ -131,13 +131,16 @@ namespace carolocup {
 			m_lateralError = sqrt(pow(x5,2) + pow(y5+m_scaledLength/2,2));
 			if (x5 < 0) m_lateralError = -m_lateralError;
 			//Scale from pixels to meters
-      int sec = difftime(m_timestamp, clock());
 			m_lateralError = m_lateralError/SCALE_FACTOR;
       if(m_timestamp != 0) {
+        TimeStamp now;
+        int32_t currTime = now.toMicroseconds();
+        double sec = (currTime - m_timestamp) / (1000.0 * 1000.0);
         m_intLateralError = m_intLateralError + m_lateralError * sec;
         m_derLateralError = (m_lateralError - m_derLateralError) / sec;
       }
-      m_timestamp = clock();
+      TimeStamp now;
+      m_timestamp = now.toMicroseconds();
 			//Simple proportional control law, propGain needs to be updated
       m_desiredSteeringWheelAngle = m_lateralError*m_propGain;
       m_desiredSteeringWheelAngle += m_intLateralError*m_intGain;
