@@ -16,7 +16,6 @@
 
 // Data structures from msv-data library:
 #include "SensorBoardData.h"
-//#include "/home/fredrik/2014-CaroloCup/Legendary/project/OpenDaVINCI-msv/apps/2013/CaroloCup/cc-data/include/UserButtonData.h"
 
 #include "Driver.h"
 
@@ -106,6 +105,18 @@ namespace carolocup {
 			x2 = m_leftLine[2]; y2 = m_leftLine[3];
 			x3 = m_rightLine[0]; y3 = m_rightLine[1];
 			x4 = m_rightLine[2]; y4 = m_rightLine[3];
+
+      cout << endl;
+      cout << "x1: " << x1;
+      cout << ",x2: " << x2;
+      cout << ",x3: " << x3;
+      cout << ",x4: " << x4;
+      cout << ",y1: " << y1;
+      cout << ",y2: " << y2;
+      cout << ",y3: " << y3;
+      cout << ",y4: " << y4;
+      cout << endl;
+
 			angularErrorLeft = atan2(x1-x2, y1-y2);
 			angularErrorRight = atan2(x3-x4, y3-y4);
 			m_angularError = (angularErrorLeft + angularErrorRight)/2;

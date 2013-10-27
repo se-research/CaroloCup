@@ -33,7 +33,28 @@ LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
   m_sharedImageMemory() ,
   m_image(NULL) ,
   m_cameraId(-1) ,
-  m_debug(false) {
+  m_debug(false) ,
+  m_config() {
+    m_config.th1 = 40;
+    m_config.th2 = 10;
+    m_config.hlTh = 10;
+    m_config.hlMaxLineGap = 1;
+    m_config.hlMaxLineLength = 8;
+    m_config.caThVal = 200;
+    m_config.caThMax = 200;
+    m_config.caThTyp = 0;
+    m_config.birdF = 600;
+    m_config.birdDist = 300;
+    m_config.birdAlpha = 9;
+    m_config.birdBeta = 90;
+    m_config.birdGamma = 90;
+    m_config.dbEps = 25;
+    m_config.dbMinPts = 3;
+    m_config.dashMin = 25;
+    m_config.dashMax = 50;
+    m_config.dashWidth = 8;
+    m_config.solidMin = 120;
+    m_config.solidWidth = 30;
   }
 
 LaneDetector::~LaneDetector() {
@@ -42,22 +63,40 @@ LaneDetector::~LaneDetector() {
 void LaneDetector::setUp() {
 	// This method will be call automatically _before_ running body().
 
-	if (m_debug) {
-		// Create an OpenCV-window.
-		cvNamedWindow("WindowShowImage", CV_WINDOW_AUTOSIZE);
-		cvMoveWindow("WindowShowImage", 300, 100);
-	}
+  namedWindow("config",1);
+  createTrackbar("th1", "config", &m_config.th1, 250);
+  createTrackbar("th2", "config", &m_config.th2, 250);
+  createTrackbar("th", "config", &m_config.hlTh, 250);
+  createTrackbar("maxLineLength", "config", &m_config.hlMaxLineLength, 250);
+  createTrackbar("maxLineGap", "config", &m_config.hlMaxLineGap, 250);
+  createTrackbar("thValue", "config", &m_config.caThVal, 250);
+  createTrackbar("binMax", "config", &m_config.caThMax, 250);
+  createTrackbar("thType", "config", &m_config.caThTyp, 4);
+  //cout << "\ndebug is on!\n\n" << endl;
+
+  // BirdView
+  //createTrackbar("f", "config", &m_config.birdF, 1500);
+  //createTrackbar("dist", "config", &m_config.birdDist, 500);
+  //createTrackbar("alpha", "config", &m_config.birdAlpha, 25);
+  //createTrackbar("beta", "config", &m_config.birdBeta, 180);
+  //createTrackbar("gamma", "config", &m_config.birdGamma, 360);
+  // DBSCAN
+  createTrackbar("eps", "config", &m_config.dbEps, 100);
+  createTrackbar("minPts", "config", &m_config.dbMinPts, 100);
+  createTrackbar("dashMin", "config", &m_config.dashMin, 100);
+  createTrackbar("dashMax", "config", &m_config.dashMax, 200);
+  createTrackbar("dashWidth", "config", &m_config.dashWidth, 25);
+  createTrackbar("solidMin", "config", &m_config.solidMin, 200);
+  createTrackbar("solidWidth", "config", &m_config.solidWidth, 50);
+  // Create an OpenCV-window.
+  //cvNamedWindow("WindowShowImage", CV_WINDOW_AUTOSIZE);
+  //cvMoveWindow("WindowShowImage", 300, 100);
 }
 
 void LaneDetector::tearDown() {
 	// This method will be call automatically _after_ return from body().
-
 	if (m_image != NULL) {
 		cvReleaseImage(&m_image);
-	}
-
-	if (m_debug) {
-		cvDestroyWindow("WindowShowImage");
 	}
 }
 
@@ -110,15 +149,46 @@ bool LaneDetector::readSharedImage(Container &c) {
 	return retVal;
 }
 
+static Scalar randomColor( RNG& rng )
+{
+  int icolor = (unsigned) rng;
+  return Scalar( icolor&255, (icolor>>8)&255, (icolor>>16)&255 );
+}
+
 void LaneDetector::processImage() {
-	TimeStamp currentTime_strt1;
+  TimeStamp currentTime_strt1;
+  Mat dst, frame(m_image);
+  dst = frame.clone();
+  dst.setTo( Scalar(0,0,0));
 
-  // REVIEW: Use LineDetector here to get the 3 lines.
+  LineDetector road(frame, m_config, m_debug);
+  carolocup::Lines lines = road.getLines();
 
-	// Create an instance of your data structure and set some values.
-  const Lines dummyLines(Vec4i(0,0,0,0),Vec4i(0,0,0,0),Vec4i(0,0,0,0));
 	LaneDetectionData data;
-  data.setLaneDetectionData(dummyLines);
+  data.setLaneDetectionData(lines);
+
+  {
+    float x1, x2, x3, x4, y1, y2, y3, y4;
+    Lines lines_ = data.getLaneDetectionData();
+    Line m_rightLine = lines_.rightLine;
+    Line m_leftLine = lines_.dashedLine;
+
+    x1 = m_leftLine[0]; y1 = m_leftLine[1];
+    x2 = m_leftLine[2]; y2 = m_leftLine[3];
+    x3 = m_rightLine[0]; y3 = m_rightLine[1];
+    x4 = m_rightLine[2]; y4 = m_rightLine[3];
+
+      cout << endl;
+      cout << "x1: " << x1;
+      cout << ",x2: " << x2;
+      cout << ",x3: " << x3;
+      cout << ",x4: " << x4;
+      cout << ",y1: " << y1;
+      cout << ",y2: " << y2;
+      cout << ",y3: " << y3;
+      cout << ",y4: " << y4;
+      cout << endl;
+  }
 
 	// Create a container from your data structure so that it can be transferred.
 	// _remember_ the assigned ID (here 101): It must be used by the receiver to read the data successfully.
@@ -128,11 +198,34 @@ void LaneDetector::processImage() {
 	// Send the data:
 	getConference().send(con);
 
-	// // Create an instance of  data structure for parking and set some values.
+  // Create an instance of data structure for parking and set some values.
 
 	TimeStamp currentTime_strt7;
-	double timeStep_total = (currentTime_strt7.toMicroseconds() - currentTime_strt1.toMicroseconds()) / (1000.0 * 1000.0);
-	cout << "Total  "<< timeStep_total << endl;
+	double timeStep_total = (currentTime_strt7.toMicroseconds() - currentTime_strt1.toMicroseconds()) / 1000.0;
+	cout << "Total  " << timeStep_total << endl;
+
+  if (m_debug) {
+    Clusters* clusters = road.getClusters();
+    RNG rng( 0xFFFFFFFF );
+
+    for (vector<Cluster>::iterator it = clusters->begin(); it != clusters->end(); ++it) {
+      Scalar color = randomColor(rng);
+      for (vector<Point>::iterator it2 = it->begin(); it2 != it->end(); ++it2) {
+        line( dst, *it2, *it2, color, 2, CV_AA);
+      }
+    }
+
+    Line dashed = lines.dashedLine;
+    Line solidRight = lines.rightLine;
+    Line solidLeft = lines.leftLine;
+
+    line( dst, Point(dashed[0], dashed[1]), Point(dashed[2], dashed[3]), Scalar(0,255,0), 3, CV_AA);
+    line( dst, Point(solidRight[0], solidRight[1]), Point(solidRight[2], solidRight[3]), Scalar(255,0,0), 3, CV_AA);
+    line( dst, Point(solidLeft[0], solidLeft[1]), Point(solidLeft[2], solidLeft[3]), Scalar(0,0,255), 3, CV_AA);
+
+    imshow("birdView", dst);
+    waitKey(50);
+  }
 }
 
 // This method will do the main data processing job.

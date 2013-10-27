@@ -11,6 +11,7 @@
 #include "core/SharedPointer.h"
 #include "core/base/ConferenceClientModule.h"
 #include "core/wrapper/SharedMemory.h"
+#include <LineDetector.h>
 
 namespace carolocup {
 
@@ -68,6 +69,7 @@ private:
   IplImage *m_image;
   uint32_t m_cameraId;
   bool m_debug;
+  Config m_config;
 
   virtual void setUp();
 

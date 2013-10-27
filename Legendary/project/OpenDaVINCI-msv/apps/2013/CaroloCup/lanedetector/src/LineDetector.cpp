@@ -5,23 +5,40 @@ namespace carolocup {
 using namespace std;
 using namespace cv;
 
-LineDetector::LineDetector(vector<Vec4i>& lines, float eps, int minPts, int dashMin, int dashMax, int dashWidth,int solidMax, int solidWidth)
+LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug)
   : m_lines(NULL)
   , m_clusters(NULL)
-  , m_dashMin(dashMin)
-  , m_dashMax(dashMax)
-  , m_dashWidth(dashWidth)
-  , m_solidMax(solidMax)
-  , m_solidWidth(solidWidth)
+  , m_config(cfg)
+  , m_debug(debug)
 {
-  vector<Point> points;
+  Mat birdView, frame;
 
+  frame = f.clone();
+  cvtColor( frame, frame, CV_BGR2GRAY );
+  threshold( frame, frame, m_config.caThVal, m_config.caThMax, m_config.caThTyp );
+  //if (m_debug) imshow("th",frame);
+  GaussianBlur( frame, frame, Size(7,7), 1.5, 1.5 );
+  Canny( frame, frame, m_config.th1, m_config.th2 );
+  //if (m_debug) imshow("canny",frame);
+
+  warpPerspective(
+      frame,
+      birdView,
+      getBirdView(frame),
+      frame.size(),
+      INTER_CUBIC|WARP_INVERSE_MAP);
+  //if (m_debug) imshow("bird",frame);
+
+  vector<Vec4i> lines;
+  HoughLinesP(birdView, lines, 1, CV_PI/180, m_config.hlTh, m_config.hlMaxLineLength, m_config.hlMaxLineGap );
+
+  vector<Point> points;
   for(vector<Vec4i>::iterator it = lines.begin(); it != lines.end(); ++it) {
     points.push_back(Point((*it)[0],(*it)[1]));
     points.push_back(Point((*it)[2],(*it)[3]));
   }
 
-  m_clusters = new Dbscan(&points, eps, minPts);
+  m_clusters = new Dbscan(&points, m_config.dbEps, m_config.dbMinPts);
 }
 
 LineDetector::~LineDetector(){
@@ -56,7 +73,7 @@ pair<Line,Line> LineDetector::findSolidLine(Line& dashedLine) {
       }
     }
 
-    if (maxX < m_solidWidth*(int)clusters->size() && maxY > m_solidMax) {
+    if (maxX < m_config.solidWidth*(int)clusters->size() && maxY > m_config.solidMin) {
       pair<vector<Point>::iterator,vector<Point>::iterator> points = findBiggestDistance(*it);
       Vec4i line = Vec4i(points.first->x,points.first->y,points.second->x,points.second->y);
       if (line[0] < dashedLine[0] && line[2] < dashedLine[2]) {
@@ -106,18 +123,18 @@ Line LineDetector::findDashLine() {
           maxDist = dist;
           points = make_pair(*it2,*it3);
         }
-        if (maxDist > m_dashMax) {
+        if (maxDist > m_config.dashMin) {
           break;
         }
       }
-      if (maxDist > m_dashMax) {
+      if (maxDist > m_config.dashMax) {
         break;
       }
     }
 
-    if (maxDist < m_dashMax &&
-        maxDist > m_dashMin &&
-        (x.second - x.first) < m_dashWidth) {
+    if (maxDist < m_config.dashMax &&
+        maxDist > m_config.dashMin &&
+        (x.second - x.first) < m_config.dashWidth) {
       dashCluster.push_back(points.first);
       dashCluster.push_back(points.second);
     }
@@ -133,7 +150,7 @@ Line LineDetector::findDashLine() {
 
   Point p1 = *ps.first;
   Point p2 = *ps.second;
-  while (abs(dashLine[0]-dashLine[2]) > m_dashWidth) {
+  while (abs(dashLine[0]-dashLine[2]) > m_config.dashWidth) {
     Cluster dashCluster1(dashCluster);
     Cluster dashCluster2(dashCluster);
     removePoint(dashCluster1,p1);
@@ -213,6 +230,62 @@ Lines LineDetector::getLines() {
     m_lines = new Lines(solid.first,dashed,solid.second);
   }
   return *m_lines;
+}
+
+Mat LineDetector::getBirdView(Mat& source) {
+  double alpha = ((double)m_config.birdAlpha-90.)*CV_PI/180 ;
+  double beta = ((double)m_config.birdBeta-90.)*CV_PI/180 ;
+  double gamma = ((double)m_config.birdGamma-90.)*CV_PI/180 ;
+  double f = m_config.birdF;
+  double dist = m_config.birdDist;
+
+  double w = source.size().width;
+  double h = source.size().height;
+
+  // Projection 2D -> 3D matrix
+  Mat A1=(Mat_<double>(4,3)<<
+      1,0,-w/2,
+      0,1,-h/2,
+      0,0,0,
+      0,0,1);
+
+  // Rotation matrices around the X,Y,Z axis
+  Mat RX=(Mat_<double>(4,4)<<
+      1,0,0,0,
+      0,cos(alpha),-sin(alpha),0,
+      0,sin(alpha),cos(alpha),0,
+      0,0,0,1);
+
+  Mat RY=(Mat_<double>(4,4)<<
+      cos(beta),0,-sin(beta),0,
+      0,1,0,0,
+      sin(beta),0,cos(beta),0,
+      0,0,0,1);
+
+  Mat RZ=(Mat_<double>(4,4)<<
+      cos(gamma),-sin(gamma),0,0,
+      sin(gamma),cos(gamma),0,0,
+      0,0,1,0,
+      0,0,0,1);
+
+  // Composed rotation matrix with (RX,RY,RZ)
+  Mat R=RX*RY*RZ ;
+
+  // Translation matrix on the Z axis change dist will change the height
+  Mat T=(Mat_<double>(4,4)<<
+      1,0,0,0,
+      0,1,0,0,
+      0,0,1,dist,
+      0,0,0,1);
+
+  // Camera Intrisecs matrix 3D -> 2D
+  Mat A2=(Mat_<double>(3,4)<<
+      f,0,w/2,0,
+      0,f,h/2,0,
+      0,0,1,0);
+
+  // Final and overall transformation matrix
+  return A2*(T*(R*A1));
 }
 
 }

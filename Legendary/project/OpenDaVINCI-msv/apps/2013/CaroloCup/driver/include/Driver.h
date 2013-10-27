@@ -82,9 +82,9 @@ namespace carolocup {
       float m_curvatureDifferential;
       float m_oldCurvature;
       float m_speed;
-      float m_lateralError;
-      float m_intLateralError;
-      float m_derLateralError;
+      double m_lateralError;
+      double m_intLateralError;
+      double m_derLateralError;
       float m_desiredSteeringWheelAngle;
       float m_scaledLength;
       float m_propGain;

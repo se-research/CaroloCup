@@ -3,107 +3,16 @@
 
 using namespace carolocup;
 
-struct Config {
-  int th1, th2, hlTh, hlMaxLineGap, hlMaxLineLength, caThVal, caThMax, caThTyp,
-      birdF, birdDist, birdAlpha, birdBeta, birdGamma, dbEps, dbMinPts,
-      dashMin, dashMax, dashWidth, solidMax, solidWidth;
-};
-
 enum state_t {
   RUNNING,
   STOPPED,
   QUITING
 } state;
 
-Mat translate(Mat& source, Config& cfg)
-{
-  double alpha = ((double)cfg.birdAlpha-90.)*CV_PI/180 ;
-  double beta = ((double)cfg.birdBeta-90.)*CV_PI/180 ;
-  double gamma = ((double)cfg.birdGamma-90.)*CV_PI/180 ;
-  double f = cfg.birdF;
-  double dist = cfg.birdDist;
-
-  double w = source.size().width;
-  double h = source.size().height;
-
-  // Projection 2D -> 3D matrix
-  Mat A1=(Mat_<double>(4,3)<<
-      1,0,-w/2,
-      0,1,-h/2,
-      0,0,0,
-      0,0,1);
-
-  // Rotation matrices around the X,Y,Z axis
-  Mat RX=(Mat_<double>(4,4)<<
-      1,0,0,0,
-      0,cos(alpha),-sin(alpha),0,
-      0,sin(alpha),cos(alpha),0,
-      0,0,0,1);
-
-  Mat RY=(Mat_<double>(4,4)<<
-      cos(beta),0,-sin(beta),0,
-      0,1,0,0,
-      sin(beta),0,cos(beta),0,
-      0,0,0,1);
-
-  Mat RZ=(Mat_<double>(4,4)<<
-      cos(gamma),-sin(gamma),0,0,
-      sin(gamma),cos(gamma),0,0,
-      0,0,1,0,
-      0,0,0,1);
-
-  // Composed rotation matrix with (RX,RY,RZ)
-  Mat R=RX*RY*RZ ;
-
-  // Translation matrix on the Z axis change dist will change the height
-  Mat T=(Mat_<double>(4,4)<<
-      1,0,0,0,
-      0,1,0,0,
-      0,0,1,dist,
-      0,0,0,1);
-
-  // Camera Intrisecs matrix 3D -> 2D
-  Mat A2=(Mat_<double>(3,4)<<
-      f,0,w/2,0,
-      0,f,h/2,0,
-      0,0,1,0);
-
-  // Final and overall transformation matrix
-  Mat transfo=A2*(T*(R*A1));
-
-  return transfo;
-}
-
 static Scalar randomColor( RNG& rng )
 {
   int icolor = (unsigned) rng;
   return Scalar( icolor&255, (icolor>>8)&255, (icolor>>16)&255 );
-}
-
-void drawLines(Mat& src, Mat& dst, Config& cfg) {
-  vector<Vec4i> lines;
-  RNG rng( 0xFFFFFFFF );
-
-  HoughLinesP(src, lines, 1, CV_PI/180, cfg.hlTh, cfg.hlMaxLineLength, cfg.hlMaxLineGap );
-
-  LineDetector road(lines, cfg.dbEps, cfg.dbMinPts, cfg.dashMin, cfg.dashMax, cfg.dashWidth, cfg.solidMax, cfg.solidWidth);
-  Clusters* clusters = road.getClusters();
-
-  for (vector<Cluster>::iterator it = clusters->begin(); it != clusters->end(); ++it) {
-    Scalar color = randomColor(rng);
-    for (vector<Point>::iterator it2 = it->begin(); it2 != it->end(); ++it2) {
-      line( dst, *it2, *it2, color, 2, CV_AA);
-    }
-  }
-
-  carolocup::Lines l = road.getLines();
-  Line dashed = l.dashedLine;
-  Line solidRight = l.rightLine;
-  Line solidLeft = l.leftLine;
-
-  line( dst, Point(dashed[0], dashed[1]), Point(dashed[2], dashed[3]), Scalar(0,255,0), 3, CV_AA);
-  line( dst, Point(solidRight[0], solidRight[1]), Point(solidRight[2], solidRight[3]), Scalar(255,0,0), 3, CV_AA);
-  line( dst, Point(solidLeft[0], solidLeft[1]), Point(solidLeft[2], solidLeft[3]), Scalar(0,0,255), 3, CV_AA);
 }
 
 int main(int , char** argv)
@@ -140,14 +49,8 @@ int main(int , char** argv)
   cfg.dashMin = 15;
   cfg.dashMax = 40;
   cfg.dashWidth = 8;
-  cfg.solidMax = 100;
+  cfg.solidMin = 100;
   cfg.solidWidth = 30;
-
-  //int th1 = 40, th2 = 10; // Threshold
-  //int th = 10, rho = 1, theta = 180, maxLineGap = 1, maxLineLength = 1; // HoughLineP trans
-  //int thVal = 200, thMax = 200, thTyp = 0; // Canny
-  //int birdF = 900, birdDist = 100, birdAlpha = 17, birdBeta = 90, birdGamma = 90;
-  //int eps = 17, minPts = 5;
 
   //namedWindow("original",1);
   //namedWindow("thres",1);
@@ -177,39 +80,39 @@ int main(int , char** argv)
   createTrackbar("dashMin", "config", &cfg.dashMin, 100);
   createTrackbar("dashMax", "config", &cfg.dashMax, 200);
   createTrackbar("dashWidth", "config", &cfg.dashWidth, 25);
-  createTrackbar("solidMax", "config", &cfg.solidMax, 200);
+  createTrackbar("solidMin", "config", &cfg.solidMin, 200);
   createTrackbar("solidWidth", "config", &cfg.solidWidth, 50);
 
-  Mat frame;
+  Mat frame, dst;
+  RNG rng( 0xFFFFFFFF );
   while(state != QUITING) {
-    Mat original,thres,canny;
     if (state != STOPPED) {
       cap >> frame; // get a new frame from camera
     }
-    original = frame.clone();
-    cvtColor(original, thres, CV_BGR2GRAY);
-    threshold( thres, thres, cfg.caThVal, cfg.caThMax, cfg.caThTyp );
-    GaussianBlur(thres, canny, Size(7,7), 1.5, 1.5);
-    Canny(canny, canny, cfg.th1, cfg.th2);
 
-    //drawLines(canny,original);
-    //drawCurves(canny,original);
+    dst = frame.clone();
+    dst.setTo( Scalar(0,0,0));
 
-    Mat birdView, birdViewHough;
-    warpPerspective(
-        canny,
-        birdView,
-        translate(canny,cfg),
-        canny.size(),
-        INTER_CUBIC|WARP_INVERSE_MAP);
-    birdViewHough = original.clone(); // should be optimized
-    birdViewHough.setTo( Scalar(0,0,0));
-    drawLines(birdView,birdViewHough,cfg);
+    LineDetector road(frame, cfg, true);
+    Clusters* clusters = road.getClusters();
 
-    //imshow("original", original);
-    //imshow("thres", thres);
-    //imshow("canny", canny);
-    imshow("birdView", birdViewHough);
+    for (vector<Cluster>::iterator it = clusters->begin(); it != clusters->end(); ++it) {
+      Scalar color = randomColor(rng);
+      for (vector<Point>::iterator it2 = it->begin(); it2 != it->end(); ++it2) {
+        line( dst, *it2, *it2, color, 2, CV_AA);
+      }
+    }
+
+    carolocup::Lines l = road.getLines();
+    Line dashed = l.dashedLine;
+    Line solidRight = l.rightLine;
+    Line solidLeft = l.leftLine;
+
+    line( dst, Point(dashed[0], dashed[1]), Point(dashed[2], dashed[3]), Scalar(0,255,0), 3, CV_AA);
+    line( dst, Point(solidRight[0], solidRight[1]), Point(solidRight[2], solidRight[3]), Scalar(255,0,0), 3, CV_AA);
+    line( dst, Point(solidLeft[0], solidLeft[1]), Point(solidLeft[2], solidLeft[3]), Scalar(0,0,255), 3, CV_AA);
+
+    imshow("birdView", dst);
 
     // set state
     switch( waitKey(30) ) {
@@ -224,7 +127,6 @@ int main(int , char** argv)
         }
       break;
     }
-        //state = QUITING;
   }
 
   return 0;

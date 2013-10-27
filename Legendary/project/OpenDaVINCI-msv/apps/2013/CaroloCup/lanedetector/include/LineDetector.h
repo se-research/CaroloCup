@@ -13,9 +13,15 @@ using namespace std;
 
 namespace carolocup {
 
+struct Config {
+  int th1, th2, hlTh, hlMaxLineGap, hlMaxLineLength, caThVal, caThMax, caThTyp,
+      birdF, birdDist, birdAlpha, birdBeta, birdGamma, dbEps, dbMinPts,
+      dashMin, dashMax, dashWidth, solidMin, solidWidth;
+};
+
 class LineDetector {
 public:
-  LineDetector(vector<Vec4i>& lines, float eps, int minPts, int dashMin, int dashMax, int dashWidth, int solidMax, int solidWidth);
+  LineDetector(const Mat& f, const Config& cfg, const bool debug);
   virtual ~LineDetector();
   Lines getLines();
 
@@ -31,14 +37,12 @@ private:
   int calcLength(const Vec4i& v);
   int calcStdev(vector<int>& v);
   pair<vector<Point>::iterator,vector<Point>::iterator> findBiggestDistance(Cluster& c);
+  Mat getBirdView(Mat& source);
 
   Lines* m_lines;
   Dbscan* m_clusters;
-  int m_dashMin;
-  int m_dashMax;
-  int m_dashWidth;
-  int m_solidMax;
-  int m_solidWidth;
+  const Config m_config;
+  const bool m_debug;
 };
 
 }
