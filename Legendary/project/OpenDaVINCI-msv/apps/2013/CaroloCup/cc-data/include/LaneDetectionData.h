@@ -30,6 +30,10 @@ namespace carolocup {
       Vec4i leftLine;
       Vec4i rightLine;
       Vec4i dashedLine;
+      int pGain;
+      int intGain;
+      int derGain;
+      int speed;
   };
 
 

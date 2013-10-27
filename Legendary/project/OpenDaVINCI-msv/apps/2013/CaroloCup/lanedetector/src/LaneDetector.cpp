@@ -55,6 +55,10 @@ LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
     m_config.dashWidth = 8;
     m_config.solidMin = 120;
     m_config.solidWidth = 30;
+    m_config.pGain = 1;
+    m_config.intGain = 50;
+    m_config.derGain = 100;
+    m_config.speed = 0;
   }
 
 LaneDetector::~LaneDetector() {
@@ -64,14 +68,14 @@ void LaneDetector::setUp() {
 	// This method will be call automatically _before_ running body().
 
   namedWindow("config",1);
-  createTrackbar("th1", "config", &m_config.th1, 250);
-  createTrackbar("th2", "config", &m_config.th2, 250);
-  createTrackbar("th", "config", &m_config.hlTh, 250);
-  createTrackbar("maxLineLength", "config", &m_config.hlMaxLineLength, 250);
-  createTrackbar("maxLineGap", "config", &m_config.hlMaxLineGap, 250);
-  createTrackbar("thValue", "config", &m_config.caThVal, 250);
-  createTrackbar("binMax", "config", &m_config.caThMax, 250);
-  createTrackbar("thType", "config", &m_config.caThTyp, 4);
+  //createTrackbar("th1", "config", &m_config.th1, 250);
+  //createTrackbar("th2", "config", &m_config.th2, 250);
+  //createTrackbar("th", "config", &m_config.hlTh, 250);
+  //createTrackbar("maxLineLength", "config", &m_config.hlMaxLineLength, 250);
+  //createTrackbar("maxLineGap", "config", &m_config.hlMaxLineGap, 250);
+  //createTrackbar("thValue", "config", &m_config.caThVal, 250);
+  //createTrackbar("binMax", "config", &m_config.caThMax, 250);
+  //createTrackbar("thType", "config", &m_config.caThTyp, 4);
   //cout << "\ndebug is on!\n\n" << endl;
 
   // BirdView
@@ -86,8 +90,10 @@ void LaneDetector::setUp() {
   createTrackbar("dashMin", "config", &m_config.dashMin, 100);
   createTrackbar("dashMax", "config", &m_config.dashMax, 200);
   createTrackbar("dashWidth", "config", &m_config.dashWidth, 25);
-  createTrackbar("solidMin", "config", &m_config.solidMin, 200);
-  createTrackbar("solidWidth", "config", &m_config.solidWidth, 50);
+  createTrackbar("pGain", "config", &m_config.pGain, 100);
+  createTrackbar("intGain", "config", &m_config.intGain, 100);
+  createTrackbar("derGain", "config", &m_config.derGain, 100);
+  createTrackbar("speed", "config", &m_config.speed, 100);
   // Create an OpenCV-window.
   //cvNamedWindow("WindowShowImage", CV_WINDOW_AUTOSIZE);
   //cvMoveWindow("WindowShowImage", 300, 100);
@@ -163,32 +169,13 @@ void LaneDetector::processImage() {
 
   LineDetector road(frame, m_config, m_debug);
   carolocup::Lines lines = road.getLines();
+  lines.pGain = m_config.pGain;
+  lines.intGain = m_config.intGain;
+  lines.derGain = m_config.derGain;
+  lines.speed = m_config.speed;
 
 	LaneDetectionData data;
   data.setLaneDetectionData(lines);
-
-  {
-    float x1, x2, x3, x4, y1, y2, y3, y4;
-    Lines lines_ = data.getLaneDetectionData();
-    Line m_rightLine = lines_.rightLine;
-    Line m_leftLine = lines_.dashedLine;
-
-    x1 = m_leftLine[0]; y1 = m_leftLine[1];
-    x2 = m_leftLine[2]; y2 = m_leftLine[3];
-    x3 = m_rightLine[0]; y3 = m_rightLine[1];
-    x4 = m_rightLine[2]; y4 = m_rightLine[3];
-
-      cout << endl;
-      cout << "x1: " << x1;
-      cout << ",x2: " << x2;
-      cout << ",x3: " << x3;
-      cout << ",x4: " << x4;
-      cout << ",y1: " << y1;
-      cout << ",y2: " << y2;
-      cout << ",y3: " << y3;
-      cout << ",y4: " << y4;
-      cout << endl;
-  }
 
 	// Create a container from your data structure so that it can be transferred.
 	// _remember_ the assigned ID (here 101): It must be used by the receiver to read the data successfully.

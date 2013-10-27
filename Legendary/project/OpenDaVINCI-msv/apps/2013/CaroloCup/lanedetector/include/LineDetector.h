@@ -16,7 +16,7 @@ namespace carolocup {
 struct Config {
   int th1, th2, hlTh, hlMaxLineGap, hlMaxLineLength, caThVal, caThMax, caThTyp,
       birdF, birdDist, birdAlpha, birdBeta, birdGamma, dbEps, dbMinPts,
-      dashMin, dashMax, dashWidth, solidMin, solidWidth;
+      dashMin, dashMax, dashWidth, solidMin, solidWidth, pGain, intGain, derGain, speed;
 };
 
 class LineDetector {

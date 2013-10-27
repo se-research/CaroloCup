@@ -43,8 +43,8 @@ namespace carolocup {
     m_derLateralError(0) ,
     m_desiredSteeringWheelAngle(0) ,
     m_scaledLength(0) ,
-    m_propGain(1) ,
-    m_intGain(0.1) ,
+    m_propGain(0.5) ,
+    m_intGain(0.001) ,
     m_derGain(100) ,
     m_length(0.3) ,
     ANGLE_TO_CURVATURE(2.5) ,
@@ -58,15 +58,15 @@ namespace carolocup {
 	// Destructor
 	Driver::~Driver() {}
 
-	void Driver::setUp() {
-		// This method will be call automatically _before_ running body().
-		m_speed = 0.4;
-		m_oldCurvature = 0;
-		m_controlGains[0] = 10;
-		m_controlGains[1] = 20;
-		m_controlGains[2] = 30;
-		m_scaledLength = m_length*SCALE_FACTOR;
-	}
+  void Driver::setUp() {
+    // This method will be call automatically _before_ running body().
+    m_speed = 0.4;
+    m_oldCurvature = 0;
+    m_controlGains[0] = 10;
+    m_controlGains[1] = 20;
+    m_controlGains[2] = 30;
+    m_scaledLength = m_length*SCALE_FACTOR;
+  }
 
 	void Driver::tearDown() {
 		// This method will be call automatically _after_ return from body().
@@ -76,7 +76,8 @@ namespace carolocup {
 	ModuleState::MODULE_EXITCODE Driver::body() {
 		core::base::LIFOQueue lifo;
 		addDataStoreFor(lifo);
-		float x1, x2, x3, x4, x5, y1, y2, y3, y4, y5, k1, k2, m1, m2, k_avg, m_avg;
+		int x1, x2, x3, x4, y1, y2, y3, y4;
+    float x5, y5, k1, k2, m1, m2, k_avg, m_avg;
 		float angularErrorLeft, angularErrorRight;
 
 		while (getModuleState() == ModuleState::RUNNING) {
@@ -100,11 +101,31 @@ namespace carolocup {
       Lines lines = ldd.getLaneDetectionData();
 			m_rightLine = lines.rightLine;
 			m_leftLine = lines.dashedLine;
+      m_propGain = lines.pGain / 100.0;
+      m_intGain = lines.intGain / 1000.0;
+      m_derGain = lines.derGain;
+      m_speed = lines.speed / 10.0;
 
 			x1 = m_leftLine[0]; y1 = m_leftLine[1];
 			x2 = m_leftLine[2]; y2 = m_leftLine[3];
 			x3 = m_rightLine[0]; y3 = m_rightLine[1];
 			x4 = m_rightLine[2]; y4 = m_rightLine[3];
+
+      if (( x1 == 0 && y1 == 0 && x2 == 0 && y2 == 0 ) ||
+          ( x3 == 0 && y3 == 0 && x4 == 0 && y4 == 0 ) ||
+          x1 == x2 || x3 == x4 ) {
+        continue;
+      }
+
+      { // for debug
+        //x1 = 284;
+        //x2 = 280;
+        //x3 = 356;
+        //x4 = 362;
+        //y1 = 165;
+        //y2 = 397;
+        //y3 = 154;
+        //y4 = 435;
 
       cout << endl;
       cout << "x1: " << x1;
@@ -116,6 +137,11 @@ namespace carolocup {
       cout << ",y3: " << y3;
       cout << ",y4: " << y4;
       cout << endl;
+      cout << ",propGain: " << m_propGain;
+      cout << ",intGain: " << m_intGain;
+      cout << ",derGain: " << m_derGain;
+      cout << endl;
+      }
 
 			angularErrorLeft = atan2(x1-x2, y1-y2);
 			angularErrorRight = atan2(x3-x4, y3-y4);
@@ -129,7 +155,10 @@ namespace carolocup {
 			y5 = m_scaledLength/2 - (m_scaledLength-2*m_avg)/(2*(pow(k_avg,2)+1));
       m_derLateralError = m_lateralError;
 			m_lateralError = sqrt(pow(x5,2) + pow(y5+m_scaledLength/2,2));
-			if (x5 < 0) m_lateralError = -m_lateralError;
+			if (x5 < 0) {
+        m_lateralError = -m_lateralError;
+      }
+
 			//Scale from pixels to meters
 			m_lateralError = m_lateralError/SCALE_FACTOR;
       if(m_timestamp != 0) {
@@ -138,13 +167,24 @@ namespace carolocup {
         double sec = (currTime - m_timestamp) / (1000.0 * 1000.0);
         m_intLateralError = m_intLateralError + m_lateralError * sec;
         m_derLateralError = (m_lateralError - m_derLateralError) / sec;
+        cout << endl;
+        cout << "  sec: " << sec;
       }
+
       TimeStamp now;
       m_timestamp = now.toMicroseconds();
 			//Simple proportional control law, propGain needs to be updated
       m_desiredSteeringWheelAngle = m_lateralError*m_propGain;
       m_desiredSteeringWheelAngle += m_intLateralError*m_intGain;
       m_desiredSteeringWheelAngle += m_derLateralError*m_derGain;
+
+      cout << "  derLateral: " << m_derLateralError;
+      cout << "  intLateral: " << m_intLateralError;
+      cout << "  lateral: " << m_lateralError;
+      cout << "  angle: " << m_desiredSteeringWheelAngle;
+      cout << "  speed: " << m_speed;
+      cout << endl;
+      cout << endl;
 
 			//A more advanced control law
 			//oldCurvature = m_curvature;
@@ -157,11 +197,11 @@ namespace carolocup {
 			VehicleControl vc;
 
 			// Range of -2.0 (backwards) .. 0 (stop) .. +2.0 (forwards), set constant speed
-			vc.setSpeed(m_speed);
+      vc.setSpeed(m_speed);
 
 			// With setSteeringWheelAngle, you can steer in the range of -26 (left) .. 0 (straight) .. +25 (right)
 			//double desiredSteeringWheelAngle = 4; // 4 degree but m_SteeringWheelAngle expects the angle in radians!
-			vc.setSteeringWheelAngle(m_desiredSteeringWheelAngle);
+      vc.setSteeringWheelAngle(m_desiredSteeringWheelAngle);
 
 			// You can also turn on or off various lights:
 			vc.setBrakeLights(false);
