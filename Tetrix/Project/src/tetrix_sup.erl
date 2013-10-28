@@ -27,8 +27,8 @@ start_link() ->
 init([]) ->
     %supervisor:start_link(car_ai, ?CHILD(car_ai, worker)),
     {ok, { {one_for_one,5,10},[?CHILD(vehicle_data, supervisor),
-            ?CHILD(map_gen, supervisor), ?CHILD(cunit, supervisor),% ]}}.
-            ?CHILD(car_ai, worker), ?CHILD(hardware_data, worker),
-            ?CHILD(image_proc, worker), ?CHILD(position_calc, worker)]}}.
+            ?CHILD(map_gen, supervisor), ?CHILD(cunit, supervisor) ]}}.
+%            ?CHILD(car_ai, worker), ?CHILD(hardware_data, worker),
+%            ?CHILD(image_proc, worker), ?CHILD(position_calc, worker)]}}.
     
 
