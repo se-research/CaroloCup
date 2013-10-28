@@ -77,8 +77,6 @@ namespace carolocup {
 		core::base::LIFOQueue lifo;
 		addDataStoreFor(lifo);
 		int x1, x2, x3, x4, y1, y2, y3, y4;
-    float x5, y5, k1, k2, m1, m2, k_avg, m_avg;
-		float angularErrorLeft, angularErrorRight;
 
 		while (getModuleState() == ModuleState::RUNNING) {
 			m_hasReceivedLaneDetectionData = false;
@@ -103,8 +101,10 @@ namespace carolocup {
 			m_leftLine = lines.dashedLine;
       m_propGain = lines.pGain / 100.0;
       m_intGain = lines.intGain / 1000.0;
-      m_derGain = lines.derGain;
+      m_derGain = lines.derGain * 100;
       m_speed = lines.speed / 10.0;
+      int scr_width = lines.width;
+      int scr_height = lines.height;
 
 			x1 = m_leftLine[0]; y1 = m_leftLine[1];
 			x2 = m_leftLine[2]; y2 = m_leftLine[3];
@@ -143,21 +143,18 @@ namespace carolocup {
       cout << endl;
       }
 
-			angularErrorLeft = atan2(x1-x2, y1-y2);
-			angularErrorRight = atan2(x3-x4, y3-y4);
-			m_angularError = (angularErrorLeft + angularErrorRight)/2;
-			k1 = (y2-y1)/(x2-x1);
-			k2 = (y4-y3)/(x3-x4);
-			m1 = y1-k1*x1; m2 = y3-k2*x3;
-			k_avg = (k1+k2)/2;
-			m_avg = (m1+m2)/2;
-			x5 = (m_scaledLength-2*m_avg)*k_avg/(2*(pow(k_avg,2)+1));
-			y5 = m_scaledLength/2 - (m_scaledLength-2*m_avg)/(2*(pow(k_avg,2)+1));
-      m_derLateralError = m_lateralError;
-			m_lateralError = sqrt(pow(x5,2) + pow(y5+m_scaledLength/2,2));
-			if (x5 < 0) {
-        m_lateralError = -m_lateralError;
-      }
+
+      float theta1 = atan2(y1-y2, x1-x2);
+      float theta2 = atan2(y3-y4, x3-x4);
+      float s1 = x1 * cos(theta1) + y1 * sin(theta1);
+      float s2 = x3 * cos(theta2) + y3 * sin(theta2);
+      float intP1_x = (s1 - sin(theta1) * scr_height) / cos(theta1);
+      float intP2_x =  (s2 - sin(theta2) * scr_height) / cos(theta2);
+      float theta_avg = (theta1 + theta2) / 2;
+
+      float x_goal = (intP1_x + intP2_x) /2 ;
+      float x_pl = scr_width/2;
+      m_lateralError = cos(theta_avg) * (x_goal - x_pl);
 
 			//Scale from pixels to meters
 			m_lateralError = m_lateralError/SCALE_FACTOR;
@@ -183,6 +180,8 @@ namespace carolocup {
       cout << "  lateral: " << m_lateralError;
       cout << "  angle: " << m_desiredSteeringWheelAngle;
       cout << "  speed: " << m_speed;
+      cout << "  width " << scr_width;
+      cout << "  height: " << scr_height;
       cout << endl;
       cout << endl;
 
