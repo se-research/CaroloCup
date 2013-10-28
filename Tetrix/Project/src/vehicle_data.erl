@@ -52,7 +52,7 @@ update_sensor(Data) ->
 
 handle_call(car_position, _From, State) ->
     Reply = State#state.car_position,
-    {reply, Reply, State};
+    {reply, {0,0}, State};
 
 handle_call(_Request, _From, State) ->
     Reply = ok,

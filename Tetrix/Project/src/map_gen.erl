@@ -13,6 +13,8 @@
 
 -record(state, {node_ahead, road_side, frame_data}).
 
+-include("../include/offsetCalculation.hrl").
+
 init([]) ->
     say("init", []),
 
@@ -39,17 +41,17 @@ node_ahead(Car_Pos) ->
 % @doc
 % Adds frame data from image processing. Arguments are Points detected, and Car
 % position 
-add_frame(Points, CarPos) ->
+add_frame(Points, Lane_ID, Car_Pos) ->
     gen_server:cast(
-    ?SERVER,
-    {add_frame, {Points, CarPos}}).
+      ?SERVER,
+      {add_frame, {{Points, Lane_ID}, Car_Pos}}).
 
 % @doc
 % Retrieves the side of the road that the vehicle is on
 road_side() ->
     gen_server:call(
-    ?SERVER,
-    road_side).
+      ?SERVER,
+      road_side).
 
 %%--------------------------------------------------------------------
 % gen_server Function Definitions
@@ -71,10 +73,15 @@ handle_call(_Request, _From, State) ->
 
 %%--------------------------------------------------------------------
 
-handle_cast({add_frame, {Points, CarPos}}, State) ->
+handle_cast({add_frame, {{Points, Line_ID}, CarPos}}, State) ->
+    {ok, Node_List = [N1,N2,N3 | _]} = 
+	offsetCalculation:calculate_offset_list(Line_ID, ?AdjacentSideLine, Points),
+    
 
-    % TODO??: add CarPos as current position in state record
-    {noreply, State#state{frame_data = {Points, CarPos} }};
+    %% later when we have position we add nodes, right now will be replaced
+    %% TODO??: add CarPos as current position in state record
+    car_ai:start(),
+    {noreply, State#state{node_ahead = {N1, N2, N3}, frame_data = Node_List }};
 
 handle_cast(_Msg, State) ->
     {noreply, State}.
@@ -105,3 +112,4 @@ code_change(_OldVsn, State, _Extra) ->
 % Console print outs for server actions (init, terminate, etc) 
 say(Format, Data) ->
     io:format("~p:~p: ~s~n", [?MODULE, self(), io_lib:format(Format, Data)]).
+
