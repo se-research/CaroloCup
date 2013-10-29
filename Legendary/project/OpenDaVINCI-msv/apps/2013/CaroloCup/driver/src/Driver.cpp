@@ -43,9 +43,9 @@ namespace carolocup {
     m_derLateralError(0) ,
     m_desiredSteeringWheelAngle(0) ,
     m_scaledLength(0) ,
-    m_propGain(0.5) ,
-    m_intGain(0.001) ,
-    m_derGain(100) ,
+    m_propGain(2.05) ,
+    m_intGain(8.38) ,
+    m_derGain(0.23) ,
     m_length(0.3) ,
     ANGLE_TO_CURVATURE(2.5) ,
     SCALE_FACTOR (1200) ,
@@ -99,9 +99,9 @@ namespace carolocup {
       Lines lines = ldd.getLaneDetectionData();
 			m_rightLine = lines.rightLine;
 			m_leftLine = lines.dashedLine;
-      m_propGain = lines.pGain / 100.0;
-      m_intGain = lines.intGain / 1000.0;
-      m_derGain = lines.derGain * 100;
+      //m_propGain = lines.pGain / 100.0;
+      //m_intGain = lines.intGain / 1000.0;
+      //m_derGain = lines.derGain * 100;
       m_speed = lines.speed / 10.0;
       int scr_width = lines.width;
       int scr_height = lines.height;
@@ -162,7 +162,7 @@ namespace carolocup {
         TimeStamp now;
         int32_t currTime = now.toMicroseconds();
         double sec = (currTime - m_timestamp) / (1000.0 * 1000.0);
-        m_intLateralError = m_intLateralError + m_lateralError * sec;
+        m_intLateralError = m_intLateralError + m_speed * m_lateralError * cos(M_PI/2-theta_avg) * sec;
         m_derLateralError = (m_lateralError - m_derLateralError) / sec;
         cout << endl;
         cout << "  sec: " << sec;
