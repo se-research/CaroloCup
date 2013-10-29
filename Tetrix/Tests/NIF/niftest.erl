@@ -28,7 +28,7 @@ process_complete(Ptr) ->
 trace_pic(Ptr) ->
     "NIF library not loaded".
 
-trace_v4(Ptr) ->
+process_pic() ->
     "NIF library not loaded".
 
 fuck() ->
@@ -40,12 +40,9 @@ reader(Ptr,Number) ->
     List = read_part(Ptr,Number),
     gen_server:cast(niftestserv, {add, List,Number}).
 
-test(0,T)->
-    T;
-test(N,T) ->
+test() ->
     {ok,Ref} = get_pic(),
-    {Time,_} = timer:tc(niftest,trace_v4,[Ref]),
-    test(N-1,T+Time).
+    trace_pic(Ref).
 
 
 

@@ -173,8 +173,10 @@ void LaneDetector::processImage() {
   lines.intGain = m_config.intGain;
   lines.derGain = m_config.derGain;
   lines.speed = m_config.speed;
+  lines.width =  m_image->width;
+  lines.height = m_image->height;
 
-	LaneDetectionData data;
+  LaneDetectionData data;
   data.setLaneDetectionData(lines);
 
 	// Create a container from your data structure so that it can be transferred.

@@ -24,7 +24,14 @@ namespace carolocup {
       Lines (Vec4i l, Vec4i d, Vec4i r) :
         leftLine(l) ,
         rightLine(r) ,
-        dashedLine(d) {}
+        dashedLine(d),
+        pGain(0),
+        intGain(0),
+        derGain(0),
+        speed(0),
+        width(0),
+        height(0)
+    {}
       virtual ~Lines () {}
 
       Vec4i leftLine;
@@ -34,6 +41,8 @@ namespace carolocup {
       int intGain;
       int derGain;
       int speed;
+      int width;
+      int height;
   };
 
 
