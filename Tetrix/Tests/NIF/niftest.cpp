@@ -1,19 +1,23 @@
 /* niftest.c */
+
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/highgui/highgui.hpp>
-
-#include "erl_nif.h"
-#include "iostream"
-#include <sys/time.h>
 #include <opencv/highgui.h>
 #include <opencv/cv.h>
+
+#include "erl_nif.h"
+
+#include <iostream>
+#include <sstream>
+#include <sys/time.h>
+#include <stdio.h>
+#include <math.h>
+
 using namespace cv;
 using namespace std;
 
-
-ErlNifResourceType* frame_res = NULL;
 
 #define LINECOVERAGE 250.0
 
@@ -24,7 +28,89 @@ ErlNifResourceType* frame_res = NULL;
 #define DASHED_LINE 2
 #define RIGHT_LINE 1
 
+#define LEFT_MIN 327.0
+#define LEFT_MAX 359.0
+#define DASHED_MIN 250.0
+#define DASHED_MAX 320.0
+#define RIGHT_MIN 210.0
+#define RIGHT_MAX 238.0
+
 #define PI 3.141592653589793238462
+
+
+float dist(CvPoint p1, CvPoint p2) {
+  return sqrt((p2.y - p1.y) * (p2.y - p1.y) + (p2.x - p1.x) * (p2.x - p1.x));
+}
+
+float dist(Point2f p1, Point2f p2) {
+  return sqrt((p2.y - p1.y) * (p2.y - p1.y) + (p2.x - p1.x) * (p2.x - p1.x));
+}
+
+bool is_trash(vector<vector<Point2i> > line){
+
+  if(line.size() < 5)
+    return true;
+
+  for (unsigned int i = 0; i < line.size(); ++i) {
+    float length = (((line[i][1].y  - LINECOVERAGE) / (480.0 - LINECOVERAGE)) * 30.0) + 10;
+    unsigned int width = line[i][1].x - line[i][0].x;
+    if(width > length ){
+      //cout << "WIDTH : " << width << " LENGTH "<< length<<  " HOW MUCH LEFT? "<< line.size() - i << "  I  "<<  i <<endl;
+      if(line.size() > i + 5 ){
+	//cout << "REMOVED" << endl;
+	return true;
+      }
+    }
+    if(width > line.size())
+      return true;
+  }
+
+  return false;
+}
+
+float get_angle( Point2f a, Point2f b, Point2f c ){
+  Point2f ab = Point2f(b.x - a.x, b.y - a.y );
+  Point2f cb = Point2f(b.x - c.x, b.y - c.y );
+
+  float dot = (ab.x * cb.x + ab.y * cb.y); // dot product
+  float cross = (ab.x * cb.y - ab.y * cb.x); // cross product
+
+  float alpha = atan2(cross, dot);
+
+  return alpha * 180 / PI;
+}
+
+
+Point2f center_point(Point2f a, Point2f b){
+  return Point2f((a.x+b.x)/2 , (a.y+b.y)/2 );
+}
+
+int find_dashed(vector<vector<vector<vector<Point2i> > > > grouped){
+  for (unsigned int i = 0; i < grouped.size(); i++) {
+    if(grouped[i].size() > 1){
+      bool correct = true;
+      for (unsigned int j = 0; j < grouped[i].size() - 1; j++) {
+	int last = grouped[i][j].size() -1;
+	Point2f start = center_point(grouped[i][j][last][0] , grouped[i][j][last][1]);
+
+	Point2f end  = center_point(grouped[i][j+1][0][0] , grouped[i][j+1][0][1]);
+	float distance =  start.y - end.y;// dist(start, end);
+	float length = (start.y - 250) / 160 * 65 + 8;
+	if(distance > length){
+	  correct = false;
+	}
+      }
+      if(correct){
+	return i;
+      }
+    }
+  }
+  return -1;
+}
+
+
+
+ErlNifResourceType* frame_res = NULL;
 
 typedef struct _range {
   int left;
@@ -36,8 +122,6 @@ typedef struct _range {
 typedef struct _frame_t {
   IplImage* _frame;
 } frame_t;
-
-int check_region(int x1, int y1, int x2, int y2, int radius);
 
 //------------------------------------------------------------------------------
 // NIF callbacks
@@ -252,11 +336,11 @@ static ERL_NIF_TERM process_complete(ErlNifEnv* env, int argc, const ERL_NIF_TER
  
   //cout << endl << "DONE WITH FOR : " << count << endl;
 
-  //enif_release_resource(frame);
+  // enif_release_resource(frame);
 
   ERL_NIF_TERM points_erl = enif_make_list_from_array(env, res, count);
   //free(res);
-  cvShowImage("Drawing_and_Text", frame->_frame);
+    cvShowImage("Drawing_and_Text", frame->_frame);
   cvWaitKey();
 
   //cout << "ARRAY HERE READY" << endl;
@@ -330,7 +414,14 @@ static ERL_NIF_TERM trace_pic(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[
 	  //					cout << current_column << ", " << current_row << endl;
 	  //					gray->imageData[current_row * 752 + current_column] = (char)0;
 	  current_line.push_back(Point2i(column, row));
-
+	  /*
+	  cvLine(src, cvPoint(current_column, current_row),
+		 cvPoint(current_column, current_row),
+		 colors[color%3]);
+	  cvLine(gray, cvPoint(current_column, current_row),
+		 cvPoint(current_column, current_row),
+		 CV_RGB(0, 0, 0));
+	  */
 	  if(current_column< current_most_left)
 	    current_most_left = current_column;
 	  if(current_column> current_most_right_temp)
@@ -348,15 +439,19 @@ static ERL_NIF_TERM trace_pic(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[
   }
   return enif_make_int(env, current_line.size());
 }
-
-static ERL_NIF_TERM trace_v4(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
-{
-
+static ERL_NIF_TERM process_pic(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]){
+  /* GET IMG FROM CAMERA
   frame_t* frame;
   if (!enif_get_resource(env, argv[0], frame_res, (void**) &frame)) {
     return enif_make_badarg(env);
-  }
-  ERL_NIF_TERM res[3];
+  } 
+  IplImage* gray = frame->_frame;
+     GET IMG FROM CAMERA */
+
+  IplImage* src = cvLoadImage("/home/robin/Downloads/pic.png");
+  IplImage* gray = cvCreateImage(cvGetSize(src), IPL_DEPTH_8U, 1);
+  cvCvtColor(src, gray, CV_RGB2GRAY);
+
   int row = 423, column;
 
   int current_row;
@@ -364,18 +459,17 @@ static ERL_NIF_TERM trace_v4(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
   range line_range;
   line_range.length = 25;
 
-  vector<vector<Point2i> > lanes;
+  vector<vector<vector<Point2i> > > lanes;
 
-  bool bottom_found;
-  while (row > LINECOVERAGE){
-    //color++;
+   
+  while (row > LINECOVERAGE) {
+    bool bottom_found;
     bottom_found = false;
-    vector<Point2i> current_line;
+    vector<vector<Point2i> > current_line;
     while (!bottom_found) {
       for (column = 151; column < 600; column++) {
-	if ((uint) (frame->_frame->imageData[row * 752 + column]) > 100) {
-	  //					current_line.push_back(Point2i(column, row));
-	  frame->_frame->imageData[row * 752 + column] = (char) 0;
+	if ((uint) (gray->imageData[row * 752 + column]) > 100) {
+	  gray->imageData[row * 752 + column] = (char) 0;
 	  current_row = row;
 	  bottom_found = true;
 	  line_range.mid = column;
@@ -384,122 +478,185 @@ static ERL_NIF_TERM trace_v4(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
       }
       row -= 5;
     }
-
-    //cout << "ROW : " << row << endl;
-    //cout << column << "," << row << endl;
-    bool valid_row = true;
-    while (current_row > LINECOVERAGE) {
+      
+    int valid_row = 3;
+    while (valid_row > 0) {
       valid_row = false;
       int on_white = 0;
       bool hit_white = false;
 
-      line_range.length = (((current_row-LINECOVERAGE) /(480.0-LINECOVERAGE)) * 25.0) + 5;
+      line_range.length = (((current_row - LINECOVERAGE) / (480.0 - LINECOVERAGE)) * 30.0) + 10;
 
       line_range.left = MAX(151,line_range.mid - line_range.length);
       line_range.right = MIN(600,line_range.mid + line_range.length);
+
       column = line_range.left;
 
-      vector<Point2i> single_line;
+      vector<Point2i > single_line;
 
-      while ((on_white > 0 || !hit_white) && column < line_range.right) {
-	if ((uint) (frame->_frame->imageData[current_row * 752 + column]) > 100) {
-	  frame->_frame->imageData[current_row * 752 + column] = (char)0;
+      while ( (!hit_white && column < line_range.right) || (on_white > 0 && column < 600)) {
+	if ((uint) (gray->imageData[current_row * 752 + column]) > 100) {
+	  gray->imageData[current_row * 752 + column] = (char) 0;
 	  single_line.push_back(Point2i(column, current_row));
 	  hit_white = true;
 	  on_white = 3;
-	  valid_row = true;
+	  valid_row = 3;
 	} else {
 	  on_white--;
 	}
 	column++;
       }
-      if (valid_row){
+      if (valid_row ==  3) {
+
 	CvPoint center;
 	center.x = (single_line[0].x + single_line[single_line.size() - 1].x) / 2;
 	center.y = current_row;
-	current_line.push_back(center);
-	line_range.mid = center.x;
-      }else{
-	if(current_line.size() > 1 ){
-	  CvPoint start = current_line[0];
-	  CvPoint end = current_line[current_line.size()-1];
-	  line_range.mid = ( ( (start.x - end.x) * ((current_row -1) - start.y) ) / (start.y - end.y) ) + start.x;
-	}
 
+	vector<Point2i> left_right_points;
+	left_right_points.push_back(Point2i(single_line[0].x ,current_row));
+	left_right_points.push_back(Point2i(single_line[single_line.size() - 1].x ,current_row));
+
+	current_line.push_back(left_right_points);
+	line_range.mid = center.x;
+      } else {
+	valid_row--;
       }
-      current_row --;
+      current_row--;
     }
-    if(current_line.size() > 1)
-      {
-	int last = MIN(10, current_line.size()-1);
-	int region = check_region(current_line[0].x, current_line[0].y, current_line[last].x, current_line[last].y, CENTER_X); 
-	if (region > 0)
-	  {
-	    ERL_NIF_TERM parsed_line[current_line.size()];
-	    for(int i = 0; i < current_line.size(); i++)
-	      {
-		ERL_NIF_TERM x = enif_make_int(env, (int) current_line[i].x);
-		ERL_NIF_TERM y = enif_make_int(env, (int) current_line[i].y);
-		parsed_line[i] = enif_make_tuple2(env, x,y); 
-	      }
-	     res[region-1] = enif_make_list_from_array(env, parsed_line, current_line.size());
-	  }
-      }    
-    //cvShowImage("SRCFINAL", src);
-    //cvWaitKey();
+    if (current_line.size() > 1 )
+      lanes.push_back(current_line);
 
   } // end of frame while
- 
-  //cvSaveImage("/home/khashayar/just_sayin.png", src);
-  //cvShowImage("SRCFINAL", src);
-  //cvWaitKey();
-  return enif_make_list_from_array(env, res, 3);
-}
 
-int check_region(int x1, int y1, int x2, int y2, int radius)
-{
-  float dist;
-  float angle;
-  float x;
-  
-  x =(float) ( (x2/1.0 - x1/1.0)*(240 - y2/1.0) / (y2/1.0 - y1/1.0) ) + x2/1.0;
-  dist =(float) sqrt( pow((CENTER_X-x1/1.0),2) + pow((CENTER_Y-y1/1.0),2) );
-  angle =(float) atan2(CENTER_Y-y1/1.0, CENTER_X-x1/1.0) * 180.0 / PI;
-  
-  if(angle < 0.0){ angle += 360.0; } // convert from -180-180 to 0-360 degrees
 
-  // cout << "X: " << x << endl;
-  // cout << "Distance: " << dist << endl;
-  // cout << "Angle: " << angle << endl;
+  unsigned int lanes_size = lanes.size();
+  for (unsigned int i = 0; i < lanes.size(); i++) {
+    if(lanes[i].size() > 11){
+      for (unsigned int j = 5; j < lanes[i].size()-6; j++) {
+	Point2f start;
+	start.x = (lanes[i][j-5][0].x + lanes[i][j-5][1].x) / 2;
+	start.y = lanes[i][j-5][0].y;
 
-  if(200.0 > x || x > 550.0 ){ return 0; } // check if line is pointing towards center
+	Point2f end;
+	end.x = (lanes[i][j+5][0].x + lanes[i][j+5][1].x) / 2;
+	end.y = lanes[i][j+5][0].y;
 
-  if(206.0 < angle && angle < 232.0 && 200.0 < dist && dist < radius ){
-    return 1; // RIGHT 
-  }else if(287.0 < angle && angle < 319.0 && 200.0 < dist && dist < radius ){
-    return 2; // CENTER
-  }else if(327.0 < angle && angle < 350.0 && 200.0 < dist && dist < radius ){
-    return 3; // LEFT
-  }else{
-    return 0; // NOT IN ANY REGION
+	Point2f center;
+	center.x = (lanes[i][j][0].x + lanes[i][j][1].x) / 2;
+	center.y = lanes[i][j][0].y;
+
+	float alpha = get_angle(end,center,start);
+	if((alpha > 80) || ( alpha < -40) ){
+	}else{
+	  vector<vector<Point2i> > temp;
+	  int c= 0;
+	  for (unsigned int k = j; k < lanes[i].size(); k++) {
+	    temp.push_back(lanes[i][k]);
+	    c++;
+	  }
+	  lanes.push_back(temp);
+	  for (int k = 0; k < c; k++) {
+	    lanes[i].pop_back();
+	  }
+	  j = lanes[i].size();
+	  break;
+	}
+      }
+    }
   }
+
+  vector<vector<vector<vector<Point2i> > > > grouped;
+
+  vector<vector<vector<Point2i> > > temp;
+  temp.push_back(lanes[0]);
+  grouped.push_back(temp);
+
+  for (unsigned int i = 1; i < lanes_size; i++) {
+    bool connected = false;
+    Point2f lanes_center = Point2f((lanes[i][0][0].x  + lanes[i][0][1].x)/2 , lanes[i][0][0].y);
+    for (unsigned int j = 0; j < grouped.size(); j++) {
+      Point2f grouped_point_left = grouped[j][grouped[j].size()-1][grouped[j][grouped[j].size()-1].size()-1][0];
+      Point2f grouped_point_right = grouped[j][grouped[j].size()-1][grouped[j][grouped[j].size()-1].size()-1][1];
+      Point2f grouped_point_center = Point2f((grouped_point_left.x + grouped_point_right.x)/2 , grouped_point_left.y);
+      float distance_group = dist(grouped_point_center , lanes_center);
+
+      if(grouped_point_center.y >= lanes_center.y && distance_group < 100){
+
+	int first  = div(grouped[j][grouped[j].size()-1].size() , 4).quot;
+	int last = grouped[j][grouped[j].size()-1].size() - first -1;
+	Point2f start = center_point(grouped[j][grouped[j].size()-1][first][0], grouped[j][grouped[j].size()-1][first][1]);
+	Point2f end = center_point(grouped[j][grouped[j].size()-1][last][0], grouped[j][grouped[j].size()-1][last][1]);
+	int x = (((start.x - end.x) * (lanes_center.y - start.y)) / (start.y - end.y)) + start.x;
+
+	float distance = dist(lanes_center , Point2f(x,lanes_center.y));
+	if(distance < 25){
+	  if(!is_trash(lanes[i])){
+	    grouped[j].push_back(lanes[i]);
+	  }
+	  connected = true;
+	}
+      }//end of if(grouped_point_center... )
+	
+
+    }//end of for(unsigned int j... )
+    if(!connected){
+      if(!is_trash(lanes[i])){
+	temp.clear();
+	temp.push_back(lanes[i]);
+	grouped.push_back(temp);
+      }
+    }
+  }//end of for(unsigned int i... )
+
+
+  int dash_index = find_dashed(grouped);
+
+  vector<Point2f> final_result;
+  for(unsigned int i = 0; i< grouped[dash_index].size() ; i++)
+    {
+      Point2f sum = Point2f(0,0); 
+      int count = 0;
+      for(unsigned int j = 0; j< grouped[dash_index][i].size() ; j++)
+	{
+	  Point2f grouped_point_left = grouped[dash_index][i][j][0];
+	  Point2f grouped_point_right = grouped[dash_index][i][j][1];
+	  sum.x += grouped_point_left.x;
+	  sum.x += grouped_point_right.x;
+	  sum.y += grouped_point_left.y;
+	  sum.y += grouped_point_right.y;
+	  count ++;
+	}
+      Point2f avg = Point2f(sum.x / count , sum.y / count);
+      final_result.push_back(avg);
+    }
+  
+  ERL_NIF_TERM result_erl[final_result.size()];
+
+  int i;
+  for( i = 0; i < final_result.size(); i++)
+    {
+      int y = final_result[i].y;
+      int x = final_result[i].x;
+      ERL_NIF_TERM erl_x = enif_make_int(env, x);
+      ERL_NIF_TERM erl_y = enif_make_int(env, y);
+      result_erl[i] = enif_make_tuple2(env, erl_x, erl_y);
+    }
+
+  ERL_NIF_TERM points_erl = enif_make_list_from_array(env, result_erl, final_result.size());
+
+  return points_erl;
 }
-
-
-
-
 
 static ErlNifFunc nif_funcs[] =
   {
     {"show_pic", 1, show_pic},
+    {"process_pic", 0, process_pic},
     {"trace_pic", 1, trace_pic},
     {"get_pic", 0, get_pic},
     {"read_part", 2, read_part},
-    {"trace_v4", 1, trace_v4},
     {"read_complete", 1, read_complete},
     {"process_complete", 1, process_complete}
   };
-
 
 ERL_NIF_INIT(niftest,nif_funcs,load,NULL,NULL,NULL)
 
