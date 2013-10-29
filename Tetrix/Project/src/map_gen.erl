@@ -3,7 +3,7 @@
 -behaviour(gen_server).
 
 %% Internal functions
--export([say/2, read_matrix/2]).
+-export([say/2]).
 
 %% API
 -export([start_link/0, node_ahead/1, add_frame/3, road_side/0]).
@@ -121,11 +121,11 @@ say(Format, Data) ->
 translate(ID, Camera_Matrix, [Point | T] , Buff) ->
     case ets:lookup(ID , Point) of
 	[] ->
-	    translate(ID, T, Buff);
+	    translate(ID, Camera_Matrix, T, Buff);
 	[{_,NewPoint}] ->
-	    translate(ID, T, Buff ++ bird_transform(Camera_Matrix, NewPoint))
+	    translate(ID, Camera_Matrix, T, Buff ++ bird_transform(Camera_Matrix, NewPoint))
     end;
-translate(_,[], Buff) ->
+translate(_,_,[], Buff) ->
     Buff.
 
 

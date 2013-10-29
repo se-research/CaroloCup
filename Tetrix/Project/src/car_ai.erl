@@ -1,7 +1,7 @@
 -module(car_ai).
 
 %% API
--export([start/0, init/1, calculate_speed_steering/0]).
+-export([start/0, init/1]).
 
 %% Internal exports
 %-export([calculate/1]).

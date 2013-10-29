@@ -4,6 +4,8 @@
 
 -include("../include/offsetCalculation.hrl").
 
+-define (SERVER, ?MODULE).
+ 
 %% API
 -export([start_link/0, calcOffsetList/3]).
 

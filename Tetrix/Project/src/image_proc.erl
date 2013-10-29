@@ -49,7 +49,7 @@ process(State) ->
 		not_found ->
 		    not_found;
 		_ ->
-		    map_gen:add_frame(Proccesed, ?InputLaneD , Car_Pos)
+		    map_gen:add_frame(Processed, ?InputLaneD , Car_Pos)
 	    end;
 	_ ->
 	    not_found
