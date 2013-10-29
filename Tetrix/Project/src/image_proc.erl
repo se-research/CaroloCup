@@ -19,40 +19,45 @@ process_image() ->
     ok.
 
 %%--------------------------------------------------------------------
-% Callback Definitions 
+%% Callback Definitions 
 %%--------------------------------------------------------------------
 
-% @doc
-% Starts the module
+%% @doc
+%% Starts the module
 init(State) ->
     %% initialize 
+    imgproc_nif:init(),
     say("init", []),
     process(State).
 
 %%--------------------------------------------------------------------
-% Internal functions Definitions 
+%% Internal functions Definitions 
 %%--------------------------------------------------------------------
 
 process(State) ->
 
     %% get car position vehicle_data
     Car_Pos = vehicle_data:car_position(),
+    %% Side = map_gen:road_side(),
     
     %% query frame
-    %%{ok, ImgRef} = imgproc_nif:get_pic(),
-    Img_Points = [1,2,3],
+    
+    case imgproc_nif:get_pic() of
+	{ok, ImgRef} ->
+	    Processed = imgproc_nif:process_pic(ImgRef),
+	    case Processed of
+		not_found ->
+		    not_found;
+		_ ->
+		    map_gen:add_frame(Proccesed, ?InputLaneD , Car_Pos)
+	    end;
+	_ ->
+	    not_found
+    end,
 
-    %% get road side 
-    Side = map_gen:road_side(),
-    
-    %% TODO: process image and generate valid data
-    
-    %% send valid data to map_server, using dummy values
-    map_gen:add_frame(Img_Points, ?InputLaneD , Car_Pos),
-    
-    %% make delay
+    timer:sleep(30),
     process(State).
 
-% Console print outs for server actions (init, terminate, etc) 
+%% Console print outs for server actions (init, terminate, etc) 
 say(Format, Data) ->
     io:format("~p:~p: ~s~n", [?MODULE, self(), io_lib:format(Format, Data)]).

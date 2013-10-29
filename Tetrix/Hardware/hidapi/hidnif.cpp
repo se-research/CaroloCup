@@ -90,6 +90,70 @@ static ERL_NIF_TERM set_LeftSignalLight(ErlNifEnv* env, int argc, const ERL_NIF_
   setLeftSignalLight(leftL, address);
   return enif_make_long(env,address);
 }
+
+static ERL_NIF_TERM get_accelSpeed(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  long address;
+  enif_get_long(env, argv[0], &address);
+  return enif_make_double(env,getAxelSpeed(address));
+}
+
+static ERL_NIF_TERM get_modeSwitch(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  long address;
+  enif_get_long(env, argv[0], &address);
+  return enif_make_int(env,getModeSwitch(address));
+}
+
+static ERL_NIF_TERM get_remoteStatus(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  long address;
+  enif_get_long(env, argv[0], &address);
+  return enif_make_int(env,getRemoteStatus(address));
+}
+
+static ERL_NIF_TERM get_Voltage(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  long address;
+  enif_get_long(env, argv[0], &address);
+  return enif_make_double(env,getVoltage(address));
+}
+
+static ERL_NIF_TERM get_Current(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  long address;
+  enif_get_long(env, argv[0], &address);
+  return enif_make_double(env,getCurrent(address));
+}
+
+static ERL_NIF_TERM get_Heading(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  long address;
+  enif_get_long(env, argv[0], &address);
+  return enif_make_int(env,getHeading(address));
+}
+
+static ERL_NIF_TERM get_IR0(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  long address;
+  enif_get_long(env, argv[0], &address);
+  return enif_make_double(env,getIrSensor0(address));
+}
+
+static ERL_NIF_TERM get_IR1(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  long address;
+  enif_get_long(env, argv[0], &address);
+  return enif_make_double(env,getIrSensor1(address));
+}
+
+static ERL_NIF_TERM get_ultraSonic(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  long address;
+  enif_get_long(env, argv[0], &address);
+  return enif_make_int(env,getUltraSonic(address));
+}
+
 static ErlNifFunc nif_funcs[] = 
   {
     
@@ -100,20 +164,16 @@ static ErlNifFunc nif_funcs[] =
     {"set_display", 2, set_display},
     {"set_brakeLight", 2, set_BrakeLight},
     {"set_rightLight", 2, set_RightSignalLight},
-    {"set_leftLight", 2, set_LeftSignalLight}
-
+    {"set_leftLight", 2, set_LeftSignalLight},
+    {"get_accelSpeed", 1, get_accelSpeed},
+    {"get_modeSwitch", 1, get_modeSwitch},
+    {"get_remoteStatus", 1, get_remoteStatus},
+    {"get_Voltage", 1, get_Voltage},
+    {"get_Current", 1, get_Current},
+    {"get_Heading", 1, get_Heading},
+    {"get_IR0", 1, get_IR0},
+    {"get_IR1", 1, get_IR1},
+    {"get_ultraSonic", 1, get_ultraSonic}
   };
-
-/*double getAxelSpeed(long mem);
-int getModeSwitch(long mem);
-int getRemoteStatus(long mem);
-double getVoltage(long mem);
-double getCurrent(long mem);
-int getHeading(long mem);
-double getIrSensor0(long mem);
-double getIrSensor1(long mem);
-int getUltraSonic(long mem);*/
-
-
 
 ERL_NIF_INIT(hidnif,nif_funcs,NULL,NULL,NULL,NULL)

@@ -24,7 +24,34 @@ set_leftLight(_lValue, _Address) ->
     exit("NIF library not loaded").
 
 set_rightLight(_rValue, _Address) ->
-    exit("NIF library not loaded").	
+    exit("NIF library not loaded").
+
+get_accelSpeed(_Address) ->
+    exit("NIF library not loaded"). 
+
+get_modeSwitch(_Address) ->
+    exit("NIF library not loaded"). 
+
+get_remoteStatus(_Address) ->
+    exit("NIF library not loaded"). 
+
+get_Voltage(_Address) ->
+    exit("NIF library not loaded"). 
+
+get_Current(_Address) ->
+    exit("NIF library not loaded"). 
+
+get_Heading(_Address) ->
+    exit("NIF library not loaded").
+
+get_IR0(_Address) ->
+    exit("NIF library not loaded").
+
+get_IR1(_Address) ->
+    exit("NIF library not loaded").
+
+get_ultraSonic(_Address) ->
+    exit("NIF library not loaded").
 
 start() ->
     erlang:load_nif("./hidnif", 0),
@@ -33,23 +60,50 @@ start() ->
 
 loop(Adress)->
     receive
-	{setspeed,Value}->
+	{setSpeed,Value}->
 	    set_speed(Value, Adress), 
             loop(Adress);
-	{setangle,Value}->
+	{setAngle,Value}->
 	    set_angle(Value, Adress), 
             loop(Adress);
-	{setdisplay,Value}->
+	{setDisplay,Value}->
 	    set_display(Value, Adress), 
             loop(Adress);
-	{setbrakeLight,Value}->
+	{setBrakeLight,Value}->
 	    set_brakeLight(Value, Adress), 
             loop(Adress);
-	{setleftLight,Value}->
+	{setLeftLight,Value}->
 	    set_leftLight(Value, Adress), 
             loop(Adress);
-	{setrightLight,Value}->
+	{setRightLight,Value}->
 	    set_rightLight(Value, Adress), 
+            loop(Adress);
+	{getAccelSpeed,Value}->
+	    get_accelSpeed(Adress), 
+            loop(Adress);
+	{getModeSwitch,Value}->
+	    io:format("~d~n", [get_modeSwitch(Adress)]), 
+            loop(Adress);
+	{getRemoteStatus,Value}->
+	    get_remoteStatus(Adress), 
+            loop(Adress);
+	{getVoltage,Value}->
+	    get_Voltage(Adress), 
+            loop(Adress);
+	{getCurrent,Value}->
+	    get_Current(Adress), 
+            loop(Adress);
+	{getHeading,Value}->
+	    get_Heading(Adress), 
+            loop(Adress);
+	{getIR0,Value}->
+	    get_IR0(Adress), 
+            loop(Adress);
+	{getIR1,Value}->
+	    get_IR1(Adress), 
+            loop(Adress);
+	{getUltraSonic,Value}->
+	    get_ultraSonic(Adress), 
             loop(Adress);
         {stop}->
 	    stop_usb(Adress)
