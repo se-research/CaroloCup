@@ -2,8 +2,11 @@
 
 -behaviour(gen_server).
 
+%% Internal functions
+-export([say/2, read_matrix/2]).
+
 %% API
--export([start_link/0, node_ahead/1, add_frame/2, road_side/0]).
+-export([start_link/0, node_ahead/1, add_frame/3, road_side/0]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -11,16 +14,19 @@
 
 -define(SERVER, ?MODULE). 
 
--record(state, {node_ahead, road_side, frame_data}).
+-record(state, {node_ahead, road_side, frame_data, matrix_id}).
 
 -include("../include/offsetCalculation.hrl").
 
 init([]) ->
     say("init", []),
+    
+    {ok, ID} = ets:file2tab("../include/undistort.txt"),
+    
 
     % Dummy values for the state 
     {ok, #state{node_ahead = {{0,0}, {1,1}, {2,2}}, road_side = right,
-        frame_data = {"frame points", {8,7} } }}.
+        frame_data = {"frame points", {8,7} }, matrix_id = ID }}.
 
 %%--------------------------------------------------------------------
 % API Function Definitions 
@@ -76,8 +82,7 @@ handle_call(_Request, _From, State) ->
 handle_cast({add_frame, {{Points, Line_ID}, CarPos}}, State) ->
     {ok, Node_List = [N1,N2,N3 | _]} = 
 	offsetCalculation:calculate_offset_list(Line_ID, ?AdjacentSideLine, Points),
-    
-
+ 
     %% later when we have position we add nodes, right now will be replaced
     %% TODO??: add CarPos as current position in state record
     car_ai:start(),
@@ -112,4 +117,3 @@ code_change(_OldVsn, State, _Extra) ->
 % Console print outs for server actions (init, terminate, etc) 
 say(Format, Data) ->
     io:format("~p:~p: ~s~n", [?MODULE, self(), io_lib:format(Format, Data)]).
-
