@@ -105,7 +105,7 @@ ModuleState::MODULE_EXITCODE parkingDriver::body() {
 
 		if (hasReceivedLaneDetectionData) {
 			// Do something with your average attribute:
-			angle = theData.getNumericalValue();
+			angle = 0.0; // Dummy value. We do not have this in the lanedetection data right now.
 		}
 
 		if (hasReceivedSensorDetectionData) {
@@ -119,9 +119,9 @@ ModuleState::MODULE_EXITCODE parkingDriver::body() {
 		Container containerVehicleData = getKeyValueDataStore().get(
 				Container::VEHICLEDATA);
 		VehicleData vd = containerVehicleData.getData<VehicleData> ();
-		
+
 		ForceControl fc;
-		
+
 		if (sensor == 1) {
 			state = PARKING_STATE;
 			parked = true;
@@ -146,7 +146,7 @@ ModuleState::MODULE_EXITCODE parkingDriver::body() {
 				ko = 11;
 				po = 3;
 			}
-				
+
 
 			y = pow ((degree + 2)/ko,po);
 
@@ -211,13 +211,13 @@ ModuleState::MODULE_EXITCODE parkingDriver::body() {
 			break;
 		}
 		case PARKING_STATE:
-			
+
 			 	fc.setSteeringForce(0);
 				fc.setAccelerationForce(0);
 				fc.setBrakeForce(6);
 				cout<<"STOP"<<endl;
 				fc.setBrakeLights(true);
-				
+
 			  /*}else	if(parkingCount > 25 &&parkingCount <= 28 ){//&& vd.getSpeed() > 0.005){// Brake
 				parkingCount++;
 			 	fc.setSteeringForce(0);
@@ -226,7 +226,7 @@ ModuleState::MODULE_EXITCODE parkingDriver::body() {
 				cout<<"STOP"<<endl;
 				fc.setBrakeLights(true);
 				//cout<<"sss " <<vd.getSpeed()<<endl;
-				
+
 			  }else if(parkingCount > 28 && parkingCount <= 33){ // Move back and return right
 			 	parkingCount++;
 			 	fc.setSteeringForce(0);
@@ -234,21 +234,21 @@ ModuleState::MODULE_EXITCODE parkingDriver::body() {
 				fc.setBrakeForce(5.9);
 				fc.setRightFlashingLights(true);
 				//cout<<"Back *****  '" << fc.getBrakeForce() <<  endl;
-								
+
 			 }else if(parkingCount > 33 && parkingCount <= 45){ // Move back return left
 			 	parkingCount++;
 			 	fc.setSteeringForce(50);
 				fc.setAccelerationForce(-10);
 				fc.setBrakeForce(5.9);
 				 fc.setRightFlashingLights(true);
-				//cout<<"Back **LLL***  '" << fc.getBrakeForce() <<  endl;					
+				//cout<<"Back **LLL***  '" << fc.getBrakeForce() <<  endl;
 			 }else if(parkingCount > 45 && parkingCount <= 55 ){//&& vd.getSpeed() < 0.005 ){ // return left
 			 	parkingCount++;
 			 	fc.setSteeringForce(-50);
 				fc.setAccelerationForce(-10);
 				fc.setBrakeForce(5.9);
 				//cout<<"return right   *****  '" << fc.getBrakeForce() <<  endl;
-								
+
 			 }else if(parkingCount > 55 && parkingCount <= 500 ){//&& vd.getSpeed() < 0.005) { // Stop
 			 	parkingCount++;
 			 	fc.setSteeringForce(0);
@@ -256,21 +256,21 @@ ModuleState::MODULE_EXITCODE parkingDriver::body() {
 				fc.setBrakeForce(6);
 				fc.setBrakeLights(true);
 				//cout<<"STOP '" << fc.getBrakeForce() <<  endl;
-												
+
 			 }else if(parkingCount > 500){
 				parkingOk=false;
 				parkingCount=0;
-				lanefollowing=true;				
+				lanefollowing=true;
 			 }*/
-			
-			
+
+
 			}
 			// Create container.
 			// fc.setUserData(2000);
 			Container c(Container::FORCECONTROL, fc);
 			// Send container.
 			getConference().send(c);
-		
+
 	}
 
 	return ModuleState::OKAY;

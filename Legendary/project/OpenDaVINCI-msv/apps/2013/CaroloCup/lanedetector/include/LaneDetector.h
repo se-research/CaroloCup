@@ -11,6 +11,7 @@
 #include "core/SharedPointer.h"
 #include "core/base/ConferenceClientModule.h"
 #include "core/wrapper/SharedMemory.h"
+#include <LineDetector.h>
 
 namespace carolocup {
 
@@ -65,26 +66,16 @@ protected:
 private:
 	bool m_hasAttachedToSharedImageMemory;
 	core::SharedPointer<core::wrapper::SharedMemory> m_sharedImageMemory;
-	IplImage *m_image;
-	IplImage *color_dst;
-	IplImage *dst;
-    CvMemStorage *storage;
-    uint32_t m_cameraId;
-    bool m_debug;
+  IplImage *m_image;
+  uint32_t m_cameraId;
+  bool m_debug;
+  Config m_config;
 
-	virtual void setUp();
+  virtual void setUp();
 
-	virtual void tearDown();
+  virtual void tearDown();
 
-    void processImage();
-
-    string getDirection(const double &ang) const;
-
-	void initFont();
-	double calcSumDegree(int , CvPoint* );
-	double calcSumDistanceFromCenter_for_Parking(int,CvPoint* );
-	void drawline(IplImage*, int, int, int, int,CvScalar);
-	void printText(double,IplImage*);
+  void processImage();
 };
 
 } // carolocup

@@ -8,7 +8,6 @@ typedef std::vector<cv::Point> Cluster;
 typedef std::vector<Cluster> Clusters;
 
 typedef cv::Vec4i Line;
-typedef std::vector<Line> Lines;
 
 #endif
 

@@ -1,0 +1,14 @@
+cmake_minimum_required(VERSION 2.8)
+project( Main )
+
+SET (CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-Wno-deprecated -Wall -Werror -Wextra -Wfloat-equal -Wshadow -Wpointer-arith -Wwrite-strings -Wpacked -Wredundant-decls -Wmissing-format-attribute -ansi -pipe")
+find_package( OpenCV REQUIRED )
+set(CMAKE_BUILD_TYPE Debug)
+INCLUDE_DIRECTORIES (${libopendavinci_SOURCE_DIR}/include)
+add_executable( Main ../apps/OnlyImgProcMain.cpp ../src/LineDetector.cpp ../src/DBSCAN.cpp )
+target_link_libraries( Main ${OpenCV_LIBS} ${CCDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS})
+INCLUDE_DIRECTORIES (${libopendavinci_SOURCE_DIR}/include)
+INCLUDE_DIRECTORIES (../../cc-data/include)
+INCLUDE_DIRECTORIES (../include)
+INCLUDE_DIRECTORIES (../../../../../libopendavinci/include)
+

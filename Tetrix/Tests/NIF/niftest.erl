@@ -8,25 +8,28 @@ start(Ptr, Number) ->
     spawn(niftest, reader, [Ptr,Number]).
 
 init() ->
-      erlang:load_nif("./niftest", 0).
+    erlang:load_nif("./niftest", 0).
 
 get_pic() ->
-      "NIF library not loaded".
+    "NIF library not loaded".
 
 show_pic(F) ->
-      "NIF library not loaded".
+    "NIF library not loaded".
 
 read_part(Ptr,Number) ->
-      "NIF library not loaded".
+    "NIF library not loaded".
 
 read_complete(Ptr) ->
-      "NIF library not loaded".
+    "NIF library not loaded".
 
 process_complete(Ptr) ->
-      "NIF library not loaded".
+    "NIF library not loaded".
 
 trace_pic(Ptr) ->
-      "NIF library not loaded".
+    "NIF library not loaded".
+
+trace_v4(Ptr) ->
+    "NIF library not loaded".
 
 fuck() ->
     haha.
@@ -37,9 +40,12 @@ reader(Ptr,Number) ->
     List = read_part(Ptr,Number),
     gen_server:cast(niftestserv, {add, List,Number}).
 
-test() ->
+test(0,T)->
+    T;
+test(N,T) ->
     {ok,Ref} = get_pic(),
-    trace_pic(Ref).
+    {Time,_} = timer:tc(niftest,trace_v4,[Ref]),
+    test(N-1,T+Time).
 
 
 
