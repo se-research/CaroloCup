@@ -13,7 +13,7 @@ CXX      ?= g++
 LBITS := $(shell getconf LONG_BIT)
 ifeq ($(LBITS),64)
    CXXFLAGS ?= -Wall -g -lpthread
-   MAKENIF = `gcc -fPIC -shared -lstdc++ -o hidnif.so hidnif.cpp -I /usr/lib64/erlang/usr/include/ -I `pkg-config libusb-1.0 --cflags` -I `pkg-config libusb-1.0 libudev --libs``
+   MAKENIF = `gcc -fPIC -shared -lstdc++ -o hidnif.so hidnif.cpp -I /usr/lib64/erlang/usr/include/ $(INCLUDES) $(LIBS)`
 else
    CXXFLAGS   ?= -Wall -g
    MAKENIF = `g++ -o hidnif.so -fPIC -shared hidnif.cpp -lstdc++ carControl.o hid.o $(LIBS)`
@@ -24,7 +24,7 @@ COBJS     = hid.o
 CPPOBJS   = carControl.o
 OBJS      = $(COBJS) $(CPPOBJS)
 LIBS      = `pkg-config libusb-1.0 libudev --libs`
-INCLUDES ?= -I. `pkg-config libusb-1.0 --cflags`
+INCLUDES ?= -I. `pkg-config libusb-1.0 --cflags `
 
 
 carControl: $(OBJS)
