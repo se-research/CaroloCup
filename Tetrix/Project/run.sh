@@ -3,7 +3,7 @@ echo -e "\033[1m----------------------------------------------------------------
 echo -e "\033[1m--> Compiling C and C++ Modules: \033[0m"
 echo ""
 
-cd "c_src"
+cd "c_source"
 if make; then
 
 echo -e "\033[1mG++ Compilation Complete ! \033[0m";
@@ -23,7 +23,8 @@ echo -e "\033[1mErlang Compilation Complete ! \033[0m";
 echo -e "\033[1m-------------------------------------------------------------------------------- \033[0m";
 echo -e "\033[1m--> Starting Erlang Shell: \033[0m";
 echo ""
-sudo erl -pa ebin/;
+cd "ebin"
+sudo erl;
 else
 echo -e "\033[1mErlang Compilation Failed ! \033[0m";
 fi
