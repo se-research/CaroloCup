@@ -14,7 +14,7 @@
 
 -define(SERVER, ?MODULE). 
 
--record(state, {node_ahead, road_side, frame_data, matrix_id}).
+-record(state, {node_ahead, road_side, frame_data, matrix_id, camera_matrix}).
 
 -include("../include/offsetCalculation.hrl").
 
@@ -22,11 +22,11 @@ init([]) ->
     say("init", []),
     
     {ok, ID} = ets:file2tab("../include/undistort.txt"),
-    
+    Camera_Matrix = {1,2,3,4,5,6,7,8,9},
 
     % Dummy values for the state 
-    {ok, #state{node_ahead = {{0,0}, {1,1}, {2,2}}, road_side = right,
-        frame_data = {"frame points", {8,7} }, matrix_id = ID }}.
+    {ok, #state{road_side = right,
+		matrix_id = ID , camera_matrix = Camera_Matrix}}.
 
 %%--------------------------------------------------------------------
 % API Function Definitions 
@@ -80,12 +80,12 @@ handle_call(_Request, _From, State) ->
 %%--------------------------------------------------------------------
 
 handle_cast({add_frame, {{Points, Line_ID}, CarPos}}, State) ->
+    NewPoints = translate(State#state.matrix_id, State#state.camera_matrix, Points , []),
     {ok, Node_List = [N1,N2,N3 | _]} = 
-	offsetCalculation:calculate_offset_list(Line_ID, ?AdjacentSideLine, Points),
+	offsetCalculation:calculate_offset_list(Line_ID, ?AdjacentSideLine, NewPoints),
  
     %% later when we have position we add nodes, right now will be replaced
     %% TODO??: add CarPos as current position in state record
-    car_ai:start(),
     {noreply, State#state{node_ahead = {N1, N2, N3}, frame_data = Node_List }};
 
 handle_cast(_Msg, State) ->
@@ -117,3 +117,28 @@ code_change(_OldVsn, State, _Extra) ->
 % Console print outs for server actions (init, terminate, etc) 
 say(Format, Data) ->
     io:format("~p:~p: ~s~n", [?MODULE, self(), io_lib:format(Format, Data)]).
+
+translate(ID, Camera_Matrix, [Point | T] , Buff) ->
+    case ets:lookup(ID , Point) of
+	[] ->
+	    translate(ID, T, Buff);
+	[{_,NewPoint}] ->
+	    translate(ID, T, Buff ++ bird_transform(Camera_Matrix, NewPoint))
+    end;
+translate(_,[], Buff) ->
+    Buff.
+
+
+
+
+bird_transform(Camera_Matrix , {X, Y}) ->
+    {CM1 , CM2 , CM3 , CM4 , CM5 , CM6 , CM7, CM8 , CM9} = Camera_Matrix,
+    W = 1 / (CM7 * X + CM8 * Y + CM9),
+
+    U = W * X,
+    V = W * Y,
+  
+    ResX = CM1 * U + CM2 * V + CM3 * W,
+    ResY = CM4 * U + CM5 * V + CM6 * W,
+  
+    [{ResX, ResY}].

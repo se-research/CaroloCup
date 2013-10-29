@@ -28,33 +28,36 @@ start() ->
 
 init(State) ->
     say("init", []),
-    calculate(State),
+    calculate(),
     ok.
 
 %%--------------------------------------------------------------------
 % Internal functions Definitions 
 %%--------------------------------------------------------------------
 
-calculate(State) ->
+calculate() ->
     %% Get car position from vehicle data, in form of {X, Y}
     Car_Position = vehicle_data:car_position(), 
-    
+    Car_Heading = math:pi() / 2,
+ 
     %% Get 3 node lists ahead, i.e. Node1 = {5,6}, etc              
-    Nodes = map_gen:node_ahead(Car_Position), 
+    {P1,P2,P3} = map_gen:node_ahead(Car_Position), 
     
     %% TODO: calculate heading and speed
-    
+    Steering = steering:calculate(P1, P2, P3, Car_Position, Car_Heading),
+
     %% send desired speed to cunit 
     %% TODO: dummy values
-    cunit:speed(2),
+    cunit:speed(1),
     
     %% send desired steering to cunit
     %% TODO: dummy values
   
-    %%    Steering = steer_calc (Nodes, 
-    cunit:steering(4) ,
+    cunit:steering(Steering),
     
-    calculate(State).
+    timer:sleep(20),
+ 
+    calculate().
 
 %% Console print outs for server actions (init, terminate, etc) 
 say(Format, Data) ->
