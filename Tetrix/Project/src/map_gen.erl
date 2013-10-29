@@ -22,7 +22,7 @@ init([]) ->
     say("init", []),
     
     {ok, ID} = ets:file2tab("../include/undistort.txt"),
-    Camera_Matrix = {1,2,3,4,5,6,7,8,9},
+    Camera_Matrix = read_cm_file("../include/camera_matrix.txt"),
 
     % Dummy values for the state 
     {ok, #state{road_side = right,
@@ -142,3 +142,12 @@ bird_transform(Camera_Matrix , {X, Y}) ->
     ResY = CM4 * U + CM5 * V + CM6 * W,
   
     [{ResX, ResY}].
+
+read_cm_file(FileName) ->
+    {ok, Device} = file:open(FileName, [read]),
+    case io:get_line(Device, "") of
+        eof  -> file:close(Device);
+        Line ->	T = lists:map(fun(X) -> list_to_float(X) end, string:tokens(Line -- "\n" , ",")),
+		list_to_tuple(T)
+    end.
+
