@@ -15,4 +15,3 @@
 -define(OffsetLaneAdjacent, ?OffsetLaneThickness/2).
 -define(OffsetLaneOpposite, ?OffsetLaneThickness + ?OffsetLaneAdjacent).
 -define(AdjustantLaneOpposite, 0).
--define(SERVER, ?MODULE).
