@@ -1,23 +1,37 @@
 -module(steering).
 -export([findcircle/3, calculate/5,
-        aim/2, followcircle/4, getAng/2, getDistance/2, normalized/2]).
+        aim/2, followcircle/4, getAng/2, getDistance/2, normalized/1]).
 
 -include("../include/offsetCalculation.hrl").
-
+-define(frem(A,B), A - (trunc(A/B) * B)). %%trunc(A) rem B + A - trunc)
 
 % create record with radius and clockwise 
 
 
 calculate({X1,Y1}, {X2,Y2}, {X3,Y3}, CarPos, CarHeading) ->
-    case findcircle({X1,Y1}, {X2,Y2}, {X3,Y3}) of 
-    	infinate ->
-    	    SteerDirection = getAng(CarPos, {X3,Y3});
-    	{CenterPoint, Radius, Clockwise}  -> 
-	    SteerDirection = followcircle(CarPos, CenterPoint, Radius, Clockwise);
+    ValX = min(abs(X1-X2)*1000000, abs(X2-X3)*1000000),
+    ValY = min(abs(Y1-Y2)*1000000, abs(Y2-Y3)*1000000),
+    case  {ValX < 1 , ValY < 1} of 
+	{false, false} ->
+	    io:format("HERE 1~n" , []),
+	    case findcircle({X1,Y1}, {X2,Y2}, {X3,Y3}) of 
+		infinate ->
+		    io:format("HERE 2~n" , []),
+		    SteerDirection = getAng(CarPos, {X3,Y3});
+		{CenterPoint, Radius, Clockwise}  -> 
+		    io:format("CP ~p, R ~p , CL ~p ~n" , [CenterPoint, Radius, Clockwise]),
+		    SteerDirection = followcircle(CarPos, CenterPoint, Radius, Clockwise);
+		_ ->
+		    io:format("HERE 3~n" , []),
+		    SteerDirection = getAng(CarPos, {X3,Y3})	
+	    end;
 	_ ->
 	    SteerDirection = getAng(CarPos, {X3,Y3})
     end,
-    normalized(SteerDirection, CarHeading).
+    Rem_of_Steer = ?frem(SteerDirection, (math:pi() * 2.0) ) + (math:pi() * 2) ,
+    Rem_of_Head = ?frem(CarHeading, (math:pi() * 2.0) ) + (math:pi() * 2),
+    Final_Steer = ?frem( (Rem_of_Steer - Rem_of_Head) , (math:pi() * 2.0) ), 
+    normalized(Final_Steer).
 
 
 findcircle({X1,Y1}, {X2,Y2}, {X3,Y3}) -> 
@@ -36,10 +50,8 @@ findcircle({X1,Y1}, {X2,Y2}, {X3,Y3}) ->
 
     Line2 = ((Y2 - Y3) / (X2 - X3)),
     
-    CenterPointX = (Line1*Line2*(Y3-Y1)+Line1*(X2+X3) - 
-    Line2*(X1+X2))/(2*(Line1-Line2)),
-    CenterPointY = -(1/Line1)*(CenterPointX -
-    ((X1+X2)/2) + (Y1 + Y2) / 2),
+    CenterPointX = (Line1*Line2*(Y3-Y1)+ Line1*(X2+X3) - Line2*(X1+X2)) / (2*(Line1-Line2)),
+    CenterPointY = -(1/Line1) * (CenterPointX - ((X1+X2)/2)) + (Y1 + Y2) / 2,
     CenterPoint = {CenterPointX,CenterPointY},
     %% #steerCalc{cp = CenterPoint}, 
     Radius = getDistance(CenterPoint, {X1,Y1}),
@@ -75,19 +87,32 @@ followcircle(CarPos, CenterPoint, Radius, Clockwise) ->
     CorrectionAng = (1-(LocationOffset/Radius))*(Clockwise*math:pi()/2),
     CenterAng + TangentAngOffset + CorrectionAng.
     
-normalized(SteeringDirection, CarHeading) ->
-    NewSteer = SteeringDirection rem math:pi() * 2,
-    ((NewSteer rem 2*math:pi()) + (2*math:pi()) -
-    (CarHeading rem 2*math:pi()) + (2*math:pi())) rem
-	2*math:pi().
-    
-    
+normalized(Angle)->
+    case {Angle > math:pi() , Angle < -math:pi()} of
+	{true, _} ->
+	    NewAngle = normalize(Angle, (-2.0 * math:pi()) );
+	{_,true} ->
+	    NewAngle = normalize(Angle, (2.0 * math:pi()) );
+	_ ->
+	    NewAngle = Angle
+    end,
+    case abs(NewAngle) == math:pi() of
+	true ->
+	    0.0;
+	_ ->
+	    NewAngle
+    end.
 
+normalize(Angle, MyPI) ->
+    case {Angle > math:pi() , Angle < -math:pi()} of
+	{false,false} ->
+	    Angle;
+	_ ->
+	    normalize(Angle+MyPI, MyPI)
+    end.
 	       
 getAng({X1,Y1} , {X2,Y2}) -> 
-    math:atan(((Y2-Y1)/(X2-X1)) + 
-    math:pi()/2 -(math:pi()/2 *
-    ((X2-X1)/abs(X2-X1)))).
+    math:atan2(Y2-Y1,X2-X1).
 					
 getDistance({X1,Y1} , {X2,Y2}) ->
     math:sqrt(math:pow(Y2-Y1,2) + math:pow(X2-X1,2)).
