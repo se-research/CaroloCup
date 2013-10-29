@@ -8,7 +8,7 @@ using namespace std;
 
 class Dbscan {
 public:
-  Dbscan (vector<Point>* points, int eps, int minPts);
+  Dbscan ( const vector<Line>* const lines, const int eps, const int minLines);
   virtual ~Dbscan ();
   Clusters* getClusters();
 
@@ -18,16 +18,16 @@ private:
 
   int m_eps;
   int m_c;
-  vector<Point>* m_points;
-  unsigned int m_minPts;
+  const vector<Line>* m_lines;
+  unsigned int m_minLines;
   vector<bool> m_clustered;
-  vector<int> m_noise;
   vector<bool> m_visited;
   Clusters m_clusters;
 
-  vector<int> regionQuery(Point& point);
-  void expandCluster(Point& point, vector<int>& nbPoints);
+  vector<int> regionQuery(const Line& line) const ;
+  void expandCluster(const Line& line, vector<int>& nbLines);
   void calc();
+  float getDist(const Point p1, const Point p2) const;
 };
 
 #endif

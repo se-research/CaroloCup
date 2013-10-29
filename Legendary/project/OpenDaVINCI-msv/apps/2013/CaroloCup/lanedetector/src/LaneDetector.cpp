@@ -94,9 +94,6 @@ void LaneDetector::setUp() {
   createTrackbar("intGain", "config", &m_config.intGain, 100);
   createTrackbar("derGain", "config", &m_config.derGain, 100);
   createTrackbar("speed", "config", &m_config.speed, 100);
-  // Create an OpenCV-window.
-  //cvNamedWindow("WindowShowImage", CV_WINDOW_AUTOSIZE);
-  //cvMoveWindow("WindowShowImage", 300, 100);
 }
 
 void LaneDetector::tearDown() {
@@ -121,9 +118,10 @@ bool LaneDetector::readSharedImage(Container &c) {
 
 		// Check if we could successfully attach to the shared memory.
 		if (m_sharedImageMemory->isValid()) {
-			//cerr << "Got image: LOG 0.2 " << si.toString() << endl;
 
-			// Lock the memory region to gain exclusive access. REMEMBER!!! DO NOT FAIL WITHIN lock() / unlock(), otherwise, the image producing process would fail.
+      // Lock the memory region to gain exclusive access. REMEMBER!!! DO NOT
+      // FAIL WITHIN lock() / unlock(), otherwise, the image producing process
+      // would fail.
 			m_sharedImageMemory->lock();
 			{
 				// Here, do something with the image. For example, we simply show the image.
@@ -143,7 +141,8 @@ bool LaneDetector::readSharedImage(Container &c) {
 				}
 			}
 
-			// Release the memory region so that the image produce (i.e. the camera for example) can provide the next raw image data.
+      // Release the memory region so that the image produce (i.e. the camera
+      // for example) can provide the next raw image data.
 			m_sharedImageMemory->unlock();
 
 			// Mirror the image.

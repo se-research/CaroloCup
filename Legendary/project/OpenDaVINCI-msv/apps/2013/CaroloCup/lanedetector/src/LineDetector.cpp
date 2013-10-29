@@ -32,13 +32,7 @@ LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug)
   vector<Vec4i> lines;
   HoughLinesP(birdView, lines, 1, CV_PI/180, m_config.hlTh, m_config.hlMaxLineLength, m_config.hlMaxLineGap );
 
-  vector<Point> points;
-  for(vector<Vec4i>::iterator it = lines.begin(); it != lines.end(); ++it) {
-    points.push_back(Point((*it)[0],(*it)[1]));
-    points.push_back(Point((*it)[2],(*it)[3]));
-  }
-
-  m_clusters = new Dbscan(&points, m_config.dbEps, m_config.dbMinPts);
+  m_clusters = new Dbscan(&lines, m_config.dbEps, m_config.dbMinPts);
 }
 
 LineDetector::~LineDetector(){
