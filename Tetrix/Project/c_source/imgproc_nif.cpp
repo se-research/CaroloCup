@@ -335,7 +335,7 @@ static ErlNifFunc nif_funcs[] =
   {
     {"show_pic", 1, show_pic},
     {"get_pic", 0, get_pic},
-    {"process_pic" , 1, process_pic),
+    {"process_pic" , 1, process_pic},
     {"deinit_camera", 0, deinit_camera}
   };
 

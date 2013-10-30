@@ -80,12 +80,14 @@ handle_call(_Request, _From, State) ->
 %%--------------------------------------------------------------------
 
 handle_cast({add_frame, {{Points, Line_ID}, CarPos}}, State) ->
+    say("POINTS COMING FROM IMG :" , [Points]),
     NewPoints = translate(State#state.matrix_id, State#state.camera_matrix, Points , []),
     {ok, Node_List = [N1,N2,N3 | _]} = 
 	offsetCalculation:calculate_offset_list(Line_ID, ?AdjacentSideLine, NewPoints),
  
     %% later when we have position we add nodes, right now will be replaced
     %% TODO??: add CarPos as current position in state record
+    say("NODE AHEEADDDD : " , [[N1, N2, N3]]),
     {noreply, State#state{node_ahead = {N1, N2, N3}, frame_data = Node_List }};
 
 handle_cast(_Msg, State) ->
