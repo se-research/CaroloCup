@@ -300,18 +300,17 @@ static ERL_NIF_TERM process_pic(ErlNifEnv* env, int argc, const ERL_NIF_TERM arg
     {
       Point2f sum = Point2f(0,0); 
       int count = 0;
-      for(unsigned int j = 0; j< grouped[dash_index][i].size() ; j++)
-	{
-	  Point2f grouped_point_left = grouped[dash_index][i][j][0];
-	  Point2f grouped_point_right = grouped[dash_index][i][j][1];
-	  sum.x += grouped_point_left.x;
-	  sum.x += grouped_point_right.x;
-	  sum.y += grouped_point_left.y;
-	  sum.y += grouped_point_right.y;
-	  count ++;
-	}
-      Point2f avg = Point2f(sum.x / count , sum.y / count);
-      final_result.push_back(avg);
+      int first_index = (int) (grouped[dash_index][i].size() / 10);
+      int last_index = (int) ((grouped[dash_index][i].size() / 10) * 9);
+      
+
+      Point2f first =  center_point(grouped[dash_index][i][first_index][0], 
+				    grouped[dash_index][i][first_index][1]);
+      Point2f second = center_point(grouped[dash_index][i][last_index][0], 
+				    grouped[dash_index][i][last_index][1]);
+      
+      final_result.push_back(first);
+      final_result.push_back(second);
     }
   
   ERL_NIF_TERM result_erl[final_result.size()];
