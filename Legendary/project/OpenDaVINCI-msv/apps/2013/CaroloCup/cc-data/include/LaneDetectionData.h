@@ -21,6 +21,17 @@ namespace carolocup {
 
   class Lines {
     public:
+      Lines () :
+        leftLine(Vec4i(0,0,0,0)) ,
+        rightLine(Vec4i(0,0,0,0)) ,
+        dashedLine(Vec4i(0,0,0,0)),
+        pGain(0),
+        intGain(0),
+        derGain(0),
+        speed(0),
+        width(0),
+        height(0)
+    {}
       Lines (Vec4i l, Vec4i d, Vec4i r) :
         leftLine(l) ,
         rightLine(r) ,

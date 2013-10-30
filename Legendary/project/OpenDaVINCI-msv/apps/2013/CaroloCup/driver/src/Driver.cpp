@@ -99,9 +99,9 @@ namespace carolocup {
       Lines lines = ldd.getLaneDetectionData();
 			m_rightLine = lines.rightLine;
 			m_leftLine = lines.dashedLine;
-      //m_propGain = lines.pGain / 100.0;
-      //m_intGain = lines.intGain / 1000.0;
-      //m_derGain = lines.derGain * 100;
+      m_propGain = lines.pGain / 10.0;
+      m_intGain = lines.intGain;
+      m_derGain = lines.derGain * 100;
       m_speed = lines.speed / 10.0;
       int scr_width = lines.width;
       int scr_height = lines.height;
