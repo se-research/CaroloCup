@@ -13,6 +13,8 @@
 	 terminate/2, code_change/3]).
 
 -define(SERVER, ?MODULE). 
+-define(XSCALE, 300/9).
+-define(YSCALE, 420/16.6).
 
 -record(state, {node_ahead, road_side, frame_data, matrix_id, camera_matrix}).
 
@@ -142,8 +144,8 @@ bird_transform(Camera_Matrix , {X, Y}) ->
   
     ResX = CM1 * U + CM2 * V + CM3 * W,
     ResY = CM4 * U + CM5 * V + CM6 * W,
-  
-    [{ResX, ResY}].
+
+    [{((ResX - 376) * ?XSCALE), {((480 - ResY) * ?YSCALE)}].
 
 read_cm_file(FileName) ->
     {ok, Device} = file:open(FileName, [read]),
