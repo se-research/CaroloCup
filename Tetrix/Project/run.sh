@@ -23,8 +23,8 @@ echo -e "\033[1mErlang Compilation Complete ! \033[0m";
 echo -e "\033[1m-------------------------------------------------------------------------------- \033[0m";
 echo -e "\033[1m--> Starting Erlang Shell: \033[0m";
 echo ""
-cd "ebin"
-sudo erl;
+
+sudo erl -pa ebin/;
 else
 echo -e "\033[1mErlang Compilation Failed ! \033[0m";
 fi

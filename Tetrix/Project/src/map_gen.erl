@@ -16,13 +16,13 @@
 
 -record(state, {node_ahead, road_side, frame_data, matrix_id, camera_matrix}).
 
--include("../include/offsetCalculation.hrl").
+-include("include/offsetCalculation.hrl").
 
 init([]) ->
     say("init", []),
     
-    {ok, ID} = ets:file2tab("../include/undistort.txt"),
-    Camera_Matrix = read_cm_file("../include/camera_matrix.txt"),
+    {ok, ID} = ets:file2tab("include/undistort.txt"),
+    Camera_Matrix = read_cm_file("include/camera_matrix.txt"),
 
     % Dummy values for the state 
     {ok, #state{road_side = right,

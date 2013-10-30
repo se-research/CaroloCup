@@ -170,10 +170,17 @@ long startUsb()
 	ptr->displayRow1=(char*)malloc(16 * sizeof(char));
 	ptr->displayRow2=(char*)malloc(16 * sizeof(char));
 	ptr->handle =hid_open(0x0088, 0x0005, NULL);
+	if (!(ptr->handle)){
+	  printf("Error: Car is not found !! Please Connect The Car.\n");
+	  return 0;
+	}
+	else
 	//start thread
-	pthread_create(&tid, NULL, &communicationThread, ptr);
-	addr= (long)ptr;
-	return addr;
+	  {
+	    pthread_create(&tid, NULL, &communicationThread, ptr);
+	    addr= (long)ptr;
+	    return addr;
+	  }
 }
 void stopUsb(long mem)
 {
