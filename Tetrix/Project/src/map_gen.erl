@@ -4,6 +4,7 @@
 
 %% Internal functions
 -export([say/2]).
+-compile(export_all).
 
 %% API
 -export([start_link/0, node_ahead/1, add_frame/3, road_side/0]).
@@ -18,7 +19,7 @@
 
 -record(state, {node_ahead, road_side, frame_data, matrix_id, camera_matrix}).
 
--include("include/offsetCalculation.hrl").
+-include("../include/offsetCalculation.hrl").
 
 init([]) ->
     say("init", []),
@@ -145,7 +146,7 @@ bird_transform(Camera_Matrix , {X, Y}) ->
     ResX = CM1 * U + CM2 * V + CM3 * W,
     ResY = CM4 * U + CM5 * V + CM6 * W,
 
-    [{((ResX - 376) * ?XSCALE), {((480 - ResY) * ?YSCALE)}].
+    [{((ResX - 376) * ?XSCALE), ((480 - ResY) * ?YSCALE)}].
 
 read_cm_file(FileName) ->
     {ok, Device} = file:open(FileName, [read]),
