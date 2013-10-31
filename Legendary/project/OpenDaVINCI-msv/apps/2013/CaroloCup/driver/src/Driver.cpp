@@ -52,9 +52,12 @@ namespace carolocup {
     m_timestamp(0) ,
     m_leftLine(Vec4i(0,0,0,0)) ,
     m_rightLine(Vec4i(0,0,0,0)) ,
-    m_dashedLine(Vec4i(0,0,0,0)),
-	m_controlGains({8.0/3, 8.0/3, 8.0/3});
-  {}
+    m_dashedLine(Vec4i(0,0,0,0))
+  {
+    m_controlGains[0] = 8.0/3;
+    m_controlGains[1] = 8.0/3;
+    m_controlGains[2] = 8.0/3;
+  }
 
 	// Destructor
 	Driver::~Driver() {}
