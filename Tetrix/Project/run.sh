@@ -2,11 +2,11 @@
 
 if [ $# -eq 0 ]; then
     echo -e "\033[1m--> Starting Erlang Shell: \033[0m";
-    	echo -e "\033[1m-------------------------------------------------------------------------------- \033[0m"
+    echo -e "\033[1m-------------------------------------------------------------------------------- \033[0m"
     echo ""
     sudo erl -pa ebin/;
 else
-    if [ $1 = clean ]; then
+    if [ $1 == clean ]; then
 	cd "c_source"
 	if make clean; then
 	    echo -e "\033[1mCleaning Binaries Complete ! \033[0m";
