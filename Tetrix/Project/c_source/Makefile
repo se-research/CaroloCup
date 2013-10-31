@@ -40,7 +40,7 @@ $(CPPOBJS): %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $(INCLUDES) $< -o ../ebin/carControl.o -fPIC 
 
 clean:
-	rm -f ../ebin/hid.o ../ebin/carControl.o carControl ../ebin/hidnif.so
+	rm -f ../ebin/*.o ../ebin/*.so ../ebin/*.beam
 
 .PHONY: clean
 
