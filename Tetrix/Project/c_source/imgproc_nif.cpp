@@ -308,7 +308,11 @@ static ERL_NIF_TERM process_pic(ErlNifEnv* env, int argc, const ERL_NIF_TERM arg
 				    grouped[dash_index][i][first_index][1]);
       Point2f second = center_point(grouped[dash_index][i][last_index][0], 
 				    grouped[dash_index][i][last_index][1]);
-      
+      if(i>0)
+	{
+	  Point2f middle =  center_point(first, final_result[final_result.size()-1]);
+	  final_result.push_back(middle);
+        }      
       final_result.push_back(first);
       final_result.push_back(second);
     }

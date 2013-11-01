@@ -53,6 +53,7 @@ namespace carolocup {
        * @return The new desired steeringWheelAngle
        */
       float feedbackLinearizationController();
+			float feedbackLinearizationController2();
 
     public:
       /**
