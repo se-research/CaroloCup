@@ -14,8 +14,8 @@
 	 terminate/2, code_change/3]).
 
 -define(SERVER, ?MODULE). 
--define(XSCALE, 300/9).
--define(YSCALE, 420/16.6).
+-define(XSCALE, 300/10.0).
+-define(YSCALE, 420/20.0).
 
 -record(state, {node_ahead, road_side, frame_data, matrix_id, camera_matrix}).
 
