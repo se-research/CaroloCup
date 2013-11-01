@@ -53,7 +53,11 @@ namespace carolocup {
     m_leftLine(Vec4i(0,0,0,0)) ,
     m_rightLine(Vec4i(0,0,0,0)) ,
     m_dashedLine(Vec4i(0,0,0,0))
-  {}
+  {
+    m_controlGains[0] = 8.0/3;
+    m_controlGains[1] = 8.0/3;
+    m_controlGains[2] = 8.0/3;
+  }
 
 	// Destructor
 	Driver::~Driver() {}
@@ -155,14 +159,16 @@ namespace carolocup {
       float x_goal = (intP1_x + intP2_x) /2 ;
       float x_pl = scr_width/2;
       m_lateralError = cos(theta_avg) * (x_goal - x_pl);
+			m_angularError = M_PI_2 - theta_avg;
 
 			//Scale from pixels to meters
 			m_lateralError = m_lateralError/SCALE_FACTOR;
+			/*
       if(m_timestamp != 0) {
         TimeStamp now;
         int32_t currTime = now.toMicroseconds();
-        double sec = (currTime - m_timestamp) / (1000.0 * 1000.0);
-        m_intLateralError = m_intLateralError + m_speed * m_lateralError * cos(M_PI/2-theta_avg) * sec;
+        double sec = (currTime - m_timestamp) / (1000000.0);	//Why not 1.000000???
+        m_intLateralError = m_intLateralError + m_speed * m_lateralError * cos(m_angularError) * sec;
         m_derLateralError = (m_lateralError - m_derLateralError) / sec;
         cout << endl;
         cout << "  sec: " << sec;
@@ -177,6 +183,8 @@ namespace carolocup {
 
       cout << "  derLateral: " << m_derLateralError;
       cout << "  intLateral: " << m_intLateralError;
+			*/
+			m_desiredSteeringWheelAngle = feedbackLinearizationController2();
       cout << "  lateral: " << m_lateralError;
       cout << "  angle: " << m_desiredSteeringWheelAngle;
       cout << "  speed: " << m_speed;
@@ -228,6 +236,17 @@ namespace carolocup {
 		nominator = nominator - m_controlGains[1]*sin(m_angularError)*m_speed;
 		nominator = nominator - m_controlGains[2]*pow(m_speed, 2)*cos(m_angularError)*(tan(m_steeringWheelAngle)/m_length)
 				- m_curvature*cos(m_angularError)/(1-m_lateralError*m_curvature);
+		float denominator = cos(m_angularError)*(1+pow(tan(m_steeringWheelAngle), 2));
+		return nominator/denominator;
+	}
+
+	float Driver::feedbackLinearizationController2() {
+		float nominator = sin(m_angularError)*pow(tan(m_steeringWheelAngle), 3)/m_length;
+		nominator -= sin(m_angularError)*cos(m_angularError)*tan(m_steeringWheelAngle);
+		nominator -= m_controlGains[0]*m_lateralError;
+		nominator -= m_controlGains[1]*sin(m_angularError)*m_speed;
+		nominator -= m_controlGains[2]*pow(m_speed, 2)*cos(m_angularError)*(tan(m_steeringWheelAngle)/m_length)
+				- m_curvature*cos(m_angularError);
 		float denominator = cos(m_angularError)*(1+pow(tan(m_steeringWheelAngle), 2));
 		return nominator/denominator;
 	}
