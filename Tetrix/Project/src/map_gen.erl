@@ -28,7 +28,7 @@ init([]) ->
     Camera_Matrix = read_cm_file("include/camera_matrix.txt"),
 
     % Dummy values for the state 
-    {ok, #state{road_side = right,
+    {ok, #state{road_side = right, node_ahead = {{0,0},{0,0},{0,0}},
 		matrix_id = ID , camera_matrix = Camera_Matrix}}.
 
 %%--------------------------------------------------------------------
@@ -44,8 +44,9 @@ start_link() ->
 % Argument is a tuple containing X and Y coords, i.e. Car_Pos = {5,6}
 node_ahead(Car_Pos) ->
     gen_server:call(
-    ?SERVER,
-    {node_ahead, Car_Pos}).
+      ?SERVER,
+      {node_ahead, Car_Pos}).
+
 
 % @doc
 % Adds frame data from image processing. Arguments are Points detected, and Car
@@ -67,7 +68,6 @@ road_side() ->
 %%--------------------------------------------------------------------
 
 handle_call({node_ahead,{CarX,CarY}}, _From, State) ->
-
     % TODO: generate node ahead with {X,Y} values, using dummy values
     Reply = State#state.node_ahead,
     {reply, Reply, State};
@@ -83,16 +83,18 @@ handle_call(_Request, _From, State) ->
 %%--------------------------------------------------------------------
 
 handle_cast({add_frame, {{Points, Line_ID}, CarPos}}, State) ->
-    say("POINTS COMING FROM IMG :" , [Points]),
+    %% io:format("POINTS COMING FROM IMG : ~p~n" , [Points]),
     NewPoints = translate(State#state.matrix_id, State#state.camera_matrix, Points , []),
-    {ok, Node_List = [N1,N2,N3 | _]} = 
-	offsetCalculation:calculate_offset_list(Line_ID, ?AdjacentSideLine, NewPoints),
- 
-    %% later when we have position we add nodes, right now will be replaced
-    %% TODO??: add CarPos as current position in state record
-    say("NODE AHEEADDDD : " , [[N1, N2, N3]]),
-    {noreply, State#state{node_ahead = {N1, N2, N3}, frame_data = Node_List }};
+    %% io:format("POINTS TRANSLATED : ~p~n" , [NewPoints]),
 
+
+    case offsetCalculation:calculate_offset_list(Line_ID, ?AdjacentSideLine, NewPoints) of
+	{ok, Node_List = [N1,N2,N3 | _]} ->
+ 	    car_ai:start({N1,N2,N3}),
+	    {noreply, State#state{node_ahead = {N1, N2, N3}, frame_data = Node_List }};
+	_ ->
+	    {noreply, State}
+    end;
 handle_cast(_Msg, State) ->
     {noreply, State}.
 

@@ -132,15 +132,15 @@ int main() {
     //src = cvQueryFrame(capture);
     char* imgPointer;
     bool img_retrieved = get_image(imgPointer);
-    IplImage* src = cvCreateImage(cvSize(752,480), IPL_DEPTH_8U, 1);
-    src -> imageData = imgPointer;
+    IplImage* gray = cvCreateImage(cvSize(752,480), IPL_DEPTH_8U, 1);
+    gray -> imageData = imgPointer;
  
   
-    if(!src) break;
+    if(!gray) break;
     /*********************** remove when not using video ***********************/
 
-    IplImage* gray = cvCreateImage(cvGetSize(src), IPL_DEPTH_8U, 1);
-    cvCvtColor(src, gray, CV_RGB2GRAY);
+    IplImage* src = cvCreateImage(cvGetSize(gray), IPL_DEPTH_8U, 3);
+    cvCvtColor(gray, src, CV_GRAY2RGB);
 
     CvScalar colors[4];
     colors[0] = CV_RGB(0,0,0);
@@ -309,18 +309,46 @@ int main() {
 
 
     int dash_index = find_dashed(grouped);
-  
+
+ 
+    vector<Point2f> final_result;
     if(dash_index != -1){
-      for (unsigned int j = 0; j < grouped[dash_index].size(); j++) {
-	draw_line(src, grouped[dash_index][j], colors[1]);
-      }
+      for (unsigned int j = 0; j < grouped[dash_index].size(); j++) 
+	{
+	  draw_line(src, grouped[dash_index][j], colors[1]);
+	}
+
+      for(unsigned int i = 0; i< grouped[dash_index].size() ; i++)
+	{
+	  Point2f sum = Point2f(0,0); 
+	  int count = 0;
+	  int first_index = (int) (grouped[dash_index][i].size() / 10);
+	  int last_index = (int) ((grouped[dash_index][i].size() / 10) * 9);
+      
+
+	  Point2f first =  center_point(grouped[dash_index][i][first_index][0], 
+					grouped[dash_index][i][first_index][1]);
+	  Point2f second = center_point(grouped[dash_index][i][last_index][0], 
+					grouped[dash_index][i][last_index][1]);
+
+	  cvLine(src, cvPoint(first.x, first.y),
+		 cvPoint(first.x, first.y), colors[2], 4, 8, 0);      
+
+	  cvLine(src, cvPoint(second.x, second.y),
+		 cvPoint(second.x, second.y), colors[2], 4, 8, 0);      
+	  
+	  final_result.push_back(first);
+	  final_result.push_back(second);
+	}
+
     }
 
+    
+
     cvShowImage("SRCFINAL", src);
-    cvWaitKey(1);
+    cvWaitKey(30);
   }//end of while(1)
-  cvReleaseCapture(&capture);
-  cvDestroyWindow("Example2");
+
   /************************ remove when not using video ************************/  
   return 0;
 

@@ -1,7 +1,7 @@
 -module(car_ai).
 
 %% API
--export([start/0, init/1]).
+-export([start/1, init/1]).
 
 %% Internal exports
 %-export([calculate/1]).
@@ -14,8 +14,8 @@
 
 % @doc
 % Starts the module
-start() ->
-    State = [],
+start(Points) ->
+    State = Points,
     Pid = spawn(?SERVER, init, [State]),
     {ok, Pid}.
 
@@ -27,37 +27,38 @@ start() ->
 %%--------------------------------------------------------------------
 
 init(State) ->
-    say("init", []),
-    calculate(),
+    %% say("init", []),
+    calculate(State),
     ok.
 
 %%--------------------------------------------------------------------
 % Internal functions Definitions 
 %%--------------------------------------------------------------------
 
-calculate() ->
+calculate({P1,P2,P3}) ->
     %% Get car position from vehicle data, in form of {X, Y}
     Car_Position = vehicle_data:car_position(), 
     Car_Heading = math:pi() / 2,
- 
+
     %% Get 3 node lists ahead, i.e. Node1 = {5,6}, etc              
-    {P1,P2,P3} = map_gen:node_ahead(Car_Position), 
-    
+    %% {P1,P2,P3} = map_gen:node_ahead(Car_Position), 
+    %% io:format("Nodes ahead"),
     %% TODO: calculate heading and speed
     Steering = steering:calculate(P1, P2, P3, Car_Position, Car_Heading),
+    
+    %% io:format("STEERING ANGLE : ~p~n" , [Steering]),
 
     %% send desired speed to cunit 
     %% TODO: dummy values
-    cunit:speed(1),
+    cunit:setSpeed(5),
     
     %% send desired steering to cunit
-    %% TODO: dummy values
-  
-    cunit:steering(Steering),
+    %% TODO: dummy values    ok.
+    cunit:setSteering(round((Steering*180.0)* math:pi())).
     
-    timer:sleep(20),
+    %% timer:sleep(20),
  
-    calculate().
+    %% calculate().
 
 %% Console print outs for server actions (init, terminate, etc) 
 say(Format, Data) ->
