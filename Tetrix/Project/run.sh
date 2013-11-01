@@ -6,14 +6,14 @@ if [ $# -eq 0 ]; then
     echo ""
     sudo erl -pa ebin/;
 else
-    if [ $1 == clean ]; then
+    if [ $1 = clean ]; then
 	cd "c_source"
 	if make clean; then
 	    echo -e "\033[1mCleaning Binaries Complete ! \033[0m";
 	fi
 	cd ".."
 	echo -e "\033[1m-------------------------------------------------------------------------------- \033[0m"
-    elif [ $1 == compile_c ]; then
+    elif [ $1 = compile_c ]; then
 	echo -e "\033[1m-------------------------------------------------------------------------------- \033[0m"
 	echo -e "\033[1m--> Compiling C and C++ Modules: \033[0m"
 	echo ""
@@ -27,7 +27,7 @@ else
 	fi
 	echo -e "\033[1m-------------------------------------------------------------------------------- \033[0m"
 	cd ".."
-    elif [ $1 == compile_erlang ]; then
+    elif [ $1 = compile_erlang ]; then
 	echo -e "\033[1m-------------------------------------------------------------------------------- \033[0m"
 	echo -e "\033[1m--> Compiling Erlang Modules: \033[0m"
 
@@ -41,7 +41,7 @@ else
 	    echo -e "\033[1mErlang Compilation Failed ! \033[0m";
 	fi
 	echo -e "\033[1m-------------------------------------------------------------------------------- \033[0m";
-    elif [ $1 == compile_all ]; then
+    elif [ $1 = compile_all ]; then
 	echo -e "\033[1m-------------------------------------------------------------------------------- \033[0m"
 	echo -e "\033[1m--> Compiling C and C++ Modules: \033[0m"
 	echo ""
