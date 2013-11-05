@@ -9,11 +9,11 @@ enum state_t {
   QUITING
 } state;
 
-static Scalar randomColor( RNG& rng )
+/*static Scalar randomColor( RNG& rng )
 {
   int icolor = (unsigned) rng;
   return Scalar( icolor&255, (icolor>>8)&255, (icolor>>16)&255 );
-}
+}*/
 
 int main(int , char** argv)
 {
@@ -30,25 +30,25 @@ int main(int , char** argv)
   }
 
   Config cfg;
-  cfg.th1 = 40;
-  cfg.th2 = 10;
+  cfg.th1 = 200;
+  cfg.th2 = 44;
   cfg.hlTh = 10;
   cfg.hlMaxLineGap = 1;
   cfg.hlMaxLineLength = 1;
   cfg.hlMaxLineLength = 1;
-  cfg.caThVal = 200;
-  cfg.caThMax = 200;
-  cfg.caThTyp = 0;
+  cfg.caThVal = 160;
+  cfg.caThMax = 160;
+  cfg.caThTyp = 3;
   cfg.birdF = 900;
-  cfg.birdDist = 100;
-  cfg.birdAlpha = 17;
+  cfg.birdDist = 180;
+  cfg.birdAlpha = 20;
   cfg.birdBeta = 90;
   cfg.birdGamma = 90;
   cfg.dbEps = 17;
   cfg.dbMinPts = 5;
-  cfg.dashMin = 15;
+  cfg.dashMin = 20;
   cfg.dashMax = 40;
-  cfg.dashWidth = 8;
+  cfg.dashWidth = 20;
   cfg.solidMin = 100;
   cfg.solidWidth = 30;
 
@@ -70,10 +70,10 @@ int main(int , char** argv)
   createTrackbar("thType", "config", &cfg.caThTyp, 4);
   // BirdView
   //createTrackbar("f", "config", &cfg.birdF, 1500);
-  //createTrackbar("dist", "config", &cfg.birdDist, 500);
-  //createTrackbar("alpha", "config", &cfg.birdAlpha, 25);
-  //createTrackbar("beta", "config", &cfg.birdBeta, 180);
-  //createTrackbar("gamma", "config", &cfg.birdGamma, 360);
+  createTrackbar("dist", "config", &cfg.birdDist, 500);
+  createTrackbar("alpha", "config", &cfg.birdAlpha, 25);
+  createTrackbar("beta", "config", &cfg.birdBeta, 180);
+  createTrackbar("gamma", "config", &cfg.birdGamma, 360);
   // DBSCAN
   createTrackbar("eps", "config", &cfg.dbEps, 100);
   createTrackbar("minPts", "config", &cfg.dbMinPts, 100);
@@ -85,6 +85,7 @@ int main(int , char** argv)
 
   Mat frame, dst;
   RNG rng( 0xFFFFFFFF );
+  int avg_time=0, num_msmnt=0;
   while(state != QUITING) {
     if (state != STOPPED) {
       cap >> frame; // get a new frame from camera
@@ -93,8 +94,19 @@ int main(int , char** argv)
     dst = frame.clone();
     dst.setTo( Scalar(0,0,0));
 
+    clock_t start = clock();
     LineDetector road(frame, cfg, true);
-    Clusters* clusters = road.getClusters();
+    int ms = (difftime(clock(), start) / 1000);
+    cout << ms << "ms" << endl;
+    if(avg_time == 0) {
+	avg_time = ms;
+	num_msmnt = 1;
+    } else {
+	avg_time = (avg_time * num_msmnt + ms) / (num_msmnt + 1);
+	num_msmnt = (num_msmnt + 1) % 10;
+    }
+    cout << "avg_time: " << avg_time << "ms" << endl;
+    /*Clusters* clusters = road.getClusters();
 
     for (vector<Cluster>::iterator it = clusters->begin(); it != clusters->end(); ++it) {
       Scalar color = randomColor(rng);
@@ -112,7 +124,7 @@ int main(int , char** argv)
     line( dst, Point(solidRight[0], solidRight[1]), Point(solidRight[2], solidRight[3]), Scalar(255,0,0), 3, CV_AA);
     line( dst, Point(solidLeft[0], solidLeft[1]), Point(solidLeft[2], solidLeft[3]), Scalar(0,0,255), 3, CV_AA);
 
-    imshow("birdView", dst);
+    imshow("birdView", dst);*/
 
     // set state
     switch( waitKey(30) ) {

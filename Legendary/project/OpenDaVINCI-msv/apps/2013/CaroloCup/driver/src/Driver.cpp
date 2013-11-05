@@ -163,7 +163,7 @@ namespace carolocup {
 
 			//Scale from pixels to meters
 			m_lateralError = m_lateralError/SCALE_FACTOR;
-			/*
+
       if(m_timestamp != 0) {
         TimeStamp now;
         int32_t currTime = now.toMicroseconds();
@@ -183,8 +183,8 @@ namespace carolocup {
 
       cout << "  derLateral: " << m_derLateralError;
       cout << "  intLateral: " << m_intLateralError;
-			*/
-			m_desiredSteeringWheelAngle = feedbackLinearizationController2();
+			
+			//m_desiredSteeringWheelAngle = feedbackLinearizationController2();
       cout << "  lateral: " << m_lateralError;
       cout << "  angle: " << m_desiredSteeringWheelAngle;
       cout << "  speed: " << m_speed;

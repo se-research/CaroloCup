@@ -91,8 +91,10 @@ namespace hesperia {
                     stringstream s;
                     istream* in = m_decompressedData->getInputStreamFor(entry);
                     if ( (in != NULL) && (in->good()) ) {
-                        while ( (c = in->get()) != -1 ) {
+                        c = in->get();
+                        while ( c != -1 ) {
                             s << c;
+                            c = in->get();
                         }
                         hesperia::data::situation::Situation sit = situation::SituationFactory::getInstance().getSituation(s.str());
                         listOfSituations.push_back(sit);
