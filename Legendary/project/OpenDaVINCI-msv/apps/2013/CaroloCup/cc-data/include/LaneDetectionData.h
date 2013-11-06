@@ -12,7 +12,8 @@
 
 #include "core/data/SerializableData.h"
 
-#include <opencv/cv.h>
+//#include <opencv/cv.h>
+#include "opencv2/opencv.hpp"
 
 namespace carolocup {
 
