@@ -29,6 +29,8 @@ INCLUDES ?= -I. `pkg-config libusb-1.0 --cflags `
 
 carControl: $(OBJS)
 	$(MAKENIF)
+	g++ -fPIC -shared -o ../ebin/imgproc_nif.so imgproc_nif.cpp camera_functions.cpp -I../c_include/ -lopencv_core -lopencv_imgproc -lopencv_highgui -lueye_api
+
 
 
 $(COBJS): %.o: %.c
@@ -38,7 +40,7 @@ $(CPPOBJS): %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $(INCLUDES) $< -o ../ebin/carControl.o -fPIC 
 
 clean:
-	rm -f ../ebin/hid.o ../ebin/carControl.o carControl ../ebin/hidnif.so
+	rm -f ../ebin/*.o ../ebin/*.so ../ebin/*.beam
 
 .PHONY: clean
 

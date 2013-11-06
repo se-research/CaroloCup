@@ -16,6 +16,7 @@ init([]) ->
     Address = hidnif:start_usb(),
     case Address of
 	0 ->
+	    io:format("~nError: Car is not found !! Please Connect The Car.~n"),
 	    ignore;
 	_ ->
 	    {ok, Address}

@@ -16,6 +16,5 @@
 
 start(_StartType, _StartArgs) ->
     tetrix_sup:start_link().
-
 stop(_State) ->
     ok.

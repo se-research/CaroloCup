@@ -39,7 +39,7 @@ LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
     m_config.th2 = 10;
     m_config.hlTh = 10;
     m_config.hlMaxLineGap = 1;
-    m_config.hlMaxLineLength = 8;
+    m_config.hlMaxLineLength = 1;
     m_config.caThVal = 200;
     m_config.caThMax = 200;
     m_config.caThTyp = 0;
@@ -48,16 +48,16 @@ LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
     m_config.birdAlpha = 9;
     m_config.birdBeta = 90;
     m_config.birdGamma = 90;
-    m_config.dbEps = 25;
+    m_config.dbEps = 7;
     m_config.dbMinPts = 3;
-    m_config.dashMin = 25;
+    m_config.dashMin = 15;
     m_config.dashMax = 50;
     m_config.dashWidth = 8;
     m_config.solidMin = 120;
-    m_config.solidWidth = 30;
-    m_config.pGain = 1;
-    m_config.intGain = 50;
-    m_config.derGain = 100;
+    m_config.solidWidth = 8;
+    m_config.pGain = 10;
+    m_config.intGain = 19;
+    m_config.derGain = 23;
     m_config.speed = 0;
   }
 
@@ -68,15 +68,19 @@ void LaneDetector::setUp() {
 	// This method will be call automatically _before_ running body().
 
   namedWindow("config",1);
-  //createTrackbar("th1", "config", &m_config.th1, 250);
-  //createTrackbar("th2", "config", &m_config.th2, 250);
-  //createTrackbar("th", "config", &m_config.hlTh, 250);
-  //createTrackbar("maxLineLength", "config", &m_config.hlMaxLineLength, 250);
-  //createTrackbar("maxLineGap", "config", &m_config.hlMaxLineGap, 250);
-  //createTrackbar("thValue", "config", &m_config.caThVal, 250);
-  //createTrackbar("binMax", "config", &m_config.caThMax, 250);
-  //createTrackbar("thType", "config", &m_config.caThTyp, 4);
-  //cout << "\ndebug is on!\n\n" << endl;
+  createTrackbar("pGain", "config", &m_config.pGain, 100);
+  createTrackbar("intGain", "config", &m_config.intGain, 100);
+  createTrackbar("derGain", "config", &m_config.derGain, 100);
+  createTrackbar("speed", "config", &m_config.speed, 100);
+
+  createTrackbar("th1", "config", &m_config.th1, 250);
+  createTrackbar("th2", "config", &m_config.th2, 250);
+  createTrackbar("th", "config", &m_config.hlTh, 250);
+  createTrackbar("maxLineLength", "config", &m_config.hlMaxLineLength, 250);
+  createTrackbar("maxLineGap", "config", &m_config.hlMaxLineGap, 250);
+  createTrackbar("thValue", "config", &m_config.caThVal, 250);
+  createTrackbar("binMax", "config", &m_config.caThMax, 250);
+  createTrackbar("thType", "config", &m_config.caThTyp, 4);
 
   // BirdView
   //createTrackbar("f", "config", &m_config.birdF, 1500);
@@ -90,10 +94,8 @@ void LaneDetector::setUp() {
   createTrackbar("dashMin", "config", &m_config.dashMin, 100);
   createTrackbar("dashMax", "config", &m_config.dashMax, 200);
   createTrackbar("dashWidth", "config", &m_config.dashWidth, 25);
-  createTrackbar("pGain", "config", &m_config.pGain, 100);
-  createTrackbar("intGain", "config", &m_config.intGain, 100);
-  createTrackbar("derGain", "config", &m_config.derGain, 100);
-  createTrackbar("speed", "config", &m_config.speed, 100);
+  createTrackbar("solidMin", "config", &m_config.solidMin, 150);
+  createTrackbar("solidWidth", "config", &m_config.solidWidth, 15);
 }
 
 void LaneDetector::tearDown() {

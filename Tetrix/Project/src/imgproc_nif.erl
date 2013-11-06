@@ -7,7 +7,7 @@
 -on_load(init/0).
 
 init() ->
-      erlang:load_nif("./../ebin/imgproc_nif", 0).
+     erlang:load_nif("./ebin/imgproc_nif", 0).
 
 get_pic() ->
     ?NIF_STUB.

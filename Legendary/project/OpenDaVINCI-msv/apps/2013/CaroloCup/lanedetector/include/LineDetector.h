@@ -36,6 +36,7 @@ private:
   int calcLength(const Point& p1, const Point& p2);
   int calcLength(const Vec4i& v);
   int calcStdev(vector<int>& v);
+  Lines findCurves();
   pair<vector<Point>::iterator,vector<Point>::iterator> findBiggestDistance(Cluster& c);
   Mat getBirdView(Mat& source);
 
@@ -43,6 +44,7 @@ private:
   Dbscan* m_clusters;
   const Config m_config;
   const bool m_debug;
+  Point m_lastSolidRightTop;
 };
 
 }

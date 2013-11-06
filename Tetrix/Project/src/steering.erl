@@ -13,13 +13,13 @@ calculate({X1,Y1}, {X2,Y2}, {X3,Y3}, CarPos, CarHeading) ->
     ValY = min(abs(Y1-Y2)*1000000, abs(Y2-Y3)*1000000),
     case  {ValX < 1 , ValY < 1} of 
 	{false, false} ->
-	    io:format("HERE 1~n" , []),
+	    %% io:format("HERE 1~n" , []),
 	    case findcircle({X1,Y1}, {X2,Y2}, {X3,Y3}) of 
 		infinate ->
 		    io:format("HERE 2~n" , []),
 		    SteerDirection = getAng(CarPos, {X3,Y3});
 		{CenterPoint, Radius, Clockwise}  -> 
-		    io:format("CP ~p, R ~p , CL ~p ~n" , [CenterPoint, Radius, Clockwise]),
+		    %% io:format("CP ~p, R ~p , CL ~p ~n" , [CenterPoint, Radius, Clockwise]),
 		    SteerDirection = followcircle(CarPos, CenterPoint, Radius, Clockwise);
 		_ ->
 		    io:format("HERE 3~n" , []),

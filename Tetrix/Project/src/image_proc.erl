@@ -12,7 +12,8 @@
 
 start() ->
     State = [],
-    Pid = spawn(?SERVER, init, [State]).
+    Pid = spawn(?SERVER, init, [State]),
+    {ok, Pid}.
 
 process_image() ->
     ?SERVER ! process_image,

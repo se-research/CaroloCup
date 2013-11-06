@@ -10,7 +10,7 @@
 -define(InputLaneL, -1).
 -define(InputLaneR, 1).
 -define(InputLaneD, 0).
--define(RoadThickness, 80).
+-define(RoadThickness, 800).
 -define(OffsetLaneThickness, ?RoadThickness/2).
 -define(OffsetLaneAdjacent, ?OffsetLaneThickness/2).
 -define(OffsetLaneOpposite, ?OffsetLaneThickness + ?OffsetLaneAdjacent).

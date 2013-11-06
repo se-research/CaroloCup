@@ -10,14 +10,13 @@ LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug)
   , m_clusters(NULL)
   , m_config(cfg)
   , m_debug(debug)
+  , m_lastSolidRightTop()
 {
-  Mat birdView, frame;
-
-  frame = f.clone();
+  Mat birdView, frame = f.clone();
   cvtColor( frame, frame, CV_BGR2GRAY );
   threshold( frame, frame, m_config.caThVal, m_config.caThMax, m_config.caThTyp );
   //if (m_debug) imshow("th",frame);
-  GaussianBlur( frame, frame, Size(7,7), 1.5, 1.5 );
+  GaussianBlur( frame, frame, Size(7,7), 1.5, 1.5 ); // try to remove this!
   Canny( frame, frame, m_config.th1, m_config.th2 );
   //if (m_debug) imshow("canny",frame);
 
@@ -76,6 +75,17 @@ pair<Line,Line> LineDetector::findSolidLine(Line& dashedLine) {
         solidLineRight = line;
       }
     }
+  }
+
+  // save
+  // if p1=p2 then we do not save neither point
+  Point origo(0,0);
+  Point p1 = Point(solidLineRight[0], solidLineRight[1]);
+  Point p2 = Point(solidLineRight[2], solidLineRight[3]);
+  if (calcLength(p1, origo) < calcLength(p2, origo)) {
+    m_lastSolidRightTop = p1;
+  } else if (calcLength(p1, origo) > calcLength(p2, origo)) {
+    m_lastSolidRightTop = p2;
   }
 
   return make_pair(solidLineLeft,solidLineRight);
@@ -216,12 +226,37 @@ int LineDetector::calcStdev(vector<int>& v){
   return std::sqrt(sq_sum / v.size() - mean * mean);
 }
 
+Lines LineDetector::findCurves() {
+  Clusters* clusters = m_clusters->getClusters();
+
+  Lines ret;
+
+  for (vector<Cluster>::iterator it = clusters->begin(); it != clusters->end(); ++it) {
+    for (vector<Point>::iterator it2 = it->begin(); it2 != it->end(); ++it2) {
+      float distTh = 30; //  config param
+      float dist = calcLength( m_lastSolidRightTop, *it2);
+      if ( dist <= distTh ) {
+        int offset = 40; //  config param
+        pair<vector<Point>::iterator,vector<Point>::iterator> pts = findBiggestDistance(*it);
+        ret.rightLine = Vec4i(pts.first->x, pts.first->y, pts.second->x, pts.second->y);
+        ret.dashedLine = Vec4i(pts.first->x-offset, pts.first->y, pts.second->x, pts.second->y-offset);
+        break;
+      }
+    }
+  }
+  return ret;
+}
+
 Lines LineDetector::getLines() {
   if (NULL == m_lines) {
     Line dashed = findDashLine();
-    pair<Line,Line> solid = findSolidLine(dashed);
 
-    m_lines = new Lines(solid.first,dashed,solid.second);
+    if (dashed == Vec4i(0,0,0,0)) {
+      m_lines = new Lines(findCurves());
+    } else {
+      pair<Line,Line> solid = findSolidLine(dashed);
+      m_lines = new Lines(solid.first,dashed,solid.second);
+    }
   }
   return *m_lines;
 }
