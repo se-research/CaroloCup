@@ -5,10 +5,11 @@ SET (CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-Wno-deprecated -Wall -Werror -Wextra -
 find_package( OpenCV REQUIRED )
 set(CMAKE_BUILD_TYPE Debug)
 INCLUDE_DIRECTORIES (${libopendavinci_SOURCE_DIR}/include)
-add_executable( Main ../apps/OnlyImgProcMain.cpp ../src/LineDetector.cpp ../src/DBSCAN.cpp )
+add_executable( Main ../apps/OnlyImgProcMain.cpp ../src/LineDetector.cpp ../src/DBSCAN.cpp ../vanishingPoint/MSAC.cpp ../vanishingPoint/lmmin.cpp ../vanishingPoint/errorNIETO.cpp)
 target_link_libraries( Main ${OpenCV_LIBS} ${CCDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS})
 INCLUDE_DIRECTORIES (${libopendavinci_SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES (../../cc-data/include)
 INCLUDE_DIRECTORIES (../include)
+INCLUDE_DIRECTORIES (../vanishingPoint)
 INCLUDE_DIRECTORIES (../../../../../libopendavinci/include)
 

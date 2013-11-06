@@ -6,6 +6,7 @@
 #include "LineDetectorTypes.h"
 #include "LaneDetectionData.h"
 #include "DBSCAN.h"
+#include "MSAC.h"
 #include <numeric>
 
 using namespace cv;
@@ -39,12 +40,14 @@ private:
   Lines findCurves();
   pair<vector<Point>::iterator,vector<Point>::iterator> findBiggestDistance(Cluster& c);
   Mat getBirdView(Mat& source);
+  void processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv::Mat &outputImg);
 
   Lines* m_lines;
   Dbscan* m_clusters;
   const Config m_config;
   const bool m_debug;
   Point m_lastSolidRightTop;
+
 };
 
 }

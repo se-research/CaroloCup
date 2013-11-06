@@ -1,4 +1,13 @@
 #include "LineDetector.h"
+#include <stdio.h>
+#include <math.h>
+
+#define USE_PPHT
+#define MAX_NUM_LINES	200
+
+#include "opencv2/core/core.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
 
 namespace carolocup {
 
@@ -12,26 +21,50 @@ LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug)
   , m_debug(debug)
   , m_lastSolidRightTop()
 {
-  Mat birdView, frame = f.clone();
+  //Mat birdView;
+  Mat outputImg = f.clone(),frame = f.clone();
+  //if (m_debug) imshow("frame",frame);
   cvtColor( frame, frame, CV_BGR2GRAY );
   threshold( frame, frame, m_config.caThVal, m_config.caThMax, m_config.caThTyp );
-  //if (m_debug) imshow("th",frame);
-  GaussianBlur( frame, frame, Size(7,7), 1.5, 1.5 ); // try to remove this!
-  Canny( frame, frame, m_config.th1, m_config.th2 );
-  //if (m_debug) imshow("canny",frame);
+  //warpPerspective(frame, birdView, getBirdView(frame), frame.size(), INTER_CUBIC|WARP_INVERSE_MAP);
 
-  warpPerspective(
-      frame,
-      birdView,
-      getBirdView(frame),
-      frame.size(),
-      INTER_CUBIC|WARP_INVERSE_MAP);
-  //if (m_debug) imshow("bird",frame);
+  //if (m_debug) imshow("bird",birdView);
+  //GaussianBlur( frame, frame, Size(7,7), 1.5, 1.5 ); // try to remove this!
+  //Canny( frame, frame, m_config.th1, m_config.th2 );
+  //if (m_debug) imshow("th",birdView);
 
-  vector<Vec4i> lines;
+  //Canny( birdView, birdView, m_config.th1, m_config.th2 );
+  //if (m_debug) imshow("canny",birdView);
+  /*vector<Vec4i> lines;
   HoughLinesP(birdView, lines, 1, CV_PI/180, m_config.hlTh, m_config.hlMaxLineLength, m_config.hlMaxLineGap );
-
-  m_clusters = new Dbscan(&lines, m_config.dbEps, m_config.dbMinPts);
+  cout << "size: " << lines.size();
+  for(unsigned int i = 0; i < lines.size(); i++) {
+    if(lines.at(i)[0] != lines.at(i)[2]) {
+      float slope = (lines.at(i)[1] - lines.at(i)[3]) / (lines.at(i)[0] - lines.at(i)[2]);
+      int full = slope / (M_PI/2);
+      slope = slope - (full * (M_PI/2)); 
+      if(abs(slope) < M_PI/6) {
+        lines.erase(lines.begin() + i);
+	i--;
+      }
+    }
+  }
+  cout << "size: " << lines.size() << endl;
+  m_clusters = new Dbscan(&lines, m_config.dbEps, m_config.dbMinPts);*/
+  // Create and init MSAC
+  MSAC msac;
+  double w = frame.size().width;
+  double h = frame.size().height;
+  int mode = MODE_NIETO;
+  Size procSize = cv::Size(w, h);
+  msac.init(mode, procSize, m_debug);
+  // ++++++++++++++++++++++++++++++++++++++++
+  // Process		
+  // ++++++++++++++++++++++++++++++++++++++++
+  processImageMSAC(msac, 2, frame, outputImg);
+  // View
+  if(m_debug) imshow("Before output", frame);
+  if(m_debug) imshow("Output", outputImg);
 }
 
 LineDetector::~LineDetector(){
@@ -315,6 +348,113 @@ Mat LineDetector::getBirdView(Mat& source) {
 
   // Final and overall transformation matrix
   return A2*(T*(R*A1));
+}
+
+/** This function contains the actions performed for each image*/
+void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv::Mat &outputImg)
+{
+	cv::Mat imgCanny;
+
+	// Canny
+	cv::Canny(imgGRAY, imgCanny, 180, 120, 3);
+
+	// Hough
+	vector<vector<cv::Point> > lineSegments;
+	vector<cv::Point> aux;
+#ifndef USE_PPHT
+	vector<Vec2f> lines;
+	cv::HoughLines( imgCanny, lines, 1, CV_PI/180, 200);
+
+	for(size_t i=0; i< lines.size(); i++)
+	{
+		float rho = lines[i][0];
+		float theta = lines[i][1];
+
+		double a = cos(theta), b = sin(theta);
+		double x0 = a*rho, y0 = b*rho;
+
+		Point pt1, pt2;
+		pt1.x = cvRound(x0 + 1000*(-b));
+		pt1.y = cvRound(y0 + 1000*(a));
+		pt2.x = cvRound(x0 - 1000*(-b));
+		pt2.y = cvRound(y0 - 1000*(a));
+
+		aux.clear();
+		aux.push_back(pt1);
+		aux.push_back(pt2);
+		lineSegments.push_back(aux);
+
+		line(outputImg, pt1, pt2, CV_RGB(0, 0, 0), 1, 8);
+	
+	}
+#else
+	vector<Vec4i> lines;	
+	int houghThreshold = 70;
+	if(imgGRAY.cols*imgGRAY.rows < 400*400)
+		houghThreshold = 100;		
+	
+	cv::HoughLinesP(imgCanny, lines, 1, CV_PI/180, houghThreshold, 10,10);
+
+	while(lines.size() > MAX_NUM_LINES)
+	{
+		lines.clear();
+		houghThreshold += 10;
+		cv::HoughLinesP(imgCanny, lines, 1, CV_PI/180, houghThreshold, 10, 10);
+	}
+	for(size_t i=0; i<lines.size(); i++)
+	{		
+		Point pt1, pt2;
+		pt1.x = lines[i][0];
+		pt1.y = lines[i][1];
+		pt2.x = lines[i][2];
+		pt2.y = lines[i][3];
+		line(outputImg, pt1, pt2, CV_RGB(0,0,0), 2);
+		/*circle(outputImg, pt1, 2, CV_RGB(255,255,255), CV_FILLED);
+		circle(outputImg, pt1, 3, CV_RGB(0,0,0),1);
+		circle(outputImg, pt2, 2, CV_RGB(255,255,255), CV_FILLED);
+		circle(outputImg, pt2, 3, CV_RGB(0,0,0),1);*/
+                float slope = M_PI/2;
+		if((pt1.x - pt2.x)!= 0) {
+	      	    slope = (pt1.y - pt2.y) / ((float)(pt1.x - pt2.x));
+		    int full = slope / M_PI;
+		    slope = abs(slope - (full * M_PI));
+                    //cout << "slope: " << slope << endl;
+		}
+		// Store into vector of pairs of Points for msac
+		if(slope > M_PI/6 && slope < 5*M_PI/6) {
+		    aux.clear();
+		    aux.push_back(pt1);
+		    aux.push_back(pt2);
+		    lineSegments.push_back(aux);
+		}
+	}
+	
+#endif
+
+	// Multiple vanishing points
+	std::vector<cv::Mat> vps;			// vector of vps: vps[vpNum], with vpNum=0...numDetectedVps
+	std::vector<std::vector<int> > CS;	// index of Consensus Set for all vps: CS[vpNum] is a vector containing indexes of lineSegments belonging to Consensus Set of vp numVp
+	std::vector<int> numInliers;
+
+	std::vector<std::vector<std::vector<cv::Point> > > lineSegmentsClusters;
+	
+	// Call msac function for multiple vanishing point estimation
+	msac.multipleVPEstimation(lineSegments, lineSegmentsClusters, numInliers, vps, numVps); 
+	for(unsigned int v=0; v<vps.size(); v++)
+	{
+		printf("VP %d (%.3f, %.3f, %.3f)", v, vps[v].at<float>(0,0), vps[v].at<float>(1,0), vps[v].at<float>(2,0));
+		fflush(stdout);
+		double vpNorm = cv::norm(vps[v]);
+		if(fabs(vpNorm - 1) < 0.001)
+		{
+			printf("(INFINITE)");
+			fflush(stdout);
+		}
+		printf("\n");
+	}		
+		
+	// Draw line segments according to their cluster
+	msac.drawCS(outputImg, lineSegmentsClusters, vps);
 }
 
 }
