@@ -7,7 +7,8 @@
 #ifndef LANEDETECTOR_H_
 #define LANEDETECTOR_H_
 
-#include <opencv/cv.h>
+//#include <opencv/cv.h>
+#include "opencv2/opencv.hpp"
 #include "core/SharedPointer.h"
 #include "core/base/ConferenceClientModule.h"
 #include "core/wrapper/SharedMemory.h"
@@ -70,6 +71,11 @@ private:
   uint32_t m_cameraId;
   bool m_debug;
   Config m_config;
+int init;
+
+///////////////////////////////////////7
+//void *PrintHello(void *threadid);
+////////////////////////////////////////
 
   virtual void setUp();
 
