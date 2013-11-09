@@ -109,11 +109,11 @@ M = A2*(T*(R*A1))
 \]
 \Large
 
-The matrix \textit{A1} shifts the image in the coordinate system such that its center is located at (0,0).
-The rotational matrix \textit{R} can be calculated from \textit{$R_{x}, R_{y}$}
-and \textit{$R_{z}$} matrices.  The translation matrix \textit{T} can adjust
-the height of the camera position by the \textit{distance} parameter. The
-warpPerspective openCV function is called with the WARP\_INVERSE\_MAP parameter
+First of all, the matrix \textit{A1} shifts the image in the coordinate system such that its center is located at (0,0).
+Secondly, the rotational matrix \textit{R} can be calculated from \textit{$R_{x}, R_{y}$}
+and \textit{$R_{z}$} matrices.  Thirdly, the translation matrix \textit{T} can adjust
+the height of the camera position by the \textit{distance} parameter. Lastly, the
+warpPerspective OpenCV function is called with the WARP\_INVERSE\_MAP parameter
 which calculates the final image as follows:
 \normalsize
 \[BirdView(x,y)= warpPerspective(inputImg, M, WARP\_INVERSE\_MAP) = \]
@@ -124,8 +124,8 @@ which calculates the final image as follows:
 \section{Line Clustering} % (fold)
 \label{sec:Line Clustering}
 For clustering lines a modified DBSCAN\cite{www:dbscan} algorithm was used. Originally
-DBSCAN operates on a set of points and returns a set of cluster of points.
-Since in our case the input data is a set of line, this algorithm must be
+DBSCAN operates on a set of points and returns a set of clusters of points.
+Since in our case the input data is a set of lines, this algorithm must be
 adapted to this type of input data. It is done by checking if any end point of
 a line is density-connected to any point of a cluster, and if so, then it adds both end
 points to that cluster, not just the one that is actually connected to the
@@ -181,7 +181,7 @@ regionQuery(L, eps)
 \section{Pattern Matching} % (fold)
 \label{sec:Pattern Matching on Clusers}
 Pattern matching is needed to identify the clusters that cover the dashed line
-and the two solid line on the lane. The current implementation uses a very
+and the two solid lines on the lane. The current implementation uses a very
 basic approach. That is checking the maximum difference on the x and y axes
 between each pair of nodes and comparing these maximum values to a predefined
 threshold value. The maximum x value must be lower than the threshold for x,
