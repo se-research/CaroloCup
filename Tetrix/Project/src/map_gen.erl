@@ -130,7 +130,7 @@ translate(ID, Camera_Matrix, [Point | T] , Buff) ->
 	[] ->
 	    translate(ID, Camera_Matrix, T, Buff);
 	[{_,NewPoint}] ->
-	    translate(ID, Camera_Matrix, T, Buff ++ bird_transform(Camera_Matrix, NewPoint))
+	    translate(ID, Camera_Matrix, T, Buff ++ NewPoint)
     end;
 translate(_,_,[], Buff) ->
     Buff.
