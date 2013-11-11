@@ -54,8 +54,16 @@ calculate({P1,P2,P3}) ->
     
     %% send desired steering to cunit
     %% TODO: dummy values    ok.
-    cunit:setSteering(round((Steering*180.0)* math:pi())).
+    cunit:setSteering(round((Steering*180.0)* math:pi())),
+    Speed = cunit:getAccelSpeed(),
+    Heading = cunit:getHeading(),
+    {ok, Log} = file:open("Log.txt", [read, append]),
+    io:fwrite(Log, "TimeStamp: ~p , Speed = ~p , Angle = ~p~n", [erlang:now(), Speed, Heading]),
+    file:close(Log).    
     
+
+
+
     %% timer:sleep(20),
  
     %% calculate().

@@ -95,6 +95,7 @@ static ERL_NIF_TERM show_pic(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
 	
   cvShowImage("YOOHOO", frame->_frame);
 
+
   cvWaitKey(30);
 	
   
@@ -119,8 +120,19 @@ static ERL_NIF_TERM process_pic(ErlNifEnv* env, int argc, const ERL_NIF_TERM arg
   if (!enif_get_resource(env, argv[0], frame_res, (void**) &frame)) {
     return enif_make_badarg(env);
   } 
+  int image_counter;
+  enif_get_int(env, argv[1], &image_counter);
+
   IplImage* gray = frame->_frame;
   //   GET IMG FROM CAMERA 
+
+  if(image_counter % 10 == 0)
+    {
+      stringstream ss;//create a stringstream
+      ss << "/home/tetrix/images/image" << image_counter << ".jpg" ;//add number to the stream
+      cvSaveImage(ss.str().c_str() , gray);
+    }
+
 
   // IplImage* src = cvLoadImage("/home/robin/Downloads/pic.png");
   // IplImage* gray = cvCreateImage(cvGetSize(src), IPL_DEPTH_8U, 1);
@@ -339,7 +351,7 @@ static ErlNifFunc nif_funcs[] =
   {
     {"show_pic", 1, show_pic},
     {"get_pic", 0, get_pic},
-    {"process_pic" , 1, process_pic},
+    {"process_pic" , 2, process_pic},
     {"deinit_camera", 0, deinit_camera}
   };
 

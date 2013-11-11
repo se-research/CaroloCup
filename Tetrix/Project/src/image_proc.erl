@@ -11,7 +11,7 @@
 %%--------------------------------------------------------------------
 
 start() ->
-    State = [],
+    State = 0,
     Pid = spawn(?SERVER, init, [State]),
     {ok, Pid}.
 
@@ -45,7 +45,7 @@ process(State) ->
     
     case imgproc_nif:get_pic() of
 	{ok, ImgRef} ->
-	    Processed = imgproc_nif:process_pic(ImgRef),
+	    Processed = imgproc_nif:process_pic(ImgRef, State),
 	    case Processed of
 		not_found ->
 		    not_found;
@@ -57,7 +57,7 @@ process(State) ->
     end,
 
     timer:sleep(30),
-    process(State).
+    process(State+1).
 
 %% Console print outs for server actions (init, terminate, etc) 
 say(Format, Data) ->
