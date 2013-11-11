@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 project( Main )
 
-SET (CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-Wno-deprecated -Wall -Werror -Wextra -Wfloat-equal -Wshadow -Wpointer-arith -Wwrite-strings -Wpacked -Wredundant-decls -Wmissing-format-attribute -ansi -pipe")
+SET (CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} )
+#"-Wno-deprecated -Wall -Werror -Wextra -Wfloat-equal -Wshadow -Wpointer-arith -Wwrite-strings -Wpacked -Wredundant-decls -Wmissing-format-attribute -ansi -pipe")
 find_package( OpenCV REQUIRED )
 set(CMAKE_BUILD_TYPE Debug)
 INCLUDE_DIRECTORIES (${libopendavinci_SOURCE_DIR}/include)

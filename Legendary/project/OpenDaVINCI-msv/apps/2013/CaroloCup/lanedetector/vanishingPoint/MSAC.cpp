@@ -792,7 +792,7 @@ void MSAC::drawCS(cv::Mat &im, std::vector<std::vector<std::vector<cv::Point> > 
 			Point pt1 = lineSegmentsClusters[c][i][0];
 			Point pt2 = lineSegmentsClusters[c][i][1];
 
-			line(im, pt1, pt2, colors[c], 2);
+			line(im, pt1, pt2, colors[0], 2);
 		}
 	}	
 }

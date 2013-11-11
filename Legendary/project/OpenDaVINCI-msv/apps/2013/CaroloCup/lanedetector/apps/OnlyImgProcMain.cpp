@@ -36,9 +36,9 @@ int main(int , char** argv)
   cfg.hlMaxLineGap = 1;
   cfg.hlMaxLineLength = 1;
   cfg.hlMaxLineLength = 1;
-  cfg.caThVal = 160;
+  cfg.caThVal = 200;
   cfg.caThMax = 160;
-  cfg.caThTyp = 3;
+  cfg.caThTyp = 0;
   cfg.birdF = 900;
   cfg.birdDist = 180;
   cfg.birdAlpha = 20;

@@ -7,7 +7,7 @@
 PROJECT (2013-CaroloCup-lanedetector)
 
 # OpenCV libraries.
-SET (OpenCV_LIBS opencv_core opencv_imgproc opencv_highgui)
+SET (OpenCV_LIBS opencv_core opencv_imgproc opencv_highgui opencv_calib3d)
 
 # Include directories from core.
 INCLUDE_DIRECTORIES (${libopendavinci_SOURCE_DIR}/include)
