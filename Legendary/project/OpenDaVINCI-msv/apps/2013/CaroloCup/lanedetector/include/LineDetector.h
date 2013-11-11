@@ -21,9 +21,11 @@ struct Config {
 };
 
 struct CustomLine {
-  Point *p1;
-  Point *p2;
+  Point p1, p2;
   float slope;
+  bool operator < (const CustomLine& other ) const {
+     return slope < other.slope;
+  }
 };
 
 class LineDetector {

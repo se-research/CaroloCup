@@ -414,15 +414,11 @@ void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv
 		circle(outputImg, pt1, 3, CV_RGB(0,0,0),1);
 		circle(outputImg, pt2, 2, CV_RGB(255,255,255), CV_FILLED);
 		circle(outputImg, pt2, 3, CV_RGB(0,0,0),1);*/
-                float slope = M_PI/2;
-		if((pt1.x - pt2.x)!= 0) {
-	      	    slope = (pt1.y - pt2.y) / ((float)(pt1.x - pt2.x));
-		    int full = slope / M_PI;
-		    slope = abs(slope - (full * M_PI));
-                    //cout << "slope: " << slope << endl;
-		}
+                float slope = getLineSlope(pt1, pt2);
+
 		// Store into vector of pairs of Points for msac
-		if(slope > M_PI/6 && slope < 5*M_PI/6) {
+		// only if angle constraints are satisfied
+		if(slope > 25 && slope < 155) {
 		    aux.clear();
 		    aux.push_back(pt1);
 		    aux.push_back(pt2);
@@ -458,6 +454,7 @@ void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv
 	// Paint line segments
 	int vpFound = vps.size() > 0;
 	std::vector<CustomLine> customLineSegments;
+	CustomLine midLine;
 	if(lineSegmentsClusters.size() > 0 && vpFound) {
 		cout << "number of lines: " << lineSegmentsClusters[0].size() << endl;
 		Point midLow;
@@ -467,31 +464,67 @@ void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv
 	        	Point vp;
 			vp.x = vps[v].at<float>(0,0);
 			vp.y = vps[v].at<float>(1,0);
-			cout << "VP: (" << vp.x << "," << vp.y << ")" << endl; 
+			cout << "VP: (" << vp.x << "," << vp.y << ")" << endl;
+			midLine.p1 = midLow;
+			midLine.p2 = vp;
+			midLine.slope = getLineSlope(midLow, vp);
 			for(unsigned int i=0; i<lineSegmentsClusters[0].size(); i++) {
 				CustomLine l1, l2;
 				Point pt1 = lineSegmentsClusters[0][i][0];
 				Point pt2 = lineSegmentsClusters[0][i][1];
-				l1.p1 = &pt1;
-				l1.p2 = &vp;
+				l1.p1 = pt1;
+				l1.p2 = vp;
 				l1.slope = getLineSlope(vp, pt1);
 				customLineSegments.push_back(l1);
-				l2.p1 = &pt2;
-				l2.p2 = &vp;
+				l2.p1 = pt2;
+				l2.p2 = vp;
 				l2.slope = getLineSlope(vp, pt2);
 				customLineSegments.push_back(l2);
-				cout << "Slope pt2: " << l2.slope << endl;
-				cout << "Slope pt1: " << l1.slope << endl;
-				cout << "Slope mid: " << getLineSlope(vp, midLow) << endl;
-				line(outputImg, vp, pt2, cv::Scalar(0,0,255), 2);
-				line(outputImg, vp, pt1, cv::Scalar(0,0,255), 2);
-				line(outputImg, vp, midLow, cv::Scalar(0,0,255), 2);
-				cout << "Line coord: [(" << pt1.x << "," << pt1.y << "),(" << pt2.x << "," << pt2.y << ")]" << endl; 
+				//cout << "Slope pt2: " << l2.slope << endl;
+				//cout << "Slope pt1: " << l1.slope << endl;
+				//cout << "Slope mid: " << midLine.slope << endl;
+				//line(outputImg, vp, pt2, cv::Scalar(0,0,255), 2);
+				//line(outputImg, vp, pt1, cv::Scalar(0,0,255), 2);
+				//line(outputImg, vp, midLow, cv::Scalar(0,0,255), 2);
+				//cout << "Line coord: [(" << pt1.x << "," << pt1.y << "),(" << pt2.x << "," << pt2.y << ")]" << endl; 
 				line(outputImg, pt1, pt2, cv::Scalar(0,255,0), 2);
 			}
 		}
+		std::sort(customLineSegments.begin(), customLineSegments.end());
+		cout << "Lines in " << customLineSegments.size() << endl;
+		CustomLine core = customLineSegments[0];
+		cout << "Slope mid: " << midLine.slope << endl;
+		//cout << "Prepare to draw!" << endl;
+		for(unsigned int i=0; i<customLineSegments.size() - 1; i++) {
+			//cout << "curr slope:" << customLineSegments[i].slope << endl;
+			//cout << "Line coord: [(" << customLineSegments[i].p1.x << "," << customLineSegments[i].p1.y << "),(" << customLineSegments[i].p2.x << "," << customLineSegments[i].p2.y << ")]" << endl;
+			if(abs(customLineSegments[i].slope - customLineSegments[i+1].slope) > 10 ) {
+				//cout << "DRAW" << endl;
+				core.p1.y = 480;
+				float radianSlope = tan((core.slope/180.) * M_PI);
+				float b = core.p2.y - radianSlope * core.p2.x;
+				core.p1.x = (480 - b) / radianSlope;
+				//cout << "Line coord: [(" << core.p1.x << "," << core.p1.y << "),(" << core.p2.x << "," << core.p2.y << ")]" << endl;
+				line(outputImg, core.p1, core.p2, cv::Scalar(255, 0, 0), 2);
+				cout << "Slope core: " << core.slope << endl;
+				core = customLineSegments[i+1];
+			} else {
+				//cout << "MERGE" << endl;
+				if(customLineSegments[i].slope < midLine.slope) {
+					core = customLineSegments[i];
+					//cout << "Line coord: [(" << core.p1.x << "," << core.p1.y << "),(" << core.p2.x << "," << core.p2.y << ")]" << endl; 
+				}
+			}
+		}
+		//cout << "end drawing!" << endl;
+		//cout << "Line coord: [(" << core.p1.x << "," << core.p1.y << "),(" << core.p2.x << "," << core.p2.y << ")]" << endl;
+		core.p1.y = 480;
+		float radianSlope = tan((core.slope/180.) * M_PI);
+		float b = core.p2.y - radianSlope * core.p2.x;
+		core.p1.x = (480 - b) / radianSlope;
+		line(outputImg, core.p1, core.p2, cv::Scalar(0,0,255), 2);
+		cout << "Slope core: " << core.slope << endl;
         }
-	cout << "Lines in " << customLineSegments.size() << endl;
 	/*Point midLow, midUp;
 	midLow.x = 320;
 	midLow.y = 0;
@@ -500,14 +533,16 @@ void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv
 	line(outputImg, midLow, midUp, cv::Scalar(0,0,255), 2);*/
 }
 
-/** This function contains the actions performed for each image*/
+/** Get the slope of a line defined by two points */
 float LineDetector::getLineSlope(Point &p1, Point &p2) 
 {
      float slope = M_PI/2;
      if((p1.x - p2.x)!= 0) {
          slope = (p1.y - p2.y) / ((float)(p1.x - p2.x));
-	 int full = slope / M_PI;
-	 slope = slope - (full * M_PI);
+	 slope = atan(slope);
+     }
+     if(slope < 0) {
+      	return 180 + (slope/M_PI)*180;
      }
      return (slope/M_PI)*180;
 }
