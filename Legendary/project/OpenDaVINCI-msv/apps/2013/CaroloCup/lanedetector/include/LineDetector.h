@@ -20,6 +20,12 @@ struct Config {
       dashMin, dashMax, dashWidth, solidMin, solidWidth, pGain, intGain, derGain, speed;
 };
 
+struct CustomLine {
+  Point *p1;
+  Point *p2;
+  float slope;
+};
+
 class LineDetector {
 public:
   LineDetector(const Mat& f, const Config& cfg, const bool debug);
@@ -41,6 +47,7 @@ private:
   pair<vector<Point>::iterator,vector<Point>::iterator> findBiggestDistance(Cluster& c);
   Mat getBirdView(Mat& source);
   void processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv::Mat &outputImg);
+  float getLineSlope(Point &p1, Point &p2);
 
   Lines* m_lines;
   Dbscan* m_clusters;

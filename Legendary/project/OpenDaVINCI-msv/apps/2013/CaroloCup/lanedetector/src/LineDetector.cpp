@@ -3,7 +3,7 @@
 #include <math.h>
 
 #define USE_PPHT
-#define MAX_NUM_LINES	200
+#define MAX_NUM_LINES	100
 
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
@@ -61,7 +61,7 @@ LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug)
   // ++++++++++++++++++++++++++++++++++++++++
   // Process		
   // ++++++++++++++++++++++++++++++++++++++++
-  processImageMSAC(msac, 2, frame, outputImg);
+  processImageMSAC(msac, 1, frame, outputImg);
   // View
   if(m_debug) imshow("Before output", frame);
   if(m_debug) imshow("Output", outputImg);
@@ -389,7 +389,7 @@ void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv
 	}
 #else
 	vector<Vec4i> lines;	
-	int houghThreshold = 70;
+	int houghThreshold = 40;
 	if(imgGRAY.cols*imgGRAY.rows < 400*400)
 		houghThreshold = 100;		
 	
@@ -401,6 +401,7 @@ void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv
 		houghThreshold += 10;
 		cv::HoughLinesP(imgCanny, lines, 1, CV_PI/180, houghThreshold, 10, 10);
 	}
+        cout << "Hough: " << houghThreshold << endl;
 	for(size_t i=0; i<lines.size(); i++)
 	{		
 		Point pt1, pt2;
@@ -452,9 +453,63 @@ void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv
 		}
 		printf("\n");
 	}		
-		
 	// Draw line segments according to their cluster
-	msac.drawCS(outputImg, lineSegmentsClusters, vps);
+//	msac.drawCS(outputImg, lineSegmentsClusters, vps);
+	// Paint line segments
+	int vpFound = vps.size() > 0;
+	std::vector<CustomLine> customLineSegments;
+	if(lineSegmentsClusters.size() > 0 && vpFound) {
+		cout << "number of lines: " << lineSegmentsClusters[0].size() << endl;
+		Point midLow;
+		midLow.x = 320;
+		midLow.y = 480;
+	  	for (unsigned int v = 0; v < vps.size(); v++) {
+	        	Point vp;
+			vp.x = vps[v].at<float>(0,0);
+			vp.y = vps[v].at<float>(1,0);
+			cout << "VP: (" << vp.x << "," << vp.y << ")" << endl; 
+			for(unsigned int i=0; i<lineSegmentsClusters[0].size(); i++) {
+				CustomLine l1, l2;
+				Point pt1 = lineSegmentsClusters[0][i][0];
+				Point pt2 = lineSegmentsClusters[0][i][1];
+				l1.p1 = &pt1;
+				l1.p2 = &vp;
+				l1.slope = getLineSlope(vp, pt1);
+				customLineSegments.push_back(l1);
+				l2.p1 = &pt2;
+				l2.p2 = &vp;
+				l2.slope = getLineSlope(vp, pt2);
+				customLineSegments.push_back(l2);
+				cout << "Slope pt2: " << l2.slope << endl;
+				cout << "Slope pt1: " << l1.slope << endl;
+				cout << "Slope mid: " << getLineSlope(vp, midLow) << endl;
+				line(outputImg, vp, pt2, cv::Scalar(0,0,255), 2);
+				line(outputImg, vp, pt1, cv::Scalar(0,0,255), 2);
+				line(outputImg, vp, midLow, cv::Scalar(0,0,255), 2);
+				cout << "Line coord: [(" << pt1.x << "," << pt1.y << "),(" << pt2.x << "," << pt2.y << ")]" << endl; 
+				line(outputImg, pt1, pt2, cv::Scalar(0,255,0), 2);
+			}
+		}
+        }
+	cout << "Lines in " << customLineSegments.size() << endl;
+	/*Point midLow, midUp;
+	midLow.x = 320;
+	midLow.y = 0;
+	midUp.x = 320;
+	midUp.y = 480;
+	line(outputImg, midLow, midUp, cv::Scalar(0,0,255), 2);*/
+}
+
+/** This function contains the actions performed for each image*/
+float LineDetector::getLineSlope(Point &p1, Point &p2) 
+{
+     float slope = M_PI/2;
+     if((p1.x - p2.x)!= 0) {
+         slope = (p1.y - p2.y) / ((float)(p1.x - p2.x));
+	 int full = slope / M_PI;
+	 slope = slope - (full * M_PI);
+     }
+     return (slope/M_PI)*180;
 }
 
 }
