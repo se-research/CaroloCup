@@ -84,7 +84,7 @@ followcircle(CarPos, CenterPoint, Radius, Clockwise) ->
     CenterAng = getAng(CarPos , CenterPoint),
     TangentAngOffset = Clockwise*math:pi()/2,
     LocationOffset = getDistance(CenterPoint , CarPos), 
-    CorrectionAng = (1-(LocationOffset/Radius))*(Clockwise*math:pi()/2),
+    CorrectionAng = (1-(LocationOffset/(Radius+300)))*(Clockwise*math:pi()/2),
     CenterAng + TangentAngOffset + CorrectionAng.
     
 normalized(Angle)->
