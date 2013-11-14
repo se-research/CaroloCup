@@ -1,0 +1,67 @@
+\documentclass[Report.tex]{subfiles}
+
+\begin{document}
+
+\chapter{Introduction}
+This report provides solutions for lane following functionality of
+self-driven miniature vehicles. The lane following contains the following parts:
+\begin{itemize}
+  \item image processing,
+  \item clustering of lines,
+  \item pattern matching on clusters,
+  \item defining input data for the control algorithm.
+\end{itemize}
+
+\section{Image Processing} % (fold)
+\label{sec:Image Processing}
+Image processing involves the processing of the frames from the camera,
+filtering noise on the frames, transforming the filtered frames to bird's
+eye view, and performing a Hough line transformation on the bird's eye
+view image to get the line shapes from the frame.
+% section Image Processing (end)
+
+\section{Clustering of lines} % (fold)
+\label{sec:Clustering of lines}
+A density-based spatial clustering algorithm was used to group the
+neighbouring lines into clusters by their distance and minimum numbers of
+lines. This algorithm is an alternated DBSCAN (density-based spatial clustering of
+applications with noise)\cite{www:dbscan} algorithm.
+The classical DBSCAN algorithm operates on a set points and returns a set of
+clusters where each point is uniquely assigned to exactly one cluster. This
+version of the algorithm does not care about the fact that these points were
+connected once, and therefore should belong to the same cluster. The
+algorithm used in this project, on the other hand, operates on a set of lines
+and returns a set of clusters of points. This alternation of the algorithm
+provides more accurate clustering for the purpose of this project and requires
+less computation since we only iterate through half of the points.
+% section Clustering of lines (end)
+
+\section{Pattern Matching on Clusters} % (fold)
+After having the clusters, there is only one relevant step remained, which is
+finding the clusters that contain the one dashed line and the two solid lines
+from the lane. This is done by finding the greatest difference on the x and y
+axes between any pair of points in the cluster and checking if these values
+fall within a predefined range.
+% section Pattern Matching on Clusters (end)
+
+\section{Input data for the control algorithm} % (fold)
+The control algorithm operates on two lines, the dashed line and the solid line
+on the right. Therefore, the clusters containing the dashed and solid lines
+must be transformed into lines that can be fed to the control algorithm. This
+transformation is done by checking the Euclidean distance between each pair of
+points in the given cluster to find the one with the greatest value. The solid
+line on the left is only used during overtaking.
+% section Input data for control algorithm (end)
+
+\section{Structure of the Report} % (fold)
+This chapter gave a brief introduction to the topic and structure of this
+report. The next chapter, chapter~\ref{chapter:Theory}, will give a thorough
+description about the image processing, line clustering and pattern matching
+methods. Chapter \ref{chapter:Results} shows the performance data measured on
+the target hardware. Chapter \ref{chapter:Discussion} provides a discussion
+covering deficiencies in the current implementation and design and propose
+possible solutions for these deficiencies. Lastly, chapter
+\ref{chapter:Conclusion} contains the final conclusions of this project and
+summarizes its results.
+
+\end{document}

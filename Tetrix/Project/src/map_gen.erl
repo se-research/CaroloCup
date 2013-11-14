@@ -88,7 +88,7 @@ handle_cast({add_frame, {{Points, Line_ID}, CarPos}}, State) ->
     %% io:format("POINTS TRANSLATED : ~p~n" , [NewPoints]),
 
 
-    case offsetCalculation:calculate_offset_list(Line_ID, ?AdjacentSideLine, NewPoints) of
+    case offsetCalculation:calculate_offset_list(Line_ID, ?LaneAdjacent, NewPoints) of
 	{ok, Node_List = [N1,N2,N3 | _]} ->
  	    car_ai:start({N1,N2,N3}),
 	    {noreply, State#state{node_ahead = {N1, N2, N3}, frame_data = Node_List }};
@@ -130,7 +130,7 @@ translate(ID, Camera_Matrix, [Point | T] , Buff) ->
 	[] ->
 	    translate(ID, Camera_Matrix, T, Buff);
 	[{_,NewPoint}] ->
-	    translate(ID, Camera_Matrix, T, Buff ++ bird_transform(Camera_Matrix, NewPoint))
+	    translate(ID, Camera_Matrix, T, Buff ++ [NewPoint])
     end;
 translate(_,_,[], Buff) ->
     Buff.

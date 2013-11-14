@@ -15,7 +15,7 @@ get_pic() ->
 show_pic(F) ->
     ?NIF_STUB.
 
-process_pic(Ref) ->
+process_pic(Ref, IMG_NO) ->
     ?NIF_STUB.
 
 deinit_camera() ->

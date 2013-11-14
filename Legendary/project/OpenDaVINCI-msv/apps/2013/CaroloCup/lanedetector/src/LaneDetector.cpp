@@ -5,8 +5,16 @@
  */
 
 #include <iostream>
-#include <opencv/cv.h>
-#include <opencv/highgui.h>
+//#include <opencv/cv.h>
+//#include <opencv/highgui.h>
+
+#include <iostream>
+#include <cstdlib>
+#include <pthread.h>
+#include <unistd.h>
+
+
+#include "opencv2/opencv.hpp"
 
 #include "core/base/KeyValueConfiguration.h"
 #include "core/data/Container.h"
@@ -19,6 +27,9 @@
 #include <stdio.h>
 #include <math.h>
 
+
+#define NUM_THREADS  5;
+
 namespace carolocup {
 
 using namespace std;
@@ -26,6 +37,17 @@ using namespace core::base;
 using namespace core::data;
 using namespace core::data::image;
 
+///////////////////////////////////////////////////////////////////////////////
+                /*The three functions below are function declarations for the Thread functions*/
+void  *function1(void *argument);
+void  *function2(void *argument);
+void  *function3(void *argument);
+
+                   /*These are three Mat pointers, one for each segment of the image*/
+Mat *getFirstPointer;
+Mat *getSecondPointer;
+Mat *getThirdPointer;
+///////////////////////////////////////////////////////////////////////////////
 
 LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
   ConferenceClientModule(argc, argv, "lanedetector") ,
@@ -33,6 +55,7 @@ LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
   m_sharedImageMemory() ,
   m_image(NULL) ,
   m_cameraId(-1) ,
+  init(0),
   m_debug(false) ,
   m_config() {
     m_config.th1 = 40;
@@ -153,7 +176,7 @@ bool LaneDetector::readSharedImage(Container &c) {
 			retVal = true;
 		}
 	}
-	return retVal;
+ 
 }
 
 static Scalar randomColor( RNG& rng )
@@ -162,11 +185,68 @@ static Scalar randomColor( RNG& rng )
   return Scalar( icolor&255, (icolor>>8)&255, (icolor>>16)&255 );
 }
 
+//////////////////////////////////////////////////////START//////////////////////////////////////////////////////////////////////////////////
+                /*The three functions below are the functions that is run by each of the threads
+		You can do stuff with the image segment in each function. Because of issues with
+		 X server and Multi-threads I can't use"imshow within the Thread functions", 
+		If you want to show the images, show them outside the function somewhere in 
+		the processImage() function*/
+
+void *function1(void *argument){
+
+      cvtColor(*getFirstPointer, *getFirstPointer, CV_BGR2GRAY);
+      threshold( *getFirstPointer, *getFirstPointer, 127, 255, THRESH_BINARY);
+
+    cout << "\nRunning this from Thread_1" << endl ;
+    return 0;
+}
+
+
+void *function2(void *argument){
+
+  cvtColor(*getSecondPointer, *getSecondPointer, CV_BGR2GRAY);
+  threshold( *getSecondPointer, *getSecondPointer, 127, 255, THRESH_BINARY);
+
+    cout << "\nRunning this from Thread_2"  << endl ;
+    return 0;
+}
+
+void *function3(void *argument){
+
+  cvtColor(*getThirdPointer, *getThirdPointer, CV_BGR2GRAY);
+  threshold( *getThirdPointer, *getThirdPointer, 127, 255, THRESH_BINARY);
+
+    cout << "\nRunning this from Thread_3"  << endl ;
+    return 0;
+}
+
+//////////////////////////////////////////////////////END///////////////////////////////////////////////////////////////////////////////////
+
 void LaneDetector::processImage() {
+
+ /*Mat pickMat(m_image,false);
+  imshow("Source Image", pickMat);*/
+
   TimeStamp currentTime_strt1;
   Mat dst, frame(m_image);
+  imshow("Input Image", frame);
   dst = frame.clone();
   dst.setTo( Scalar(0,0,0));
+
+//////////////////////////////////////////////////////START//////////////////////////////////////////////////////////////////////////////////
+			/*Each of Mat Images below represents a segment of the image
+			and their respective addresses are assigned to each of the pointers below*/
+
+	Mat getFirst = frame(cv::Rect(1,239,639,239));
+	Mat getSecond  = frame(cv::Rect(1,119,639,119));
+	Mat getThird = frame(cv::Rect(1,119,639,119));
+
+
+	getFirstPointer = &getFirst;
+	getSecondPointer = &getSecond;
+	getThirdPointer = &getThird;
+
+//////////////////////////////////////////////////////END///////////////////////////////////////////////////////////////////////////////////
 
   LineDetector road(frame, m_config, m_debug);
   carolocup::Lines lines = road.getLines();
@@ -179,7 +259,6 @@ void LaneDetector::processImage() {
 
   LaneDetectionData data;
   data.setLaneDetectionData(lines);
-
 	// Create a container from your data structure so that it can be transferred.
 	// _remember_ the assigned ID (here 101): It must be used by the receiver to read the data successfully.
 	// The ID must by from within this range: 0-127.
@@ -205,6 +284,19 @@ void LaneDetector::processImage() {
       }
     }
 
+
+//////////////////////////////////////////////////////START//////////////////////////////////////////////////////////////////////////////////
+
+			/*Threes POSIX threads are created below and each of the threads
+			are assigned to run each of the three functions*/
+ pthread_t t1, t2, t3 ;
+    pthread_create(&t1, NULL, function1,NULL);
+    pthread_create(&t2, NULL, function2,NULL);
+    pthread_create(&t3, NULL, function3,NULL);
+
+//////////////////////////////////////////////////////END////////////////////////////////////////////////////////////////////////////////
+
+
     Line dashed = lines.dashedLine;
     Line solidRight = lines.rightLine;
     Line solidLeft = lines.leftLine;
@@ -214,6 +306,18 @@ void LaneDetector::processImage() {
     line( dst, Point(solidLeft[0], solidLeft[1]), Point(solidLeft[2], solidLeft[3]), Scalar(0,0,255), 3, CV_AA);
 
     imshow("birdView", dst);
+
+//////////////////////////////////////////////////////START//////////////////////////////////////////////////////////////////////////////////
+        /*As I stated earlier, because of restrictions with X SERVER and Multi-threads
+	It will be difficult and messy trying to show the frames withing the thread functions
+        So you can show them outside like I have done here*/
+
+    imshow("First Frame", *getFirstPointer);
+    imshow("Second Frame", *getSecondPointer);
+    imshow("Third Frame", *getThirdPointer);
+
+//////////////////////////////////////////////////////END////////////////////////////////////////////////////////////////////////////////
+
     waitKey(50);
   }
 }
