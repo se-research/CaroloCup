@@ -53,5 +53,8 @@ get_IR1(_Address) ->
 get_ultraSonic(_Address) ->
     exit("NIF library not loaded").
 
+cause_segmentation_fault() ->
+    exit("NIF library not loaded").
+
 start() ->
     erlang:load_nif("./ebin/hidnif", 0).
