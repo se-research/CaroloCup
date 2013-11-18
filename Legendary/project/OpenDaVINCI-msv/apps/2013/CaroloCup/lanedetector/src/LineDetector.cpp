@@ -22,12 +22,14 @@ LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug)
   , m_lastSolidRightTop()
 {
   //Mat birdView;
-  Mat outputImg = f.clone(),frame = f.clone();
+  Mat outputImg = f.clone(), frame = f.clone();
   //if (m_debug) imshow("frame",frame);
   cvtColor( frame, frame, CV_BGR2GRAY );
   threshold( frame, frame, m_config.caThVal, m_config.caThMax, m_config.caThTyp );
   //warpPerspective(frame, birdView, getBirdView(frame), frame.size(), INTER_CUBIC|WARP_INVERSE_MAP);
-
+  m_frame = frame;
+  // Canny
+  cv::Canny(m_frame, m_frameCanny, 180, 120, 3);
   //if (m_debug) imshow("bird",birdView);
   //GaussianBlur( frame, frame, Size(7,7), 1.5, 1.5 ); // try to remove this!
   //Canny( frame, frame, m_config.th1, m_config.th2 );
@@ -62,6 +64,7 @@ LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug)
   // Process		
   // ++++++++++++++++++++++++++++++++++++++++
   processImageMSAC(msac, 1, frame, outputImg);
+  
   // View
   if(m_debug) imshow("Before output", frame);
   if(m_debug) imshow("Output", outputImg);
@@ -531,6 +534,53 @@ void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv
 	midUp.x = 320;
 	midUp.y = 480;
 	line(outputImg, midLow, midUp, cv::Scalar(0,0,255), 2);*/
+}
+
+int LineDetector::getStopLine() {
+	cv::Mat frame_roi, frame_canny;
+	// Cut out the lower right corner
+	Rect region_of_interest = Rect(m_frame.cols/2, m_frame.rows/2, m_frame.cols/2, m_frame.rows/2);
+	src_roi = m_frame(region_of_interest);
+	// Blur image
+	blur(frame_roi, frame_roi, Size(3,3));
+	// Canny image
+	Canny(frame_roi, frame_canny, thresh, thresh*2, 3);
+	// Hough line detection
+	HoughLinesP(frame_canny, lines, 1, CV_PI/180, 50, 50, 20);
+	vector<Vec4i> likely_lines;
+	for (vector<Vec4i>::iterator it = lines.begin(); it != lines.end(); it++) {
+		int xA = (*it)[0], yA = (*it)[1];
+		int xB = (*it)[2], yB = (*it)[3];
+		double theta = atan2(yB-yA, xB-xA);
+		//cout << "Angle: " << theta*180/CV_PI << endl;
+		if (theta >= -CV_PI/36 && theta <= CV_PI/36) {
+			likely_lines.push_back(*it);
+			//cout << "(" << xA << ", " << yA << "), (" << xB << ", " << yB << ")" << endl;
+		}
+	}
+	int yMax = 0;
+	for (vector<Vec4i>::iterator it1 = likely_lines.begin(); it1 != likely_lines.end(); it1++) {
+		for (vector<Vec4i>::iterator it2 = it1+1; it2 != likely_lines.end(); it2++) {
+			Point p1A = Point((*it1)[0], (*it1)[1]);
+			Point p1B = Point((*it1)[2], (*it1)[3]);
+			Point p2A = Point((*it2)[0], (*it2)[1]);
+			Point p2B = Point((*it2)[2], (*it2)[3]);
+			int y1Avg = (p1A.y+p1B.y)/2;
+			int y2Avg = (p2A.y+p2B.y)/2;
+			if (abs(y1Avg-y2Avg) <= 10) {
+				if (max(y1Avg, y2Avg) > yMax) {
+					yMax = max(y1Avg, y2Avg);
+				}
+			}
+		}
+	}
+	//clock_t end = clock();
+	//cout << "Elapsed time: " << double(end-begin) / CLOCKS_PER_SEC << " s" << endl;
+	if (yMax > 0) {
+		return src_roi.rows-yMax;
+	} else {
+		return -1;
+	}
 }
 
 /** Get the slope of a line defined by two points */

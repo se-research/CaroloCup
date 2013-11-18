@@ -55,8 +55,8 @@ namespace carolocup {
       int speed;
       int width;
       int height;
+      int stopLineHeight;
   };
-
 
   /**
    * This is an example how you can send data from one component to another.

@@ -176,6 +176,7 @@ void LaneDetector::processImage() {
   lines.speed = m_config.speed;
   lines.width =  m_image->width;
   lines.height = m_image->height;
+  lines.stopLineHeight = road.getStopLine(frame);
 
   LaneDetectionData data;
   data.setLaneDetectionData(lines);
