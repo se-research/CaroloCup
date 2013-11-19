@@ -1,7 +1,7 @@
 -module(currentPos).
 -compile(export_all).
 
-calculatePos(MegaSec, Sec, MiliSec, Speed, RazorData, SteeringRad, SteeringDeg, RazorInit, CarX, CarY)->
+calculatePos(MegaSec, Sec, MiliSec, Speed, RazorData, SteeringRad, SteeringDeg, RazorInit, CarX, CarY, PrevX, PrevY)->
 
     DeltaTime = (MegaSec*1000000+Sec+MiliSec/1000000)-(MegaSec*1000000+Sec+MiliSec/1000000),
     
@@ -9,8 +9,11 @@ calculatePos(MegaSec, Sec, MiliSec, Speed, RazorData, SteeringRad, SteeringDeg, 
 
     DeltaDistance = DeltaTime * CorrectedSpeed * 1000,
     
-    CarHeading = RazorData - InitRazor + 90, 
+    CarHeading = RazorData - RazorInit + 90, 
 
     RazorXPos = PrevX + (DeltaDistance * ( math:cos(CarHeading * math:pi()/180))),
     
     RazorYPos = PrevY + (DeltaDistance * ( math:sin(CarHeading * math:po()/180))).
+
+speedCorrection(Speed) ->
+    Speed.
