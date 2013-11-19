@@ -536,17 +536,76 @@ void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv
 	line(outputImg, midLow, midUp, cv::Scalar(0,0,255), 2);*/
 }
 
-int LineDetector::getStopLine() {
-	cv::Mat frame_roi, frame_canny;
-	// Cut out the lower right corner
-	Rect region_of_interest = Rect(m_frame.cols/2, m_frame.rows/2, m_frame.cols/2, m_frame.rows/2);
-	src_roi = m_frame(region_of_interest);
-	// Blur image
-	blur(frame_roi, frame_roi, Size(3,3));
-	// Canny image
-	Canny(frame_roi, frame_canny, thresh, thresh*2, 3);
+int LineDetector::detectHorizontalLine(Mat canny_roi, int dist) {
 	// Hough line detection
-	HoughLinesP(frame_canny, lines, 1, CV_PI/180, 50, 50, 20);
+	HoughLinesP(canny_roi, lines, 1, CV_PI/180, 50, 100, 100);
+	vector<Vec4i> likely_lines;
+	for (vector<Vec4i>::iterator it = lines.begin(); it != lines.end(); it++) {
+		int xA = (*it)[0], yA = (*it)[1];
+		int xB = (*it)[2], yB = (*it)[3];
+		double theta = atan2(yB-yA, xB-xA);
+		cout << "Angle: " << theta*180/CV_PI << endl;
+		if (theta >= -CV_PI/36 && theta <= CV_PI/36) {
+				//&&_roi.cols/2 && xB >= src_roi.cols/2) {
+			likely_lines.push_back(*it);
+			cout << "(" << xA << ", " << yA << "), (" << xB << ", " << yB << ")" << endl;
+		}
+	}
+	int yMax = 0;
+	vector<Vec4i>::iterator ptr1, ptr2;
+	for (vector<Vec4i>::iterator it1 = likely_lines.begin(); it1 != likely_lines.end(); it1++) {
+		for (vector<Vec4i>::iterator it2 = it1+1; it2 != likely_lines.end(); it2++) {
+			Point p1A = Point((*it1)[0], (*it1)[1]);
+			Point p1B = Point((*it1)[2], (*it1)[3]);
+			Point p2A = Point((*it2)[0], (*it2)[1]);
+			Point p2B = Point((*it2)[2], (*it2)[3]);
+			int y1Avg = (p1A.y+p1B.y)/2;
+			int y2Avg = (p2A.y+p2B.y)/2;
+			if (abs(y1Avg-y2Avg) <= dist) {
+				if (max(y1Avg, y2Avg) > yMax) {
+					yMax = max(y1Avg, y2Avg);
+					ptr1 = it1;
+					ptr2 = it2;
+				}
+			}
+		}
+	}
+	if (yMax > 0) {
+		return src_roi.rows-yMax;
+	} else {
+		return -1;
+	}
+}
+
+int LineDetector::detectStartLine(int dist) {
+	Rect roi_left, roi_right;
+	cvtColor(src, src_gray, CV_BGR2GRAY);
+	roi_left = Rect(0, m_frameCanny.rows/2, m_frameCanny.cols/2, m_frameCanny.rows/2);
+	roi_right = Rect(m_frameCanny.cols/2, m_frameCanny.rows/2, m_frameCanny.cols/2, m_frameCanny.rows/2);
+	int yLineLeft = detectHorizontalLine(m_frameCanny(roi_left), dist);
+	int yLineRight = detectHorizontalLine(m_frameCanny(roi_right), dist);
+	if (abs(yLineLeft-yLineRight) <= 10) {
+		return min(yLineLeft, yLineRight);
+	} else {
+		return -1;
+	}
+}
+
+int LineDetector::detectStopLine(int dist) {
+	Mat src_roi;
+	// Cut out the lower right corner
+	Rect roi = Rect(m_frameCanny.cols/2, m_frameCanny.rows/2, m_frameCanny.cols/2, m_frameCanny.rows/2);
+	src_roi = m_frameCanny(roi);
+	return detectHorizontalLine(src_roi, dist);
+}
+
+int LineDetector::getStopLine() {
+	Mat frame_roi;
+	// Cut out the lower right corner
+	Rect roi = Rect(m_frame.cols/2, m_frame.rows/2, m_frame.cols/2, m_frame.rows/2);
+	frame_roi = m_frameCanny(roi);
+	// Hough line transformation
+	HoughLinesP(frame_roi, lines, 1, CV_PI/180, 50, 50, 20);
 	vector<Vec4i> likely_lines;
 	for (vector<Vec4i>::iterator it = lines.begin(); it != lines.end(); it++) {
 		int xA = (*it)[0], yA = (*it)[1];

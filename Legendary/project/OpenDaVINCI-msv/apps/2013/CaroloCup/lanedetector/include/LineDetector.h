@@ -33,6 +33,8 @@ public:
   LineDetector(const Mat& f, const Config& cfg, const bool debug);
   virtual ~LineDetector();
   Lines getLines();
+  int detectStartLine(int dist);
+  int detectStopLine(int dist);
   int getStopLine(const Mat& );
 
   Clusters* getClusters(); // Attila: Only debugging
@@ -51,6 +53,7 @@ private:
   Mat getBirdView(Mat& source);
   void processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv::Mat &outputImg);
   float getLineSlope(Point &p1, Point &p2);
+  int detectHorizontalLine(Mat canny_roi, int dist);
 
   cv::Mat m_frame;
   cv::Mat m_frameCanny;
