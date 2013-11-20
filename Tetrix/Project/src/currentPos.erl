@@ -1,19 +1,47 @@
 -module(currentPos).
 -compile(export_all).
 
-calculatePos(MegaSec, Sec, MiliSec, Speed, RazorData, SteeringRad, SteeringDeg, RazorInit, CarX, CarY, PrevX, PrevY)->
+calculatePos(PrevHal, CurrHal, PrevHeading, CurrHeading)->
 
-    DeltaTime = (MegaSec*1000000+Sec+MiliSec/1000000)-(MegaSec*1000000+Sec+MiliSec/1000000),
+    NewHal = (CurrHal - PrevHal)*100*(1000/57),
+
+    case (NewHal < 0) of
+	true ->
+	    DeltaDistance = NewHal + 1000;
+	false ->
+	    DeltaDistance = NewHal
+    end,
+
+    Angle = CurrHeading - PrevHeading,
+
+    DeltaHeading = normalized((Angle*math:pi()/180))*(180/math:pi()),
+
+    PosX = DeltaDistance * ( math:cos( (CurrHeading * math:pi()/180) )),
     
-    CorrectedSpeed = speedCorrection(Speed),
-
-    DeltaDistance = DeltaTime * CorrectedSpeed * 1000,
+    PosY = DeltaDistance * ( math:sin( (CurrHeading * math:pi()/180) )),
     
-    CarHeading = RazorData - RazorInit + 90, 
+    {PosX, PosY, DeltaHeading}.
 
-    RazorXPos = PrevX + (DeltaDistance * ( math:cos(CarHeading * math:pi()/180))),
-    
-    RazorYPos = PrevY + (DeltaDistance * ( math:sin(CarHeading * math:po()/180))).
+normalized(Angle)->
+    case {Angle > math:pi() , Angle < -math:pi()} of
+	{true, _} ->
+	    NewAngle = normalize(Angle, (-2.0 * math:pi()) );
+	{_,true} ->
+	    NewAngle = normalize(Angle, (2.0 * math:pi()) );
+	_ ->
+	    NewAngle = Angle
+    end,
+    case abs(NewAngle) == math:pi() of
+	true ->
+	    0.0;
+	_ ->
+	    NewAngle
+    end.
 
-speedCorrection(Speed) ->
-    Speed.
+normalize(Angle, MyPI) ->
+    case {Angle > math:pi() , Angle < -math:pi()} of
+	{false,false} ->
+	    Angle;
+	_ ->
+	    normalize(Angle+MyPI, MyPI)
+    end.
