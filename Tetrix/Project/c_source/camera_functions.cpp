@@ -1,7 +1,9 @@
 /* Contains functions for accessing the uEye wide angle camera lense. Functions
  * included are for initializing the camera, retrieving an image, and
  * deinitializing the camera
-*/
+ *
+ */
+
 
 #include <iostream>
 #include <opencv/cv.h>
@@ -83,3 +85,4 @@ bool get_image(char*& img)
   else
     return false;
 }
+ */
