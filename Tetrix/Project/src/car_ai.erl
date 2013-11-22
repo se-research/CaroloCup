@@ -35,10 +35,18 @@ init(State) ->
 % Internal functions Definitions 
 %%--------------------------------------------------------------------
 
-calculate({P1,P2,P3}) ->
+calculate(Node_List) ->
     %% Get car position from vehicle data, in form of {X, Y}
     Car_Position = vehicle_data:car_position(), 
     Car_Heading = math:pi() / 2,
+
+    Len = length(Node_List),
+    P1 = hd(Node_List),
+    P2 = lists:nth(round(Len/2), Node_List),
+    P3 = lists:nth(Len, Node_List),
+    
+
+
 
     %% Get 3 node lists ahead, i.e. Node1 = {5,6}, etc              
     %% {P1,P2,P3} = map_gen:node_ahead(Car_Position), 

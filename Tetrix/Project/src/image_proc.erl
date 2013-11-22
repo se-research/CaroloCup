@@ -36,13 +36,11 @@ init(State) ->
 %%--------------------------------------------------------------------
 
 process(State) ->
-
     %% get car position vehicle_data
     Car_Pos = vehicle_data:car_position(),
     %% Side = map_gen:road_side(),
     
     %% query frame
-    
     case imgproc_nif:get_pic() of
 	{ok, ImgRef} ->
 	    Processed = imgproc_nif:process_pic(ImgRef, State),
@@ -56,7 +54,7 @@ process(State) ->
 	    not_found
     end,
 
-    timer:sleep(30),
+    timer:sleep(10),
     process(State+1).
 
 %% Console print outs for server actions (init, terminate, etc) 

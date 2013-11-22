@@ -18,6 +18,7 @@
 -define(YSCALE, 420/20.0).
 
 -record(state, {node_ahead, road_side, frame_data, matrix_id, camera_matrix}).
+-recor(dash_line, {center_point, box, points, dash_before, dash_after}).
 
 -include("../include/offsetCalculation.hrl").
 
@@ -25,7 +26,9 @@ init([]) ->
     say("init", []),
     
     {ok, ID} = ets:file2tab("include/undistort.txt"),
-    Camera_Matrix = read_cm_file("include/camera_matrix.txt"),
+    %%Camera_Matrix = read_cm_file("include/camera_matrix.txt"),
+
+    ets:new(dash_lines, [set, named_table]),
 
     % Dummy values for the state 
     {ok, #state{road_side = right, node_ahead = {{0,0},{0,0},{0,0}},
@@ -82,19 +85,38 @@ handle_call(_Request, _From, State) ->
 
 %%--------------------------------------------------------------------
 
-handle_cast({add_frame, {{Points, Line_ID}, CarPos}}, State) ->
-    %% io:format("POINTS COMING FROM IMG : ~p~n" , [Points]),
-    NewPoints = translate(State#state.matrix_id, State#state.camera_matrix, Points , []),
-    %% io:format("POINTS TRANSLATED : ~p~n" , [NewPoints]),
+handle_cast({add_frame, {{Dashes, Line_ID}, CarPos}}, State) ->
+    
+    %% NewPoints = translate(State#state.matrix_id, State#state.camera_matrix, Points , []),
 
-
-    case offsetCalculation:calculate_offset_list(Line_ID, ?LaneAdjacent, NewPoints) of
-	{ok, Node_List = [N1,N2,N3 | _]} ->
- 	    car_ai:start({N1,N2,N3}),
-	    {noreply, State#state{node_ahead = {N1, N2, N3}, frame_data = Node_List }};
+    NewDashes = translate_dashes(State#state.matrix_id, Dashes, []),
+    
+    case NewDashes of 
+	[] ->
+	    {noreply, State};
+	[_] ->
+	    {noreply, State};
+	[H,T] ->
+	    P1 = hd(H#dash_line.points),
+	    P3 = lists:nth(3, T#dash_line.points),
+	    P2 = center_point(lists:nth(3, H#dash_line.points), hd(TH#dash_line.points)),
+	    Node_List = [offsetCalculation:calculate_offset_list(Line_ID, 
+								 ?LaneAdjacent, 
+								 H#dash_line.points),
+			 offsetCalculation:calculate_offset_list(Line_ID, 
+								 ?LaneAdjacent, 
+								 [P1,P2,P3]),
+			 offsetCalculation:calculate_offset_list(Line_ID, 
+								 ?LaneAdjacent, 
+								 T#dash_line.points)],
+	    car_ai:start(Node_List),			 
+	    {noreply, State#state{node_ahead = Node_List, frame_data = Node_List }};
 	_ ->
-	    {noreply, State}
+	    Node_List = calculate_offsets(Line_ID, ?LaneAdjacent, NewDashes, []),
+	    car_ai:start(Node_List),
+	    {noreply, State#state{node_ahead = Node_List, frame_data = Node_List }}
     end;
+
 handle_cast(_Msg, State) ->
     {noreply, State}.
 
@@ -125,15 +147,50 @@ code_change(_OldVsn, State, _Extra) ->
 say(Format, Data) ->
     io:format("~p:~p: ~s~n", [?MODULE, self(), io_lib:format(Format, Data)]).
 
-translate(ID, Camera_Matrix, [Point | T] , Buff) ->
+translate_points(ID, [Point | T] , Buff) ->
+    case translate_point(ID, Point) of
+	[] ->
+	    translate_points(ID, T, Buff);
+	NewPoint ->
+	    translate_points(ID, T, Buff ++ [NewPoint])
+    end;
+translate_points(_,[], Buff) ->
+    Buff.
+
+translate_dash(ID, {CenterPoint, {R1,R2,R3,R4} , {Bottom, Center, Top}}) ->
+    #dash_line{center_point = translate_point(ID, CenterPoint), 
+	       box = {translate_point(ID,R1),
+		      translate_point(ID,R2),
+		      translate_point(ID,R3),
+		      translate_point(ID,R4)},
+	       points = [translate_point(ID,Bottom),
+			 translate_point(ID,Center),
+			 translate_point(ID,Top)], 
+	       dash_before = undef, dash_after = undef}.
+
+translate_dashes(ID, [Dash | T], Buff) ->
+    translate_dashes(ID, T, Buff ++ [ translate_dash(ID, Dash) ]); 
+translate_dashes(_,[],Buff) ->
+    Buff.
+
+translate_point(ID, Point) ->
     case ets:lookup(ID , Point) of
 	[] ->
-	    translate(ID, Camera_Matrix, T, Buff);
+	    [];
 	[{_,NewPoint}] ->
-	    translate(ID, Camera_Matrix, T, Buff ++ [NewPoint])
-    end;
-translate(_,_,[], Buff) ->
+	    NewPoint
+    end.
+
+
+calculate_offsets(InputLane, OutputType, [Dash | T] , Buff) ->
+    calculate_offsets(InputLane, OutputType, T , Buff ++ 
+			  [offsetCalculation:calculate_offset_list(InputLane, 
+								   OutputType, 
+								   Dash#dash_line.points)]
+		     );
+calculate_offsets(_, _, [] , Buff) ->
     Buff.
+
 
 
 
@@ -158,3 +215,6 @@ read_cm_file(FileName) ->
 		list_to_tuple(T)
     end.
 
+
+center_point({X1,Y1}, {X2,Y2}) ->
+    {(X1 +X2)/2, (Y1+Y2)/2}.
