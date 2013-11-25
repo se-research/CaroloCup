@@ -11,9 +11,10 @@
 %%--------------------------------------------------------------------
 
 start() ->
-    State = {cunit:getAccelSpeed(), cunit:getHeading()},
+    State = {0, 0},
     Pid = spawn(?SERVER, init, [State]),
-    {ok, Pid}.
+    register(?SERVER, Pid),
+    {ok,Pid}.
 
 %%--------------------------------------------------------------------
 %% Callback Definitions 
@@ -31,11 +32,18 @@ init(State) ->
 %%--------------------------------------------------------------------
 
 loop({PrevHal, PrevHeading}) ->
-    CurrHal = cunit:getAccelSpeed(),
-    CurrHeading = cunit:getHeading(),
-    vehicle_data:update_position(calculatePos(PrevHal, CurrHal, PrevHeading, CurrHeading)),
-    timer:sleep(30),
-    loop({CurrHal,CurrHeading}).
+    receive
+	{data, []} ->
+	    loop({PrevHal, PrevHeading});
+	{data, Bytes} ->
+	    CurrHal = list_to_integer(Bytes),
+	%    CurrHal = cunit:getAccelSpeed(),
+	    CurrHeading = cunit:getHeading(),
+	    vehicle_data:update_position(calculatePos(PrevHal, CurrHal, PrevHeading, CurrHeading)),
+	    loop({CurrHal,CurrHeading})
+    end.
+	    
+   
 
 %%--------------------------------------------------------------------
 %% Internal functions
