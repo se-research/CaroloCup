@@ -1,6 +1,8 @@
 -module(steering).
 -export([findcircle/3, calculate/5,
-        aim/2, followcircle/4, getAng/2, getDistance/2, normalized/1]).
+        aim/2, followcircle/4, getAng/2,
+	getDistance/2, normalized/1,
+        local_to_global/3]).
 
 -include("../include/offsetCalculation.hrl").
 -define(frem(A,B), A - (trunc(A/B) * B)). %%trunc(A) rem B + A - trunc)
@@ -117,4 +119,28 @@ getAng({X1,Y1} , {X2,Y2}) ->
 					
 getDistance({X1,Y1} , {X2,Y2}) ->
     math:sqrt(math:pow(Y2-Y1,2) + math:pow(X2-X1,2)).
+
+local_to_global({CarX, CarY}, CarAng, {CoordXRaw, CoordYRaw}) ->
+    CoordXin = CoordXRaw + 4,
+    CoordYin = CoordYRaw + (-67),
+    CoordXZero = round(CoordXin * 100000) == 0,
+    CoordYZero = round(CoordYin * 100000) == 0,
+    case {CoordXZero,CoordYZero} of 
+	{true,true}->
+	    CoordX=CoordXin+0.000001,
+	    CoordY=CoordYin+0.000001;
+	{true,_} ->
+	    CoordX=CoordXin+0.000001,
+	    CoordY = CoordYin;
+
+	{_,true} ->
+	    CoordY=CoordYin+0.000001,
+	    CoordX=CoordXin;
+	{_,_} -> 
+	    CoordX=CoordXin,
+	    CoordY=CoordYin
+    end,
+    X = CarX + (getDistance({0,0},{CoordX,CoordY})*(math:cos(CarAng+(getAng({0,0},{CoordX,CoordY}))))),
+    Y = CarY + (getDistance({0,0},{CoordX,CoordY})*(math:sin(CarAng+(getAng({0,0},{CoordX,CoordY}))))),
+    {X,Y}.
    
