@@ -85,4 +85,4 @@ bool get_image(char*& img)
   else
     return false;
 }
- */
+ 

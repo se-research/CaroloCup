@@ -54,7 +54,7 @@ process(State) ->
 	    not_found
     end,
 
-    timer:sleep(10),
+    timer:sleep(30),
     process(State+1).
 
 %% Console print outs for server actions (init, terminate, etc) 

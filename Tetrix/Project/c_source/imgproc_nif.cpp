@@ -143,12 +143,12 @@ static ERL_NIF_TERM process_pic(ErlNifEnv* env, int argc, const ERL_NIF_TERM arg
   IplImage* gray = frame->_frame;
   //   GET IMG FROM CAMERA 
 
-   if(image_counter % 5 == 0)
-     {
-       stringstream ss;//create a stringstream
-       ss << "/home/tetrix/images/image" << image_counter/5 << ".jpg" ;//add number to the stream
-       cvSaveImage(ss.str().c_str() , gray);
-     }
+  //   if(image_counter % 5 == 0)
+  //   {
+  //     stringstream ss;//create a stringstream
+  //     ss << "/home/tetrix/images/image" << image_counter/5 << ".jpg" ;//add number to the stream
+  //     cvSaveImage(ss.str().c_str() , gray);
+  //   }
 
 
   // IplImage* src = cvLoadImage("/home/robin/Downloads/pic.png");
@@ -324,6 +324,8 @@ static ERL_NIF_TERM process_pic(ErlNifEnv* env, int argc, const ERL_NIF_TERM arg
   if(dash_index == -1) 
     return enif_make_atom(env, "not_found");
 
+  
+
   ERL_NIF_TERM final_result[grouped[dash_index].size()];
 
   for(unsigned int i = 0; i< grouped[dash_index].size() ; i++)
@@ -358,29 +360,29 @@ static ERL_NIF_TERM process_pic(ErlNifEnv* env, int argc, const ERL_NIF_TERM arg
       bc = center_point(bl,br);
       cc = rr.center;
 
-      ERL_NIF_TERM tl_x = enif_make_int(env, tl.x);
-      ERL_NIF_TERM tl_y = enif_make_int(env, tl.y);
+      ERL_NIF_TERM tl_x = enif_make_int(env, (int) tl.x);
+      ERL_NIF_TERM tl_y = enif_make_int(env, (int) tl.y);
 
-      ERL_NIF_TERM tr_x = enif_make_int(env, tr.x);
-      ERL_NIF_TERM tr_y = enif_make_int(env, tr.y);
+      ERL_NIF_TERM tr_x = enif_make_int(env, (int) tr.x);
+      ERL_NIF_TERM tr_y = enif_make_int(env, (int) tr.y);
 
-      ERL_NIF_TERM bl_x = enif_make_int(env, bl.x);
-      ERL_NIF_TERM bl_y = enif_make_int(env, bl.y);
+      ERL_NIF_TERM bl_x = enif_make_int(env, (int) bl.x);
+      ERL_NIF_TERM bl_y = enif_make_int(env, (int) bl.y);
 
-      ERL_NIF_TERM br_x = enif_make_int(env, br.x);
-      ERL_NIF_TERM br_y = enif_make_int(env, br.y);
+      ERL_NIF_TERM br_x = enif_make_int(env, (int) br.x);
+      ERL_NIF_TERM br_y = enif_make_int(env, (int) br.y);
 
-      ERL_NIF_TERM tc_x = enif_make_int(env, tc.x);
-      ERL_NIF_TERM tc_y = enif_make_int(env, tc.y);
+      ERL_NIF_TERM tc_x = enif_make_int(env, (int) tc.x);
+      ERL_NIF_TERM tc_y = enif_make_int(env, (int) tc.y);
 
-      ERL_NIF_TERM cc_x = enif_make_int(env, cc.x);
-      ERL_NIF_TERM cc_y = enif_make_int(env, cc.y);
+      ERL_NIF_TERM cc_x = enif_make_int(env, (int) cc.x);
+      ERL_NIF_TERM cc_y = enif_make_int(env, (int) cc.y);
 
-      ERL_NIF_TERM bc_x = enif_make_int(env, bc.x);
-      ERL_NIF_TERM bc_y = enif_make_int(env, bc.y);
+      ERL_NIF_TERM bc_x = enif_make_int(env, (int) bc.x);
+      ERL_NIF_TERM bc_y = enif_make_int(env, (int) bc.y);
       
 
-      ERL_NIF_TERM c_point = enif_make_tuple2(env, cc.x, cc.y);
+      ERL_NIF_TERM c_point = enif_make_tuple2(env, cc_x, cc_y);
       
       ERL_NIF_TERM box = enif_make_tuple4(env, 
 					  enif_make_tuple2(env, bl_x, bl_y),
@@ -401,11 +403,13 @@ static ERL_NIF_TERM process_pic(ErlNifEnv* env, int argc, const ERL_NIF_TERM arg
       final_result[i] = result;
       
     }//end of for
-    
-  ERL_NIF_TERM ret = enif_make_list_from_array(env, final_result, grouped[dash_index].size());
   
+
+
+  ERL_NIF_TERM points_erl = enif_make_list_from_array(env, final_result, grouped[dash_index].size());
+
   
-  return ret;
+  return points_erl;
 }
 
 /* Nif function definitions */

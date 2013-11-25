@@ -18,7 +18,7 @@
 -define(YSCALE, 420/20.0).
 
 -record(state, {node_ahead, road_side, frame_data, matrix_id, camera_matrix}).
--recor(dash_line, {center_point, box, points, dash_before, dash_after}).
+-record(dash_line, {center_point, box, points, dash_before, dash_after}).
 
 -include("../include/offsetCalculation.hrl").
 
@@ -32,7 +32,7 @@ init([]) ->
 
     % Dummy values for the state 
     {ok, #state{road_side = right, node_ahead = {{0,0},{0,0},{0,0}},
-		matrix_id = ID , camera_matrix = Camera_Matrix}}.
+		matrix_id = ID , camera_matrix = undef}}.
 
 %%--------------------------------------------------------------------
 % API Function Definitions 
@@ -99,16 +99,12 @@ handle_cast({add_frame, {{Dashes, Line_ID}, CarPos}}, State) ->
 	[H,T] ->
 	    P1 = hd(H#dash_line.points),
 	    P3 = lists:nth(3, T#dash_line.points),
-	    P2 = center_point(lists:nth(3, H#dash_line.points), hd(TH#dash_line.points)),
-	    Node_List = [offsetCalculation:calculate_offset_list(Line_ID, 
-								 ?LaneAdjacent, 
-								 H#dash_line.points),
-			 offsetCalculation:calculate_offset_list(Line_ID, 
-								 ?LaneAdjacent, 
-								 [P1,P2,P3]),
-			 offsetCalculation:calculate_offset_list(Line_ID, 
-								 ?LaneAdjacent, 
-								 T#dash_line.points)],
+	    P2 = center_point(lists:nth(3, H#dash_line.points), hd(T#dash_line.points)),
+	    {ok,[OP1]} = offsetCalculation:calculate_offset_list(Line_ID, ?LaneAdjacent, H#dash_line.points),
+	    {ok,[OP2]} = offsetCalculation:calculate_offset_list(Line_ID, ?LaneAdjacent, [P1,P2,P3]),
+	    {ok,[OP3]} = offsetCalculation:calculate_offset_list(Line_ID, ?LaneAdjacent, T#dash_line.points),
+	    
+	    Node_List = [OP1, OP2, OP3],
 	    car_ai:start(Node_List),			 
 	    {noreply, State#state{node_ahead = Node_List, frame_data = Node_List }};
 	_ ->
@@ -157,7 +153,7 @@ translate_points(ID, [Point | T] , Buff) ->
 translate_points(_,[], Buff) ->
     Buff.
 
-translate_dash(ID, {CenterPoint, {R1,R2,R3,R4} , {Bottom, Center, Top}}) ->
+translate_dash(ID, {CenterPoint, {{R1,R2,R3,R4} , {Bottom, Center, Top}}}) ->
     #dash_line{center_point = translate_point(ID, CenterPoint), 
 	       box = {translate_point(ID,R1),
 		      translate_point(ID,R2),
@@ -183,11 +179,8 @@ translate_point(ID, Point) ->
 
 
 calculate_offsets(InputLane, OutputType, [Dash | T] , Buff) ->
-    calculate_offsets(InputLane, OutputType, T , Buff ++ 
-			  [offsetCalculation:calculate_offset_list(InputLane, 
-								   OutputType, 
-								   Dash#dash_line.points)]
-		     );
+    {ok,[P]} = offsetCalculation:calculate_offset_list(InputLane, OutputType, Dash#dash_line.points),
+    calculate_offsets(InputLane, OutputType, T , Buff ++ [P]);
 calculate_offsets(_, _, [] , Buff) ->
     Buff.
 

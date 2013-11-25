@@ -9,6 +9,7 @@
 
 
 calculate({X1,Y1}, {X2,Y2}, {X3,Y3}, CarPos, CarHeading) ->
+    %%    io:format("~p,~p,~p,~p,~p" , [ {X1,Y1}, {X2,Y2}, {X3,Y3} , CarPos, CarHeading]),
     ValX = min(abs(X1-X2)*1000000, abs(X2-X3)*1000000),
     ValY = min(abs(Y1-Y2)*1000000, abs(Y2-Y3)*1000000),
     case  {ValX < 1 , ValY < 1} of 
@@ -84,7 +85,7 @@ followcircle(CarPos, CenterPoint, Radius, Clockwise) ->
     CenterAng = getAng(CarPos , CenterPoint),
     TangentAngOffset = Clockwise*math:pi()/2,
     LocationOffset = getDistance(CenterPoint , CarPos), 
-    CorrectionAng = (1-(LocationOffset/(Radius+300)))*(Clockwise*math:pi()/2),
+    CorrectionAng = (1-(LocationOffset/(Radius)))*(Clockwise*math:pi()/2),
     CenterAng + TangentAngOffset + CorrectionAng.
     
 normalized(Angle)->
