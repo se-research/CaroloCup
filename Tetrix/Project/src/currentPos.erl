@@ -1,5 +1,53 @@
 -module(currentPos).
+
+-export([start/0, init/1]).
+
 -compile(export_all).
+
+-define(SERVER, ?MODULE).
+
+%%--------------------------------------------------------------------
+% API Function Definitions 
+%%--------------------------------------------------------------------
+
+start() ->
+    State = {cunit:getAccelSpeed(), cunit:getHeading()},
+    Pid = spawn(?SERVER, init, [State]),
+    {ok, Pid}.
+
+%%--------------------------------------------------------------------
+%% Callback Definitions 
+%%--------------------------------------------------------------------
+
+%% @doc
+%% Starts the module
+init(State) ->
+    %% initialize 
+    say("init", []),
+    loop(State).
+
+%%--------------------------------------------------------------------
+%% Internal functions Definitions 
+%%--------------------------------------------------------------------
+
+loop({PrevHal, PrevHeading}) ->
+    CurrHal = cunit:getAccelSpeed(),
+    CurrHeading = cunit:getHeading(),
+    vehicle_data:update_position(calculatePos(PrevHal, CurrHal, PrevHeading, CurrHeading)),
+    timer:sleep(30),
+    loop({CurrHal,CurrHeading}).
+
+%%--------------------------------------------------------------------
+%% Internal functions
+%%--------------------------------------------------------------------
+
+% Console print outs for server actions (init, terminate, etc) 
+say(Format, Data) ->
+    io:format("~p:~p: ~s~n", [?MODULE, self(), io_lib:format(Format, Data)]).
+
+%%--------------------------------------------------------------------
+% API Function Definitions 
+%%--------------------------------------------------------------------
 
 calculatePos(PrevHal, CurrHal, PrevHeading, CurrHeading)->
 
