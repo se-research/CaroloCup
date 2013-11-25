@@ -13,6 +13,10 @@
 %%--------------------------------------------------------------------
 
 start()->
+
+  % Get the program going
+
+  % Initilize the module
   Host = get_hostname(),
   Pid = spawn(?SERVER, init, [Host]),
   register(shell, Pid),
@@ -34,18 +38,29 @@ loop(Host)->
               false ->
                     timer:sleep(1000),
                     io:format("false: no connection\n",[]),
+                    os:cmd(".././run_python"), 
+                    net_kernel:connect_node(list_to_atom("node1@" ++ Host) ),
+%                    os:cmd("cd ../;./run.sh &"), 
+%                    timer:sleep(3000),
+%                    net_kernel:connect_node(list_to_atom("node1@" ++ Host) ),
+%                    os:cmd("erl -pa /ebin/ -sname node1 -setcookie nodes -noshell &"),
+                    %os:cmd("erl -pa /ebin/ -sname node1 -setcookie nodes -noshell &"),
                     loop(Host);
               true ->
                   io:format("connection established\n",[])
         end,
         case rpc:multicall(nodes(), erlang, is_alive, []) of
             {[],[]} ->
-                io:format("no nodes are alive\n",[]),
-                os:cmd("erl -pa /ebin/ -sname node1 -setcookie nodes -noshell &"),
+                 io:format("no nodes are alive\n",[]),
+                 os:cmd(".././run_python"), 
+                 net_kernel:connect_node(list_to_atom("node1@" ++ Host) ),
+ 
+%                os:cmd("erl -pa /ebin/ -sname node1 -setcookie nodes -noshell &"),
                 timer:sleep(1000),
                 loop(Host);
             {[true],_} ->
                 io:format("Monitoring tetrix app",[])
+%                loop(Host)
         end;
       _ ->
         {shell, list_to_atom("node1@" ++ Host) } ! {check_availability, self()}

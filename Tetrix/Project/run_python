@@ -1,0 +1,17 @@
+#!/usr/bin/python
+
+from subprocess import call
+import os
+import sys
+
+def main(argv):   
+    tetrix_path = os.path.dirname(os.path.realpath(__file__))	
+    sys.path.append(tetrix_path)
+    os.chdir(tetrix_path)
+    
+    if len(argv) == 0:
+   	    call(["erl", "-pa" ,"ebin/", "-sname", "node1" , "-setcookie" ,"nodes", "-noshell", "-detached", "&"])  
+
+if __name__ == "__main__":
+    main(sys.argv[1:]) 
+    
