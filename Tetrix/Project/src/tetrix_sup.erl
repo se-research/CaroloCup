@@ -30,7 +30,8 @@ init([]) ->
 			       ?CHILD(map_gen, supervisor), 
 			       ?CHILD_W(tetrix_status, worker), 
 			       ?CHILD(cunit, supervisor), 
-			       ?CHILD(currentPos, worker),
+			       ?CHILD_W(currentPos, worker),
+			       ?CHILD_W(terminal, worker),
 			       ?CHILD_W(image_proc, worker) 
 			       ]}}.
 %            ?CHILD_W(car_ai, worker) , ?CHILD(hardware_data, worker),

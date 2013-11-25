@@ -4,7 +4,7 @@ if [ $# -eq 0 ]; then
     echo -e "\033[1m--> Starting Erlang Shell: \033[0m";
     echo -e "\033[1m-------------------------------------------------------------------------------- \033[0m"
     echo ""
-    ./Monitor/run_python &
+    #./Monitor/run_python &
     sudo erl -pa ebin/ -sname node1 -setcookie nodes
 else
     if [ $1 = clean ]; then
@@ -36,7 +36,6 @@ else
 	echo ""
         ./Monitor/run_python compile
 	if rebar compile; then
-
 	    echo -e "\033[1mErlang Compilation Complete ! \033[0m";
 	    echo -e "\033[1m-------------------------------------------------------------------------------- \033[0m";
 	else
@@ -64,7 +63,12 @@ else
 
 	cd ".."
 	if rebar compile; then
-
+	    cd "erlang-serial"
+	    make clean;
+	    make;
+	    cp -r priv ../
+	    cd "ebin"
+	    cp * ../../ebin/
 	    echo -e "\033[1mErlang Compilation Complete ! \033[0m";
 	    echo -e "\033[1m-------------------------------------------------------------------------------- \033[0m";
 	else
