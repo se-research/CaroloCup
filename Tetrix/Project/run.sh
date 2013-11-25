@@ -5,6 +5,13 @@ if [ $# -eq 0 ]; then
     echo -e "\033[1m-------------------------------------------------------------------------------- \033[0m"
     echo ""
     #./Monitor/run_python &
+    if ps aux | grep "[r]un_python" > /dev/null
+        then
+            echo "Tetrix monitor is already running"
+        else
+	    ./Monitor/run_python &
+	    echo "Activated Tetrix Monitor"
+    fi
     sudo erl -pa ebin/ -sname node1 -setcookie nodes
 else
     if [ $1 = clean ]; then
