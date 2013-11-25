@@ -18,7 +18,7 @@
 -define(YSCALE, 420/20.0).
 
 -record(state, {node_ahead, road_side, frame_data, matrix_id, camera_matrix}).
--record(dash_line, {center_point, box, points, dash_before, dash_after}).
+-record(dash_line, {center_point, box, points, area, dash_before, dash_after}).
 
 -include("../include/offsetCalculation.hrl").
 
@@ -72,6 +72,7 @@ road_side() ->
 
 handle_call({node_ahead,{CarX,CarY}}, _From, State) ->
     % TODO: generate node ahead with {X,Y} values, using dummy values
+    %% query ets for node ahead
     Reply = State#state.node_ahead,
     {reply, Reply, State};
 
@@ -85,12 +86,35 @@ handle_call(_Request, _From, State) ->
 
 %%--------------------------------------------------------------------
 
-handle_cast({add_frame, {{Dashes, Line_ID}, CarPos}}, State) ->
-    
-    %% NewPoints = translate(State#state.matrix_id, State#state.camera_matrix, Points , []),
+handle_cast({add_frame, {{Dashes, Line_ID}, {Car_Pos,Car_Heading}}}, State) ->
 
-    NewDashes = translate_dashes(State#state.matrix_id, Dashes, []),
+
+   
+
+    Temp_Dashes = translate_dashes(State#state.matrix_id, Dashes, {Car_Pos,Car_Heading}, []),
+    NewDashes = connect_dashes(Temp_Dashes, undef, []), 
     
+    Correction = calculate_correct_pos(NewDashes),  
+    case Correction of
+	not_found ->
+	    ok;
+	{Center_Point = {Cx,Cy}, {Offset={Ox,Oy}, Delta_Angle}} ->
+	    Dashes_Needed = remove_dashes_before({Cx-Ox, Cy-Oy}, NewDashes),
+	    Moved_Dashes = move_dashes(Dashes_Needed, Correction, []),
+	    Orig_Dash = ets_lookup(Center_Point),
+	    Connected_Dashes = connect_dashes(Moved_Dashes, Orig_Dash#dash_line.dash_before, []), 	    
+	    clean_ets_dashes(Center_Point),
+	    insert_dashes(Connected_Dashes)
+		
+    end,
+    %% query ets to get closest dash to each
+
+    %% calculate exact car pos
+
+    %% update dashes
+    
+    %% calculate offset nodes
+
     case NewDashes of 
 	[] ->
 	    {noreply, State};
@@ -153,20 +177,24 @@ translate_points(ID, [Point | T] , Buff) ->
 translate_points(_,[], Buff) ->
     Buff.
 
-translate_dash(ID, {CenterPoint, {{R1,R2,R3,R4} , {Bottom, Center, Top}}}) ->
-    #dash_line{center_point = translate_point(ID, CenterPoint), 
-	       box = {translate_point(ID,R1),
-		      translate_point(ID,R2),
-		      translate_point(ID,R3),
-		      translate_point(ID,R4)},
-	       points = [translate_point(ID,Bottom),
-			 translate_point(ID,Center),
-			 translate_point(ID,Top)], 
+translate_dash(ID, {CenterPoint, {{R1,R2,R3,R4} , {Bottom, Center, Top}}}, {Car_Pos, Car_Heading}) ->
+    Center = local_to_global(Car_Pos, Car_Heading, translate_point(ID, CenterPoint)),
+    BottomLeft = local_to_global(Car_Pos, Car_Heading, translate_point(ID,R1)),
+    TopLeft = local_to_global(Car_Pos, Car_Heading, translate_point(ID,R2)),
+    TopRight = local_to_global(Car_Pos, Car_Heading, translate_point(ID,R3)), 
+    BottomRight = local_to_global(Car_Pos, Car_Heading, translate_point(ID,R4)),
+    #dash_line{center_point = Center, 
+	       box = {BottomLeft, TopLeft, TopRight, BottomRight},
+	       points = [local_to_global(Car_Pos, Car_Heading, translate_point(ID,Bottom)),
+			 local_to_global(Car_Pos, Car_Heading, translate_point(ID,Center)),
+			 local_to_global(Car_Pos, Car_Heading, translate_point(ID,Top))], 
+	       area = calculate_box_area(BottomLeft, TopLeft, TopRight, BottomRight),
 	       dash_before = undef, dash_after = undef}.
 
-translate_dashes(ID, [Dash | T], Buff) ->
-    translate_dashes(ID, T, Buff ++ [ translate_dash(ID, Dash) ]); 
-translate_dashes(_,[],Buff) ->
+translate_dashes(ID, [Dash | T], {Car_Pos,Car_Heading} , Buff) ->
+    translate_dashes(ID, T, {Car_Pos,Car_Heading}, 
+		     Buff ++ [ translate_dash(ID, Dash, {Car_Pos,Car_Heading}) ]); 
+translate_dashes(_,[],_,Buff) ->
     Buff.
 
 translate_point(ID, Point) ->
@@ -211,3 +239,186 @@ read_cm_file(FileName) ->
 
 center_point({X1,Y1}, {X2,Y2}) ->
     {(X1 +X2)/2, (Y1+Y2)/2}.
+
+offset_point({X1,Y1}, {X2,Y2}) ->
+    {X2-X1, Y2-Y1}.
+
+
+local_to_global({CarX, CarY}, CarAng, {CoordXin, CoordYin}) ->
+    CoordXZero = round(CoordXin * 100000) == 0,
+    CoordYZero = round(CoordYin * 100000) == 0,
+    case {CoordXZero,CoordYZero} of 
+	{true,true}->
+	    CoordX=CoordXin+0.000001,
+	    CoordY=CoordYin+0.000001;
+	{true,_} ->
+	    CoordX=CoordXin+0.000001,
+	    CoordY = CoordYin;
+	
+	{_,true} ->
+	    CoordY=CoordYin+0.000001,
+	    CoordX=CoordXin;
+	{_,_} -> 
+	    CoordX=CoordXin,
+	    CoordY=CoordYin
+    end,
+    X = CarX + (getDistance({0,0},{CoordX,CoordY})*
+		    (math:cos(CarAng+(getAng({0,0},{CoordX,CoordY}))))),
+    Y = CarY + (getDistance({0,0},{CoordX,CoordY})*
+		    (math:sin(CarAng+(getAng({0,0},{CoordX,CoordY}))))),
+    {X,Y}.
+
+
+closest_in_radius({CX,CY}, Radius) ->
+    MatchSpec = match_spec(CX,CY,Radius),
+    T = ets:select(dash_lines, MatchSpec),
+
+    element(2,hd(ets:lookup(dash_lines, element(2,lists:min(T))))).
+
+
+rect_angle({{X1,Y1},_,{X2,Y2},_}) ->
+    math:atan2(Y2-Y1 , X2-X1).
+
+
+calculate_correct_pos([Dash| T]) ->
+    Corresponding_Dash = closest_in_radius(Dash#dash_line.center_point, 400),
+    Offset = offset_point(Dash#dash_line.center_point , Corresponding_Dash#dash_line.center_point),
+    Angle1 = rect_angle(Dash#dash_line.box),
+    Angle2 = rect_angle(Corresponding_Dash#dash_line.box),
+    Delta_Angle = Angle2 - Angle1,
+    case {Dash#dash_line.area < 50 , Dash#dash_line.area > 30} of
+	{true,true} ->
+	    {Corresponding_Dash#dash_line.center_point, {Offset, Delta_Angle}};
+	_ ->
+	    calculate_correct_pos(T)
+    end;
+calculate_correct_pos([]) ->
+    not_found.
+    
+
+
+calculate_box_area({X1,Y1}, {X2,Y2}, {X3,Y3}, {X4,Y4}) ->
+    abs((X1*Y2 - X2*Y1 + X2*Y3 - X3*Y2 + X3*Y4 - X4*Y3 + X4*Y1 - X1*Y4) / 2).
+
+
+move_dashes([Dash|T], Correction, Buff) ->
+    move_dashes(T, Correction, Buff ++ [move_dash(Dash,Correction)]);
+move_dashes([],_,Buff) ->
+    Buff.
+
+%%    Dash = ets_lookup(Point),
+%%    New_Dash = move_dash(Dash, Correction),
+%%    ets:insert(dash_lines, {Point, New_Dash}),
+%%    case Dash#dash_line.dash_after of
+%%	undef ->
+%%	    ok;
+%%	After ->
+%%	    move_dashes(After, Correction)
+%%    end.
+
+move_dash(#dash_line{center_point = Center, 
+		     box = {P1,P2,P3,P4}, 
+		     points = [BottomP, CenterP, TopP]} , Correction) ->
+    
+
+    #dash_line{center_point = move_point(Center, Correction) ,
+	       box = {move_point(P1, Correction),
+		      move_point(P2, Correction),
+		      move_point(P3, Correction),
+		      move_point(P4, Correction)},
+	       points = [move_point(BottomP, Correction),
+			 move_point(CenterP, Correction),
+			 move_point(TopP, Correction)],
+	       area = calculate_box_area(move_point(P1, Correction),
+					 move_point(P2, Correction),
+					 move_point(P3, Correction),
+					 move_point(P4, Correction))}.
+	
+					 
+move_point({X,Y},{{Cx,Cy},{{Dx,Dy}, Rotation}}) ->
+    
+    Distance = getDistance({X,Y}, {Cx,Cy}),
+    Angle = getAng({Cx,Cy}, {X,Y}),
+    NewX = (Distance * math:cos(Angle+Rotation)) + Cx + Dx,
+    
+    NewY = (Distance * math:sin(Angle+Rotation)) + Cy + Dy,
+    
+
+    
+    %% OffX = X + Dx,
+    %% OffY = Y + Dy,
+    %% Distance = getDistance({OffX,OffY} , {Cx,Cy}),
+    
+    %% NewX = Cx + (Distance * math:cos(Angle)) ,
+    %% NewY = Cy + (Distance * math:sin(Angle)) ,
+    {NewX, NewY}.
+
+
+ets_lookup(Point) ->
+    case ets:lookup(dash_lines, Point) of
+	[] ->
+	    ok;
+	[{Point, Value}] ->
+	    Value
+    end.
+
+
+
+getAng({X1,Y1} , {X2,Y2}) -> 
+    math:atan2(Y2-Y1,X2-X1).
+					
+getDistance({X1,Y1} , {X2,Y2}) ->
+    math:sqrt(math:pow(Y2-Y1,2) + math:pow(X2-X1,2)).
+   
+
+
+connect_dashes([H1,H2|T] , Before , Buff) ->
+    connect_dashes([H2|T], H1#dash_line.center_point , 
+		   Buff ++ [H1#dash_line{dash_before = Before , 
+					 dash_after = H2#dash_line.center_point}]);
+connect_dashes([H], Before, Buff) ->
+    	   Buff ++ [H#dash_line{dash_before = Before , 
+					 dash_after = undef}].
+
+
+remove_dashes_before({Cx,Cy},List = [H|T]) ->
+    case H#dash_line.center_point of
+	{Cx,Cy} ->
+	    List;
+	_ ->
+	    remove_dashes_before({Cx,Cy}, T)
+    end;
+remove_dashes_before(_,[]) ->
+    well_fuck.
+
+clean_ets_dashes(Point) ->
+    Orig_Dash = ets_lookup(Point),
+    ets:delete(dash_lines, Point),
+    case Orig_Dash#dash_line.dash_after of
+	undefined ->
+	    ok;
+	Next ->
+	    clean_ets_dashes(Next)
+    end.
+
+
+insert_dashes([Dash|T]) ->
+    ets:insert(dash_lines, {Dash#dash_line.center_point, Dash}),
+    insert_dashes(T);
+insert_dashes([]) ->
+    ok.
+
+match_spec(CX,CY,R) ->
+[{{{'$1','$2'},'$3'},
+  [{'andalso',{'<',{'+',{'*',{'-','$1',{const,CX}},
+                             {'-','$1',{const,CX}}},
+                        {'*',{'-','$2',{const,CY}},{'-','$2',{const,CY}}}},
+                   {'*',{const,R},{const,R}}},
+              {'>',{'+',{'*',{'-','$1',{const,CX}},{'-','$1',{const,CX}}},
+                        {'*',{'-','$2',{const,CY}},{'-','$2',{const,CY}}}},
+                   {'-',{'*',{const,R},{const,R}}}}}],
+  [{{{'+',{'*',{'-','$1',{const,CX}},{'-','$1',{const,CX}}},
+          {'*',{'-','$2',{const,CY}},{'-','$2',{const,CY}}}},
+     {{'$1','$2'}}}}]}].
+
+		  
