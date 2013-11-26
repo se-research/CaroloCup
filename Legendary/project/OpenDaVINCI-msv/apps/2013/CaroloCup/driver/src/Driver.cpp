@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <math.h>
+#include <sstream>
 
 #include "core/io/ContainerConference.h"
 #include "core/data/Container.h"
@@ -52,11 +53,20 @@ namespace carolocup {
     m_timestamp(0) ,
     m_leftLine(Vec4i(0,0,0,0)) ,
     m_rightLine(Vec4i(0,0,0,0)) ,
-    m_dashedLine(Vec4i(0,0,0,0))
+    m_dashedLine(Vec4i(0,0,0,0)),
+    m_protocol();
   {
     m_controlGains[0] = 8.0/3;
     m_controlGains[1] = 8.0/3;
     m_controlGains[2] = 8.0/3;
+	/*
+    const string SERIAL_PORT = "/dev/ttyACM0";
+		const uint32_t SERIAL_SPEED =115200;
+		m_serialPortPtr = core::wrapper::SerialPortFactory::createSerialPort(SERIAL_PORT, SERIAL_SPEED);
+        m_protocol.setStringSender(m_serialPortPtr);
+        m_protocol.setArduinoMegaDataListener(this);
+        m_serialPortPtr->setPartialStringReceiver(&m_protocol);
+	*/
   }
 
 	// Destructor
@@ -81,6 +91,13 @@ namespace carolocup {
 		core::base::LIFOQueue lifo;
 		addDataStoreFor(lifo);
 		int x1, x2, x3, x4, y1, y2, y3, y4;
+		const string SERIAL_PORT = "/dev/ttyACM0";
+		const uint32_t SERIAL_SPEED = 115200;
+		core::wrapper::SerialPort *serialPort = core::wrapper::SerialPortFactory::createSerialPort(SERIAL_PORT, SERIAL_SPEED);
+		ArduinoMegaProtocol protocol;
+        protocol.setStringSender(serialPort);
+        protocol.setArduinoMegaDataListener(this);
+        serialPort->setPartialStringReceiver(&protocol);
 
 		while (getModuleState() == ModuleState::RUNNING) {
 			m_hasReceivedLaneDetectionData = false;
@@ -205,24 +222,29 @@ namespace carolocup {
 			//m_desiredSteeringWheelAngle = feedbackLinearizationController();
 
 			// Create vehicle control data.
-			VehicleControl vc;
+			//VehicleControl vc;
 
 			// Range of -2.0 (backwards) .. 0 (stop) .. +2.0 (forwards), set constant speed
-      vc.setSpeed(m_speed);
+      		//vc.setSpeed(m_speed);
 
 			// With setSteeringWheelAngle, you can steer in the range of -26 (left) .. 0 (straight) .. +25 (right)
 			//double desiredSteeringWheelAngle = 4; // 4 degree but m_SteeringWheelAngle expects the angle in radians!
-      vc.setSteeringWheelAngle(m_desiredSteeringWheelAngle);
+      		//vc.setSteeringWheelAngle(m_desiredSteeringWheelAngle);
 
 			// You can also turn on or off various lights:
-			vc.setBrakeLights(false);
-			vc.setLeftFlashingLights(false);
-			vc.setRightFlashingLights(false);
+			//vc.setBrakeLights(false);
+			//vc.setLeftFlashingLights(false);
+			//vc.setRightFlashingLights(false);
 
 			// Create container for finally sending the data.
-			Container c(Container::VEHICLECONTROL, vc);
+			//Container c(Container::VEHICLECONTROL, vc);
 			// Send container.
-			getConference().send(c);
+			//getConference().send(c);	
+			stringstream speedStrem, steeringAngleStream;
+			speedStream << 'm' << uint16_t((m_speed+2)/4.0*(1619-1523) + 1523) << '\0';
+			protocol.sendByStringSender(speedStream.str());
+			steeringAngleStream << 's' << uint16_t(m_desiredSteeringWheelAngle*180/M_PI) << '\0';
+			protocol.sendByStringSender(steeringAngleStream.str());
 		}
 
 		return ModuleState::OKAY;
