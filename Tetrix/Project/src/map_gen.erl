@@ -139,16 +139,15 @@ handle_cast({add_frame, {{Dashes, Line_ID}, {Car_Pos,Car_Heading}}}, State) ->
             P1 = hd(H#dash_line.points),
             P3 = lists:nth(3, T#dash_line.points),
             P2 = center_point(lists:nth(3, H#dash_line.points), hd(T#dash_line.points)),
-            Node_List = [offsetCalculation:calculate_offset_list(Line_ID, ?LaneAdjacent, 
-								 H#dash_line.points),
-                         offsetCalculation:calculate_offset_list(Line_ID, ?LaneAdjacent, 
-                                                                 [P1,P2,P3]),
-                         offsetCalculation:calculate_offset_list(Line_ID, ?LaneAdjacent, 
-                                                                 T#dash_line.points)],
+            {ok,[OP1]} = offsetCalculation:calculate_offset_list(Line_ID, ?LaneAdjacent, H#dash_line.points),
+            {ok,[OP2]} = offsetCalculation:calculate_offset_list(Line_ID, ?LaneAdjacent, [P1,P2,P3]),
+            {ok,[OP3]} = offsetCalculation:calculate_offset_list(Line_ID, ?LaneAdjacent, T#dash_line.points),
+            
+            Node_List = [OP1, OP2, OP3],
             car_ai:start(Node_List),                         
-            {noreply, State#state{node_ahead = Node_List, frame_data = Node_List , mode = recording}};
+            {noreply, State#state{node_ahead = Node_List, frame_data = Node_List ,mode = recording}};
         _ ->
-            Node_List = calculate_offsets(Line_ID, ?LaneAdjacent, New_Dashes, []),
+            Node_List = calculate_offsets(Line_ID, ?LaneAdjacent, NewDashes, []),
             car_ai:start(Node_List),
             {noreply, State#state{node_ahead = Node_List, frame_data = Node_List , mode = recording}}
     end;
