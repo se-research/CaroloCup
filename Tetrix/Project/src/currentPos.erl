@@ -33,13 +33,15 @@ init(State) ->
 
 loop({PrevHal, PrevHeading}) ->
     receive
-	{data, []} ->
-	    loop({PrevHal, PrevHeading});
-	{data, Bytes} ->
+	{hal, []} ->
+	    loop({PrevHal, PrevHeading}); 
+	{hal,  Bytes} ->
 	    CurrHal = list_to_integer(Bytes),
 	%    CurrHal = cunit:getAccelSpeed(),
 	    CurrHeading = cunit:getHeading(),
-	    vehicle_data:update_position(calculatePos(PrevHal, CurrHal, PrevHeading, CurrHeading)),
+            say("Hal: ~p", [CurrHal]),
+	   % say("Positions: ~p", [calculatePos(PrevHal, CurrHal, PrevHeading, CurrHeading)]),     
+vehicle_data:update_position(calculatePos(PrevHal, CurrHal, PrevHeading, CurrHeading)),
 	    loop({CurrHal,CurrHeading})
     end.
 	    
@@ -59,7 +61,7 @@ say(Format, Data) ->
 
 calculatePos(PrevHal, CurrHal, PrevHeading, CurrHeading)->
 
-    NewHal = (CurrHal - PrevHal)*100*(1000/57),
+    NewHal = (CurrHal - PrevHal)*(1000/57),
 
     case (NewHal < 0) of
 	true ->

@@ -93,7 +93,7 @@ handle_call(_Request, _From, State) ->
 
 handle_cast({add_frame, {{Dashes, Line_ID}, {Car_Pos,Car_Heading}}}, State) ->
 
-
+    
     
 
     Temp_Dashes = translate_dashes(State#state.matrix_id, Dashes, {Car_Pos,Car_Heading}, []),
@@ -101,24 +101,24 @@ handle_cast({add_frame, {{Dashes, Line_ID}, {Car_Pos,Car_Heading}}}, State) ->
     
     case State#state.mode of
 	start ->
-	     insert_dashes(NewDashes);
-	recording ->
-	    Correction = calculate_correct_pos(NewDashes),  
-	    case Correction of
-		not_found ->
-		    ok;
-		{Center_Point = {Cx,Cy}, {Offset={Ox,Oy}, Delta_Angle}} ->
-		    Dashes_Needed = remove_dashes_before({Cx-Ox, Cy-Oy}, NewDashes),
-		    Moved_Dashes = move_dashes(Dashes_Needed, Correction, []),
-		    Orig_Dash = ets_lookup(Center_Point),
-		    Connected_Dashes = connect_dashes(Moved_Dashes, 
-						      Orig_Dash#dash_line.dash_before, []), 	    
-		    clean_ets_dashes(Center_Point),
-		    insert_dashes(Connected_Dashes),
-		    New_CarPos = move_point(Car_Pos, Correction),
-		    gen_server:cast(vehicle_data, {correct_position, New_CarPos})
-	    end
-    end,
+ 	     insert_dashes(NewDashes);
+ 	recording ->
+ 	    Correction = calculate_correct_pos(NewDashes),  
+ 	    case Correction of
+ 		not_found ->
+ 		    ok;
+ 		{Center_Point = {Cx,Cy}, {Offset={Ox,Oy}, Delta_Angle}} ->
+ 		    Dashes_Needed = remove_dashes_before({Cx-Ox, Cy-Oy}, NewDashes),
+  		    Moved_Dashes = move_dashes(Dashes_Needed, Correction, []),
+  		    Orig_Dash = ets_lookup(Center_Point),
+  		    Connected_Dashes = connect_dashes(Moved_Dashes, 
+  						      Orig_Dash#dash_line.dash_before, []), 	    
+  		    clean_ets_dashes(Center_Point),
+ 		    insert_dashes(Connected_Dashes),
+ 		    New_CarPos = move_point(Car_Pos, Correction),
+ 		    gen_server:cast(vehicle_data, {correct_position, New_CarPos})
+ 	    end
+     end,
     %% query ets to get closest dash to each
 
     %% calculate exact car pos
@@ -128,29 +128,29 @@ handle_cast({add_frame, {{Dashes, Line_ID}, {Car_Pos,Car_Heading}}}, State) ->
     %% calculate offset nodes
 
 
-    New_Dashes = translate_dashes(State#state.matrix_id, Dashes, []),
+     New_Dashes = translate_dashes(State#state.matrix_id, Dashes, {{4,-67},math:pi()/2},[]),
     
-    case New_Dashes of 
-        [] ->
-            {noreply, State};
-        [_] ->
-            {noreply, State};
-        [H,T] ->
-            P1 = hd(H#dash_line.points),
-            P3 = lists:nth(3, T#dash_line.points),
-            P2 = center_point(lists:nth(3, H#dash_line.points), hd(T#dash_line.points)),
-            {ok,[OP1]} = offsetCalculation:calculate_offset_list(Line_ID, ?LaneAdjacent, H#dash_line.points),
-            {ok,[OP2]} = offsetCalculation:calculate_offset_list(Line_ID, ?LaneAdjacent, [P1,P2,P3]),
-            {ok,[OP3]} = offsetCalculation:calculate_offset_list(Line_ID, ?LaneAdjacent, T#dash_line.points),
-            
-            Node_List = [OP1, OP2, OP3],
-            car_ai:start(Node_List),                         
-            {noreply, State#state{node_ahead = Node_List, frame_data = Node_List ,mode = recording}};
-        _ ->
-            Node_List = calculate_offsets(Line_ID, ?LaneAdjacent, NewDashes, []),
-            car_ai:start(Node_List),
-            {noreply, State#state{node_ahead = Node_List, frame_data = Node_List , mode = recording}}
-    end;
+     case New_Dashes of 
+         [] ->
+             {noreply, State};
+         [_] ->
+             {noreply, State};
+         [H,T] ->
+             P1 = hd(H#dash_line.points),
+             P3 = lists:nth(3, T#dash_line.points),
+             P2 = center_point(lists:nth(3, H#dash_line.points), hd(T#dash_line.points)),
+             {ok,[OP1]} = offsetCalculation:calculate_offset_list(Line_ID, ?LaneAdjacent, H#dash_line.points),
+             {ok,[OP2]} = offsetCalculation:calculate_offset_list(Line_ID, ?LaneAdjacent, [P1,P2,P3]),
+             {ok,[OP3]} = offsetCalculation:calculate_offset_list(Line_ID, ?LaneAdjacent, T#dash_line.points),
+             
+             Node_List = [OP1, OP2, OP3],
+             car_ai:start(Node_List),                         
+             {noreply, State#state{node_ahead = Node_List, frame_data = Node_List ,mode = recording}};
+         _ ->
+             Node_List = calculate_offsets(Line_ID, ?LaneAdjacent, NewDashes, []),
+             car_ai:start(Node_List),
+             {noreply, State#state{node_ahead = Node_List, frame_data = Node_List , mode = recording}}
+     end;
 
 handle_cast(_Msg, State) ->
     {noreply, State}.

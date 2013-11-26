@@ -28,7 +28,7 @@
 -module(serial).
 -author('jb@erix.ericsson.se').
 
--export([start/0,start/1,init/1,loop/2]).
+-export([start/0,start/2,init/1,loop/2]).
 
 -include("serial.hrl").
 
@@ -41,10 +41,10 @@ priv_dir() ->
     end.
 
 start() ->
-    start([]).
+    start([],0).
 
-start(Options) ->
-    Pid = spawn_link(serial, init, [self()]),
+start(Options, Pide) ->
+    Pid = spawn_link(serial, init, [Pide]),
     process_options(Pid,Options),
     Pid.
 

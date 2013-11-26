@@ -34,26 +34,60 @@
 
 -define(DEVICE, "/dev/ttyUSB0").
 
--define(SERVER, ?MODULE).
+-define(HAL, ?MODULE).
 
 start() ->
     Speed = 9600,
-    SerialPort = serial:start([{speed,Speed}]), % roland
-%    SerialPort = serial:start([{speed,Speed},{open,?DEVICE}]),
-    %spawn_link(terminal,tty_listner,[SerialPort]),
     Pid = whereis(currentPos),
-    X = spawn(?SERVER, init, [Pid]),
+    X = spawn(?HAL, init, [Pid]),
+%    SerialPort = serial:start([{speed,Speed}]), % roland
+    SerialPort = serial:start([{speed,Speed},{open,?DEVICE}], X),
+    %spawn_link(terminal,tty_listner,[SerialPort]),
     {ok,X}.
 
 init(State) ->
-    serial_listner(State).
+    serial_listner(State,[]).
 
-serial_listner(Pid) ->
+serial_listner(Pid, State) ->
     receive
 	{data, Bytes} ->
-	    remove_letters(remove_ctrl(binary_to_list(Bytes)),Pid),
-	    serial_listner(Pid)
+	    io:format("BYTE RECEIVED : ~p ~n", [Bytes]),
+	    Buff = binary_to_list(Bytes),
+	    NewState = parse(Buff,State,Pid),
+	    serial_listner(Pid,NewState)
     end.
+
+parse([$| | T], State,Pid) ->
+    Pid ! {hal, State},
+    parse(T,[],Pid);
+parse([$% | T] ,State, Pid) ->
+    parse(T,State,Pid);
+parse([H|T],State,Pid) ->
+    parse(T,State ++ [H],Pid);
+parse([],State,Pid) ->
+    State.
+
+
+checker([], Buff, Status) ->
+    Buff;
+
+checker([H|T], Buff, true) ->
+    case H of
+	$| ->
+	    true;
+	_ ->
+	    checker(T, Buff, true)
+    end;
+
+checker([H|T], Buff, false) ->
+    io:format("Head: ~p ~n", [H]),
+    case H of
+	$% ->
+	    checker(Buff, Buff, true);
+	_ ->
+	    checker(T, Buff, false)
+    end.
+
 
 tty_listner(SerialPort)  ->
     Char = io:get_line('Terminal> '),
@@ -67,17 +101,17 @@ replace([H|T],H,Y) ->
 replace([H|T],X,Y) ->
     [H|replace(T,X,Y)].
 
-remove_ctrl([]) -> [];
-remove_ctrl([H|T]) ->
+remove_ctrl([],Buff) -> Buff;
+remove_ctrl([H|T], Buff) ->
     case H of
 	X when X == 10 ->
-	    [10,13 | remove_ctrl(T)];
+	    remove_ctrl(T, Buff ++ [10,13]);
 	X when X < 32 ->
-	    remove_ctrl(T);
+	    remove_ctrl(T, Buff);
 	X when X > 200 ->
-	    remove_ctrl(T);
+	    remove_ctrl(T, Buff);
 	_ ->
-	    [H | remove_ctrl(T)]
+	    remove_ctrl(T, Buff++[H])
     end.
 
 gs_remove_ctrl([]) -> [];
@@ -92,18 +126,19 @@ gs_remove_ctrl([H|T]) ->
 	_ ->
 	    [H | gs_remove_ctrl(T)]
     end.
+
 remove_letters(List,Pid) -> remove_letters(List,[],Pid).
 remove_letters([H|T],Buff,Pid) ->
      case H of
 	X when X == 37 ->
 	    remove_letters(T,Buff,Pid);
         X when X == 124 ->
-	    currentPos ! {data, Buff},
-	    remove_letters(T,[],Pid);
+	     Buff;
+%%	    remove_letters(T,Buff,Pid);
 	_ ->
-	remove_letters(T,[H|Buff],Pid)
+	     remove_letters(T,Buff++[H],Pid)
     end;
-remove_letters([],Buff,Pid)-> lists:reverse(Buff).
+remove_letters([],Buff,Pid)-> Buff.
 
 
 
