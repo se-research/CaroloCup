@@ -3,9 +3,6 @@
 #include "lmmin.h"
 #include "math.h"
 
-#define Kkk 0.000001
-#define fEqual(x,y) (fabs(x-y) < Kkk * FLT_EPSILON * fabs(x+y)) || (fabs(x-y) < FLT_MIN)
-
 //#ifdef DEBUG_MAP	// if defined, a 2D map will be created (which slows down the process)
 
 using namespace std;

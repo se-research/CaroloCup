@@ -31,7 +31,9 @@ namespace carolocup {
         derGain(0),
         speed(0),
         width(0),
-        height(0)
+        height(0),
+        startLineHeight(0),
+        stopLineHeight(0)
     {}
       Lines (Vec4i l, Vec4i d, Vec4i r) :
         leftLine(l) ,
@@ -42,7 +44,9 @@ namespace carolocup {
         derGain(0),
         speed(0),
         width(0),
-        height(0)
+        height(0),
+        startLineHeight(0),
+        stopLineHeight(0)
     {}
       virtual ~Lines () {}
 
@@ -55,8 +59,9 @@ namespace carolocup {
       int speed;
       int width;
       int height;
+      int startLineHeight;
+      int stopLineHeight;
   };
-
 
   /**
    * This is an example how you can send data from one component to another.

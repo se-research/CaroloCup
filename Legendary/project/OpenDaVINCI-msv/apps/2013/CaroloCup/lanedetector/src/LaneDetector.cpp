@@ -156,11 +156,11 @@ bool LaneDetector::readSharedImage(Container &c) {
 	return retVal;
 }
 
-static Scalar randomColor( RNG& rng )
+/*static Scalar randomColor( RNG& rng )
 {
   int icolor = (unsigned) rng;
   return Scalar( icolor&255, (icolor>>8)&255, (icolor>>16)&255 );
-}
+}*/
 
 void LaneDetector::processImage() {
   TimeStamp currentTime_strt1;
@@ -176,6 +176,8 @@ void LaneDetector::processImage() {
   lines.speed = m_config.speed;
   lines.width =  m_image->width;
   lines.height = m_image->height;
+  lines.stopLineHeight = road.detectStopLine(10);
+  lines.startLineHeight = road.detectStartLine(10);
 
   LaneDetectionData data;
   data.setLaneDetectionData(lines);
@@ -212,8 +214,13 @@ void LaneDetector::processImage() {
     line( dst, Point(dashed[0], dashed[1]), Point(dashed[2], dashed[3]), Scalar(0,255,0), 3, CV_AA);
     line( dst, Point(solidRight[0], solidRight[1]), Point(solidRight[2], solidRight[3]), Scalar(255,0,0), 3, CV_AA);
     line( dst, Point(solidLeft[0], solidLeft[1]), Point(solidLeft[2], solidLeft[3]), Scalar(0,0,255), 3, CV_AA);
-
-    //imshow("output", dst);
+    if(lines.stopLineHeight != -1) {
+        line( dst, Point(0, lines.stopLineHeight), Point(640, lines.stopLineHeight), Scalar(0,255,0), 3, CV_AA);
+    }
+    if(lines.startLineHeight != -1) {
+        line( dst, Point(0, lines.startLineHeight), Point(640, lines.startLineHeight), Scalar(255,0,0), 3, CV_AA);
+    }
+    imshow("output", dst);
     waitKey(50);
   }
 }

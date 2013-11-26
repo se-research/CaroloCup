@@ -11,6 +11,5 @@ target_link_libraries( Main ${OpenCV_LIBS} ${CCDATA_LIBS} ${OPENDAVINCI_LIBS} ${
 INCLUDE_DIRECTORIES (${libopendavinci_SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES (../../cc-data/include)
 INCLUDE_DIRECTORIES (../include)
-INCLUDE_DIRECTORIES (../vanishingPoint)
 INCLUDE_DIRECTORIES (../../../../../libopendavinci/include)
 

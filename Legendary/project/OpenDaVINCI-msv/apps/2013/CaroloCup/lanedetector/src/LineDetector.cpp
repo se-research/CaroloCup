@@ -1,4 +1,5 @@
 #include "LineDetector.h"
+#include "MSAC.h"
 #include <stdio.h>
 #include <math.h>
 
@@ -23,36 +24,14 @@ LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug)
   , detectedLines()
   , supposedMidLine()
 {
-  //Mat birdView;
-  Mat outputImg = f.clone(),frame = f.clone();
+  Mat outputImg = f.clone(), frame = f.clone();
   //if (m_debug) imshow("frame",frame);
   cvtColor( frame, frame, CV_BGR2GRAY );
   threshold( frame, frame, m_config.caThVal, m_config.caThMax, m_config.caThTyp );
-  //warpPerspective(frame, birdView, getBirdView(frame), frame.size(), INTER_CUBIC|WARP_INVERSE_MAP);
+  m_frame = frame;
+  // Canny
+  cv::Canny(m_frame, m_frameCanny, 180, 120, 3);
 
-  //if (m_debug) imshow("bird",birdView);
-  //GaussianBlur( frame, frame, Size(7,7), 1.5, 1.5 ); // try to remove this!
-  //Canny( frame, frame, m_config.th1, m_config.th2 );
-  //if (m_debug) imshow("th",birdView);
-
-  //Canny( birdView, birdView, m_config.th1, m_config.th2 );
-  //if (m_debug) imshow("canny",birdView);
-  /*vector<Vec4i> lines;
-  HoughLinesP(birdView, lines, 1, CV_PI/180, m_config.hlTh, m_config.hlMaxLineLength, m_config.hlMaxLineGap );
-  cout << "size: " << lines.size();
-  for(unsigned int i = 0; i < lines.size(); i++) {
-    if(lines.at(i)[0] != lines.at(i)[2]) {
-      float slope = (lines.at(i)[1] - lines.at(i)[3]) / (lines.at(i)[0] - lines.at(i)[2]);
-      int full = slope / (M_PI/2);
-      slope = slope - (full * (M_PI/2)); 
-      if(abs(slope) < M_PI/6) {
-        lines.erase(lines.begin() + i);
-    i--;
-      }
-    }
-  }
-  cout << "size: " << lines.size() << endl;
-  m_clusters = new Dbscan(&lines, m_config.dbEps, m_config.dbMinPts);*/
   // Create and init MSAC
   MSAC msac;
   double w = frame.size().width;
@@ -64,6 +43,7 @@ LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug)
   // Process        
   // ++++++++++++++++++++++++++++++++++++++++
   processImageMSAC(msac, 1, frame, outputImg);
+  
   // View
   if(m_debug) imshow("Before output", frame);
   if(m_debug) imshow("Output", outputImg);
@@ -371,17 +351,17 @@ Mat LineDetector::getBirdView(Mat& source) {
 /** This function contains the actions performed for each image*/
 void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv::Mat &outputImg)
 {
-    cv::Mat imgCanny;
+    //cv::Mat imgCanny;
 
     // Canny
-    cv::Canny(imgGRAY, imgCanny, 180, 120, 3);
+    //cv::Canny(imgGRAY, imgCanny, 180, 120, 3);
 
     // Hough
     vector<vector<cv::Point> > lineSegments;
     vector<cv::Point> aux;
 #ifndef USE_PPHT
     vector<Vec2f> lines;
-    cv::HoughLines( imgCanny, lines, 1, CV_PI/180, 200);
+    cv::HoughLines( m_frameCanny, lines, 1, CV_PI/180, 200);
 
     for(size_t i=0; i< lines.size(); i++)
     {
@@ -411,13 +391,13 @@ void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv
     if(imgGRAY.cols*imgGRAY.rows < 400*400)
         houghThreshold = 100;        
     
-    cv::HoughLinesP(imgCanny, lines, 1, CV_PI/180, houghThreshold, 10,10);
+    cv::HoughLinesP(m_frameCanny, lines, 1, CV_PI/180, houghThreshold, 10,10);
 
     while(lines.size() > MAX_NUM_LINES)
     {
         lines.clear();
         houghThreshold += 10;
-        cv::HoughLinesP(imgCanny, lines, 1, CV_PI/180, houghThreshold, 10, 10);
+        cv::HoughLinesP(m_frameCanny, lines, 1, CV_PI/180, houghThreshold, 10, 10);
     }
         cout << "Hough: " << houghThreshold << endl;
     for(size_t i=0; i<lines.size(); i++)
@@ -549,7 +529,7 @@ void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv
                 }
                 float segmentLength = getDist(customLineSegments[i].p1, customLineSegments[i+1].p1);
                 cout << "Segment Length: " << segmentLength << endl;
-                if (sameLinesLength == 0 && segmentLength > 10) {
+                if ((fEqual(sameLinesLength,0)) && (segmentLength > 10)) {
                        sameLinesLength = segmentLength;
                     minLength = segmentLength;
                     maxLength = segmentLength;
@@ -567,7 +547,7 @@ void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv
                 
                         }
                     } else {
-                        if(segmentLength > 10 && ((maxLength + 50) < segmentLength ) || (segmentLength < minLength - 50)) {
+                        if((segmentLength > 10) && (((maxLength + 50) < segmentLength ) || (segmentLength < minLength - 50))) {
                             sameLinesLength += 2000;
                             //countSameLines = 1;
                         }
@@ -598,6 +578,69 @@ void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv
     midUp.x = 320;
     midUp.y = 480;
     line(outputImg, midLow, midUp, cv::Scalar(0,0,255), 2);*/
+}
+
+int LineDetector::detectHorizontalLine(Mat canny_roi, int dist) {
+        vector<Vec4i> lines;
+	// Hough line detection
+	HoughLinesP(canny_roi, lines, 1, CV_PI/180, 50, 100, 100);
+	vector<Vec4i> likely_lines;
+	for (vector<Vec4i>::iterator it = lines.begin(); it != lines.end(); it++) {
+		int xA = (*it)[0], yA = (*it)[1];
+		int xB = (*it)[2], yB = (*it)[3];
+		double theta = atan2(yB-yA, xB-xA);
+		cout << "Angle: " << theta*180/CV_PI << endl;
+		if (theta >= -CV_PI/36 && theta <= CV_PI/36) {
+				//&&_roi.cols/2 && xB >= src_roi.cols/2) {
+			likely_lines.push_back(*it);
+			cout << "(" << xA << ", " << yA << "), (" << xB << ", " << yB << ")" << endl;
+		}
+	}
+	int yMax = 0;
+	vector<Vec4i>::iterator ptr1, ptr2;
+	for (vector<Vec4i>::iterator it1 = likely_lines.begin(); it1 != likely_lines.end(); it1++) {
+		for (vector<Vec4i>::iterator it2 = it1+1; it2 != likely_lines.end(); it2++) {
+			Point p1A = Point((*it1)[0], (*it1)[1]);
+			Point p1B = Point((*it1)[2], (*it1)[3]);
+			Point p2A = Point((*it2)[0], (*it2)[1]);
+			Point p2B = Point((*it2)[2], (*it2)[3]);
+			int y1Avg = (p1A.y+p1B.y)/2;
+			int y2Avg = (p2A.y+p2B.y)/2;
+			if (abs(y1Avg-y2Avg) <= dist) {
+				if (max(y1Avg, y2Avg) > yMax) {
+					yMax = max(y1Avg, y2Avg);
+					ptr1 = it1;
+					ptr2 = it2;
+				}
+			}
+		}
+	}
+	if (yMax > 0) {
+		return canny_roi.rows-yMax;
+	} else {
+		return -1;
+	}
+}
+
+int LineDetector::detectStartLine(int dist) {
+	Rect roi_left, roi_right;
+	roi_left = Rect(0, m_frameCanny.rows/2, m_frameCanny.cols/2, m_frameCanny.rows/2);
+	roi_right = Rect(m_frameCanny.cols/2, m_frameCanny.rows/2, m_frameCanny.cols/2, m_frameCanny.rows/2);
+	int yLineLeft = detectHorizontalLine(m_frameCanny(roi_left), dist);
+	int yLineRight = detectHorizontalLine(m_frameCanny(roi_right), dist);
+	if (abs(yLineLeft-yLineRight) <= 10) {
+		return min(yLineLeft, yLineRight);
+	} else {
+		return -1;
+	}
+}
+
+int LineDetector::detectStopLine(int dist) {
+	Mat src_roi;
+	// Cut out the lower right corner
+	Rect roi = Rect(m_frameCanny.cols/2, m_frameCanny.rows/2, m_frameCanny.cols/2, m_frameCanny.rows/2);
+	src_roi = m_frameCanny(roi);
+	return detectHorizontalLine(src_roi, dist);
 }
 
 /** Get the slope of a line defined by two points */

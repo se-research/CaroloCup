@@ -107,6 +107,10 @@ namespace carolocup {
       m_intGain = lines.intGain;
       m_derGain = lines.derGain * 100;
       m_speed = lines.speed / 10.0;
+      // Temporary solution to stop the car if a stop line is detected
+      if (lines.stopLineHeight != -1) {
+        m_speed = 0;
+      }
       int scr_width = lines.width;
       int scr_height = lines.height;
 
