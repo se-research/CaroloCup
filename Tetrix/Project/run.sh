@@ -5,7 +5,7 @@ if [ $# -eq 0 ]; then
     echo -e "\033[1m-------------------------------------------------------------------------------- \033[0m"
     echo ""
     #./Monitor/run_python &
-    if ps aux | grep "[r]un_python" > /dev/null
+    if ps aux | grep "[i]nit_monitor" > /dev/null
         then
             echo "Tetrix monitor is already running"
         else
