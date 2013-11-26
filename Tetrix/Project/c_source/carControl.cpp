@@ -119,7 +119,7 @@ void controll(long mem) {
 		words[y][i-z]=buf[i];
 		}
 	}
-	ptr->axelSpeed =(atof((const char*)words[0])/100);  //speed m/s
+	ptr->axelSpeed =(atof((const char*)words[0]));  //speed m/s
 	ptr->voltage =(atof((const char*)words[1])/10); //voltage V
 	ptr->current =(atof((const char*)words[2])/10); //current A
 	ptr->heading =atoi((const char*)words[3]); //ultra sonic sensor cm

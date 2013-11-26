@@ -1,6 +1,8 @@
 -module(steering).
 -export([findcircle/3, calculate/5,
-        aim/2, followcircle/4, getAng/2, getDistance/2, normalized/1]).
+        aim/2, followcircle/4, getAng/2,
+	getDistance/2, normalized/1,
+        local_to_global/3]).
 
 -include("../include/offsetCalculation.hrl").
 -define(frem(A,B), A - (trunc(A/B) * B)). %%trunc(A) rem B + A - trunc)
@@ -9,6 +11,7 @@
 
 
 calculate({X1,Y1}, {X2,Y2}, {X3,Y3}, CarPos, CarHeading) ->
+    %%    io:format("~p,~p,~p,~p,~p" , [ {X1,Y1}, {X2,Y2}, {X3,Y3} , CarPos, CarHeading]),
     ValX = min(abs(X1-X2)*1000000, abs(X2-X3)*1000000),
     ValY = min(abs(Y1-Y2)*1000000, abs(Y2-Y3)*1000000),
     case  {ValX < 1 , ValY < 1} of 
@@ -84,7 +87,7 @@ followcircle(CarPos, CenterPoint, Radius, Clockwise) ->
     CenterAng = getAng(CarPos , CenterPoint),
     TangentAngOffset = Clockwise*math:pi()/2,
     LocationOffset = getDistance(CenterPoint , CarPos), 
-    CorrectionAng = (1-(LocationOffset/Radius))*(Clockwise*math:pi()/2),
+    CorrectionAng = (1-(LocationOffset/(Radius)))*(Clockwise*math:pi()/2),
     CenterAng + TangentAngOffset + CorrectionAng.
     
 normalized(Angle)->
@@ -116,4 +119,28 @@ getAng({X1,Y1} , {X2,Y2}) ->
 					
 getDistance({X1,Y1} , {X2,Y2}) ->
     math:sqrt(math:pow(Y2-Y1,2) + math:pow(X2-X1,2)).
+
+local_to_global({CarX, CarY}, CarAng, {CoordXRaw, CoordYRaw}) ->
+    CoordXin = CoordXRaw + 4,
+    CoordYin = CoordYRaw + (-67),
+    CoordXZero = round(CoordXin * 100000) == 0,
+    CoordYZero = round(CoordYin * 100000) == 0,
+    case {CoordXZero,CoordYZero} of 
+	{true,true}->
+	    CoordX=CoordXin+0.000001,
+	    CoordY=CoordYin+0.000001;
+	{true,_} ->
+	    CoordX=CoordXin+0.000001,
+	    CoordY = CoordYin;
+
+	{_,true} ->
+	    CoordY=CoordYin+0.000001,
+	    CoordX=CoordXin;
+	{_,_} -> 
+	    CoordX=CoordXin,
+	    CoordY=CoordYin
+    end,
+    X = CarX + (getDistance({0,0},{CoordX,CoordY})*(math:cos(CarAng+(getAng({0,0},{CoordX,CoordY}))))),
+    Y = CarY + (getDistance({0,0},{CoordX,CoordY})*(math:sin(CarAng+(getAng({0,0},{CoordX,CoordY}))))),
+    {X,Y}.
    

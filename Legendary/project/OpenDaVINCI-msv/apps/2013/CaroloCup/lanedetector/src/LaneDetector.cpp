@@ -5,8 +5,16 @@
  */
 
 #include <iostream>
-#include <opencv/cv.h>
-#include <opencv/highgui.h>
+//#include <opencv/cv.h>
+//#include <opencv/highgui.h>
+
+#include <iostream>
+#include <cstdlib>
+#include <pthread.h>
+#include <unistd.h>
+
+
+#include "opencv2/opencv.hpp"
 
 #include "core/base/KeyValueConfiguration.h"
 #include "core/data/Container.h"
@@ -19,6 +27,9 @@
 #include <stdio.h>
 #include <math.h>
 
+
+#define NUM_THREADS  5;
+
 namespace carolocup {
 
 using namespace std;
@@ -26,6 +37,22 @@ using namespace core::base;
 using namespace core::data;
 using namespace core::data::image;
 
+///////////////////////////////////////////////////////////////////////////////
+                /*The three functions below are function declarations for the Thread functions*/
+void  *function1(void *argument);
+void  *function2(void *argument);
+void  *function3(void *argument);
+
+                   /*These are three Mat pointers, one for each segment of the image*/
+Mat *getFirstPointer;
+Mat *getSecondPointer;
+Mat *getThirdPointer;
+
+carolocup::Lines linesTop, linesMiddle, linesBottom;
+bool topDone = false, middleDone = false, bottomDone = false;
+bool debug;
+Config cfg;
+///////////////////////////////////////////////////////////////////////////////
 
 LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
   ConferenceClientModule(argc, argv, "lanedetector") ,
@@ -33,6 +60,7 @@ LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
   m_sharedImageMemory() ,
   m_image(NULL) ,
   m_cameraId(-1) ,
+  init(0),
   m_debug(false) ,
   m_config() {
     m_config.th1 = 40;
@@ -153,22 +181,98 @@ bool LaneDetector::readSharedImage(Container &c) {
 			retVal = true;
 		}
 	}
-	return retVal;
+ 	return retVal;
 }
 
-/*static Scalar randomColor( RNG& rng )
-{
-  int icolor = (unsigned) rng;
-  return Scalar( icolor&255, (icolor>>8)&255, (icolor>>16)&255 );
-}*/
+//////////////////////////////////////////////////////START//////////////////////////////////////////////////////////////////////////////////
+                /*The three functions below are the functions that is run by each of the threads
+		You can do stuff with the image segment in each function. Because of issues with
+		 X server and Multi-threads I can't use"imshow within the Thread functions", 
+		If you want to show the images, show them outside the function somewhere in 
+		the processImage() function*/
+
+void *functionBottom(void *argument){
+    cout << "\nRunning this from Thread_Bottom" << endl;
+    int i = 0;
+    argument = (void *) i;
+    cout << argument;
+    LineDetector road(*getFirstPointer, cfg, debug);
+    linesBottom = road.getLines();
+    linesBottom.stopLineHeight = road.detectStopLine(10);
+    linesBottom.startLineHeight = road.detectStartLine(10);
+    bottomDone = true;
+    return 0;
+}
+
+
+void *functionMiddle(void *argument){
+    cout << "\nRunning this from Thread_Middle" << endl;
+    int i = 0;
+    argument = (void *) i;
+    cout << argument;
+    LineDetector road(*getSecondPointer, cfg, debug);
+    linesMiddle = road.getLines();
+    linesMiddle.stopLineHeight = road.detectStopLine(10);
+    linesMiddle.startLineHeight = road.detectStartLine(10);
+    middleDone = true;
+    return 0;
+}
+
+void *functionTop(void *argument){
+    cout << "\nRunning this from Thread_Top" << endl;
+    int i = 0;
+    argument = (void *) i;
+    cout << argument;
+    LineDetector road(*getThirdPointer, cfg, debug);
+    linesTop = road.getLines();
+    linesTop.stopLineHeight = road.detectStopLine(10);
+    linesTop.startLineHeight = road.detectStartLine(10);
+    topDone = true;
+    return 0;
+}
+
+//////////////////////////////////////////////////////END///////////////////////////////////////////////////////////////////////////////////
+
+carolocup::Lines mergeLinesData(){
+    return linesBottom;
+}
 
 void LaneDetector::processImage() {
-  TimeStamp currentTime_strt1;
-  Mat dst, frame(m_image);
-  dst = frame.clone();
-  dst.setTo( Scalar(0,0,0));
 
-  LineDetector road(frame, m_config, m_debug);
+ /*Mat pickMat(m_image,false);
+  imshow("Source Image", pickMat);*/
+
+    TimeStamp currentTime_strt1;
+    Mat dst, frame(m_image);
+    imshow("Input Image", frame);
+    dst = frame.clone();
+    dst.setTo( Scalar(0,0,0));
+    debug = m_debug;
+    cfg = m_config;
+//////////////////////////////////////////////////////START//////////////////////////////////////////////////////////////////////////////////
+			/*Each of Mat Images below represents a segment of the image
+			and their respective addresses are assigned to each of the pointers below*/
+
+    Mat getFirst = frame(cv::Rect(1,239,639,239));
+    Mat getSecond  = frame(cv::Rect(1,119,639,119));
+    Mat getThird = frame(cv::Rect(1,119,639,119));
+
+
+    getFirstPointer = &getFirst;
+    getSecondPointer = &getSecond;
+    getThirdPointer = &getThird;
+
+
+    /*Threes POSIX threads are created below and each of the threads 
+    are assigned to run each of the three functions*/
+    pthread_t t1, t2, t3 ;
+    pthread_create(&t1, NULL, functionTop,NULL);
+    pthread_create(&t2, NULL, functionMiddle,NULL);
+    pthread_create(&t3, NULL, functionBottom,NULL);
+
+//////////////////////////////////////////////////////END////////////////////////////////////////////////////////////////////////////////
+
+/*  LineDetector road(frame, m_config, m_debug);
   carolocup::Lines lines = road.getLines();
   lines.pGain = m_config.pGain;
   lines.intGain = m_config.intGain;
@@ -177,26 +281,31 @@ void LaneDetector::processImage() {
   lines.width =  m_image->width;
   lines.height = m_image->height;
   lines.stopLineHeight = road.detectStopLine(10);
-  lines.startLineHeight = road.detectStartLine(10);
+  lines.startLineHeight = road.detectStartLine(10);*/
 
-  LaneDetectionData data;
-  data.setLaneDetectionData(lines);
+    while(!topDone || !bottomDone || !middleDone);
+    
+    carolocup::Lines lines = mergeLinesData();
+    LaneDetectionData data;
+    data.setLaneDetectionData(lines);
+    // Create a container from your data structure so that it can be transferred.
+    // _remember_ the assigned ID (here 101): It must be used by the receiver to read the data successfully.
+    // The ID must by from within this range: 0-127.
+    Container con(Container::USER_DATA_1, data);
 
-	// Create a container from your data structure so that it can be transferred.
-	// _remember_ the assigned ID (here 101): It must be used by the receiver to read the data successfully.
-	// The ID must by from within this range: 0-127.
-	Container con(Container::USER_DATA_1, data);
+    // Send the data:
+    getConference().send(con);
 
-	// Send the data:
-	getConference().send(con);
+    // Create an instance of data structure for parking and set some values.
 
-  // Create an instance of data structure for parking and set some values.
+    TimeStamp currentTime_strt7;
+    double timeStep_total = (currentTime_strt7.toMicroseconds() - currentTime_strt1.toMicroseconds()) / 1000.0;
+    cout << "Total  " << timeStep_total << endl;
+    topDone = false; 
+    bottomDone = false; 
+    middleDone = false;
 
-	TimeStamp currentTime_strt7;
-	double timeStep_total = (currentTime_strt7.toMicroseconds() - currentTime_strt1.toMicroseconds()) / 1000.0;
-	cout << "Total  " << timeStep_total << endl;
-
-  if (m_debug) {
+    if (m_debug) {
     /*Clusters* clusters = road.getClusters();
     RNG rng( 0xFFFFFFFF );
 
@@ -221,6 +330,17 @@ void LaneDetector::processImage() {
         line( dst, Point(0, lines.startLineHeight), Point(640, lines.startLineHeight), Scalar(255,0,0), 3, CV_AA);
     }
     imshow("output", dst);
+
+//////////////////////////////////////////////////////START//////////////////////////////////////////////////////////////////////////////////
+        /*As I stated earlier, because of restrictions with X SERVER and Multi-threads
+	It will be difficult and messy trying to show the frames withing the thread functions
+        So you can show them outside like I have done here*/
+
+    imshow("First Frame", *getFirstPointer);
+    imshow("Second Frame", *getSecondPointer);
+    imshow("Third Frame", *getThirdPointer);
+
+//////////////////////////////////////////////////////END////////////////////////////////////////////////////////////////////////////////
     waitKey(50);
   }
 }

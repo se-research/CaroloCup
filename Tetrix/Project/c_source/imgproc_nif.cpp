@@ -22,6 +22,22 @@ ErlNifResourceType* frame_res = NULL;
 int counter = 0; // counter used for naming saved .jpg files
 
 
+
+//------------------------------------------------------------------------------
+// C++ functions
+//------------------------------------------------------------------------------
+
+RotatedRect findrect(vector<vector<Point2i> > group) {
+  vector<Point2i> set;
+  for (unsigned int i = 0; i < group.size(); i++) {
+    for (unsigned int j = 0; j < group[i].size(); j++) {
+      set.push_back(group[i][j]);
+    }
+  }
+
+  return minAreaRect(set);
+}
+
 //------------------------------------------------------------------------------
 // NIF callbacks
 //------------------------------------------------------------------------------
@@ -58,6 +74,7 @@ static ERL_NIF_TERM get_pic(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   bool img_retrieved = get_image(imgPointer);
   IplImage* src = cvCreateImage(cvSize(752,480), IPL_DEPTH_8U, 1);
   src -> imageData = imgPointer;
+
   
   // Assigning  IplImage data to the frame struct
   frame_t* frame = (frame_t*)enif_alloc_resource(frame_res, sizeof(frame_t));
@@ -95,6 +112,7 @@ static ERL_NIF_TERM show_pic(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]
 	
   cvShowImage("YOOHOO", frame->_frame);
 
+
   cvWaitKey(30);
 	
   
@@ -119,14 +137,25 @@ static ERL_NIF_TERM process_pic(ErlNifEnv* env, int argc, const ERL_NIF_TERM arg
   if (!enif_get_resource(env, argv[0], frame_res, (void**) &frame)) {
     return enif_make_badarg(env);
   } 
+  int image_counter;
+  enif_get_int(env, argv[1], &image_counter);
+
   IplImage* gray = frame->_frame;
   //   GET IMG FROM CAMERA 
+
+  //   if(image_counter % 5 == 0)
+  //   {
+  //     stringstream ss;//create a stringstream
+  //     ss << "/home/tetrix/images/image" << image_counter/5 << ".jpg" ;//add number to the stream
+  //     cvSaveImage(ss.str().c_str() , gray);
+  //   }
+
 
   // IplImage* src = cvLoadImage("/home/robin/Downloads/pic.png");
   // IplImage* gray = cvCreateImage(cvGetSize(src), IPL_DEPTH_8U, 1);
   // cvCvtColor(src, gray, CV_RGB2GRAY);
 
-  int row = 423, column;
+  int row = 440, column;
 
   int current_row;
 
@@ -244,7 +273,7 @@ static ERL_NIF_TERM process_pic(ErlNifEnv* env, int argc, const ERL_NIF_TERM arg
   vector<vector<vector<Point2i> > > temp;
   temp.push_back(lanes[0]);
   grouped.push_back(temp);
-
+  
   for (unsigned int i = 1; i < lanes_size; i++) {
     bool connected = false;
     Point2f lanes_center = Point2f((lanes[i][0][0].x  + lanes[i][0][1].x)/2 , lanes[i][0][0].y);
@@ -268,7 +297,7 @@ static ERL_NIF_TERM process_pic(ErlNifEnv* env, int argc, const ERL_NIF_TERM arg
 	  center_point(grouped[j][grouped[j].size()-1][last][0], 
 		       grouped[j][grouped[j].size()-1][last][1]);
 	int x = (((start.x - end.x) * (lanes_center.y - start.y)) / (start.y - end.y)) + start.x;
-
+	
 	float distance = dist(lanes_center , Point2f(x,lanes_center.y));
 	if(distance < 25){
 	  if(!is_trash(lanes[i])){
@@ -295,42 +324,91 @@ static ERL_NIF_TERM process_pic(ErlNifEnv* env, int argc, const ERL_NIF_TERM arg
   if(dash_index == -1) 
     return enif_make_atom(env, "not_found");
 
-  vector<Point2f> final_result;
+  
+
+  ERL_NIF_TERM final_result[grouped[dash_index].size()];
+
   for(unsigned int i = 0; i< grouped[dash_index].size() ; i++)
     {
-      Point2f sum = Point2f(0,0); 
-      int count = 0;
-      int first_index = (int) (grouped[dash_index][i].size() / 10);
-      int last_index = (int) ((grouped[dash_index][i].size() / 10) * 9);
+
+      //============================================================      
+      RotatedRect rr = findrect(grouped[dash_index][i]);	
+      Point2f rect_points[4];
+      rr.points(rect_points);
+      
+      Point2f bl;
+      Point2f br;
+      Point2f tl;
+      Point2f tr;
+      Point2f tc;
+      Point2f bc;
+      Point2f cc;
+      
+      if(dist(rect_points[0], rect_points[1]) > dist(rect_points[0], rect_points[3])){
+	bl = rect_points[0];
+	br = rect_points[3];
+	tl = rect_points[1];
+	tr = rect_points[2];
+      }else{
+	bl = rect_points[1];
+	br = rect_points[0];
+	tl = rect_points[2];
+	tr = rect_points[3];
+      }
+      
+      tc = center_point(tl,tr);
+      bc = center_point(bl,br);
+      cc = rr.center;
+
+      ERL_NIF_TERM tl_x = enif_make_int(env, (int) tl.x);
+      ERL_NIF_TERM tl_y = enif_make_int(env, (int) tl.y);
+
+      ERL_NIF_TERM tr_x = enif_make_int(env, (int) tr.x);
+      ERL_NIF_TERM tr_y = enif_make_int(env, (int) tr.y);
+
+      ERL_NIF_TERM bl_x = enif_make_int(env, (int) bl.x);
+      ERL_NIF_TERM bl_y = enif_make_int(env, (int) bl.y);
+
+      ERL_NIF_TERM br_x = enif_make_int(env, (int) br.x);
+      ERL_NIF_TERM br_y = enif_make_int(env, (int) br.y);
+
+      ERL_NIF_TERM tc_x = enif_make_int(env, (int) tc.x);
+      ERL_NIF_TERM tc_y = enif_make_int(env, (int) tc.y);
+
+      ERL_NIF_TERM cc_x = enif_make_int(env, (int) cc.x);
+      ERL_NIF_TERM cc_y = enif_make_int(env, (int) cc.y);
+
+      ERL_NIF_TERM bc_x = enif_make_int(env, (int) bc.x);
+      ERL_NIF_TERM bc_y = enif_make_int(env, (int) bc.y);
       
 
-      Point2f first =  center_point(grouped[dash_index][i][first_index][0], 
-				    grouped[dash_index][i][first_index][1]);
-      Point2f second = center_point(grouped[dash_index][i][last_index][0], 
-				    grouped[dash_index][i][last_index][1]);
-      if(i>0)
-	{
-	  Point2f middle =  center_point(first, final_result[final_result.size()-1]);
-	  final_result.push_back(middle);
-        }      
-      final_result.push_back(first);
-      final_result.push_back(second);
-    }
+      ERL_NIF_TERM c_point = enif_make_tuple2(env, cc_x, cc_y);
+      
+      ERL_NIF_TERM box = enif_make_tuple4(env, 
+					  enif_make_tuple2(env, bl_x, bl_y),
+					  enif_make_tuple2(env, tl_x, tl_y),
+					  enif_make_tuple2(env, tr_x, tr_y),
+					  enif_make_tuple2(env, br_x, br_y));
+
+      ERL_NIF_TERM points = enif_make_tuple3(env, 
+					     enif_make_tuple2(env, bc_x, bc_y), 
+					     enif_make_tuple2(env, cc_x, cc_y),
+					     enif_make_tuple2(env, tc_x, tc_y));
+
+      ERL_NIF_TERM result = enif_make_tuple2(env,
+					     c_point, 
+					     enif_make_tuple2(env, box, points));
+					     
+
+      final_result[i] = result;
+      
+    }//end of for
   
-  ERL_NIF_TERM result_erl[final_result.size()];
 
-  int i;
-  for( i = 0; i < final_result.size(); i++)
-    {
-      int y = final_result[i].y;
-      int x = final_result[i].x;
-      ERL_NIF_TERM erl_x = enif_make_int(env, x);
-      ERL_NIF_TERM erl_y = enif_make_int(env, y);
-      result_erl[i] = enif_make_tuple2(env, erl_x, erl_y);
-    }
 
-  ERL_NIF_TERM points_erl = enif_make_list_from_array(env, result_erl, final_result.size());
+  ERL_NIF_TERM points_erl = enif_make_list_from_array(env, final_result, grouped[dash_index].size());
 
+  
   return points_erl;
 }
 
@@ -339,7 +417,7 @@ static ErlNifFunc nif_funcs[] =
   {
     {"show_pic", 1, show_pic},
     {"get_pic", 0, get_pic},
-    {"process_pic" , 1, process_pic},
+    {"process_pic" , 2, process_pic},
     {"deinit_camera", 0, deinit_camera}
   };
 

@@ -35,10 +35,18 @@ init(State) ->
 % Internal functions Definitions 
 %%--------------------------------------------------------------------
 
-calculate({P1,P2,P3}) ->
+calculate(Node_List) ->
     %% Get car position from vehicle data, in form of {X, Y}
-    Car_Position = vehicle_data:car_position(), 
+    Car_Position = {4,-67}, %%vehicle_data:car_position(), 
     Car_Heading = math:pi() / 2,
+
+    Len = length(Node_List),
+    P1 = hd(Node_List),
+    P2 = lists:nth(round(Len/2), Node_List),
+    P3 = lists:nth(Len, Node_List),
+    
+
+
 
     %% Get 3 node lists ahead, i.e. Node1 = {5,6}, etc              
     %% {P1,P2,P3} = map_gen:node_ahead(Car_Position), 
@@ -50,12 +58,22 @@ calculate({P1,P2,P3}) ->
 
     %% send desired speed to cunit 
     %% TODO: dummy values
-    cunit:setSpeed(5),
+    cunit:setSpeed(2),
     
     %% send desired steering to cunit
     %% TODO: dummy values    ok.
-    cunit:setSteering(round((Steering*180.0)* math:pi())).
+    cunit:setSteering(round((Steering * 180.0) / math:pi())),
+    io:format("Steering: ~p~n", [round((Steering*180.0)/ math:pi())]).
+%%    Speed = cunit:getAccelSpeed(),
+%%    Heading = cunit:getHeading(),
+%%    {ok, Log} = file:open("Log.txt", [read, append]),
+%%    {Mega, Sec, Micro} = erlang:now(),
+%%    io:fwrite(Log, "~p,~p,~p,~p,~p,~p,~p,~n", [Mega, Sec, Micro, Speed, Heading, Steering, round((Steering*180.0)/ math:pi())]),
+%%    file:close(Log).    
     
+
+
+
     %% timer:sleep(20),
  
     %% calculate().
