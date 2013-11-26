@@ -47,7 +47,7 @@ ENDIF(CXXTEST_FOUND)
 # Add subdirectories.
 ADD_SUBDIRECTORY (3rdParty)
 ADD_SUBDIRECTORY (libopendavinci)
-ADD_SUBDIRECTORY (hesperia)
+# ADD_SUBDIRECTORY (hesperia)
 ADD_SUBDIRECTORY (supercomponent)
 ADD_SUBDIRECTORY (tools)
 ADD_SUBDIRECTORY (examples)

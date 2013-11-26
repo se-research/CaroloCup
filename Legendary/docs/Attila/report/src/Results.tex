@@ -45,15 +45,14 @@ shows approximate average values measured on the selected set of frames.
 \label{sec:Clustering and Pattern Matching}
 
 Figure~\ref{fig:inputdata} shows the steps for defining the input data for the
-control algorithm. These steps are clustering the Hough lines, left
-picture on figure~\ref{fig:inputdata}, and then pattern matching on the
-clusters to find the two solid lines and the one dashed line, right
-picture. On the clustering figure, each cluster is shown by a different color.
-It can be seen that each dashes in the dashed line were put into a
-different cluster. By this strategy a simple pattern matching on the greatest
-difference on the x and y axes of any pair of points in a cluster is
-satisfactory to decide whether this given cluster covers a dash in a dashed
-line or not.
+control algorithm. These steps are clustering the Hough lines, left picture on
+figure~\ref{fig:inputdata}, and then pattern matching on the clusters to find
+the two solid lines and the one dashed line, right picture. On the clustering
+figure, each cluster is shown by a different color.  It can be seen that each
+dash in the dashed line were put into a different cluster. By this strategy a
+simple pattern matching on the greatest difference on the x and y axes of any
+pair of points in a cluster is satisfactory to decide whether this given
+cluster covers a dash in a dashed line or not.
 
 \begin{figure}[hp]
   \centering

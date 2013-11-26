@@ -11,7 +11,7 @@
 %%--------------------------------------------------------------------
 
 start() ->
-    State = [],
+    State = 0,
     Pid = spawn(?SERVER, init, [State]),
     {ok, Pid}.
 
@@ -36,28 +36,27 @@ init(State) ->
 %%--------------------------------------------------------------------
 
 process(State) ->
-
     %% get car position vehicle_data
     Car_Pos = vehicle_data:car_position(),
+    Car_Heading = vehicle_data:car_heading(),
     %% Side = map_gen:road_side(),
     
     %% query frame
-    
     case imgproc_nif:get_pic() of
 	{ok, ImgRef} ->
-	    Processed = imgproc_nif:process_pic(ImgRef),
+	    Processed = imgproc_nif:process_pic(ImgRef, State),
 	    case Processed of
 		not_found ->
 		    not_found;
 		_ ->
-		    map_gen:add_frame(Processed, ?InputLaneD , Car_Pos)
+		    map_gen:add_frame(Processed, ?InputLaneD , {Car_Pos,Car_Heading})
 	    end;
 	_ ->
 	    not_found
     end,
 
     timer:sleep(30),
-    process(State).
+    process(State+1).
 
 %% Console print outs for server actions (init, terminate, etc) 
 say(Format, Data) ->

@@ -12,6 +12,9 @@
 #define MODE_LS		0
 #define MODE_NIETO	1
 
+#define Kkk 0.000001
+#define fEqual(x,y) (fabs(x-y) < Kkk * FLT_EPSILON * fabs(x+y)) || (fabs(x-y) < FLT_MIN)
+
 class MSAC
 {
 public:

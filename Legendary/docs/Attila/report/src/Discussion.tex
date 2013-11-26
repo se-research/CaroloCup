@@ -13,15 +13,15 @@ possible solutions for these issues.
 As for the bird's eye view, its transformation is the most computation
 demanding from all the image processing procedures and clustering algorithm.
 Therefore, it is of utmost importance to find an alternative solution for this
-transformation. To gain a more precise view of this issues, separate tests were
+transformation. To gain a more precise view of this issue, separate tests were
 performed for the warpPerspective OpenCV function and for the calculation of
-transformation matrix M as well. Since, the latter possesses negligible run-time
-property compared to the former function's property, an alternative, less
-computational implementation is highly recommended for this warpPerspective
-function. To further emphasize the significance of this matter, it must be
-pointed out, as table~\ref{tab:result} shows, that more than half of the
-computation is consumed only by this function, and this statement is hardware
-independent.
+the transformation matrix M as well. Since, the latter possesses negligible
+run-time property compared to the former function's property, an alternative,
+less computational implementation is highly recommended for this
+warpPerspective function. To further emphasize the significance of this matter,
+it must be pointed out, as table~\ref{tab:result} shows, that more than half of
+the computation is consumed only by this function, and this statement is
+hardware independent.
 
 Furthermore, the lines detected by the Canny edge-detection algorithm, as
 figures \ref{fig:img_proc} show, are distorted due to the bird's eye view
@@ -29,14 +29,14 @@ transformation. This distortion can be explained by the order of the image
 processing steps. Namely, the Canny edge-detection precedes the bird's eye view
 transformation which is succeeded by the Hough line transformation. This
 sequence allows the bird's eye view transformation to distort the detected
-edge. However, the sequence of steps where the bird's eye view transformation
+edges. However, the sequence of steps where the bird's eye view transformation
 and Canny edge-detection are switched would lead to a distortion free bird's
 eye view transformation. This modification is relevant for the detection of the
 two solid lines.
 
 Lastly, the current implementation of pattern matching is somewhat limited,
-since it can only detect straight lines that are situation in a relatively
-vertical position. This limitation does not effect the processing of straight
+since it can only detect straight lines that are situated in a relatively
+vertical position. This limitation does not affect the processing of straight
 lines, since we can assume that the camera always points approximately the same
 direction as the lane goes. Although this strategy is not applicable in curve
 scenarios. For these cases a separate curve fitting algorithm should be applied

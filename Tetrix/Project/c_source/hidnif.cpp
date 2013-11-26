@@ -154,6 +154,16 @@ static ERL_NIF_TERM get_ultraSonic(ErlNifEnv* env, int argc, const ERL_NIF_TERM 
   return enif_make_int(env,getUltraSonic(address));
 }
 
+/*
+For testing purposes, crash the system with a segmentation fault
+*/
+static ERL_NIF_TERM cause_segmentation_fault(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+{
+  char *s = "hello world";
+  *s = 'H';  
+  return enif_make_double(env,5);
+}
+
 static ErlNifFunc nif_funcs[] = 
   {
     
@@ -173,7 +183,8 @@ static ErlNifFunc nif_funcs[] =
     {"get_Heading", 1, get_Heading},
     {"get_IR0", 1, get_IR0},
     {"get_IR1", 1, get_IR1},
-    {"get_ultraSonic", 1, get_ultraSonic}
+    {"get_ultraSonic", 1, get_ultraSonic},
+    {"cause_segmentation_fault",0, cause_segmentation_fault}
   };
 
 ERL_NIF_INIT(hidnif,nif_funcs,NULL,NULL,NULL,NULL)

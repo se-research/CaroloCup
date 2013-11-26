@@ -55,7 +55,7 @@ int main(int , char** argv)
   //namedWindow("original",1);
   //namedWindow("thres",1);
   //namedWindow("canny",1);
-  namedWindow("birdView",1);
+  //namedWindow("birdView",1);
   namedWindow("config",1);
   // Canny
   createTrackbar("th1", "config", &cfg.th1, 250);
@@ -113,7 +113,7 @@ int main(int , char** argv)
       for (vector<Point>::iterator it2 = it->begin(); it2 != it->end(); ++it2) {
         line( dst, *it2, *it2, color, 2, CV_AA);
       }
-    }
+    }*/
 
     carolocup::Lines l = road.getLines();
     Line dashed = l.dashedLine;
@@ -124,7 +124,7 @@ int main(int , char** argv)
     line( dst, Point(solidRight[0], solidRight[1]), Point(solidRight[2], solidRight[3]), Scalar(255,0,0), 3, CV_AA);
     line( dst, Point(solidLeft[0], solidLeft[1]), Point(solidLeft[2], solidLeft[3]), Scalar(0,0,255), 3, CV_AA);
 
-    imshow("birdView", dst);*/
+    imshow("output", dst);
 
     // set state
     switch( waitKey(30) ) {

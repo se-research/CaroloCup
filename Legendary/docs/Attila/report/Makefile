@@ -34,6 +34,7 @@ build: $(SRC) $(LIB)
 	cp $(SRC_DIR)/Bib.bib $(BUILD_DIR)/
 	biber $(BUILD_DIR)/Report
 	lualatex $(DEFAULT) $(REPORT)
+	cp $(REPORT) Report.pdf
 
 draft: $(SRC)
 	lualatex $(DEFAULT) $(REPORT)

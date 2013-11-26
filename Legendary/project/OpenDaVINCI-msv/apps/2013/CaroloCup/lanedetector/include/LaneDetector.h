@@ -7,7 +7,8 @@
 #ifndef LANEDETECTOR_H_
 #define LANEDETECTOR_H_
 
-#include <opencv/cv.h>
+//#include <opencv/cv.h>
+#include "opencv2/opencv.hpp"
 #include "core/SharedPointer.h"
 #include "core/base/ConferenceClientModule.h"
 #include "core/wrapper/SharedMemory.h"
@@ -64,12 +65,17 @@ protected:
 	bool readSharedImage(core::data::Container &c);
 
 private:
-	bool m_hasAttachedToSharedImageMemory;
-	core::SharedPointer<core::wrapper::SharedMemory> m_sharedImageMemory;
+  bool m_hasAttachedToSharedImageMemory;
+  core::SharedPointer<core::wrapper::SharedMemory> m_sharedImageMemory;
   IplImage *m_image;
   uint32_t m_cameraId;
+  int init;
   bool m_debug;
   Config m_config;
+
+///////////////////////////////////////7
+//void *PrintHello(void *threadid);
+////////////////////////////////////////
 
   virtual void setUp();
 
