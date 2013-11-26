@@ -22,4 +22,7 @@ stop(_Reason) ->
 
 stop() ->
   imgproc_nif:deinit_camera(),
+  gen_server:cast(map_gen, time_to_terminate),
+  gen_server:cast(vehicle_data, time_to_terminate),
+  gen_server:cast(cunit, time_to_terminate),
   init:stop().
