@@ -40,7 +40,7 @@ LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
     m_config.hlTh = 10;
     m_config.hlMaxLineGap = 1;
     m_config.hlMaxLineLength = 1;
-    m_config.caThVal = 200;
+    m_config.caThVal = 175;
     m_config.caThMax = 200;
     m_config.caThTyp = 0;
     m_config.birdF = 600;
@@ -195,7 +195,7 @@ void LaneDetector::processImage() {
 	cout << "Total  " << timeStep_total << endl;
 
   if (m_debug) {
-    Clusters* clusters = road.getClusters();
+    /*Clusters* clusters = road.getClusters();
     RNG rng( 0xFFFFFFFF );
 
     for (vector<Cluster>::iterator it = clusters->begin(); it != clusters->end(); ++it) {
@@ -203,7 +203,7 @@ void LaneDetector::processImage() {
       for (vector<Point>::iterator it2 = it->begin(); it2 != it->end(); ++it2) {
         line( dst, *it2, *it2, color, 2, CV_AA);
       }
-    }
+    }*/
 
     Line dashed = lines.dashedLine;
     Line solidRight = lines.rightLine;
@@ -213,7 +213,7 @@ void LaneDetector::processImage() {
     line( dst, Point(solidRight[0], solidRight[1]), Point(solidRight[2], solidRight[3]), Scalar(255,0,0), 3, CV_AA);
     line( dst, Point(solidLeft[0], solidLeft[1]), Point(solidLeft[2], solidLeft[3]), Scalar(0,0,255), 3, CV_AA);
 
-    imshow("birdView", dst);
+    //imshow("output", dst);
     waitKey(50);
   }
 }

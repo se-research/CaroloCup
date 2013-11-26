@@ -50,12 +50,15 @@ private:
   Mat getBirdView(Mat& source);
   void processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv::Mat &outputImg);
   float getLineSlope(Point &p1, Point &p2);
+  float getDist(const Point p1, const Point p2) const;
 
   Lines* m_lines;
   Dbscan* m_clusters;
   const Config m_config;
   const bool m_debug;
   Point m_lastSolidRightTop;
+  std::vector<CustomLine> detectedLines;
+  CustomLine supposedMidLine;
 
 };
 
