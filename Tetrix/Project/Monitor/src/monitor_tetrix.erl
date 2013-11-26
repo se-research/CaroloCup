@@ -8,6 +8,8 @@
 
 -define(SERVER, ?MODULE). 
 
+-record(state, {host, currentPOS}).
+
 %%--------------------------------------------------------------------
 % API Function Definitions 
 %%--------------------------------------------------------------------
@@ -18,7 +20,8 @@ start()->
 
   % Initilize the module
   Host = get_hostname(),
-  Pid = spawn(?SERVER, init, [Host]),
+  State = #state{host = Host, currentPOS = 0},
+  Pid = spawn(?SERVER, init, [State]),
   register(shell, Pid),
   {ok, Pid}.
 
@@ -26,53 +29,53 @@ start()->
 %% Internal functions
 %%--------------------------------------------------------------------
 
-init(Host) ->
-  net_kernel:start(['node2', shortnames]),
-  loop(Host).
+init(State) ->
+  %net_kernel:start(['node2', shortnames]),
+  loop(State).
 
-loop(Host)->
+loop(State)->
 
   case nodes() of
       [] ->
-        case net_kernel:connect_node(list_to_atom("node1@" ++ Host) ) of
+        case net_kernel:connect_node(list_to_atom("node1@" ++ State#state.host) ) of
               false ->
                     timer:sleep(1000),
                     io:format("false: no connection\n",[]),
-                    os:cmd(".././run_python"), 
-                    net_kernel:connect_node(list_to_atom("node1@" ++ Host) ),
+                    os:cmd(".././init_tetrix"), 
+                    net_kernel:connect_node(list_to_atom("node1@" ++ State#state.host) ),
 %                    os:cmd("cd ../;./run.sh &"), 
 %                    timer:sleep(3000),
 %                    net_kernel:connect_node(list_to_atom("node1@" ++ Host) ),
 %                    os:cmd("erl -pa /ebin/ -sname node1 -setcookie nodes -noshell &"),
                     %os:cmd("erl -pa /ebin/ -sname node1 -setcookie nodes -noshell &"),
-                    loop(Host);
+                    loop(State);
               true ->
                   io:format("connection established\n",[])
         end,
         case rpc:multicall(nodes(), erlang, is_alive, []) of
             {[],[]} ->
                  io:format("no nodes are alive\n",[]),
-                 os:cmd(".././run_python"), 
-                 net_kernel:connect_node(list_to_atom("node1@" ++ Host) ),
+                 os:cmd(".././init_tetrix"), 
+                 net_kernel:connect_node(list_to_atom("node1@" ++ State#state.host) ),
  
 %                os:cmd("erl -pa /ebin/ -sname node1 -setcookie nodes -noshell &"),
                 timer:sleep(1000),
-                loop(Host);
+                loop(State);
             {[true],_} ->
                 io:format("Monitoring tetrix app",[])
 %                loop(Host)
         end;
       _ ->
-        {shell, list_to_atom("node1@" ++ Host) } ! {check_availability, self()}
+        {shell, list_to_atom("node1@" ++ State#state.host) } ! {check_availability, self()}
   end,
 
-  {shell,list_to_atom("node1@" ++ Host) } ! {check_availability, self()},
+  {shell,list_to_atom("node1@" ++ State#state.host) } ! {check_availability, self()},
 
   receive
   {ok, available} ->
         io:format("tetrix app is available!\n",[]),
         timer:sleep(1000),
-        loop(Host)
+        loop(State)
   end.
 
 %% @doc

@@ -9,13 +9,13 @@ if [ $# -eq 0 ]; then
         then
             echo "Tetrix monitor is already running"
         else
-	    ./Monitor/run_python &
+	    #./Monitor/init_monitor &
 	    echo "Activated Tetrix Monitor"
     fi
     sudo erl -pa ebin/ -sname node1 -setcookie nodes
 else
     if [ $1 = clean ]; then
-        ./Monitor/run_python clean
+        ./Monitor/init_monitor clean
 	cd "c_source"
 	if make clean; then
 	    echo -e "\033[1mCleaning Binaries Complete ! \033[0m";
@@ -41,7 +41,7 @@ else
 	echo -e "\033[1m--> Compiling Erlang Modules: \033[0m"
 
 	echo ""
-        ./Monitor/run_python compile
+        ./Monitor/init_monitor compile
 	if rebar compile; then
 	    echo -e "\033[1mErlang Compilation Complete ! \033[0m";
 	    echo -e "\033[1m-------------------------------------------------------------------------------- \033[0m";
@@ -54,7 +54,7 @@ else
 	echo -e "\033[1m--> Compiling C and C++ Modules: \033[0m"
 	echo ""
 
-        ./Monitor/run_python compile
+        ./Monitor/init_monitor compile
 	cd "c_source"
 	if make; then
 
