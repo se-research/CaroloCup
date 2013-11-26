@@ -15,7 +15,7 @@
 
 init([]) ->
     say("init", []),
-    {ok, #state{car_position = {0,0}, sensor_data = {stuff, 0}}}.
+    {ok, #state{car_position = {0,0}, sensor_data = {stuff, 0}, estimated_car_position = {0,0}}}.
 
 %%--------------------------------------------------------------------
 % API Function Definitions 
@@ -61,13 +61,13 @@ handle_call(_Request, _From, State) ->
 %%--------------------------------------------------------------------
 
 handle_cast({update_position, Position}, State) ->
-    %State#state{car_position = Position},
-    io:format("~ncar position rec'd:~p~n" ,[Position]), 
-    {noreply, State#state{car_position = Position}};
+    {noreply, State#state{estimated_car_position = Position}};
 
 handle_cast({update_sensor, Data}, State) ->
-    io:format("~nsensor data rec'd:~p~n" ,[Data]), 
     {noreply, State#state{sensor_data = Data }};
+
+handle_cast({correct_position, Position}, State) ->
+    {noreply, State#state{car_position = Position, estimated_car_position = Position }};
 
 handle_cast(_Msg, State) ->
     {noreply, State}.

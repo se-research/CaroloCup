@@ -32,7 +32,7 @@ init([]) ->
 
     % Dummy values for the state 
     {ok, #state{road_side = right, node_ahead = {{0,0},{0,0},{0,0}},
-		matrix_id = ID , camera_matrix = undef}}.
+		matrix_id = ID , mode = start}}.
 
 %%--------------------------------------------------------------------
 % API Function Definitions 
@@ -80,6 +80,11 @@ handle_call(road_side, _From, State) ->
     Reply = State#state.road_side,
     {reply, Reply, State};
 
+handle_call(time_to_terminate, _From, State) ->
+    ets:tab2file(dash_lines, "dashline"),
+    Reply = ok,
+    {reply, Reply, State};
+
 handle_call(_Request, _From, State) ->
     Reply = ok,
     {reply, Reply, State}.
@@ -89,23 +94,30 @@ handle_call(_Request, _From, State) ->
 handle_cast({add_frame, {{Dashes, Line_ID}, {Car_Pos,Car_Heading}}}, State) ->
 
 
-   
+    
 
     Temp_Dashes = translate_dashes(State#state.matrix_id, Dashes, {Car_Pos,Car_Heading}, []),
     NewDashes = connect_dashes(Temp_Dashes, undef, []), 
     
-    Correction = calculate_correct_pos(NewDashes),  
-    case Correction of
-	not_found ->
-	    ok;
-	{Center_Point = {Cx,Cy}, {Offset={Ox,Oy}, Delta_Angle}} ->
-	    Dashes_Needed = remove_dashes_before({Cx-Ox, Cy-Oy}, NewDashes),
-	    Moved_Dashes = move_dashes(Dashes_Needed, Correction, []),
-	    Orig_Dash = ets_lookup(Center_Point),
-	    Connected_Dashes = connect_dashes(Moved_Dashes, Orig_Dash#dash_line.dash_before, []), 	    
-	    clean_ets_dashes(Center_Point),
-	    insert_dashes(Connected_Dashes)
-		
+    case State#state.mode of
+	start ->
+	     insert_dashes(NewDashes);
+	recording ->
+	    Correction = calculate_correct_pos(NewDashes),  
+	    case Correction of
+		not_found ->
+		    ok;
+		{Center_Point = {Cx,Cy}, {Offset={Ox,Oy}, Delta_Angle}} ->
+		    Dashes_Needed = remove_dashes_before({Cx-Ox, Cy-Oy}, NewDashes),
+		    Moved_Dashes = move_dashes(Dashes_Needed, Correction, []),
+		    Orig_Dash = ets_lookup(Center_Point),
+		    Connected_Dashes = connect_dashes(Moved_Dashes, 
+						      Orig_Dash#dash_line.dash_before, []), 	    
+		    clean_ets_dashes(Center_Point),
+		    insert_dashes(Connected_Dashes),
+		    New_CarPos = move_point(Car_Pos, Correction),
+		    gen_server:cast(vehicle_data, {correct_position, New_CarPos})
+	    end
     end,
     %% query ets to get closest dash to each
 
@@ -115,26 +127,30 @@ handle_cast({add_frame, {{Dashes, Line_ID}, {Car_Pos,Car_Heading}}}, State) ->
     
     %% calculate offset nodes
 
-    case NewDashes of 
-	[] ->
-	    {noreply, State};
-	[_] ->
-	    {noreply, State};
-	[H,T] ->
-	    P1 = hd(H#dash_line.points),
-	    P3 = lists:nth(3, T#dash_line.points),
-	    P2 = center_point(lists:nth(3, H#dash_line.points), hd(T#dash_line.points)),
-	    {ok,[OP1]} = offsetCalculation:calculate_offset_list(Line_ID, ?LaneAdjacent, H#dash_line.points),
-	    {ok,[OP2]} = offsetCalculation:calculate_offset_list(Line_ID, ?LaneAdjacent, [P1,P2,P3]),
-	    {ok,[OP3]} = offsetCalculation:calculate_offset_list(Line_ID, ?LaneAdjacent, T#dash_line.points),
-	    
-	    Node_List = [OP1, OP2, OP3],
-	    car_ai:start(Node_List),			 
-	    {noreply, State#state{node_ahead = Node_List, frame_data = Node_List }};
-	_ ->
-	    Node_List = calculate_offsets(Line_ID, ?LaneAdjacent, NewDashes, []),
-	    car_ai:start(Node_List),
-	    {noreply, State#state{node_ahead = Node_List, frame_data = Node_List }}
+
+    New_Dashes = translate_dashes(State#state.matrix_id, Dashes, []),
+    
+    case New_Dashes of 
+        [] ->
+            {noreply, State};
+        [_] ->
+            {noreply, State};
+        [H,T] ->
+            P1 = hd(H#dash_line.points),
+            P3 = lists:nth(3, T#dash_line.points),
+            P2 = center_point(lists:nth(3, H#dash_line.points), hd(TH#dash_line.points)),
+            Node_List = [offsetCalculation:calculate_offset_list(Line_ID, ?LaneAdjacent, 
+								 H#dash_line.points),
+                         offsetCalculation:calculate_offset_list(Line_ID, ?LaneAdjacent, 
+                                                                 [P1,P2,P3]),
+                         offsetCalculation:calculate_offset_list(Line_ID, ?LaneAdjacent, 
+                                                                 T#dash_line.points)],
+            car_ai:start(Node_List),                         
+            {noreply, State#state{node_ahead = Node_List, frame_data = Node_List , mode = recording}};
+        _ ->
+            Node_List = calculate_offsets(Line_ID, ?LaneAdjacent, New_Dashes, []),
+            car_ai:start(Node_List),
+            {noreply, State#state{node_ahead = Node_List, frame_data = Node_List , mode = recording}}
     end;
 
 handle_cast(_Msg, State) ->
@@ -151,6 +167,7 @@ handle_info(_Info, State) ->
 
 terminate(_Reason, _State) ->
     error_logger:info_msg("terminating:~p~n", [?MODULE]),
+
     ok.
 
 %%--------------------------------------------------------------------
@@ -178,16 +195,16 @@ translate_points(_,[], Buff) ->
     Buff.
 
 translate_dash(ID, {CenterPoint, {{R1,R2,R3,R4} , {Bottom, Center, Top}}}, {Car_Pos, Car_Heading}) ->
-    Center = local_to_global(Car_Pos, Car_Heading, translate_point(ID, CenterPoint)),
-    BottomLeft = local_to_global(Car_Pos, Car_Heading, translate_point(ID,R1)),
-    TopLeft = local_to_global(Car_Pos, Car_Heading, translate_point(ID,R2)),
-    TopRight = local_to_global(Car_Pos, Car_Heading, translate_point(ID,R3)), 
-    BottomRight = local_to_global(Car_Pos, Car_Heading, translate_point(ID,R4)),
+    Center = steering:local_to_global(Car_Pos, Car_Heading, translate_point(ID, CenterPoint)),
+    BottomLeft = steering:local_to_global(Car_Pos, Car_Heading, translate_point(ID,R1)),
+    TopLeft = steering:local_to_global(Car_Pos, Car_Heading, translate_point(ID,R2)),
+    TopRight = steering:local_to_global(Car_Pos, Car_Heading, translate_point(ID,R3)), 
+    BottomRight = steering:local_to_global(Car_Pos, Car_Heading, translate_point(ID,R4)),
     #dash_line{center_point = Center, 
 	       box = {BottomLeft, TopLeft, TopRight, BottomRight},
-	       points = [local_to_global(Car_Pos, Car_Heading, translate_point(ID,Bottom)),
-			 local_to_global(Car_Pos, Car_Heading, translate_point(ID,Center)),
-			 local_to_global(Car_Pos, Car_Heading, translate_point(ID,Top))], 
+	       points = [steering:local_to_global(Car_Pos, Car_Heading, translate_point(ID,Bottom)),
+			 steering:local_to_global(Car_Pos, Car_Heading, translate_point(ID,Center)),
+			 steering:local_to_global(Car_Pos, Car_Heading, translate_point(ID,Top))], 
 	       area = calculate_box_area(BottomLeft, TopLeft, TopRight, BottomRight),
 	       dash_before = undef, dash_after = undef}.
 
@@ -211,10 +228,6 @@ calculate_offsets(InputLane, OutputType, [Dash | T] , Buff) ->
     calculate_offsets(InputLane, OutputType, T , Buff ++ [P]);
 calculate_offsets(_, _, [] , Buff) ->
     Buff.
-
-
-
-
 
 bird_transform(Camera_Matrix , {X, Y}) ->
     {CM1 , CM2 , CM3 , CM4 , CM5 , CM6 , CM7, CM8 , CM9} = Camera_Matrix,
@@ -242,32 +255,6 @@ center_point({X1,Y1}, {X2,Y2}) ->
 
 offset_point({X1,Y1}, {X2,Y2}) ->
     {X2-X1, Y2-Y1}.
-
-
-local_to_global({CarX, CarY}, CarAng, {CoordXin, CoordYin}) ->
-    CoordXZero = round(CoordXin * 100000) == 0,
-    CoordYZero = round(CoordYin * 100000) == 0,
-    case {CoordXZero,CoordYZero} of 
-	{true,true}->
-	    CoordX=CoordXin+0.000001,
-	    CoordY=CoordYin+0.000001;
-	{true,_} ->
-	    CoordX=CoordXin+0.000001,
-	    CoordY = CoordYin;
-	
-	{_,true} ->
-	    CoordY=CoordYin+0.000001,
-	    CoordX=CoordXin;
-	{_,_} -> 
-	    CoordX=CoordXin,
-	    CoordY=CoordYin
-    end,
-    X = CarX + (getDistance({0,0},{CoordX,CoordY})*
-		    (math:cos(CarAng+(getAng({0,0},{CoordX,CoordY}))))),
-    Y = CarY + (getDistance({0,0},{CoordX,CoordY})*
-		    (math:sin(CarAng+(getAng({0,0},{CoordX,CoordY}))))),
-    {X,Y}.
-
 
 closest_in_radius({CX,CY}, Radius) ->
     MatchSpec = match_spec(CX,CY,Radius),
