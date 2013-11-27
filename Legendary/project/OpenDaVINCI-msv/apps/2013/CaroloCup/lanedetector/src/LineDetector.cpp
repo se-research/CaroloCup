@@ -1,5 +1,4 @@
 #include "LineDetector.h"
-#include "MSAC.h"
 #include <stdio.h>
 #include <math.h>
 
@@ -24,29 +23,35 @@ LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug)
   , detectedLines()
   , supposedMidLine()
 {
-  Mat outputImg = f.clone(), frame = f.clone();
-  //if (m_debug) imshow("frame",frame);
-  cvtColor( frame, frame, CV_BGR2GRAY );
-  threshold( frame, frame, m_config.caThVal, m_config.caThMax, m_config.caThTyp );
-  m_frame = frame;
+  m_frame = f.clone();
+  Mat outputImg = f.clone();
+  //if (m_debug)
+  //imshow("m_frame",m_frame);
+ // cvtColor( m_frame, m_frame, CV_BGR2GRAY );
+  threshold( m_frame, m_frame, m_config.caThVal, m_config.caThMax, m_config.caThTyp );
+
+cout<<"Thresholding Done............"<<endl;
   // Canny
   cv::Canny(m_frame, m_frameCanny, 180, 120, 3);
-
+cout<<"Canny Done............"<<endl;
   // Create and init MSAC
   MSAC msac;
-  double w = frame.size().width;
-  double h = frame.size().height;
+  double w = m_frame.size().width;
+  double h = m_frame.size().height;
   int mode = MODE_NIETO;
   Size procSize = cv::Size(w, h);
-  msac.init(mode, procSize, m_debug);
+  msac.init(mode, procSize, true);
+
+cout<<"Initializing MSAC............"<<endl;
   // ++++++++++++++++++++++++++++++++++++++++
   // Process        
   // ++++++++++++++++++++++++++++++++++++++++
-  processImageMSAC(msac, 1, frame, outputImg);
+  //processImageMSAC(msac, 1, frame, outputImg);
   
   // View
-  if(m_debug) imshow("Before output", frame);
-  if(m_debug) imshow("Output", outputImg);
+  //if(m_debug) imshow("Before output", frame);
+  //if(m_debug) imshow("Output", outputImg);
+  imshow("Output", m_frameCanny);
 }
 
 LineDetector::~LineDetector(){
@@ -363,6 +368,8 @@ void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv
     vector<Vec2f> lines;
     cv::HoughLines( m_frameCanny, lines, 1, CV_PI/180, 200);
 
+
+
     for(size_t i=0; i< lines.size(); i++)
     {
         float rho = lines[i][0];
@@ -386,13 +393,18 @@ void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv
     
     }
 #else
+
+
+cout<<"Initializing HoughLines............"<<endl;
     vector<Vec4i> lines;    
     int houghThreshold = 40;
     if(imgGRAY.cols*imgGRAY.rows < 400*400)
         houghThreshold = 100;        
-    
-    cv::HoughLinesP(m_frameCanny, lines, 1, CV_PI/180, houghThreshold, 10,10);
+    cout<<"Graying............"<<endl;
 
+cout<<"Getting Channels:  "<< m_frameCanny.channels()<<endl;
+    cv::HoughLinesP(m_frameCanny, lines, 1, CV_PI/180, houghThreshold, 10,10);
+    cout<<"Houghing!!!............"<<endl;
     while(lines.size() > MAX_NUM_LINES)
     {
         lines.clear();
@@ -407,7 +419,11 @@ void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv
         pt1.y = lines[i][1];
         pt2.x = lines[i][2];
         pt2.y = lines[i][3];
-        line(outputImg, pt1, pt2, CV_RGB(0,0,0), 2);
+
+cout<<"Scalar Stuffs............"<<endl;
+        line(outputImg, pt1, pt2, Scalar(0), 2);
+
+        cout << "Hurray!!!: "<< endl;
         /*circle(outputImg, pt1, 2, CV_RGB(255,255,255), CV_FILLED);
         circle(outputImg, pt1, 3, CV_RGB(0,0,0),1);
         circle(outputImg, pt2, 2, CV_RGB(255,255,255), CV_FILLED);
@@ -423,7 +439,7 @@ void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv
             lineSegments.push_back(aux);
         }
     }
-    
+    cout<<" HoughLines DONE!!!!!!!............"<<endl;
 #endif
 
     // Multiple vanishing points

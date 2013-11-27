@@ -22,11 +22,11 @@ namespace carolocup {
         AbstractProtocol(),
         m_partialData(),
         m_dataListenerMutex(),
-        m_dataListener(NULL),
+        //m_dataListener(NULL),
         m_vehicleData() {}
 
     ArduinoMegaProtocol::~ArduinoMegaProtocol() {
-        setArduinoMegaDataListener(NULL);
+        //setArduinoMegaDataListener(NULL);
     }
 	std::string itos(int n)
 	{
@@ -36,7 +36,7 @@ namespace carolocup {
 	   return std::string(buffer);
 	}
 
-    void ArduinoMegaProtocol::setArduinoMegaDataListener(ArduinoMegaDataListener *listener) {
+    /*void ArduinoMegaProtocol::setArduinoMegaDataListener(ArduinoMegaDataListener *listener) {
         Lock l(m_dataListenerMutex);
         m_dataListener = listener;
     }
@@ -69,7 +69,7 @@ namespace carolocup {
         data = r | (mappedSpeed << 4) | (mappedSteeringWheelAngle << 10);
 	
 		sendByStringSender(itos(data));
-    }
+    }*/
 
     void ArduinoMegaProtocol::receivedPartialString(const string &s) {
         m_partialData.write(s.c_str(), s.length());
@@ -108,337 +108,11 @@ namespace carolocup {
     }
 
     void ArduinoMegaProtocol::handlePacket(const uint32_t &packet) {
-        ArduinoMegaRequest r = (ArduinoMegaRequest)getValueFromPacket(packet, 0, 4);
-        uint32_t packetTerminator = getValueFromPacket(packet, 30, 2);
+        //ArduinoMegaRequest r = (ArduinoMegaRequest)getValueFromPacket(packet, 0, 4);
+        //uint32_t packetTerminator = getValueFromPacket(packet, 30, 2);
 
-        cout << "(ArduinoMegaProtocol): request: " << (uint32_t)(r) << ", packetTerminator: " << packetTerminator << endl;
+        cout << "(ArduinoMegaProtocol): request: " << (uint32_t)(packet) << endl;
 
-        switch (r) {
-            case NoData:
-                cout << "(ArduinoMegaProtocol): NoData" << endl;
-            break;
-            case AllInfrareds:
-            {
-                cout << "(ArduinoMegaProtocol): AllInfrareds" << endl;
-                uint32_t IR1 = getValueFromPacket(packet, 4, 5);
-                uint32_t IR2 = getValueFromPacket(packet, 9, 5);
-                uint32_t IR3 = getValueFromPacket(packet, 14, 5);
-
-                cout << "(ArduinoMegaProtocol): IR1: " << IR1 << ", IR2: " << IR2 << ", IR3: " << IR3 << endl;
-
-                InfraredSensorMeasurement i1;
-                i1.address = 200;
-                i1.value = (IR1 == 31) ? -1 : (int32_t)(IR1);
-
-                InfraredSensorMeasurement i2;
-                i2.address = 201;
-                i2.value = (IR2 == 31) ? -1 : (int32_t)(IR2);
-
-                InfraredSensorMeasurement i3;
-                i3.address = 202;
-                i3.value = (IR3 == 31) ? -1 : (int32_t)(IR3);
-
-                vector<InfraredSensorMeasurement> listOfIRMeasurements;
-                listOfIRMeasurements.push_back(i1);
-                listOfIRMeasurements.push_back(i2);
-                listOfIRMeasurements.push_back(i3);
-
-                {
-                    Lock l(m_dataListenerMutex);
-                    if (m_dataListener != NULL) {
-                        m_dataListener->nextMeasurement(listOfIRMeasurements);
-                    }
-                }
-            }
-            break;
-            case AllUltrasonics:
-            {
-                cout << "(ArduinoMegaProtocol): AllUltrasonics" << endl;
-                uint32_t US1 = getValueFromPacket(packet, 4, 6);
-                uint32_t US1_multiplier = getValueFromPacket(packet, 10, 2);
-
-                uint32_t US2 = getValueFromPacket(packet, 12, 6);
-                uint32_t US2_multiplier = getValueFromPacket(packet, 18, 2);
-
-                uint32_t US3 = getValueFromPacket(packet, 20, 6);
-                uint32_t US3_multiplier = getValueFromPacket(packet, 26, 2);
-
-                cout << "(ArduinoMegaProtocol): US1: " << US1 << " (multiplier: " << US1_multiplier << "), "
-                     << "US2: " << US2 << " (multiplier: " << US2_multiplier << "), " 
-                     << "US3: " << US3 << " (multiplier: " << US3_multiplier << ") " << endl;
-
-                UltrasonicSensorMeasurement u1;
-                u1.address = 100;
-                u1.value = US1 * getMultiplier(US1_multiplier);
-                u1.value = (u1.value == 630) ? -1 : u1.value;
-
-                UltrasonicSensorMeasurement u2;
-                u2.address = 101;
-                u2.value = US2 * getMultiplier(US2_multiplier);
-                u2.value = (u2.value == 630) ? -1 : u2.value;
-
-                UltrasonicSensorMeasurement u3;
-                u3.address = 102;
-                u3.value = US3 * getMultiplier(US3_multiplier);
-                u3.value = (u3.value == 630) ? -1 : u3.value;
-
-                vector<UltrasonicSensorMeasurement> listOfUSMeasurements;
-                listOfUSMeasurements.push_back(u1);
-                listOfUSMeasurements.push_back(u2);
-                listOfUSMeasurements.push_back(u3);
-
-                {
-                    Lock l(m_dataListenerMutex);
-                    if (m_dataListener != NULL) {
-                        m_dataListener->nextMeasurement(listOfUSMeasurements);
-                    }
-                }
-            }
-            break;
-            case YawData:
-            {
-                cout << "(ArduinoMegaProtocol): YawData" << endl;
-
-                RazorMeasurement measurement;
-
-                // TODO: Discussion about out-of-range.
-                measurement.yaw = getValueFromPacket(packet, 4, 8);
-                int32_t sign_yaw = getValueFromPacket(packet, 12, 1) ? -1 : 1;
-                measurement.pitch = 0;
-                measurement.roll = 0;
-
-                cout << "(ArduinoMegaProtocol): yaw: " << measurement.yaw << " (sign: " << sign_yaw << ")" << endl;
-
-                measurement.yaw *= sign_yaw;
-
-                {
-                    Lock l(m_dataListenerMutex);
-                    if (m_dataListener != NULL) {
-                        m_dataListener->nextMeasurement(measurement);
-                    }
-                }
-            }
-            break;
-            case Magnetometer:
-            {
-                cout << "(ArduinoMegaProtocol): Magnetometer" << endl;
-
-                RazorMeasurement measurement;
-
-                // TODO: Discussion about out-of-range.
-                measurement.mag_X = getValueFromPacket(packet, 4, 8);
-                int32_t sign_X = getValueFromPacket(packet, 12, 1) ? -1 : 1;
-                measurement.mag_Y = getValueFromPacket(packet, 13, 8);
-                int32_t sign_Y = getValueFromPacket(packet, 21, 1) ? -1 : 1;
-                measurement.mag_Z = 0;
-
-                cout << "(ArduinoMegaProtocol): Magnetometer: MAG_X: " << measurement.mag_X << " (sign: " << sign_X << "), "
-                                                              << " MAG_Y: " << measurement.mag_Y << " (sign: " << sign_Y << "), "
-                                                              << " MAG_Z: " << measurement.mag_Z << endl;
-
-                measurement.mag_X *= sign_X;
-                measurement.mag_Y *= sign_Y;
-
-                {
-                    Lock l(m_dataListenerMutex);
-                    if (m_dataListener != NULL) {
-                        m_dataListener->nextMeasurement(measurement);
-                    }
-                }
-            }
-            break;
-            case Gyroscope:
-            {
-                cout << "(ArduinoMegaProtocol): Gyroscope" << endl;
-
-                RazorMeasurement measurement;
-
-                // TODO: Discussion about out-of-range.
-                measurement.gyro_X = getValueFromPacket(packet, 4, 8);
-                int32_t sign_X = getValueFromPacket(packet, 12, 1) ? -1 : 1;
-                measurement.gyro_Y = getValueFromPacket(packet, 13, 8);
-                int32_t sign_Y = getValueFromPacket(packet, 21, 1) ? -1 : 1;
-                measurement.gyro_Z = 0;
-
-                cout << "(ArduinoMegaProtocol): Gyroscope: gyro_X: " << measurement.gyro_X << " (sign: " << sign_X << "), "
-                                                              << " gyro_Y: " << measurement.gyro_Y << " (sign: " << sign_Y << "), "
-                                                              << " gyro_Z: " << measurement.gyro_Z << endl;
-
-                measurement.gyro_X *= sign_X;
-                measurement.gyro_Y *= sign_Y;
-
-                {
-                    Lock l(m_dataListenerMutex);
-                    if (m_dataListener != NULL) {
-                        m_dataListener->nextMeasurement(measurement);
-                    }
-                }
-            }
-            break;
-            case AccelerometerRazor:
-            {
-                cout << "(ArduinoMegaProtocol): AccelerometerRazor" << endl;
-
-                RazorMeasurement measurement;
-
-                // TODO: Discussion about out-of-range.
-                measurement.acc_X = getValueFromPacket(packet, 4, 8);
-                int32_t sign_X = getValueFromPacket(packet, 12, 1) ? -1 : 1;
-                measurement.acc_Y = getValueFromPacket(packet, 13, 8);
-                int32_t sign_Y = getValueFromPacket(packet, 21, 1) ? -1 : 1;
-                measurement.acc_Z = 0;
-
-                cout << "(ArduinoMegaProtocol): Accelerometer: ACC_X: " << measurement.acc_X << " (sign: " << sign_X << "), "
-                                                              << " ACC_Y: " << measurement.acc_Y << " (sign: " << sign_Y << "), "
-                                                              << " ACC_Z: " << measurement.acc_Z << endl;
-
-                measurement.acc_X *= sign_X;
-                measurement.acc_Y *= sign_Y;
-
-                {
-                    Lock l(m_dataListenerMutex);
-                    if (m_dataListener != NULL) {
-                        m_dataListener->nextMeasurement(measurement);
-                    }
-                }
-            }
-            break;
-            case AccelerometerSTM32:
-            {
-                cout << "(ArduinoMegaProtocol): AccelerometerSTM32" << endl;
-
-                ArduinoMegaAccelerometerMeasurement measurement;
-
-                // TODO: Discussion about out-of-range.
-                measurement.acc_X = getValueFromPacket(packet, 4, 8);
-                int32_t sign_X = getValueFromPacket(packet, 12, 1) ? -1 : 1;
-                measurement.acc_Y = getValueFromPacket(packet, 13, 8);
-                int32_t sign_Y = getValueFromPacket(packet, 21, 1) ? -1 : 1;
-                measurement.acc_Z = 0;
-
-                cout << "(ArduinoMegaProtocol): ArduinoMega-Accelerometer: ACC_X: " << measurement.acc_X << " (sign: " << sign_X << "), "
-                                                              << " ACC_Y: " << measurement.acc_Y << " (sign: " << sign_Y << "), "
-                                                              << " ACC_Z: " << measurement.acc_Z << endl;
-
-                measurement.acc_X *= sign_X;
-                measurement.acc_Y *= sign_Y;
-
-                {
-                    Lock l(m_dataListenerMutex);
-                    if (m_dataListener != NULL) {
-                        m_dataListener->nextMeasurement(measurement);
-                    }
-                }
-            }
-            break;
-            case RazorAll:
-                cout << "(ArduinoMegaProtocol): RazorAll" << endl;
-            break;
-            case RazorAllSTM32:
-                cout << "(ArduinoMegaProtocol): RazorAllSTM32" << endl;
-            break;
-            case CurrentPosition:
-            {
-                cout << "(ArduinoMegaProtocol): CurrentPosition" << endl;
-
-                // TODO: Discussion about out-of-range.
-                int32_t positionX = getValueFromPacket(packet, 4, 12);
-                int32_t sign_X = getValueFromPacket(packet, 16, 1) ? -1 : 1;
-                int32_t positionY = getValueFromPacket(packet, 17, 12);
-                int32_t sign_Y = getValueFromPacket(packet, 29, 1) ? -1 : 1;
-
-                Point3 pos(positionX * sign_X/100.0, positionY * sign_Y/100.0, 0);
-
-                cout << "(ArduinoMegaProtocol): ArduinoMega-CurrentPositon: positionX: " << positionX << " (sign: " << sign_X << "), "
-                                                               << " positionY: " << positionY << " (sign: " << sign_Y << "): "
-                                                               << pos.toString() << endl;
-
-                m_vehicleData.setPosition(pos);
-
-                {
-                    Lock l(m_dataListenerMutex);
-                    if (m_dataListener != NULL) {
-                        m_dataListener->nextMeasurement(m_vehicleData);
-                    }
-                }
-            }
-            break;
-            case TraveledPath:
-            {
-                cout << "(ArduinoMegaProtocol): TraveledPath" << endl;
-
-                uint32_t relTraveledPath = getValueFromPacket(packet, 4, 6);
-                uint32_t absTraveledPath = getValueFromPacket(packet, 10, 16);
-
-                cout << "(ArduinoMegaProtocol): ArduinoMega-TraveledPath: relTraveledPath: " << relTraveledPath
-                                                            << ", absTraveledPath: " << absTraveledPath << endl;
-
-                m_vehicleData.setRelTraveledPath(relTraveledPath/2.0/100.0);
-                m_vehicleData.setAbsTraveledPath(absTraveledPath/2.0/100.0);
-
-                {
-                    Lock l(m_dataListenerMutex);
-                    if (m_dataListener != NULL) {
-                        m_dataListener->nextMeasurement(m_vehicleData);
-                    }
-                }
-            }
-            break;
-            case Velocity:
-            {
-                cout << "(ArduinoMegaProtocol): Velocity" << endl;
-
-                // TODO: Discussion about out-of-range.
-                // TODO: Discussion about out-of-range.
-                int32_t velocityX = getValueFromPacket(packet, 4, 9);
-                int32_t sign_X = getValueFromPacket(packet, 13, 1) ? -1 : 1;
-                int32_t velocityY = getValueFromPacket(packet, 14, 9);
-                int32_t sign_Y = getValueFromPacket(packet, 23, 1) ? -1 : 1;
-
-                Point3 vel(velocityX * sign_X/100.0, velocityY * sign_Y/100.0, 0);
-
-                cout << "(ArduinoMegaProtocol): ArduinoMega-Velocity: velocityX: " << velocityX << " (sign: " << sign_X << "), "
-                                                               << " velocityY: " << velocityY << " (sign: " << sign_Y << "): "
-                                                               << vel.toString() << endl;
-
-                m_vehicleData.setVelocity(vel);
-
-                {
-                    Lock l(m_dataListenerMutex);
-                    if (m_dataListener != NULL) {
-                        m_dataListener->nextMeasurement(m_vehicleData);
-                    }
-                }
-            }
-            break;
-            case Orientation:
-            {
-                cout << "(ArduinoMegaProtocol): Orientation" << endl;
-
-                // TODO: Discussion about out-of-range.
-                int32_t orientation = getValueFromPacket(packet, 4, 11);
-
-                double heading = fmod(orientation/1000.0 * Constants::PI, 2 * Constants::PI);
-
-                m_vehicleData.setHeading(heading);
-
-                cout << "(ArduinoMegaProtocol): ArduinoMega-Orientation: " << orientation << ", heading: " << m_vehicleData.getHeading() << endl;
-
-                {
-                    Lock l(m_dataListenerMutex);
-                    if (m_dataListener != NULL) {
-                        m_dataListener->nextMeasurement(m_vehicleData);
-                    }
-                }
-            }
-            break;
-            case Reserved14:
-                cout << "(ArduinoMegaProtocol): Reserved14" << endl;
-            break;
-            case Reserved15:
-                cout << "(ArduinoMegaProtocol): Reserved15" << endl;
-            break;
-        }
     }
 
     uint32_t ArduinoMegaProtocol::getMultiplier(const uint32_t &m) {

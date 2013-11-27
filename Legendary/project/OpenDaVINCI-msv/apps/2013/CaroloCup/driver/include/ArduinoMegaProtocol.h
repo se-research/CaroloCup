@@ -13,6 +13,7 @@
 #include <sstream>
 
 #include "core/base/Mutex.h"
+#include "core/data/environment/VehicleData.h"
 #include "core/wrapper/AbstractProtocol.h"
 #include "core/wrapper/StringSender.h"
 
@@ -51,7 +52,7 @@ namespace carolocup {
              */
             ArduinoMegaProtocol();
 
-            virtual ~ArduinoMegaProtocol();
+            ~ArduinoMegaProtocol();
 
             /**
              * This method requests data from STM32F4 board.
@@ -60,16 +61,16 @@ namespace carolocup {
              * @param speed Desired speed value: will be mapped to ?.
              * @param steeringWheelAngle Desired steering wheel angle: will be mapped to ?.
              */
-            void request(const ArduinoMegaRequest &r, const double &speed, const double &steeringWheelAngle);
+            //void request(const ArduinoMegaRequest &r, const double &speed, const double &steeringWheelAngle);
 
             /**
              * This method sets the STM32F4DataListener.
              *
              * @param listener STM32F4DataListener to distribute the data.
              */
-            void setArduinoMegaDataListener(ArduinoMegaDataListener *listener);
+            //void setArduinoMegaDataListener(ArduinoMegaDataListener *listener);
 
-            virtual void receivedPartialString(const string &partialData);
+            void receivedPartialString(const string &partialData);
 
         private:
             /**
@@ -105,7 +106,7 @@ namespace carolocup {
             stringstream m_partialData;
 
             core::base::Mutex m_dataListenerMutex;
-            ArduinoMegaDataListener *m_dataListener;
+            //ArduinoMegaDataListener *m_dataListener;
 
             core::data::environment::VehicleData m_vehicleData;
     };

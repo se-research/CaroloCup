@@ -48,13 +48,14 @@ namespace carolocup {
     m_intGain(8.38) ,
     m_derGain(0.23) ,
     m_length(0.3) ,
+    m_serialPortPtr(),
+    m_protocol(),
     ANGLE_TO_CURVATURE(2.5) ,
     SCALE_FACTOR (1200) ,
     m_timestamp(0) ,
     m_leftLine(Vec4i(0,0,0,0)) ,
     m_rightLine(Vec4i(0,0,0,0)) ,
-    m_dashedLine(Vec4i(0,0,0,0)),
-    m_protocol();
+    m_dashedLine(Vec4i(0,0,0,0))
   {
     m_controlGains[0] = 8.0/3;
     m_controlGains[1] = 8.0/3;
@@ -96,8 +97,8 @@ namespace carolocup {
 		core::wrapper::SerialPort *serialPort = core::wrapper::SerialPortFactory::createSerialPort(SERIAL_PORT, SERIAL_SPEED);
 		ArduinoMegaProtocol protocol;
         protocol.setStringSender(serialPort);
-        protocol.setArduinoMegaDataListener(this);
-        serialPort->setPartialStringReceiver(&protocol);
+        //protocol.setArduinoMegaDataListener(this);
+        //serialPort->setPartialStringReceiver(&protocol);
 
 		while (getModuleState() == ModuleState::RUNNING) {
 			m_hasReceivedLaneDetectionData = false;
@@ -240,7 +241,7 @@ namespace carolocup {
 			//Container c(Container::VEHICLECONTROL, vc);
 			// Send container.
 			//getConference().send(c);	
-			stringstream speedStrem, steeringAngleStream;
+			stringstream speedStream, steeringAngleStream;
 			speedStream << 'm' << uint16_t((m_speed+2)/4.0*(1619-1523) + 1523) << '\0';
 			protocol.sendByStringSender(speedStream.str());
 			steeringAngleStream << 's' << uint16_t(m_desiredSteeringWheelAngle*180/M_PI) << '\0';

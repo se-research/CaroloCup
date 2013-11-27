@@ -8,8 +8,11 @@
 #define DRIVER_H_2
 
 #include "core/base/ConferenceClientModule.h"
+#include "core/wrapper/SerialPort.h"
+#include "core/wrapper/SerialPortFactory.h"
 #include "LaneDetectionData.h"
 #include <opencv/cv.h>
+#include "ArduinoMegaProtocol.h"
 
 namespace carolocup {
 
@@ -92,8 +95,8 @@ namespace carolocup {
       float m_intGain;
       float m_derGain;
       float m_length;
-      //core::wrapper::SerialPort *m_serialPortPtr;
-      //ArduinoMegaProtocol m_protocol;
+      core::wrapper::SerialPort *m_serialPortPtr;
+      ArduinoMegaProtocol m_protocol;
       const float ANGLE_TO_CURVATURE;
       const float SCALE_FACTOR;	//For example, 12000 dpm (dots-per-meter)
 
