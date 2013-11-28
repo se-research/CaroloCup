@@ -51,7 +51,7 @@ ADD_SUBDIRECTORY (libopendavinci)
 # ADD_SUBDIRECTORY (hesperia)
 ADD_SUBDIRECTORY (supercomponent)
 ADD_SUBDIRECTORY (tools)
-ADD_SUBDIRECTORY (examples)
+#ADD_SUBDIRECTORY (examples)
 
 # Apps contains msv, carolocup2013, ...
 ADD_SUBDIRECTORY (apps)

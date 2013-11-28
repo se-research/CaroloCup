@@ -7,8 +7,7 @@
 #ifndef VCR_H_
 #define VCR_H_
 
-#include <opencv/cv.h>
-#include <opencv/highgui.h>
+#include "opencv2/opencv.hpp"
 
 #include "core/SharedPointer.h"
 #include "core/base/ConferenceClientModule.h"

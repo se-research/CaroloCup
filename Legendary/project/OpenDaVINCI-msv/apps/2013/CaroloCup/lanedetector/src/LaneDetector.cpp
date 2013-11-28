@@ -5,8 +5,6 @@
  */
 
 #include <iostream>
-//#include <opencv/cv.h>
-//#include <opencv/highgui.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
@@ -259,11 +257,11 @@ void LaneDetector::processImage() {
 
     TimeStamp currentTime_strt1;
     //Mat dst;
-    cout<<"Showing Input Frame............"<<endl;
+    //cout<<"Showing Input Frame............"<<endl;
 
     //dst = m_frame.clone();
 
-    cout<<"Cloning............"<<endl;
+    //cout<<"Cloning............"<<endl;
     // dst.setTo( Scalar(0,0,0));
     debug = m_debug;
     cfg = m_config;
@@ -436,12 +434,12 @@ ModuleState::MODULE_EXITCODE LaneDetector::body() {
                 if(get_image(newPointer)) {
                     img = cvCreateImageHeader(cvSize(752,480),IPL_DEPTH_8U,1);
 	            img->imageData = (char*) newPointer;
-                    Mat Maa(img, false);
-                    Mat cutted = Maa.clone();
-                    m_frame = cutted(cv::Rect(1,1,639,479));
+                    Mat rawImg(img, false);
+                    m_frame = rawImg.clone();
+                    //m_frame = rawImg(cv::Rect(1,239,751,239));
                     //cvNamedWindow("image", CV_WINDOW_AUTOSIZE);
 	            //cvShowImage("image", img);
-                    cout<<"Processing"<<endl;
+                    //cout<<"Processing"<<endl;
                     processImage();
                 }
 /*

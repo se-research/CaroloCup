@@ -7,7 +7,6 @@
 #ifndef LANEDETECTOR_H_
 #define LANEDETECTOR_H_
 
-//#include <opencv/cv.h>
 #include "opencv2/opencv.hpp"
 #include "core/SharedPointer.h"
 #include "core/base/ConferenceClientModule.h"

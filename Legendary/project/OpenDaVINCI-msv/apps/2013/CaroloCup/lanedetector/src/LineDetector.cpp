@@ -30,28 +30,28 @@ LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug)
  // cvtColor( m_frame, m_frame, CV_BGR2GRAY );
   threshold( m_frame, m_frame, m_config.caThVal, m_config.caThMax, m_config.caThTyp );
 
-cout<<"Thresholding Done............"<<endl;
+  //cout<<"Thresholding Done............"<<endl;
   // Canny
   cv::Canny(m_frame, m_frameCanny, 180, 120, 3);
-cout<<"Canny Done............"<<endl;
+  //cout<<"Canny Done............"<<endl;
   // Create and init MSAC
   MSAC msac;
+  int mode = MODE_NIETO;
   double w = m_frame.size().width;
   double h = m_frame.size().height;
-  int mode = MODE_NIETO;
   Size procSize = cv::Size(w, h);
-  msac.init(mode, procSize, true);
+  msac.init(mode, procSize, false);
 
-cout<<"Initializing MSAC............"<<endl;
+  //cout<<"Initializing MSAC............"<<endl;
   // ++++++++++++++++++++++++++++++++++++++++
   // Process        
   // ++++++++++++++++++++++++++++++++++++++++
-  //processImageMSAC(msac, 1, frame, outputImg);
+  processImageMSAC(msac, 1, m_frame, outputImg);
   
   // View
   //if(m_debug) imshow("Before output", frame);
   //if(m_debug) imshow("Output", outputImg);
-  imshow("Output", m_frameCanny);
+  imshow("Output", outputImg);
 }
 
 LineDetector::~LineDetector(){
@@ -395,23 +395,25 @@ void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv
 #else
 
 
-cout<<"Initializing HoughLines............"<<endl;
+    //cout<<"Initializing HoughLines............"<<endl;
     vector<Vec4i> lines;    
     int houghThreshold = 40;
-    if(imgGRAY.cols*imgGRAY.rows < 400*400)
-        houghThreshold = 100;        
-    cout<<"Graying............"<<endl;
+    double w = imgGRAY.size().width;
+    double h = imgGRAY.size().height;
+    //if(imgGRAY.cols*imgGRAY.rows < 400*400)
+        //houghThreshold = 100;        
+    //cout<<"Graying............"<<endl;
 
-cout<<"Getting Channels:  "<< m_frameCanny.channels()<<endl;
+    //cout<<"Getting Channels:  "<< m_frameCanny.channels()<<endl;
     cv::HoughLinesP(m_frameCanny, lines, 1, CV_PI/180, houghThreshold, 10,10);
-    cout<<"Houghing!!!............"<<endl;
+    //cout<<"Houghing!!!............"<<endl;
     while(lines.size() > MAX_NUM_LINES)
     {
         lines.clear();
         houghThreshold += 10;
         cv::HoughLinesP(m_frameCanny, lines, 1, CV_PI/180, houghThreshold, 10, 10);
     }
-        cout << "Hough: " << houghThreshold << endl;
+    cout << "Hough: " << houghThreshold << endl;
     for(size_t i=0; i<lines.size(); i++)
     {        
         Point pt1, pt2;
@@ -420,10 +422,10 @@ cout<<"Getting Channels:  "<< m_frameCanny.channels()<<endl;
         pt2.x = lines[i][2];
         pt2.y = lines[i][3];
 
-cout<<"Scalar Stuffs............"<<endl;
+    //cout<<"Scalar Stuffs............"<<endl;
         line(outputImg, pt1, pt2, Scalar(0), 2);
 
-        cout << "Hurray!!!: "<< endl;
+        //cout << "Hurray!!!: "<< endl;
         /*circle(outputImg, pt1, 2, CV_RGB(255,255,255), CV_FILLED);
         circle(outputImg, pt1, 3, CV_RGB(0,0,0),1);
         circle(outputImg, pt2, 2, CV_RGB(255,255,255), CV_FILLED);
@@ -439,7 +441,7 @@ cout<<"Scalar Stuffs............"<<endl;
             lineSegments.push_back(aux);
         }
     }
-    cout<<" HoughLines DONE!!!!!!!............"<<endl;
+    //cout<<" HoughLines DONE!!!!!!!............"<<endl;
 #endif
 
     // Multiple vanishing points
@@ -470,10 +472,10 @@ cout<<"Scalar Stuffs............"<<endl;
     std::vector<CustomLine> customLineSegments;
     CustomLine midLine;
     if(lineSegmentsClusters.size() > 0 && vpFound) {
-        cout << "number of lines: " << lineSegmentsClusters[0].size() << endl;
+        //cout << "number of lines: " << lineSegmentsClusters[0].size() << endl;
         Point midLow;
-        midLow.x = 320;
-        midLow.y = 480;
+        midLow.x = w/2;
+        midLow.y = h;
           for (unsigned int v = 0; v < vps.size(); v++) {
                 Point vp;
             vp.x = vps[v].at<float>(0,0);
@@ -505,9 +507,9 @@ cout<<"Scalar Stuffs............"<<endl;
             }
         }
         std::sort(customLineSegments.begin(), customLineSegments.end());
-        cout << "Lines in " << customLineSegments.size() << endl;
+        //cout << "Lines in " << customLineSegments.size() << endl;
         CustomLine core = customLineSegments[0];
-        cout << "Slope mid: " << midLine.slope << endl;
+        //cout << "Slope mid: " << midLine.slope << endl;
 	supposedMidLine = midLine;
         int countSameLines = 0;
         int countAllMergedLines = 0;
@@ -519,20 +521,20 @@ cout<<"Scalar Stuffs............"<<endl;
             //cout << "curr slope:" << customLineSegments[i].slope << endl;
             //cout << "Line coord: [(" << customLineSegments[i].p1.x << "," << customLineSegments[i].p1.y << "),(" << customLineSegments[i].p2.x << "," << customLineSegments[i].p2.y << ")]" << endl;
             if(abs(customLineSegments[i].slope - customLineSegments[i+1].slope) > 10 ) {
-                cout << "DRAW" << endl;
-                core.p1.y = 480;
+                //cout << "DRAW" << endl;
+                core.p1.y = h;
                 float radianSlope = tan((core.slope/180.) * M_PI);
                 float b = core.p2.y - radianSlope * core.p2.x;
-                core.p1.x = (480 - b) / radianSlope;
-                cout << "Same line :" << countSameLines << " " << countAllMergedLines << endl;
-                cout << "Same line len: " << sameLinesLength << endl;
+                core.p1.x = (h - b) / radianSlope;
+                //cout << "Same line :" << countSameLines << " " << countAllMergedLines << endl;
+                //cout << "Same line len: " << sameLinesLength << endl;
                 Scalar lineColor = cv::Scalar(255, 0, 0);
                 if((countSameLines/(float)countAllMergedLines) > 0.6 && countAllMergedLines > 2 && sameLinesLength < 1000) {
                     lineColor = cv::Scalar(255, 255, 0);
                 }
                 detectedLines.push_back(core);
                 line(outputImg, core.p1, core.p2, lineColor, 2);
-                cout << "Slope core: " << core.slope << endl;
+                //cout << "Slope core: " << core.slope << endl;
                 core = customLineSegments[i+1];
                 countSameLines = 0;
                 countAllMergedLines = 0;
@@ -544,7 +546,7 @@ cout<<"Scalar Stuffs............"<<endl;
                     //cout << "Line coord: [(" << core.p1.x << "," << core.p1.y << "),(" << core.p2.x << "," << core.p2.y << ")]" << endl; 
                 }
                 float segmentLength = getDist(customLineSegments[i].p1, customLineSegments[i+1].p1);
-                cout << "Segment Length: " << segmentLength << endl;
+                //cout << "Segment Length: " << segmentLength << endl;
                 if ((fEqual(sameLinesLength,0)) && (segmentLength > 10)) {
                        sameLinesLength = segmentLength;
                     minLength = segmentLength;
@@ -578,22 +580,16 @@ cout<<"Scalar Stuffs............"<<endl;
         if((countSameLines/(float)countAllMergedLines) > 0.6 && countAllMergedLines > 2 && sameLinesLength < 1000) {
             lineColor = cv::Scalar(255, 255, 0);
         }
-        cout << "Same line :" << countSameLines << " " << countAllMergedLines << endl;
-        cout << "Same line len: " << sameLinesLength << endl;
-        core.p1.y = 480;
+        //cout << "Same line :" << countSameLines << " " << countAllMergedLines << endl;
+        //cout << "Same line len: " << sameLinesLength << endl;
+        core.p1.y = h;
         float radianSlope = tan((core.slope/180.) * M_PI);
         float b = core.p2.y - radianSlope * core.p2.x;
-        core.p1.x = (480 - b) / radianSlope;
+        core.p1.x = (h - b) / radianSlope;
         detectedLines.push_back(core);
         line(outputImg, core.p1, core.p2, lineColor, 2);
-        cout << "Slope core: " << core.slope << endl;
+        //cout << "Slope core: " << core.slope << endl;
     }
-    /*Point midLow, midUp;
-    midLow.x = 320;
-    midLow.y = 0;
-    midUp.x = 320;
-    midUp.y = 480;
-    line(outputImg, midLow, midUp, cv::Scalar(0,0,255), 2);*/
 }
 
 int LineDetector::detectHorizontalLine(Mat canny_roi, int dist) {
@@ -605,11 +601,11 @@ int LineDetector::detectHorizontalLine(Mat canny_roi, int dist) {
 		int xA = (*it)[0], yA = (*it)[1];
 		int xB = (*it)[2], yB = (*it)[3];
 		double theta = atan2(yB-yA, xB-xA);
-		cout << "Angle: " << theta*180/CV_PI << endl;
+		//cout << "Angle: " << theta*180/CV_PI << endl;
 		if (theta >= -CV_PI/36 && theta <= CV_PI/36) {
 				//&&_roi.cols/2 && xB >= src_roi.cols/2) {
 			likely_lines.push_back(*it);
-			cout << "(" << xA << ", " << yA << "), (" << xB << ", " << yB << ")" << endl;
+			//cout << "(" << xA << ", " << yA << "), (" << xB << ", " << yB << ")" << endl;
 		}
 	}
 	int yMax = 0;

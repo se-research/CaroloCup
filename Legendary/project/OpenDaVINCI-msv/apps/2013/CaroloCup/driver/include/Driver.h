@@ -11,7 +11,7 @@
 #include "core/wrapper/SerialPort.h"
 #include "core/wrapper/SerialPortFactory.h"
 #include "LaneDetectionData.h"
-#include <opencv/cv.h>
+#include "opencv2/opencv.hpp"
 #include "ArduinoMegaProtocol.h"
 
 namespace carolocup {
