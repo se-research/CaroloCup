@@ -32,7 +32,8 @@
 
 #define NUM_THREADS  5;
 
-namespace carolocup {
+namespace carolocup
+{
 
 using namespace std;
 using namespace core::base;
@@ -41,12 +42,12 @@ using namespace core::data::image;
 using namespace cv;
 
 ///////////////////////////////////////////////////////////////////////////////
-                /*The three functions below are function declarations for the Thread functions*/
+/*The three functions below are function declarations for the Thread functions*/
 void  *function1(void *argument);
 void  *function2(void *argument);
 void  *function3(void *argument);
 
-                   /*These are three Mat pointers, one for each segment of the image*/
+/*These are three Mat pointers, one for each segment of the image*/
 Mat *getFirstPointer;
 Mat *getSecondPointer;
 Mat *getThirdPointer;
@@ -62,16 +63,17 @@ int pid;
 ///////////////////////////////////////////////////////////////////////////////
 
 LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
-  ConferenceClientModule(argc, argv, "lanedetector") ,
-  m_hasAttachedToSharedImageMemory(false) ,
-  m_sharedImageMemory() ,
-  m_image(NULL) ,
-  img(NULL) ,
-  m_cameraId(-1) ,
-  init(0),
-  m_debug(false) ,
-  m_config(),
-  m_frame() {
+    ConferenceClientModule(argc, argv, "lanedetector") ,
+    m_hasAttachedToSharedImageMemory(false) ,
+    m_sharedImageMemory() ,
+    m_image(NULL) ,
+    img(NULL) ,
+    m_cameraId(-1) ,
+    init(0),
+    m_debug(false) ,
+    m_config(),
+    m_frame()
+{
     m_config.th1 = 40;
     m_config.th2 = 10;
     m_config.hlTh = 10;
@@ -96,111 +98,122 @@ LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
     m_config.intGain = 19;
     m_config.derGain = 23;
     m_config.speed = 0;
-  }
-
-LaneDetector::~LaneDetector() {
 }
 
-void LaneDetector::setUp() {
-	// This method will be call automatically _before_ running body().
-
-  //namedWindow("config",1);
-  createTrackbar("pGain", "config", &m_config.pGain, 100);
-  createTrackbar("intGain", "config", &m_config.intGain, 100);
-  createTrackbar("derGain", "config", &m_config.derGain, 100);
-  createTrackbar("speed", "config", &m_config.speed, 100);
-
-  createTrackbar("th1", "config", &m_config.th1, 250);
-  createTrackbar("th2", "config", &m_config.th2, 250);
-  createTrackbar("th", "config", &m_config.hlTh, 250);
-  createTrackbar("maxLineLength", "config", &m_config.hlMaxLineLength, 250);
-  createTrackbar("maxLineGap", "config", &m_config.hlMaxLineGap, 250);
-  createTrackbar("thValue", "config", &m_config.caThVal, 250);
-  createTrackbar("binMax", "config", &m_config.caThMax, 250);
-  createTrackbar("thType", "config", &m_config.caThTyp, 4);
-
-  // BirdView
-  //createTrackbar("f", "config", &m_config.birdF, 1500);
-  //createTrackbar("dist", "config", &m_config.birdDist, 500);
-  //createTrackbar("alpha", "config", &m_config.birdAlpha, 25);
-  //createTrackbar("beta", "config", &m_config.birdBeta, 180);
-  //createTrackbar("gamma", "config", &m_config.birdGamma, 360);
-  // DBSCAN
-  createTrackbar("eps", "config", &m_config.dbEps, 100);
-  createTrackbar("minPts", "config", &m_config.dbMinPts, 100);
-  createTrackbar("dashMin", "config", &m_config.dashMin, 100);
-  createTrackbar("dashMax", "config", &m_config.dashMax, 200);
-  createTrackbar("dashWidth", "config", &m_config.dashWidth, 25);
-  createTrackbar("solidMin", "config", &m_config.solidMin, 150);
-  createTrackbar("solidWidth", "config", &m_config.solidWidth, 15);
+LaneDetector::~LaneDetector()
+{
 }
 
-void LaneDetector::tearDown() {
-	// This method will be call automatically _after_ return from body().
-	if (m_image != NULL) {
-		cvReleaseImage(&m_image);
-	}
+void LaneDetector::setUp()
+{
+    // This method will be call automatically _before_ running body().
+
+    //namedWindow("config",1);
+    createTrackbar("pGain", "config", &m_config.pGain, 100);
+    createTrackbar("intGain", "config", &m_config.intGain, 100);
+    createTrackbar("derGain", "config", &m_config.derGain, 100);
+    createTrackbar("speed", "config", &m_config.speed, 100);
+
+    createTrackbar("th1", "config", &m_config.th1, 250);
+    createTrackbar("th2", "config", &m_config.th2, 250);
+    createTrackbar("th", "config", &m_config.hlTh, 250);
+    createTrackbar("maxLineLength", "config", &m_config.hlMaxLineLength, 250);
+    createTrackbar("maxLineGap", "config", &m_config.hlMaxLineGap, 250);
+    createTrackbar("thValue", "config", &m_config.caThVal, 250);
+    createTrackbar("binMax", "config", &m_config.caThMax, 250);
+    createTrackbar("thType", "config", &m_config.caThTyp, 4);
+
+    // BirdView
+    //createTrackbar("f", "config", &m_config.birdF, 1500);
+    //createTrackbar("dist", "config", &m_config.birdDist, 500);
+    //createTrackbar("alpha", "config", &m_config.birdAlpha, 25);
+    //createTrackbar("beta", "config", &m_config.birdBeta, 180);
+    //createTrackbar("gamma", "config", &m_config.birdGamma, 360);
+    // DBSCAN
+    createTrackbar("eps", "config", &m_config.dbEps, 100);
+    createTrackbar("minPts", "config", &m_config.dbMinPts, 100);
+    createTrackbar("dashMin", "config", &m_config.dashMin, 100);
+    createTrackbar("dashMax", "config", &m_config.dashMax, 200);
+    createTrackbar("dashWidth", "config", &m_config.dashWidth, 25);
+    createTrackbar("solidMin", "config", &m_config.solidMin, 150);
+    createTrackbar("solidWidth", "config", &m_config.solidWidth, 15);
 }
 
-bool LaneDetector::readSharedImage(Container &c) {
-        bool retVal = false;
+void LaneDetector::tearDown()
+{
+    // This method will be call automatically _after_ return from body().
+    if (m_image != NULL)
+    {
+        cvReleaseImage(&m_image);
+    }
+}
 
-        if (c.getDataType() == Container::SHARED_IMAGE) {
-                SharedImage si = c.getData<SharedImage> ();
+bool LaneDetector::readSharedImage(Container &c)
+{
+    bool retVal = false;
 
-                // Check if we have already attached to the shared memory.
-                if (!m_hasAttachedToSharedImageMemory) {
-                        m_sharedImageMemory
-                        = core::wrapper::SharedMemoryFactory::attachToSharedMemory(
-                                        si.getName());
-                }
+    if (c.getDataType() == Container::SHARED_IMAGE)
+    {
+        SharedImage si = c.getData<SharedImage> ();
 
-                // Check if we could successfully attach to the shared memory.
-                if (m_sharedImageMemory->isValid()) {
-
-      // Lock the memory region to gain exclusive access. REMEMBER!!! DO NOT
-      // FAIL WITHIN lock() / unlock(), otherwise, the image producing process
-      // would fail.
-                        m_sharedImageMemory->lock();
-                        {
-                                // Here, do something with the image. For example, we simply show the image.
-
-                                const uint32_t numberOfChannels = 3;
-                                // For example, simply show the image.
-                                if (m_image == NULL) {
-                                        m_image = cvCreateImage(cvSize(si.getWidth(),
-                                                        si.getHeight()), IPL_DEPTH_8U, numberOfChannels);
-                                }
-
-                                // Copying the image data is very expensive...
-                                if (m_image != NULL) {
-                                        memcpy(m_image->imageData,
-                                                        m_sharedImageMemory->getSharedMemory(),
-                                                        si.getWidth() * si.getHeight() * numberOfChannels);
-                                }
-                        }
-
-      // Release the memory region so that the image produce (i.e. the camera
-      // for example) can provide the next raw image data.
-                        m_sharedImageMemory->unlock();
-
-                        // Mirror the image.
-                        cvFlip(m_image, 0, -1);
-
-                        retVal = true;
-                }
+        // Check if we have already attached to the shared memory.
+        if (!m_hasAttachedToSharedImageMemory)
+        {
+            m_sharedImageMemory
+                = core::wrapper::SharedMemoryFactory::attachToSharedMemory(
+                      si.getName());
         }
- 
+
+        // Check if we could successfully attach to the shared memory.
+        if (m_sharedImageMemory->isValid())
+        {
+
+            // Lock the memory region to gain exclusive access. REMEMBER!!! DO NOT
+            // FAIL WITHIN lock() / unlock(), otherwise, the image producing process
+            // would fail.
+            m_sharedImageMemory->lock();
+            {
+                // Here, do something with the image. For example, we simply show the image.
+
+                const uint32_t numberOfChannels = 3;
+                // For example, simply show the image.
+                if (m_image == NULL)
+                {
+                    m_image = cvCreateImage(cvSize(si.getWidth(),
+                                                   si.getHeight()), IPL_DEPTH_8U, numberOfChannels);
+                }
+
+                // Copying the image data is very expensive...
+                if (m_image != NULL)
+                {
+                    memcpy(m_image->imageData,
+                           m_sharedImageMemory->getSharedMemory(),
+                           si.getWidth() * si.getHeight() * numberOfChannels);
+                }
+            }
+
+            // Release the memory region so that the image produce (i.e. the camera
+            // for example) can provide the next raw image data.
+            m_sharedImageMemory->unlock();
+
+            // Mirror the image.
+            cvFlip(m_image, 0, -1);
+
+            retVal = true;
+        }
+    }
+
 }
 
 /////////////////////////////////////////////////////START//////////////////////////////////////////////////////////////////////////////////
-                /*The three functions below are the functions that is run by each of the threads
-		You can do stuff with the image segment in each function. Because of issues with
-		 X server and Multi-threads I can't use"imshow within the Thread functions", 
-		If you want to show the images, show them outside the function somewhere in 
-		the processImage() function*/
+/*The three functions below are the functions that is run by each of the threads
+You can do stuff with the image segment in each function. Because of issues with
+	 X server and Multi-threads I can't use"imshow within the Thread functions",
+	If you want to show the images, show them outside the function somewhere in
+	the processImage() function*/
 
-void *functionBottom(void *argument){
+void *functionBottom(void *argument)
+{
     cout << "\nRunning this from Thread_Bottom" << endl;
     int i = 0;
     argument = (void *) i;
@@ -214,7 +227,8 @@ void *functionBottom(void *argument){
 }
 
 
-void *functionMiddle(void *argument){
+void *functionMiddle(void *argument)
+{
     cout << "\nRunning this from Thread_Middle" << endl;
     int i = 0;
     argument = (void *) i;
@@ -227,7 +241,8 @@ void *functionMiddle(void *argument){
     return 0;
 }
 
-void *functionTop(void *argument){
+void *functionTop(void *argument)
+{
     cout << "\nRunning this from Thread_Top" << endl;
     int i = 0;
     argument = (void *) i;
@@ -246,14 +261,16 @@ void *functionTop(void *argument){
 
 //////////////////////////////////////////////////////END///////////////////////////////////////////////////////////////////////////////////
 
-carolocup::Lines mergeLinesData(){
+carolocup::Lines mergeLinesData()
+{
     return linesBottom;
 }
 
-void LaneDetector::processImage() {
+void LaneDetector::processImage()
+{
 
- /*Mat pickMat(m_image,false);
-  imshow("Source Image", pickMat);*/
+    /*Mat pickMat(m_image,false);
+     imshow("Source Image", pickMat);*/
 
     TimeStamp currentTime_strt1;
     //Mat dst;
@@ -266,40 +283,40 @@ void LaneDetector::processImage() {
     debug = m_debug;
     cfg = m_config;
 //////////////////////////////////////////////////////START//////////////////////////////////////////////////////////////////////////////////
-			/*Each of Mat Images below represents a segment of the image
-			and their respective addresses are assigned to each of the pointers below*/
-/*
-cout<<"Spliting............"<<endl;
-    Mat getFirst = m_frame(cv::Rect(1,239,639,239));
-    Mat getSecond  = m_frame(cv::Rect(1,119,639,119));
-    Mat getThird = m_frame(cv::Rect(1,119,639,119));
+    /*Each of Mat Images below represents a segment of the image
+    and their respective addresses are assigned to each of the pointers below*/
+    /*
+    cout<<"Spliting............"<<endl;
+        Mat getFirst = m_frame(cv::Rect(1,239,639,239));
+        Mat getSecond  = m_frame(cv::Rect(1,119,639,119));
+        Mat getThird = m_frame(cv::Rect(1,119,639,119));
 
 
-    getFirstPointer = &getFirst;
-    getSecondPointer = &getSecond;
-    getThirdPointer = &getThird;
+        getFirstPointer = &getFirst;
+        getSecondPointer = &getSecond;
+        getThirdPointer = &getThird;
 
-cout<<"Creating Threads............"<<endl;
-*/
-    /*Threes POSIX threads are created below and each of the threads 
+    cout<<"Creating Threads............"<<endl;
+    */
+    /*Threes POSIX threads are created below and each of the threads
     are assigned to run each of the three functions*/
     //pthread_t t1;//, t2, t3 ;
     //pthread_create(&t1, NULL, functionTop,NULL);
-  //  pthread_create(&t2, NULL, functionMiddle,NULL);
-   // pthread_create(&t3, NULL, functionBottom,NULL);
+    //  pthread_create(&t2, NULL, functionMiddle,NULL);
+    // pthread_create(&t3, NULL, functionBottom,NULL);
 
 //////////////////////////////////////////////////////END////////////////////////////////////////////////////////////////////////////////
-  //imshow("Input Image", m_frame);
-  LineDetector road(m_frame, m_config, m_debug);
-  /*carolocup::Lines lines = road.getLines();
-  lines.pGain = m_config.pGain;
-  lines.intGain = m_config.intGain;
-  lines.derGain = m_config.derGain;
-  lines.speed = m_config.speed;
-  lines.width =  m_image->width;
-  lines.height = m_image->height;
-  lines.stopLineHeight = road.detectStopLine(10);
-  lines.startLineHeight = road.detectStartLine(10);*/
+    //imshow("Input Image", m_frame);
+    LineDetector road(m_frame, m_config, m_debug);
+    /*carolocup::Lines lines = road.getLines();
+    lines.pGain = m_config.pGain;
+    lines.intGain = m_config.intGain;
+    lines.derGain = m_config.derGain;
+    lines.speed = m_config.speed;
+    lines.width =  m_image->width;
+    lines.height = m_image->height;
+    lines.stopLineHeight = road.detectStopLine(10);
+    lines.startLineHeight = road.detectStartLine(10);*/
 
     //while(!topDone || !bottomDone || !middleDone);
     //cout<<"Threads Done............"<<endl;
@@ -319,8 +336,8 @@ cout<<"Creating Threads............"<<endl;
     TimeStamp currentTime_strt7;
     double timeStep_total = (currentTime_strt7.toMicroseconds() - currentTime_strt1.toMicroseconds()) / 1000.0;
     cout << "Total  " << timeStep_total << endl;
-    topDone = false; 
-    bottomDone = false; 
+    topDone = false;
+    bottomDone = false;
     middleDone = false;
 
     /*if (m_debug) {
@@ -342,9 +359,9 @@ cout<<"Creating Threads............"<<endl;
     }*/
 
 //////////////////////////////////////////////////////START//////////////////////////////////////////////////////////////////////////////////
-        /*As I stated earlier, because of restrictions with X SERVER and Multi-threads
-	It will be difficult and messy trying to show the frames withing the thread functions
-        So you can show them outside like I have done here*/
+    /*As I stated earlier, because of restrictions with X SERVER and Multi-threads
+    It will be difficult and messy trying to show the frames withing the thread functions
+           So you can show them outside like I have done here*/
 
     //imshow("First Frame", *getFirstPointer);
     //imshow("Second Frame", *getSecondPointer);
@@ -352,127 +369,131 @@ cout<<"Creating Threads............"<<endl;
 
 //////////////////////////////////////////////////////END////////////////////////////////////////////////////////////////////////////////
     waitKey(10);
-  //}
+    //}
 }
 
 // This method will do the main data processing job.
-ModuleState::MODULE_EXITCODE LaneDetector::body() {
-	// Get configuration data.
-	KeyValueConfiguration kv = getKeyValueConfiguration();
-	m_cameraId = kv.getValue<int32_t> ("lanedetector.camera_id");
-	m_debug = kv.getValue<int32_t> ("lanedetector.debug") == 1;
+ModuleState::MODULE_EXITCODE LaneDetector::body()
+{
+    // Get configuration data.
+    KeyValueConfiguration kv = getKeyValueConfiguration();
+    m_cameraId = kv.getValue<int32_t> ("lanedetector.camera_id");
+    m_debug = kv.getValue<int32_t> ("lanedetector.debug") == 1;
 ////////////////////////////////////////////////////////////////////////////////
-/*	HIDS m_hCam=1;
-	int m_nBitsPerPixel=8; 
-	int m_nColorMode= 6;
-	int m_nSizeX = 758;
-	int m_nSizeY = 480;
-	char* m_pcImageMemory=NULL;
-	int m_lMemoryId=0;
+    /*	HIDS m_hCam=1;
+    	int m_nBitsPerPixel=8;
+    	int m_nColorMode= 6;
+    	int m_nSizeX = 758;
+    	int m_nSizeY = 480;
+    	char* m_pcImageMemory=NULL;
+    	int m_lMemoryId=0;
 
-	//double dEnable = 1;
-	double nominal = 128;
+    	//double dEnable = 1;
+    	double nominal = 128;
 
 
-	//int ret = is_SetAutoParameter(m_hCam,IS_SET_ENABLE_AUTO_GAIN,&dEnable,0);
-	is_SetAutoParameter(m_hCam,IS_SET_AUTO_REFERENCE,&nominal,0);
+    	//int ret = is_SetAutoParameter(m_hCam,IS_SET_ENABLE_AUTO_GAIN,&dEnable,0);
+    	is_SetAutoParameter(m_hCam,IS_SET_AUTO_REFERENCE,&nominal,0);
 
-	INT nRet = is_InitCamera(&m_hCam,NULL);   
-	if(nRet != IS_SUCCESS)
-	{
-	    cout << "Error: Camera not found" << endl;
-	    abort();
-	}
-	if(nRet == IS_SUCCESS)
-	{
+    	INT nRet = is_InitCamera(&m_hCam,NULL);
+    	if(nRet != IS_SUCCESS)
+    	{
+    	    cout << "Error: Camera not found" << endl;
+    	    abort();
+    	}
+    	if(nRet == IS_SUCCESS)
+    	{
 
-	    is_GetColorDepth(m_hCam,&m_nBitsPerPixel,&m_nColorMode);
-	    if(is_SetColorMode(m_hCam,m_nColorMode) != IS_SUCCESS)
-		{   cout << "Error: Set ColorMode" << endl; }
-	}
+    	    is_GetColorDepth(m_hCam,&m_nBitsPerPixel,&m_nColorMode);
+    	    if(is_SetColorMode(m_hCam,m_nColorMode) != IS_SUCCESS)
+    		{   cout << "Error: Set ColorMode" << endl; }
+    	}
 
-	INT *pnSizeX = &m_nSizeX;
-	INT *pnSizeY = &m_nSizeY;
-	INT nAOISupported = 0;
+    	INT *pnSizeX = &m_nSizeX;
+    	INT *pnSizeY = &m_nSizeY;
+    	INT nAOISupported = 0;
 
-	BOOL bAOISupported = TRUE;
-	if (is_ImageFormat (m_hCam,IMGFRMT_CMD_GET_ARBITRARY_AOI_SUPPORTED,(void*)&nAOISupported,sizeof(nAOISupported))  == IS_SUCCESS)
-	{
-	    bAOISupported = (nAOISupported != 0);
-	}
-	if (bAOISupported)  
-	{
-	    SENSORINFO sInfo;                  
-	    is_GetSensorInfo(m_hCam,&sInfo);    
-	    *pnSizeX = sInfo.nMaxWidth;        
-	    *pnSizeY = sInfo.nMaxHeight;   
-	    
-	}
-	else    
-	{
-	    //IS_RECT rectAOI;
-	    //rectAOI.s32X = 0;              
-	    //rectAOI.s32Y = 0;             
-	    //rectAOI.s32Width = m_nSizeX;   
-	    //rectAOI.s32Height = m_nSizeY;   
-	   // is_AOI(m_hCam,IS_AOI_IMAGE_SET_AOI,(void*)&rectAOI,sizeof(rectAOI));    
-	}
-	nRet = is_AllocImageMem(m_hCam,m_nSizeX,m_nSizeY,m_nBitsPerPixel,&m_pcImageMemory,&m_lMemoryId);
-	nRet = nRet && is_SetImageMem(m_hCam, m_pcImageMemory, m_lMemoryId);
+    	BOOL bAOISupported = TRUE;
+    	if (is_ImageFormat (m_hCam,IMGFRMT_CMD_GET_ARBITRARY_AOI_SUPPORTED,(void*)&nAOISupported,sizeof(nAOISupported))  == IS_SUCCESS)
+    	{
+    	    bAOISupported = (nAOISupported != 0);
+    	}
+    	if (bAOISupported)
+    	{
+    	    SENSORINFO sInfo;
+    	    is_GetSensorInfo(m_hCam,&sInfo);
+    	    *pnSizeX = sInfo.nMaxWidth;
+    	    *pnSizeY = sInfo.nMaxHeight;
 
-	nRet = nRet && is_SetDisplayMode(m_hCam,IS_SET_DM_DIB);
-	if(nRet != IS_SUCCESS)
-	{
-	    cout << "Error: is_SetDisplayMode" << endl;
-	}*/
-	
+    	}
+    	else
+    	{
+    	    //IS_RECT rectAOI;
+    	    //rectAOI.s32X = 0;
+    	    //rectAOI.s32Y = 0;
+    	    //rectAOI.s32Width = m_nSizeX;
+    	    //rectAOI.s32Height = m_nSizeY;
+    	   // is_AOI(m_hCam,IS_AOI_IMAGE_SET_AOI,(void*)&rectAOI,sizeof(rectAOI));
+    	}
+    	nRet = is_AllocImageMem(m_hCam,m_nSizeX,m_nSizeY,m_nBitsPerPixel,&m_pcImageMemory,&m_lMemoryId);
+    	nRet = nRet && is_SetImageMem(m_hCam, m_pcImageMemory, m_lMemoryId);
+
+    	nRet = nRet && is_SetDisplayMode(m_hCam,IS_SET_DM_DIB);
+    	if(nRet != IS_SUCCESS)
+    	{
+    	    cout << "Error: is_SetDisplayMode" << endl;
+    	}*/
+
 ////////////////////////////////////////////////////////////////////////////////
-	bool isInitSuccess = init_camera();
-        if(isInitSuccess){
-	    while (getModuleState() == ModuleState::RUNNING) {
-                char *newPointer;
-                if(get_image(newPointer)) {
-                    img = cvCreateImageHeader(cvSize(752,480),IPL_DEPTH_8U,1);
-	            img->imageData = (char*) newPointer;
-                    Mat rawImg(img, false);
-                    m_frame = rawImg.clone();
-                    //m_frame = rawImg(cv::Rect(1,239,751,239));
-                    //cvNamedWindow("image", CV_WINDOW_AUTOSIZE);
-	            //cvShowImage("image", img);
-                    //cout<<"Processing"<<endl;
-                    processImage();
-                }
-/*
-        if(m_hCam != 0)
-	{
+    bool isInitSuccess = init_camera();
+    if(isInitSuccess)
+    {
+        while (getModuleState() == ModuleState::RUNNING)
+        {
+            char *newPointer;
+            if(get_image(newPointer))
+            {
+                img = cvCreateImageHeader(cvSize(752,480),IPL_DEPTH_8U,1);
+                img->imageData = (char*) newPointer;
+                Mat rawImg(img, false);
+                m_frame = rawImg.clone();
+                //m_frame = rawImg(cv::Rect(1,239,751,239));
+                //cvNamedWindow("image", CV_WINDOW_AUTOSIZE);
+                //cvShowImage("image", img);
+                //cout<<"Processing"<<endl;
+                processImage();
+            }
+            /*
+                    if(m_hCam != 0)
+            	{
 
-        //is_FreezeVideo(m_hCam,IS_WAIT);
-	is_CaptureVideo(m_hCam,IS_WAIT);
-	is_RenderBitmap(m_hCam,m_lMemoryId,NULL,IS_RENDER_FIT_TO_WINDOW);
+                    //is_FreezeVideo(m_hCam,IS_WAIT);
+            	is_CaptureVideo(m_hCam,IS_WAIT);
+            	is_RenderBitmap(m_hCam,m_lMemoryId,NULL,IS_RENDER_FIT_TO_WINDOW);
 
-        void *newPointer;
-        if(is_GetImageMem(m_hCam, (void**)newPointer) == IS_SUCCESS){
-	    img = cvCreateImageHeader(cvSize(758,480),IPL_DEPTH_8U,1);
-	    img->imageData = (char*) newPointer;
-            cvNamedWindow("image", CV_WINDOW_AUTOSIZE);
-	    cvShowImage("image", img);
-            cout<<"Processing"<<endl;
+                    void *newPointer;
+                    if(is_GetImageMem(m_hCam, (void**)newPointer) == IS_SUCCESS){
+            	    img = cvCreateImageHeader(cvSize(758,480),IPL_DEPTH_8U,1);
+            	    img->imageData = (char*) newPointer;
+                        cvNamedWindow("image", CV_WINDOW_AUTOSIZE);
+            	    cvShowImage("image", img);
+                        cout<<"Processing"<<endl;
 
-            Mat Maa(img, false);
-            m_frame = Maa.clone();
-            cout<<"In progress"<<endl;
-            //processImage();
-            cout<<"Processing Done"<<endl;
+                        Mat Maa(img, false);
+                        m_frame = Maa.clone();
+                        cout<<"In progress"<<endl;
+                        //processImage();
+                        cout<<"Processing Done"<<endl;
+                    }
+                   // cv::imshow("Mat", Maa);
+                   //is_FreeImageMem(m_hCam,m_pcImageMemory,m_lMemoryId);
+                   // is_ExitCamera(m_hCam);
+                   cvWaitKey(99);*/
         }
-       // cv::imshow("Mat", Maa);
-       //is_FreeImageMem(m_hCam,m_pcImageMemory,m_lMemoryId);
-       // is_ExitCamera(m_hCam);
-       cvWaitKey(99);*/
-          }
-      }
-      deinit_camera();
-      waitKey(20);
-      return ModuleState::OKAY;
+    }
+    deinit_camera();
+    waitKey(20);
+    return ModuleState::OKAY;
 
 }
 
@@ -480,29 +501,29 @@ ModuleState::MODULE_EXITCODE LaneDetector::body() {
  * returns true, otherwise returns false */
 bool LaneDetector::init_camera()
 {
-  int nRet = is_InitCamera (&hCam, NULL);
+    int nRet = is_InitCamera (&hCam, NULL);
 
-  is_AllocImageMem(hCam,752, 480, 1 ,&ppcImgMem, &pid);  
-  is_SetImageMem(hCam, ppcImgMem, pid);
-  is_SetDisplayMode (hCam, IS_SET_DM_DIB);
-  is_SetColorMode (hCam, IS_CM_MONO8);
-  int pnCol , pnColMode;
-  is_GetColorDepth(hCam, &pnCol , &pnColMode);
+    is_AllocImageMem(hCam,752, 480, 1 ,&ppcImgMem, &pid);
+    is_SetImageMem(hCam, ppcImgMem, pid);
+    is_SetDisplayMode (hCam, IS_SET_DM_DIB);
+    is_SetColorMode (hCam, IS_CM_MONO8);
+    int pnCol , pnColMode;
+    is_GetColorDepth(hCam, &pnCol , &pnColMode);
 
-  is_CaptureVideo(hCam, IS_WAIT);
+    is_CaptureVideo(hCam, IS_WAIT);
 
-  if (nRet != IS_SUCCESS)
+    if (nRet != IS_SUCCESS)
     {
-      if (nRet == IS_STARTER_FW_UPLOAD_NEEDED)
-      {
-        hCam = hCam | IS_ALLOW_STARTER_FW_UPLOAD;
-        nRet = is_InitCamera (&hCam, NULL);
-      }
-      cout << "camera failed to initialize " << endl;
-      return false;
+        if (nRet == IS_STARTER_FW_UPLOAD_NEEDED)
+        {
+            hCam = hCam | IS_ALLOW_STARTER_FW_UPLOAD;
+            nRet = is_InitCamera (&hCam, NULL);
+        }
+        cout << "camera failed to initialize " << endl;
+        return false;
     }
-  else
-    return true;
+    else
+        return true;
 }
 
 /* Deinitializes the uEye camera. Returns true if deinitialization is
@@ -510,38 +531,39 @@ bool LaneDetector::init_camera()
 bool LaneDetector::deinit_camera()
 {
 
-  // Free the allocated memory
-  is_FreeImageMem(hCam, ppcImgMem, pid);
+    // Free the allocated memory
+    is_FreeImageMem(hCam, ppcImgMem, pid);
 
-  // Try to deinitialize camera. If successful, return true, otherwise return
-  // false
-  if(is_ExitCamera(hCam) == IS_SUCCESS)
-    return true;
-  else
-    return false;
+    // Try to deinitialize camera. If successful, return true, otherwise return
+    // false
+    if(is_ExitCamera(hCam) == IS_SUCCESS)
+        return true;
+    else
+        return false;
 }
 
 /* Retrieves an image from the camera, in the form of a signed char pointer. Signed
  * char is meant for IPL images. If the data is to be used with a Mat, the char
- * should be cast into an unsigned char i.e. (uchar* ). 
+ * should be cast into an unsigned char i.e. (uchar* ).
  *
- * Arguments: char* to be passed in by reference, which will contain the 
+ * Arguments: char* to be passed in by reference, which will contain the
  * image. I.e. char* imgPointer; get_image(imgPointer);
  * Returns a boolean, true if image is retrieved, false if it fails.
 */
 bool LaneDetector::get_image(char*& img)
 {
-  void *pMemVoid; //pointer to where the image is stored
+    void *pMemVoid; //pointer to where the image is stored
 
-	// Takes an image from the camera. If successful, returns true, otherwise
-	// returns false
-  if (is_GetImageMem(hCam, &pMemVoid) == IS_SUCCESS){
+    // Takes an image from the camera. If successful, returns true, otherwise
+    // returns false
+    if (is_GetImageMem(hCam, &pMemVoid) == IS_SUCCESS)
+    {
 
-    img = (char*) pMemVoid;
-    return true;
-  }
-  else
-    return false;
+        img = (char*) pMemVoid;
+        return true;
+    }
+    else
+        return false;
 }
 
 } // carolocup
