@@ -137,7 +137,7 @@ handle_cast({add_frame, {{Dashes, Line_ID}, {Car_Pos,Car_Heading}}}, State) ->
              {noreply, State};
          [H,T] ->
              P1 = hd(H#dash_line.points),
-             P3 = lists:nth(3, T#dash_line.points),
+             P3 = lists:Nth(3, T#dash_line.points),
              P2 = center_point(lists:nth(3, H#dash_line.points), hd(T#dash_line.points)),
              {ok,[OP1]} = offsetCalculation:calculate_offset_list(Line_ID, ?LaneAdjacent, H#dash_line.points),
              {ok,[OP2]} = offsetCalculation:calculate_offset_list(Line_ID, ?LaneAdjacent, [P1,P2,P3]),
@@ -258,8 +258,12 @@ offset_point({X1,Y1}, {X2,Y2}) ->
 closest_in_radius({CX,CY}, Radius) ->
     MatchSpec = match_spec(CX,CY,Radius),
     T = ets:select(dash_lines, MatchSpec),
-
-    element(2,hd(ets:lookup(dash_lines, element(2,lists:min(T))))).
+    case T of
+	[] ->
+	    not_found;
+	_ ->
+	    element(2,hd(ets:lookup(dash_lines, element(2,lists:min(T)))))
+    end.
 
 
 rect_angle({{X1,Y1},_,{X2,Y2},_}) ->
@@ -267,16 +271,22 @@ rect_angle({{X1,Y1},_,{X2,Y2},_}) ->
 
 
 calculate_correct_pos([Dash| T]) ->
-    Corresponding_Dash = closest_in_radius(Dash#dash_line.center_point, 400),
-    Offset = offset_point(Dash#dash_line.center_point , Corresponding_Dash#dash_line.center_point),
-    Angle1 = rect_angle(Dash#dash_line.box),
-    Angle2 = rect_angle(Corresponding_Dash#dash_line.box),
-    Delta_Angle = Angle2 - Angle1,
-    case {Dash#dash_line.area < 50 , Dash#dash_line.area > 30} of
-	{true,true} ->
-	    {Corresponding_Dash#dash_line.center_point, {Offset, Delta_Angle}};
-	_ ->
-	    calculate_correct_pos(T)
+
+     
+    case closest_in_radius(Dash#dash_line.center_point, 400) of
+	not_found ->
+	    calculate_correct_pos(T);
+	Corresponding_Dash ->
+	    Offset = offset_point(Dash#dash_line.center_point , Corresponding_Dash#dash_line.center_point),
+	    Angle1 = rect_angle(Dash#dash_line.box),
+	    Angle2 = rect_angle(Corresponding_Dash#dash_line.box),
+	    Delta_Angle = Angle2 - Angle1,
+	    case {Dash#dash_line.area < 6500 , Dash#dash_line.area > 3000} of
+		{true,true} ->
+		    {Corresponding_Dash#dash_line.center_point, {Offset, Delta_Angle}};
+		_ ->
+		    calculate_correct_pos(T)
+	    end
     end;
 calculate_correct_pos([]) ->
     not_found.
