@@ -193,7 +193,7 @@ translate_points(ID, [Point | T] , Buff) ->
 translate_points(_,[], Buff) ->
     Buff.
 
-translate_dash(ID, {CenterPoint, {{R1,R2,R3,R4} , {Bottom, Center, Top}}}, {Car_Pos, Car_Heading}) ->
+translate_dash(ID, {CenterPoint, {{R1,R2,R3,R4} , {Bottom, Middle, Top}}}, {Car_Pos, Car_Heading}) ->
     Center = steering:local_to_global(Car_Pos, Car_Heading, translate_point(ID, CenterPoint)),
     BottomLeft = steering:local_to_global(Car_Pos, Car_Heading, translate_point(ID,R1)),
     TopLeft = steering:local_to_global(Car_Pos, Car_Heading, translate_point(ID,R2)),
@@ -202,7 +202,7 @@ translate_dash(ID, {CenterPoint, {{R1,R2,R3,R4} , {Bottom, Center, Top}}}, {Car_
     #dash_line{center_point = Center, 
 	       box = {BottomLeft, TopLeft, TopRight, BottomRight},
 	       points = [steering:local_to_global(Car_Pos, Car_Heading, translate_point(ID,Bottom)),
-			 steering:local_to_global(Car_Pos, Car_Heading, translate_point(ID,Center)),
+			 steering:local_to_global(Car_Pos, Car_Heading, translate_point(ID,Middle)),
 			 steering:local_to_global(Car_Pos, Car_Heading, translate_point(ID,Top))], 
 	       area = calculate_box_area(BottomLeft, TopLeft, TopRight, BottomRight),
 	       dash_before = undef, dash_after = undef}.
