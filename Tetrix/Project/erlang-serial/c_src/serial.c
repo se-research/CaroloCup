@@ -81,6 +81,8 @@ THE SOFTWARE.
 #include <ctype.h>
 #include <unistd.h>
 
+#include <time.h>
+
 #include "serial.h"
 
 int errno;
@@ -374,7 +376,10 @@ int main(int argc, char *argv[])
   speed_t        in_speed=B9600;       /* default in speed         */
   speed_t        out_speed=B9600;      /* default out speed        */
   char           ttyname[MAXPATHLEN];  /* terminal name            */
-
+  struct timespec tim , tim2;
+  tim.tv_sec = 0;
+  tim.tv_nsec = 250000000;
+  
   strcpy(ttyname,"/dev/ttyS0");
 
   /****************************************
@@ -477,7 +482,7 @@ int main(int argc, char *argv[])
     while (TRUE)
       {
 	int i;
-
+	
 	if(TtyOpen(stdinfd))
 	  FD_SET(stdinfd, &readfds);
 	if(TtyOpen(ttyfd))
@@ -693,7 +698,8 @@ int main(int argc, char *argv[])
 		exit(0);
 	      }
 	  }
-      }
+	nanosleep(&tim , &tim2);
+      }//while
   }
 
   /****************************************
