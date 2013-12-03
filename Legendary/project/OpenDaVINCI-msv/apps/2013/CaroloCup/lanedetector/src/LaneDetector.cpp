@@ -205,6 +205,22 @@ bool LaneDetector::readSharedImage(Container &c)
 
 }
 
+void drawLines(carolocup::Lines* lines, Mat* dst) {
+    Line dashed = lines->dashedLine;
+    Line solidRight = lines->rightLine;
+    Line solidLeft = lines->leftLine;
+
+    line( *dst, Point(dashed[0], dashed[1]), Point(dashed[2], dashed[3]), Scalar(0,255,0), 3, CV_AA);
+    line( *dst, Point(solidRight[0], solidRight[1]), Point(solidRight[2], solidRight[3]), Scalar(255,0,0), 3, CV_AA);
+    line( *dst, Point(solidLeft[0], solidLeft[1]), Point(solidLeft[2], solidLeft[3]), Scalar(0,0,255), 3, CV_AA);
+    if(lines->stopLineHeight != -1) {
+        line( *dst, Point(0, lines->stopLineHeight), Point(640, lines->stopLineHeight), Scalar(0,255,0), 3, CV_AA);
+    }
+    if(lines->startLineHeight != -1) {
+        line( *dst, Point(0, lines->startLineHeight), Point(640, lines->startLineHeight), Scalar(255,0,0), 3, CV_AA);
+    }
+}
+
 /////////////////////////////////////////////////////START//////////////////////////////////////////////////////////////////////////////////
 /*The three functions below are the functions that is run by each of the threads
 You can do stuff with the image segment in each function. Because of issues with
@@ -217,11 +233,11 @@ void *functionBottom(void *argument)
     cout << "\nRunning this from Thread_Bottom" << endl;
     int i = 0;
     argument = (void *) i;
-    cout << argument;
+    cout << argument << endl;
     LineDetector road(*getFirstPointer, cfg, debug);
     linesBottom = road.getLines();
-    linesBottom.stopLineHeight = road.detectStopLine(10);
-    linesBottom.startLineHeight = road.detectStartLine(10);
+    //linesBottom.stopLineHeight = road.detectStopLine(10);
+    //linesBottom.startLineHeight = road.detectStartLine(10);
     bottomDone = true;
     return 0;
 }
@@ -235,8 +251,8 @@ void *functionMiddle(void *argument)
     cout << argument;
     LineDetector road(*getSecondPointer, cfg, debug);
     linesMiddle = road.getLines();
-    linesMiddle.stopLineHeight = road.detectStopLine(10);
-    linesMiddle.startLineHeight = road.detectStartLine(10);
+    //linesMiddle.stopLineHeight = road.detectStopLine(10);
+    //linesMiddle.startLineHeight = road.detectStartLine(10);
     middleDone = true;
     return 0;
 }
@@ -248,11 +264,8 @@ void *functionTop(void *argument)
     argument = (void *) i;
     cout << argument;
 
-    cout << "This is the constructor for Line detector TOP" << endl;
     LineDetector road(*getThirdPointer, cfg, debug);
-    cout << "This is for Getting Lines" << endl;
-    //linesTop = road.getLines();
-    cout << "Done getting Lines" << endl;
+    linesTop = road.getLines();
     //linesTop.stopLineHeight = road.detectStopLine(10);
     //linesTop.startLineHeight = road.detectStartLine(10);
     topDone = true;
@@ -279,35 +292,37 @@ void LaneDetector::processImage()
     //dst = m_frame.clone();
 
     //cout<<"Cloning............"<<endl;
-    // dst.setTo( Scalar(0,0,0));
+    //dst.setTo( Scalar(0,0,0));
     debug = m_debug;
     cfg = m_config;
 //////////////////////////////////////////////////////START//////////////////////////////////////////////////////////////////////////////////
     /*Each of Mat Images below represents a segment of the image
     and their respective addresses are assigned to each of the pointers below*/
-    /*
+    
     cout<<"Spliting............"<<endl;
-        Mat getFirst = m_frame(cv::Rect(1,239,639,239));
-        Mat getSecond  = m_frame(cv::Rect(1,119,639,119));
-        Mat getThird = m_frame(cv::Rect(1,119,639,119));
+    double w = m_frame.size().width;
+    double h = m_frame.size().height;
+    Mat getFirst = m_frame(cv::Rect(1, h/2-1, w-1, h/2-1));
+    Mat getSecond  = m_frame(cv::Rect(1,h/4-1, w-1, h/4-1));
+    //Mat getThird = m_frame(cv::Rect(1,119,639,119));
 
 
-        getFirstPointer = &getFirst;
-        getSecondPointer = &getSecond;
-        getThirdPointer = &getThird;
+    getFirstPointer = &getFirst;
+    getSecondPointer = &getSecond;
+    //getThirdPointer = &getThird;
 
     cout<<"Creating Threads............"<<endl;
-    */
+    
     /*Threes POSIX threads are created below and each of the threads
     are assigned to run each of the three functions*/
-    //pthread_t t1;//, t2, t3 ;
-    //pthread_create(&t1, NULL, functionTop,NULL);
-    //  pthread_create(&t2, NULL, functionMiddle,NULL);
-    // pthread_create(&t3, NULL, functionBottom,NULL);
+    pthread_t t1, t2; // t3 ;
+    pthread_create(&t1, NULL, functionBottom,NULL);
+    pthread_create(&t2, NULL, functionMiddle,NULL);
+    // pthread_create(&t3, NULL, functionTop,NULL);
 
 //////////////////////////////////////////////////////END////////////////////////////////////////////////////////////////////////////////
     //imshow("Input Image", m_frame);
-    LineDetector road(m_frame, m_config, m_debug);
+    //LineDetector road(m_frame, m_config, m_debug);
     /*carolocup::Lines lines = road.getLines();
     lines.pGain = m_config.pGain;
     lines.intGain = m_config.intGain;
@@ -317,9 +332,10 @@ void LaneDetector::processImage()
     lines.height = m_image->height;
     lines.stopLineHeight = road.detectStopLine(10);
     lines.startLineHeight = road.detectStartLine(10);*/
-
-    //while(!topDone || !bottomDone || !middleDone);
-    //cout<<"Threads Done............"<<endl;
+    topDone = true;
+    //middleDone = true;
+    while(!topDone || !bottomDone || !middleDone);
+    cout<<"Threads Done............"<<endl;
     //carolocup::Lines lines = mergeLinesData();
     //LaneDetectionData data;
     //data.setLaneDetectionData(lines);
@@ -341,20 +357,6 @@ void LaneDetector::processImage()
     middleDone = false;
 
     /*if (m_debug) {
-
-    Line dashed = lines.dashedLine;
-    Line solidRight = lines.rightLine;
-    Line solidLeft = lines.leftLine;
-
-    line( dst, Point(dashed[0], dashed[1]), Point(dashed[2], dashed[3]), Scalar(0,255,0), 3, CV_AA);
-    line( dst, Point(solidRight[0], solidRight[1]), Point(solidRight[2], solidRight[3]), Scalar(255,0,0), 3, CV_AA);
-    line( dst, Point(solidLeft[0], solidLeft[1]), Point(solidLeft[2], solidLeft[3]), Scalar(0,0,255), 3, CV_AA);
-    if(lines.stopLineHeight != -1) {
-        line( dst, Point(0, lines.stopLineHeight), Point(640, lines.stopLineHeight), Scalar(0,255,0), 3, CV_AA);
-    }
-    if(lines.startLineHeight != -1) {
-        line( dst, Point(0, lines.startLineHeight), Point(640, lines.startLineHeight), Scalar(255,0,0), 3, CV_AA);
-    }
     imshow("output", dst);
     }*/
 
@@ -362,13 +364,14 @@ void LaneDetector::processImage()
     /*As I stated earlier, because of restrictions with X SERVER and Multi-threads
     It will be difficult and messy trying to show the frames withing the thread functions
            So you can show them outside like I have done here*/
-
-    //imshow("First Frame", *getFirstPointer);
-    //imshow("Second Frame", *getSecondPointer);
+    drawLines(&linesBottom, getFirstPointer);
+    drawLines(&linesMiddle, getSecondPointer);
+    imshow("First Frame", *getFirstPointer);
+    imshow("Second Frame", *getSecondPointer);
     //imshow("Third Frame", *getThirdPointer);
 
 //////////////////////////////////////////////////////END////////////////////////////////////////////////////////////////////////////////
-    waitKey(10);
+    waitKey(20);
     //}
 }
 
@@ -457,6 +460,7 @@ ModuleState::MODULE_EXITCODE LaneDetector::body()
                 img->imageData = (char*) newPointer;
                 Mat rawImg(img, false);
                 m_frame = rawImg.clone();
+                //m_frame = rawImg(cv::Rect(1,1,639, 479));
                 //m_frame = rawImg(cv::Rect(1,239,751,239));
                 //cvNamedWindow("image", CV_WINDOW_AUTOSIZE);
                 //cvShowImage("image", img);

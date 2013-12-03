@@ -52,7 +52,7 @@ LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug)
     // View
     //if(m_debug) imshow("Before output", frame);
     //if(m_debug) imshow("Output", outputImg);
-    imshow("Output", outputImg);
+    //imshow("Output", outputImg);
 }
 
 LineDetector::~LineDetector()
@@ -325,18 +325,21 @@ Lines LineDetector::getLines()
     {
         if(detectedLines.size() == 3)
         {
+            cout<<"Lines == 3" << endl;
             m_lines = new Lines(Vec4i(detectedLines[0].p1.x, detectedLines[0].p1.y, detectedLines[0].p2.x, detectedLines[0].p2.y)
                                 , Vec4i(detectedLines[1].p1.x, detectedLines[1].p1.y, detectedLines[1].p2.x, detectedLines[1].p2.y)
                                 , Vec4i(detectedLines[2].p1.x, detectedLines[2].p1.y, detectedLines[2].p2.x, detectedLines[2].p2.y));
         }
         else if (detectedLines.size() == 2)
         {
+            cout<<"Lines == 2" << endl;
             m_lines = new Lines(Vec4i(detectedLines[0].p1.x, detectedLines[0].p1.y, detectedLines[0].p2.x, detectedLines[0].p2.y)
                                 , Vec4i(0,0,0,0)
                                 , Vec4i(detectedLines[1].p1.x, detectedLines[1].p1.y, detectedLines[1].p2.x, detectedLines[1].p2.y));
         }
         else if (detectedLines.size() == 1)
         {
+            cout<<"Lines == 1" << endl;
             if(supposedMidLine.slope > detectedLines[0].slope)
             {
                 m_lines = new Lines(Vec4i(0,0,0,0)
@@ -352,10 +355,17 @@ Lines LineDetector::getLines()
         }
         else if(detectedLines.size() > 3)
         {
+            cout<<"Lines > 3" << endl;
             int size = detectedLines.size();
             m_lines = new Lines(Vec4i(detectedLines[size/2-1].p1.x, detectedLines[size/2-1].p1.y, detectedLines[size/2-1].p2.x, detectedLines[size/2-1].p2.y)
                                 , Vec4i(detectedLines[size/2].p1.x, detectedLines[size/2].p1.y, detectedLines[size/2].p2.x, detectedLines[size/2].p2.y)
                                 , Vec4i(detectedLines[size/2+1].p1.x, detectedLines[size/2+1].p1.y, detectedLines[size/2+1].p2.x, detectedLines[size/2+1].p2.y));
+        } 
+        else 
+        {
+	    m_lines = new Lines(Vec4i(0,0,0,0)
+                             , Vec4i(0,0,0,0)
+                             , Vec4i(0,0,0,0));
         }
     }
     return *m_lines;
