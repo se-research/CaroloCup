@@ -30,7 +30,7 @@ namespace carolocup {
         private:
             /**
              * "Forbidden" copy constructor. Goal: The compiler should warn
-             * already at compile time for unwanted bugs caused by any misuse
+             * already at compile time for unwanted bugs caused by any misusey.
              * of the copy constructor.
              */
             SerialProtocol(const SerialProtocol &);
