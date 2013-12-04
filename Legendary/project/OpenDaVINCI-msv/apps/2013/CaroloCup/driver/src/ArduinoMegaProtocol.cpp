@@ -3,28 +3,29 @@
 namespace carolocup {
 	using namespace std;
 
-	ArduinoMegaProtocol::ArduinoMegaProtocol(const char *port, int bufSize) : SerialProtocol(port, bufSize) {
+	ArduinoMegaProtocol::ArduinoMegaProtocol(const char *port, int bufSize) : 
+		m_SerialProtocol(port, bufSize){
 	}
 
 	void ArduinoMegaProtocol::setSpeed(unsigned speed) {
 		stringstream ss;
 		ss << 'm' << speed << '\0';
-		strcpy(buf, ss.str().c_str());
-		int error_code = write(fd, buf, ss.str().size());
+		int errorCode = m_SerialProtocol.writeToSerial(&ss);
 	}
 
 	void ArduinoMegaProtocol::setSteeringAngle(unsigned angle) {
 		stringstream ss;
 		ss << 's' << angle << '\0';
-		strcpy(buf, ss.str().c_str());
-		int error_code = write(fd, buf, ss.str().size());
+		int error_code = m_SerialProtocol.writeToSerial(&ss);
 	}
 
 	void ArduinoMegaProtocol::setBrakeForce(unsigned brakeFrc) {
 		stringstream ss;
 		ss << 'b' << brakeFrc << '\0';
-		strcpy(buf, ss.str().c_str());
-		int error_code = write(fd, buf, ss.str().size());
+		int error_code = m_SerialProtocol.writeToSerial(&ss);
+	}
+
+	ArduinoMegaProtocol::~ArduinoMegaProtocol() {
 	}
 }
 

@@ -95,7 +95,7 @@ namespace carolocup {
       float m_intGain;
       float m_derGain;
       float m_length;
-      core::wrapper::SerialPort *m_serialPortPtr;
+      //core::wrapper::SerialPort *m_serialPortPtr;
       ArduinoMegaProtocol m_protocol;
       const float ANGLE_TO_CURVATURE;
       const float SCALE_FACTOR;	//For example, 12000 dpm (dots-per-meter)

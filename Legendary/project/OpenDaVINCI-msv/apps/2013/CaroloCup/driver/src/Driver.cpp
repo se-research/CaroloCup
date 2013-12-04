@@ -49,8 +49,7 @@ Driver::Driver(const int32_t &argc, char **argv) :
     m_intGain(8.38) ,
     m_derGain(0.23) ,
     m_length(0.3) ,
-    m_serialPortPtr(),
-    m_protocol(),
+    m_protocol("/dev/ttyACM0", 8),
     ANGLE_TO_CURVATURE(2.5) ,
     SCALE_FACTOR (1200) ,
     m_timestamp(0) ,
@@ -93,22 +92,15 @@ void Driver::tearDown()
 // This method will do the main data processing job.
 ModuleState::MODULE_EXITCODE Driver::body()
 {
-    core::base::LIFOQueue lifo;
-    addDataStoreFor(lifo);
+    //core::base::LIFOQueue lifo;
+    //addDataStoreFor(lifo);
     int x1, x2, x3, x4, y1, y2, y3, y4;
-    const string SERIAL_PORT = "/dev/ttyACM0";
-    const uint32_t SERIAL_SPEED = 115200;
-    core::wrapper::SerialPort *serialPort = core::wrapper::SerialPortFactory::createSerialPort(SERIAL_PORT, SERIAL_SPEED);
-    ArduinoMegaProtocol protocol;
-    protocol.setStringSender(serialPort);
-    //protocol.setArduinoMegaDataListener(this);
-    //serialPort->setPartialStringReceiver(&protocol);
-
+    cout << "Ready to go!" << endl;
     while (getModuleState() == ModuleState::RUNNING)
     {
         m_hasReceivedLaneDetectionData = false;
         LaneDetectionData ldd;
-        while (!lifo.isEmpty())
+        /*while (!lifo.isEmpty())
         {
             // Read the recently received container.
             Container con = lifo.pop();
@@ -255,12 +247,17 @@ ModuleState::MODULE_EXITCODE Driver::body()
         // Create container for finally sending the data.
         //Container c(Container::VEHICLECONTROL, vc);
         // Send container.
-        //getConference().send(c);
+        //getConference().send(c);*/
+        m_desiredSteeringWheelAngle = 0.2;
         stringstream speedStream, steeringAngleStream;
-        speedStream << 'm' << uint16_t((m_speed+2)/4.0*(1619-1523) + 1523) << '\0';
-        protocol.sendByStringSender(speedStream.str());
-        steeringAngleStream << 's' << uint16_t(m_desiredSteeringWheelAngle*180/M_PI) << '\0';
-        protocol.sendByStringSender(steeringAngleStream.str());
+	uint16_t speedVal = uint16_t((m_speed+2)/4.0*(1619-1523) + 1523);
+        speedStream << 'm' << speedVal << '\0';
+	cout << "Send speed: " << speedVal << endl;
+        m_protocol.setSpeed(speedVal);
+	uint16_t steeringVal = uint16_t(m_desiredSteeringWheelAngle*180/M_PI);
+        steeringAngleStream << 's' << steeringVal << '\0';
+	cout << "Send angle: " << steeringVal << endl;
+        m_protocol.setSteeringAngle(steeringVal);
     }
 
     return ModuleState::OKAY;
