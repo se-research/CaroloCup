@@ -8,7 +8,6 @@
 #define SERIAL_PROTOCOL_H_
 
 // core/platform.h must be included to setup platform-dependent header files and configurations.
-#include "core/platform.h"
 #include <string.h>  /* String function definitions */
 #include <unistd.h>  /* UNIX standard function definitions */
 #include <fcntl.h>   /* File control definitions */
@@ -18,10 +17,8 @@
 #include <linux/serial.h>
 #include <sys/ioctl.h>
 #include <iostream>
+#include <string>
 #include <sstream>
-
-#include "core/base/Mutex.h"
-#include "SerialDataListener.h"
 
 namespace carolocup {
 
@@ -50,28 +47,21 @@ namespace carolocup {
              * Constructor.
              */
             SerialProtocol();
+            SerialProtocol(const char*, int);
             ~SerialProtocol();
 
 			//Methods
-			connect(string &);
-			close();
+			void connect(const char *);
+			void disconnect();
 
-            /**
-             * This method sets the SerialDataListener.
-             *
-             * @param listener SerialDataListener to distribute the data.
-             */
-            void setSerialDataListener(SerialDataListener *listener);
-
-        private:
-            core::base::Mutex m_dataListenerMutex;
-            ArduinoMegaDataListener *m_dataListener;
+        protected:
 			int fd;	//file descriptor for the port
-			bool portState = false;
+			bool portState;
 			char *buf;
-
+			int bufSize;
     };
 }
 
-#endif /* ARDUINO_MEGA_PROTOCOL_H_ */
+#endif /* SERIAL_PROTOCOL_H_ */
+
 

@@ -1,31 +1,29 @@
-#include <string>
-#include "core/base/Lock.h"
-#include "core/data/Constants.h"
+
 #include "SerialProtocol.h"
 
 namespace carolocup {
 
 using namespace std;
-using namespace core::base;
-using namespace core::data;
 
-SerialProtocol::SerialProtocol() :
-		m_partialData(),
-		m_dataListenerMutex(),
-		m_dataListener(NULL) {
+SerialProtocol::SerialProtocol() {
+	fd = 0;
+	buf = NULL;
+	bufSize = 0;
+	portState = false;
 }
 
-SerialProtocol::SerialProtocol(string &port) {
+SerialProtocol::SerialProtocol(const char *port, int bufSize) {
 	SerialProtocol();
 	connect(port);
+	buf = new char[bufSize];
+	this->bufSize = bufSize;
 }
 
 SerialProtocol::~SerialProtocol() {
-	setSerialDataListener(NULL);
 	close(fd);
 }
 
-SertialProtocol::connect(string &port) {
+void SerialProtocol::connect(const char *port) {
 	fd = open(port, O_RDWR | O_NOCTTY | O_NDELAY);
 	if (fd == -1) {
 		perror("cannot open");
@@ -46,13 +44,9 @@ SertialProtocol::connect(string &port) {
 	options.c_cflag |= CS8;
 }
 
-SerialProtocol::close() {
+void SerialProtocol::disconnect() {
 	close(fd);
 }
 
-void SerialProtocol::setSerialDataListener(SerialDataListener *listener) {
-	Lock l(m_dataListenerMutex);
-	m_dataListener = listener;
 }
 
-}

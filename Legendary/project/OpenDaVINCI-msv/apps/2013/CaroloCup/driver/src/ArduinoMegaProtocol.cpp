@@ -3,25 +3,28 @@
 namespace carolocup {
 	using namespace std;
 
-	ArduinoMegaProtocol::ArduinoMegaProtocol(string &port, int bufSize) : SerialProtocol(port) {
-		buf = new char[bufSize];
+	ArduinoMegaProtocol::ArduinoMegaProtocol(const char *port, int bufSize) : SerialProtocol(port, bufSize) {
 	}
 
-	void ArduinoMegaProtocol::setSpeed(uint16_t speed) {
+	void ArduinoMegaProtocol::setSpeed(unsigned speed) {
 		stringstream ss;
 		ss << 'm' << speed << '\0';
-		int e = write(fd, ss.str());
+		strcpy(buf, ss.str().c_str());
+		int error_code = write(fd, buf, ss.str().size());
 	}
 
-	void ArduinoMegaProtocol::setSteeringAngle(uint16_t angle) {
+	void ArduinoMegaProtocol::setSteeringAngle(unsigned angle) {
 		stringstream ss;
 		ss << 's' << angle << '\0';
-		int e = write(fd, ss.str());
+		strcpy(buf, ss.str().c_str());
+		int error_code = write(fd, buf, ss.str().size());
 	}
 
-	void ArduinoMegaProtocol::setBrakeForce(uint16_t brakeFrc) {
+	void ArduinoMegaProtocol::setBrakeForce(unsigned brakeFrc) {
 		stringstream ss;
-		ss << 'b' << brakeFrc '\0';
-		int e = write(fd, ss.str());
+		ss << 'b' << brakeFrc << '\0';
+		strcpy(buf, ss.str().c_str());
+		int error_code = write(fd, buf, ss.str().size());
 	}
 }
+
