@@ -72,7 +72,7 @@ void loop()
     if((read = Serial.available()) > 0) {
       while(read > 0) {
         readbyte = Serial.read();
-        Serial.println(readbyte);
+        //Serial.println(readbyte);
         if(readbyte == 47) {
           break;
         }
@@ -114,7 +114,7 @@ void loop()
         read = read - 1;
       }
       if(motor) {
-        Serial.println(speed);
+        //Serial.println(speed);
         if(speed > MIN_MOTOR_SPEED && speed < MAX_MOTOR_SPEED) {
           controlMotor();
         }
@@ -138,12 +138,15 @@ void loop()
       motor = false;
       steering = false;
       brake = false;
+      multiplier = 1;
     }
   } 
   else {
+    multiplier = 1;
+    Serial.println(angle);
+    Serial.println(speed);
     controlMotor();
     controlSteering();
-//    Serial.println(angle);
   }
   delay(10);
 }
@@ -182,11 +185,13 @@ void evaluateReceiver()
   int receiverSteer = pulseIn(3, HIGH, 25000);
   if(receiverSpeed < 1370) {
     takeOver = true;
+    digitalWrite(ledPin1, LOW);
+    digitalWrite(ledPin2, HIGH);
     lastTimeStamp = millis();
   }
   if(takeOver) {
     speed = receiverSpeed;
-    receiverSteer = (receiverSteer - 1549)/10;
+    receiverSteer = (receiverSteer - 1519)/10;
     angle = receiverSteer * (-1);
     if (millis() - lastTimeStamp >= 500) {
       digitalToggle(ledPin1);
