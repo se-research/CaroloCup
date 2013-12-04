@@ -472,7 +472,7 @@ void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv
 
     //cout<<"Initializing HoughLines............"<<endl;
     vector<Vec4i> lines;
-    int houghThreshold = 40;
+    int houghThreshold = 20;
     double w = imgGRAY.size().width;
     double h = imgGRAY.size().height;
     //if(imgGRAY.cols*imgGRAY.rows < 400*400)
@@ -509,7 +509,7 @@ void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv
 
         // Store into vector of pairs of Points for msac
         // only if angle constraints are satisfied
-        if(slope > 25 && slope < 155)
+        if(slope > 20 && slope < 160)
         {
             aux.clear();
             aux.push_back(pt1);

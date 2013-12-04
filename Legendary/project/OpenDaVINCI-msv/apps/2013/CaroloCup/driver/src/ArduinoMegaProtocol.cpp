@@ -28,4 +28,3 @@ namespace carolocup {
 	ArduinoMegaProtocol::~ArduinoMegaProtocol() {
 	}
 }
-
