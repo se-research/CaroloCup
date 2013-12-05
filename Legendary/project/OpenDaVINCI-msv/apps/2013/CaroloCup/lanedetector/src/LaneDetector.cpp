@@ -316,6 +316,12 @@ carolocup::Lines mergeLinesData()
     return linesBottom;
 }
 
+/*
+matrix<double,4,1> getCurvePolynom() {
+    
+}
+*/
+
 void LaneDetector::processImage()
 {
 
@@ -393,16 +399,16 @@ void LaneDetector::processImage()
     bottomDone = false;
     middleDone = false;
     cout<<"Threads Done............"<<endl;
-    //carolocup::Lines lines = mergeLinesData();
-    //LaneDetectionData data;
-    //data.setLaneDetectionData(lines);
+    carolocup::Lines lines = mergeLinesData();
+    LaneDetectionData data;
+    data.setLaneDetectionData(lines);
     // Create a container from your data structure so that it can be transferred.
     // _remember_ the assigned ID (here 101): It must be used by the receiver to read the data successfully.
     // The ID must by from within this range: 0-127.
-    //Container con(Container::USER_DATA_1, data);
+    Container con(Container::USER_DATA_1, data);
 
     // Send the data:
-    //getConference().send(con);
+    getConference().send(con);
 
     // Create an instance of data structure for parking and set some values.
 

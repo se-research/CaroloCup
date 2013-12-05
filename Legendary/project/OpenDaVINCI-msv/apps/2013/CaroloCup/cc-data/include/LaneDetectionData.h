@@ -14,7 +14,7 @@
 
 //#include <opencv/cv.h>
 #include "opencv2/opencv.hpp"
-
+#include "LineDetector.h"
 namespace carolocup {
 
 	using namespace std;
@@ -26,6 +26,7 @@ namespace carolocup {
         leftLine(Vec4i(0,0,0,0)) ,
         rightLine(Vec4i(0,0,0,0)) ,
         dashedLine(Vec4i(0,0,0,0)),
+        SupposedMidLine(),
         pGain(0),
         intGain(0),
         derGain(0),
@@ -49,10 +50,15 @@ namespace carolocup {
         stopLineHeight(0)
     {}
       virtual ~Lines () {}
+      void setSupposedMidLine(const CustomLine &sm) {
+        supposedMidLine = sm;
+      }
+
 
       Vec4i leftLine;
       Vec4i rightLine;
       Vec4i dashedLine;
+      CustomLine supposedMidLine;
       int pGain;
       int intGain;
       int derGain;
@@ -99,7 +105,7 @@ namespace carolocup {
        *
        * @param e Example data.
        */
-      void setLaneDetectionData(const Lines &e);
+      void setLaneDetectionData(const Lines &e)
 
       virtual ostream& operator<<(ostream &out) const;
       virtual istream& operator>>(istream &in);

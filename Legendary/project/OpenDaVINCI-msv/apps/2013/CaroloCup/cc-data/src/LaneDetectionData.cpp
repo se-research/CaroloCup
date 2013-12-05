@@ -43,6 +43,9 @@ namespace carolocup {
 	void LaneDetectionData::setLaneDetectionData(const Lines &lines) {
 		m_lines = lines;
 	}
+	void setSupposedMidLine(const CustomLine &sm) {
+		m_su
+	}
 
 	const string LaneDetectionData::toString() const {
 		stringstream s;

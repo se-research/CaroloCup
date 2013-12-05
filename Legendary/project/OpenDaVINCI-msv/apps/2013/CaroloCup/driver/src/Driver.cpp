@@ -51,7 +51,7 @@ Driver::Driver(const int32_t &argc, char **argv) :
     m_length(0.3) ,
     m_protocol("/dev/ttyACM0", 6),
     ANGLE_TO_CURVATURE(2.5) ,
-    SCALE_FACTOR (1200) ,
+    SCALE_FACTOR (752/0.41) ,
     m_timestamp(0) ,
     m_leftLine(Vec4i(0,0,0,0)) ,
     m_rightLine(Vec4i(0,0,0,0)) ,
@@ -123,7 +123,7 @@ ModuleState::MODULE_EXITCODE Driver::body()
     {
         m_hasReceivedLaneDetectionData = false;
         LaneDetectionData ldd;
-        /*while (!lifo.isEmpty())
+        while (!lifo.isEmpty())
         {
             // Read the recently received container.
             Container con = lifo.pop();
@@ -141,17 +141,22 @@ ModuleState::MODULE_EXITCODE Driver::body()
 
         // The two lines are delivered in a struct containing two Vec4i objects (vector of 4 integers)
         Lines lines = ldd.getLaneDetectionData();
+        if (lines.dashedLine[0] == 0 && lines.dashedLine[1] == 0 && lines.dashedLine[2] == 0 && lines.dashedLine[3] == 0) {
+            m_leftLine = lines.leftLine;
+        } else
+            m_leftLine = lines.dashedLine;
+        }
         m_rightLine = lines.rightLine;
-        m_leftLine = lines.dashedLine;
+        
         m_propGain = lines.pGain / 10.0;
         m_intGain = lines.intGain;
         m_derGain = lines.derGain * 100;
         m_speed = lines.speed / 10.0;
         // Temporary solution to stop the car if a stop line is detected
-        if (lines.stopLineHeight != -1)
-        {
-            m_speed = 0;
-        }
+        //if (lines.stopLineHeight != -1)
+        //{
+        //    m_speed = 0;
+        //}
         int scr_width = lines.width;
         int scr_height = lines.height;
 
@@ -198,7 +203,7 @@ ModuleState::MODULE_EXITCODE Driver::body()
             cout << endl;
         }
 
-
+        /*
         float theta1 = atan2(y1-y2, x1-x2);
         float theta2 = atan2(y3-y4, x3-x4);
         float s1 = x1 * cos(theta1) + y1 * sin(theta1);
@@ -209,7 +214,12 @@ ModuleState::MODULE_EXITCODE Driver::body()
 
         float x_goal = (intP1_x + intP2_x) /2 ;
         float x_pl = scr_width/2;
-        m_lateralError = cos(theta_avg) * (x_goal - x_pl);
+        */
+        int x_right = m_rightLine[0]-m_rightLine[1]*(m_rightLine[0]-m_rightLine[2])/(m_rightLine[1]-m_rightLine[3]);
+        int x_left = m_leftLine[0]-m_leftLine[1]*(m_leftLine[0]-m_leftLine[2])/(m_leftLine[1]-m_leftLine[3]);
+        int x_error = (x_right + x_left - 752)/2;
+        float theta_avg = lines.supposedMidLine.slope;
+        m_lateralError = cos(theta_avg) * x_error;
         m_angularError = M_PI_2 - theta_avg;
 
         //Scale from pixels to meters
@@ -219,7 +229,7 @@ ModuleState::MODULE_EXITCODE Driver::body()
         {
             TimeStamp now;
             int32_t currTime = now.toMicroseconds();
-            double sec = (currTime - m_timestamp) / (1000000.0);	//Why not 1.000000???
+            double sec = (currTime - m_timestamp) / (1000000.0);    //Why not 1.000000???
             m_intLateralError = m_intLateralError + m_speed * m_lateralError * cos(m_angularError) * sec;
             m_derLateralError = (m_lateralError - m_derLateralError) / sec;
             cout << endl;
@@ -271,24 +281,23 @@ ModuleState::MODULE_EXITCODE Driver::body()
         //Container c(Container::VEHICLECONTROL, vc);
         // Send container.
         //getConference().send(c);*/
-        m_desiredSteeringWheelAngle = 0.2;
+        //m_desiredSteeringWheelAngle = 0.2;
         stringstream speedStream, steeringAngleStream;
-	uint16_t speedVal = uint16_t((m_speed+2)/4.0*(1619-1523) + 1523);
-	if(speedVal != oldSpeedVal) {
-		cout << "Send speed: " << speedVal << endl;
-		m_protocol.setSpeed(speedVal);
-                oldSpeedVal = speedVal;
-		msleep(50);
-	}
-	uint16_t steeringVal = uint16_t(m_desiredSteeringWheelAngle*180/M_PI);
-	if(steeringVal != oldSteeringVal) {
-		cout << "Send angle: " << steeringVal << endl;
-        	m_protocol.setSteeringAngle(steeringVal);
-		oldSteeringVal = steeringVal;
-		msleep(50);
-	}
+        int16_t speedVal = int16_t((m_speed+2)/4.0*(1619-1523) + 1523);
+        if(speedVal != oldSpeedVal) {
+            cout << "Send speed: " << speedVal << endl;
+            m_protocol.setSpeed(speedVal);
+            oldSpeedVal = speedVal;
+            msleep(50);
+        }
+        int16_t steeringVal = int16_t(m_desiredSteeringWheelAngle*180/M_PI);
+        if(steeringVal != oldSteeringVal) {
+            cout << "Send angle: " << steeringVal << endl;
+            m_protocol.setSteeringAngle(steeringVal);
+            oldSteeringVal = steeringVal;
+            msleep(50);
+        }
     }
-
     return ModuleState::OKAY;
 }
 

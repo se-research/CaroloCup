@@ -367,6 +367,7 @@ Lines LineDetector::getLines()
                              , Vec4i(0,0,0,0)
                              , Vec4i(0,0,0,0));
         }
+        m_lines.setSupposedMidLine(supposedMidLine);
     }
     return *m_lines;
 }
@@ -653,7 +654,6 @@ void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv
                         if(maxLength < segmentLength)
                         {
                             maxLength = segmentLength;
-
                         }
                     }
                     else
