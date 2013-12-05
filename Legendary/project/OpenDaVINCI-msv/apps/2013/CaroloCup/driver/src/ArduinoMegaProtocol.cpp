@@ -7,19 +7,19 @@ namespace carolocup {
 		m_SerialProtocol(port, bufSize){
 	}
 
-	void ArduinoMegaProtocol::setSpeed(unsigned speed) {
+	void ArduinoMegaProtocol::setSpeed(int speed) {
 		stringstream ss;
 		ss << 'm' << speed << '/';
 		int errorCode = m_SerialProtocol.writeToSerial(&ss);
 	}
 
-	void ArduinoMegaProtocol::setSteeringAngle(unsigned angle) {
+	void ArduinoMegaProtocol::setSteeringAngle(int angle) {
 		stringstream ss;
 		ss << 's' << angle << '/';
 		int error_code = m_SerialProtocol.writeToSerial(&ss);
 	}
 
-	void ArduinoMegaProtocol::setBrakeForce(unsigned brakeFrc) {
+	void ArduinoMegaProtocol::setBrakeForce(char brakeFrc) {
 		stringstream ss;
 		ss << 'b' << brakeFrc << '/';
 		int error_code = m_SerialProtocol.writeToSerial(&ss);

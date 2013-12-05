@@ -30,7 +30,7 @@ struct CustomLine {
 
 class LineDetector {
 public:
-  LineDetector(const Mat& f, const Config& cfg, const bool debug);
+  LineDetector(const Mat& f, const bool debug);
   virtual ~LineDetector();
   Lines getLines();
   int detectStartLine(int dist);
@@ -57,10 +57,7 @@ private:
 
   cv::Mat m_frame;
   cv::Mat m_frameCanny;
-  //vector<Vec4i> m_houghLines;
   Lines* m_lines;
-  Dbscan* m_clusters;
-  const Config m_config;
   const bool m_debug;
   Point m_lastSolidRightTop;
   std::vector<CustomLine> detectedLines;

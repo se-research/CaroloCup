@@ -241,7 +241,7 @@ void *functionBottom(void *argument)
     int i = 0;
     argument = (void *) i;
     cout << argument << endl;
-    LineDetector road(*getFirstPointer, cfg, debug);
+    LineDetector road(*getFirstPointer, debug);
     linesBottom = road.getLines();
     //linesBottom.stopLineHeight = road.detectStopLine(10);
     //linesBottom.startLineHeight = road.detectStartLine(10);
@@ -259,7 +259,7 @@ void *functionMiddle(void *argument)
     int i = 0;
     argument = (void *) i;
     cout << argument;
-    LineDetector road(*getSecondPointer, cfg, debug);
+    LineDetector road(*getSecondPointer, debug);
     linesMiddle = road.getLines();
     //linesMiddle.stopLineHeight = road.detectStopLine(10);
     //linesMiddle.startLineHeight = road.detectStartLine(10);
@@ -277,7 +277,7 @@ void *functionTop(void *argument)
     argument = (void *) i;
     cout << argument;
 
-    LineDetector road(*getThirdPointer, cfg, debug);
+    LineDetector road(*getThirdPointer, debug);
     linesTop = road.getLines();
     //linesTop.stopLineHeight = road.detectStopLine(10);
     //linesTop.startLineHeight = road.detectStartLine(10);
@@ -337,7 +337,7 @@ void LaneDetector::processImage()
     //cout<<"Cloning............"<<endl;
     //dst.setTo( Scalar(0,0,0));
     debug = m_debug;
-    cfg = m_config;
+    //cfg = m_config;
 //////////////////////////////////////////////////////START//////////////////////////////////////////////////////////////////////////////////
     /*Each of Mat Images below represents a segment of the image
     and their respective addresses are assigned to each of the pointers below*/
@@ -371,7 +371,7 @@ void LaneDetector::processImage()
 
 //////////////////////////////////////////////////////END////////////////////////////////////////////////////////////////////////////////
     //imshow("Input Image", m_frame);
-    //LineDetector road(m_frame, m_config, m_debug);
+    //LineDetector road(m_frame, m_debug);
     /*carolocup::Lines lines = road.getLines();
     lines.pGain = m_config.pGain;
     lines.intGain = m_config.intGain;

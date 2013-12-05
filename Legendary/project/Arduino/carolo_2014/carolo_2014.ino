@@ -48,6 +48,7 @@ void setup()
 
   //  attachInterrupt(3, calcThrottle, FALLING);
   pinMode(2, INPUT);
+  pinMode(3, INPUT);
   // initialize serial communication
   Serial.begin(115200);
   Serial.println("initialized");
@@ -120,7 +121,7 @@ void loop()
         }
       }
       if(steering) {
-        Serial.println(angle);
+        //Serial.println(angle);
         if(angle > MAX_STEERING_ANGLE_L && angle < MAX_STEERING_ANGLE_R) {
           controlSteering();
         }
@@ -182,7 +183,11 @@ void controlSteering() {
 void evaluateReceiver()
 {
   int receiverSpeed = pulseIn(2, HIGH, 25000);
+  receiverSpeed = map(receiverSpeed, 1200,2600,1159,1759);
   int receiverSteer = pulseIn(3, HIGH, 25000);
+  //Serial.println(receiverSpeed);
+  //Serial.println(receiverSteer);
+  receiverSteer = map(receiverSteer, 1600,2300,819,2219);
   if(receiverSpeed < 1370) {
     takeOver = true;
     digitalWrite(ledPin1, LOW);
@@ -199,7 +204,7 @@ void evaluateReceiver()
       lastTimeStamp = millis();
     }
   }
-  if(angle > 150 ) {
+  if(angle > 150 || angle < -150 ) {
     digitalWrite(ledPin1, LOW);
     digitalWrite(ledPin2, LOW);
     takeOver = false;

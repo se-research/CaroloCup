@@ -76,7 +76,7 @@ Driver::~Driver() {}
 void Driver::setUp()
 {
     // This method will be call automatically _before_ running body().
-    m_speed = 0.2;
+    m_speed = 0.8;
     m_oldCurvature = 0;
     m_controlGains[0] = 10;
     m_controlGains[1] = 20;
@@ -109,7 +109,7 @@ int msleep(unsigned long milisec)
     return 1;
 }
 
-uint16_t oldSteeringVal=0, oldSpeedVal=0;
+int16_t oldSteeringVal=0, oldSpeedVal=0;
 
 // This method will do the main data processing job.
 ModuleState::MODULE_EXITCODE Driver::body()
@@ -281,22 +281,23 @@ ModuleState::MODULE_EXITCODE Driver::body()
         //Container c(Container::VEHICLECONTROL, vc);
         // Send container.
         //getConference().send(c);*/
-        //m_desiredSteeringWheelAngle = 0.2;
+	//m_desiredSteeringWheelAngle=-0.2;
         stringstream speedStream, steeringAngleStream;
-        int16_t speedVal = int16_t((m_speed+2)/4.0*(1619-1523) + 1523);
-        if(speedVal != oldSpeedVal) {
-            cout << "Send speed: " << speedVal << endl;
-            m_protocol.setSpeed(speedVal);
-            oldSpeedVal = speedVal;
-            msleep(50);
-        }
-        int16_t steeringVal = int16_t(m_desiredSteeringWheelAngle*180/M_PI);
-        if(steeringVal != oldSteeringVal) {
-            cout << "Send angle: " << steeringVal << endl;
-            m_protocol.setSteeringAngle(steeringVal);
-            oldSteeringVal = steeringVal;
-            msleep(50);
-        }
+	uint16_t speedVal = uint16_t((m_speed+0.5)/4.0*(1619-1523) + 1523);
+	if(speedVal != oldSpeedVal) {
+		cout << "Send speed: " << speedVal << endl;
+		m_protocol.setSpeed(speedVal);
+                oldSpeedVal = speedVal;
+		msleep(1);
+	}
+	int16_t steeringVal = int16_t(m_desiredSteeringWheelAngle*180/M_PI);
+	if(steeringVal != oldSteeringVal) {
+		cout << "Send angle: " << steeringVal << endl;
+        	m_protocol.setSteeringAngle(steeringVal);
+		oldSteeringVal = steeringVal;
+		msleep(1);
+		m_protocol.setBrakeForce('+');
+	}
     }
     return ModuleState::OKAY;
 }

@@ -10,9 +10,9 @@ namespace carolocup {
 	public:
 		ArduinoMegaProtocol(const char *port, int bufSize);
 		~ArduinoMegaProtocol();
-		void setSpeed(unsigned speed);
-		void setSteeringAngle(unsigned angle);
-		void setBrakeForce(unsigned brakeFrc);
+		void setSpeed(int speed);
+		void setSteeringAngle(int angle);
+		void setBrakeForce(char brakeFrc);
 	private:
 		SerialProtocolSample m_SerialProtocol;
 	};
