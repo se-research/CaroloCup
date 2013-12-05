@@ -114,8 +114,8 @@ int16_t oldSteeringVal=0, oldSpeedVal=0;
 // This method will do the main data processing job.
 ModuleState::MODULE_EXITCODE Driver::body()
 {
-    //core::base::LIFOQueue lifo;
-    //addDataStoreFor(lifo);
+    core::base::LIFOQueue lifo;
+    addDataStoreFor(lifo);
     int x1, x2, x3, x4, y1, y2, y3, y4;
     cout << "Ready to go!" << endl;
 
@@ -143,15 +143,15 @@ ModuleState::MODULE_EXITCODE Driver::body()
         Lines lines = ldd.getLaneDetectionData();
         if (lines.dashedLine[0] == 0 && lines.dashedLine[1] == 0 && lines.dashedLine[2] == 0 && lines.dashedLine[3] == 0) {
             m_leftLine = lines.leftLine;
-        } else
+        } else {
             m_leftLine = lines.dashedLine;
         }
         m_rightLine = lines.rightLine;
         
-        m_propGain = lines.pGain / 10.0;
-        m_intGain = lines.intGain;
-        m_derGain = lines.derGain * 100;
-        m_speed = lines.speed / 10.0;
+        m_propGain = 1.75;//2.05;
+        m_intGain = 0;//8.39;
+        m_derGain = 0.1;//0.23;
+        m_speed = 0.7;
         // Temporary solution to stop the car if a stop line is detected
         //if (lines.stopLineHeight != -1)
         //{
@@ -203,24 +203,25 @@ ModuleState::MODULE_EXITCODE Driver::body()
             cout << endl;
         }
 
-        /*
+       
         float theta1 = atan2(y1-y2, x1-x2);
         float theta2 = atan2(y3-y4, x3-x4);
         float s1 = x1 * cos(theta1) + y1 * sin(theta1);
         float s2 = x3 * cos(theta2) + y3 * sin(theta2);
         float intP1_x = (s1 - sin(theta1) * scr_height) / cos(theta1);
         float intP2_x =  (s2 - sin(theta2) * scr_height) / cos(theta2);
-        float theta_avg = (theta1 + theta2) / 2;
+        //float theta_avg = (theta1 + theta2) / 2;
+	cout << "P1.x: " << intP1_x << " P2.x: " << intP2_x << endl;
 
         float x_goal = (intP1_x + intP2_x) /2 ;
         float x_pl = scr_width/2;
-        */
-        int x_right = m_rightLine[0]-m_rightLine[1]*(m_rightLine[0]-m_rightLine[2])/(m_rightLine[1]-m_rightLine[3]);
-        int x_left = m_leftLine[0]-m_leftLine[1]*(m_leftLine[0]-m_leftLine[2])/(m_leftLine[1]-m_leftLine[3]);
-        int x_error = (x_right + x_left - 752)/2;
+       
+	float oldLateralError = m_lateralError;
+        //int x_error = (x_right + x_left - 752)/2;
         float theta_avg = lines.supposedMidLine.slope;
-        m_lateralError = cos(theta_avg) * x_error;
-        m_angularError = M_PI_2 - theta_avg;
+	m_angularError = 90 - theta_avg;
+	float theta = (m_angularError/180)*M_PI_2;
+        m_lateralError = cos(theta) * (x_goal - x_pl);
 
         //Scale from pixels to meters
         m_lateralError = m_lateralError/SCALE_FACTOR;
@@ -230,8 +231,8 @@ ModuleState::MODULE_EXITCODE Driver::body()
             TimeStamp now;
             int32_t currTime = now.toMicroseconds();
             double sec = (currTime - m_timestamp) / (1000000.0);    //Why not 1.000000???
-            m_intLateralError = m_intLateralError + m_speed * m_lateralError * cos(m_angularError) * sec;
-            m_derLateralError = (m_lateralError - m_derLateralError) / sec;
+            //m_intLateralError = m_intLateralError + m_speed * m_lateralError * cos(m_angularError) * sec;
+            m_derLateralError = (m_lateralError - oldLateralError) / sec;
             cout << endl;
             cout << "  sec: " << sec;
         }
@@ -240,7 +241,7 @@ ModuleState::MODULE_EXITCODE Driver::body()
         m_timestamp = now.toMicroseconds();
         //Simple proportional control law, propGain needs to be updated
         m_desiredSteeringWheelAngle = m_lateralError*m_propGain;
-        m_desiredSteeringWheelAngle += m_intLateralError*m_intGain;
+        //m_desiredSteeringWheelAngle += m_intLateralError*m_intGain;
         m_desiredSteeringWheelAngle += m_derLateralError*m_derGain;
 
         cout << "  derLateral: " << m_derLateralError;
@@ -248,6 +249,8 @@ ModuleState::MODULE_EXITCODE Driver::body()
 
         //m_desiredSteeringWheelAngle = feedbackLinearizationController2();
         cout << "  lateral: " << m_lateralError;
+        cout << "  orentation: " << m_angularError;
+	cout << "  theta: " << theta;
         cout << "  angle: " << m_desiredSteeringWheelAngle;
         cout << "  speed: " << m_speed;
         cout << "  width " << scr_width;
@@ -284,20 +287,24 @@ ModuleState::MODULE_EXITCODE Driver::body()
 	//m_desiredSteeringWheelAngle=-0.2;
         stringstream speedStream, steeringAngleStream;
 	uint16_t speedVal = uint16_t((m_speed+0.5)/4.0*(1619-1523) + 1523);
-	if(speedVal != oldSpeedVal) {
+	//if(speedVal != oldSpeedVal) {
 		cout << "Send speed: " << speedVal << endl;
 		m_protocol.setSpeed(speedVal);
                 oldSpeedVal = speedVal;
 		msleep(1);
-	}
-	int16_t steeringVal = int16_t(m_desiredSteeringWheelAngle*180/M_PI);
-	if(steeringVal != oldSteeringVal) {
+	//}
+	float desSteering = m_desiredSteeringWheelAngle*180/M_PI_2;
+	cout << desSteering <<endl;
+	if(desSteering > 32) desSteering = 32;
+	if(desSteering < -32) desSteering = -32;
+	int16_t steeringVal = int16_t(desSteering);
+	//if(steeringVal != oldSteeringVal) {
 		cout << "Send angle: " << steeringVal << endl;
         	m_protocol.setSteeringAngle(steeringVal);
 		oldSteeringVal = steeringVal;
 		msleep(1);
-		m_protocol.setBrakeForce('+');
-	}
+		//m_protocol.setBrakeForce('+');
+	//}
     }
     return ModuleState::OKAY;
 }

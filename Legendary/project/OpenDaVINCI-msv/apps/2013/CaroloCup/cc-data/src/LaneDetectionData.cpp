@@ -22,8 +22,8 @@ namespace carolocup {
 	using namespace cv;
 
 	LaneDetectionData::LaneDetectionData() :
-    m_lines(Vec4i(0,0,0,0),Vec4i(0,0,0,0),Vec4i(0,0,0,0)) {
-  }
+          m_lines(Vec4i(0,0,0,0),Vec4i(0,0,0,0),Vec4i(0,0,0,0)) {
+       }
 
 	LaneDetectionData::LaneDetectionData(const LaneDetectionData &obj) :
 			SerializableData(),
@@ -42,9 +42,6 @@ namespace carolocup {
 
 	void LaneDetectionData::setLaneDetectionData(const Lines &lines) {
 		m_lines = lines;
-	}
-	void setSupposedMidLine(const CustomLine &sm) {
-		m_su
 	}
 
 	const string LaneDetectionData::toString() const {

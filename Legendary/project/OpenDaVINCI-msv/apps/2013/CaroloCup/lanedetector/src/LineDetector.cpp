@@ -21,6 +21,8 @@ LineDetector::LineDetector(const Mat& f, const bool debug)
     , m_lastSolidRightTop()
     , detectedLines()
     , supposedMidLine()
+    , m_frame()
+    , m_frameCanny()
 {
     m_frame = f.clone();
     Mat outputImg = f.clone();
@@ -109,7 +111,7 @@ Lines LineDetector::getLines()
                              , Vec4i(0,0,0,0)
                              , Vec4i(0,0,0,0));
         }
-        m_lines.setSupposedMidLine(supposedMidLine);
+        m_lines->setSupposedMidLine(supposedMidLine);
     }
     return *m_lines;
 }

@@ -20,14 +20,6 @@ struct Config {
       dashMin, dashMax, dashWidth, solidMin, solidWidth, pGain, intGain, derGain, speed;
 };
 
-struct CustomLine {
-  Point p1, p2;
-  float slope;
-  bool operator < (const CustomLine& other ) const {
-     return slope < other.slope;
-  }
-};
-
 class LineDetector {
 public:
   LineDetector(const Mat& f, const bool debug);

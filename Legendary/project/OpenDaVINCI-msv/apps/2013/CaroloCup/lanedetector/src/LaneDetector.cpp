@@ -67,6 +67,7 @@ char* ppcImgMem;
 int pid;
 pthread_t t1, t2; // t3 ;
 int ret, avg_time = 0, num_msmnt;
+double w, h;
 ///////////////////////////////////////////////////////////////////////////////
 
 LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
@@ -313,6 +314,14 @@ int msleep(unsigned long milisec)
 
 carolocup::Lines mergeLinesData()
 {
+    linesBottom.dashedLine[1] = linesBottom.dashedLine[1] != 0 ? linesBottom.dashedLine[1] + h/2 : 0;
+    linesBottom.dashedLine[1] = linesBottom.dashedLine[3] != 0 ? linesBottom.dashedLine[3] + h/2 : 0;
+    linesBottom.leftLine[1] = linesBottom.leftLine[1] != 0 ? linesBottom.leftLine[1] + h/2 : 0;
+    linesBottom.leftLine[3] = linesBottom.leftLine[3] != 0 ? linesBottom.leftLine[3] + h/2 : 0;
+    linesBottom.rightLine[1] = linesBottom.rightLine[1] != 0 ? linesBottom.rightLine[1] + h/2 : 0;
+    linesBottom.rightLine[3] = linesBottom.rightLine[3] != 0 ? linesBottom.rightLine[3] + h/2 : 0;
+    linesBottom.width = w;
+    linesBottom.height =  h;
     return linesBottom;
 }
 
@@ -343,15 +352,15 @@ void LaneDetector::processImage()
     and their respective addresses are assigned to each of the pointers below*/
     
     cout<<"Spliting............"<<endl;
-    double w = m_frame.size().width;
-    double h = m_frame.size().height;
+    w = m_frame.size().width;
+    h = m_frame.size().height;
     Mat getFirst = m_frame(cv::Rect(1, h/2-1, w-1, h/2-1));
-    Mat getSecond  = m_frame(cv::Rect(1,h/4-1, w-1, h/4-1));
+    //Mat getSecond  = m_frame(cv::Rect(1,h/4-1, w-1, h/4-1));
     //Mat getThird = m_frame(cv::Rect(1,1,w-1,h/4-1));
 
 
     getFirstPointer = &getFirst;
-    getSecondPointer = &getSecond;
+    //getSecondPointer = &getSecond;
     //getThirdPointer = &getThird;
 
     cout<<"Creating Threads............"<<endl;
@@ -363,11 +372,11 @@ void LaneDetector::processImage()
         cout << "Unable to create p1" << endl;
         bottomDone = true;
     }
-    pthread_create(&t2, NULL, functionMiddle,NULL);
+    /*pthread_create(&t2, NULL, functionMiddle,NULL);
     if(ret != 0) {
         cout << "Unable to create p2" << endl;
         middleDone = true;
-    }
+    }*/
 
 //////////////////////////////////////////////////////END////////////////////////////////////////////////////////////////////////////////
     //imshow("Input Image", m_frame);
@@ -381,8 +390,8 @@ void LaneDetector::processImage()
     lines.height = m_image->height;
     lines.stopLineHeight = road.detectStopLine(10);
     lines.startLineHeight = road.detectStartLine(10);*/
-    //middleDone = true;
-    topDone = true;
+    middleDone = true;
+    //topDone = true;
     while(true){
         bool ok = false;
         pthread_mutex_lock(&running_mutex_bottom);
@@ -395,7 +404,7 @@ void LaneDetector::processImage()
         if(ok) break;
     }
     pthread_join(t1,NULL);
-    pthread_join(t2,NULL);
+    //pthread_join(t2,NULL);
     bottomDone = false;
     middleDone = false;
     cout<<"Threads Done............"<<endl;
@@ -433,12 +442,12 @@ void LaneDetector::processImage()
     /*As I stated earlier, because of restrictions with X SERVER and Multi-threads
     It will be difficult and messy trying to show the frames withing the thread functions
            So you can show them outside like I have done here*/
-    drawLines(&linesBottom, &m_frame, h/2);
-    drawLines(&linesMiddle, &m_frame, h/4);
+    //drawLines(&linesBottom, &m_frame, 0);
+    //drawLines(&linesMiddle, &m_frame, h/4);
     //imshow("First Frame", *getFirstPointer);
     //imshow("Second Frame", *getSecondPointer);
     //imshow("Third Frame", *getThirdPointer);
-    imshow("Output", m_frame);
+    //imshow("Output", m_frame);
 
 //////////////////////////////////////////////////////END////////////////////////////////////////////////////////////////////////////////
     waitKey(20);
