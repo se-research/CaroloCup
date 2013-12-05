@@ -49,7 +49,7 @@ Driver::Driver(const int32_t &argc, char **argv) :
     m_intGain(8.38) ,
     m_derGain(0.23) ,
     m_length(0.3) ,
-    m_protocol("/dev/ttyACM0", 24),
+    m_protocol("/dev/ttyACM0", 6),
     ANGLE_TO_CURVATURE(2.5) ,
     SCALE_FACTOR (1200) ,
     m_timestamp(0) ,

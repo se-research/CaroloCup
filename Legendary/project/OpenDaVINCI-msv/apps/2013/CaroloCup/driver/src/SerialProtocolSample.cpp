@@ -50,7 +50,7 @@ void SerialProtocolSample::disconnect() {
 
 int SerialProtocolSample::writeToSerial(stringstream *ss) {
 	strcpy(buf, ss->str().c_str());
-    	return write(fd, buf, ss->str().size());
+    	return write(fd, buf, bufSize);
 }
 
 }
