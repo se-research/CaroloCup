@@ -14,7 +14,7 @@ ADD_SUBDIRECTORY (cc-data)
 
 # Application for receiving and processing data from the Discovery board.
 ADD_SUBDIRECTORY (sensorboard)
-ADD_SUBDIRECTORY (testsensorboardsender)
+#ADD_SUBDIRECTORY (testsensorboardsender)
 
 # Application for receiving data from hesperia or a USB camera.
 ADD_SUBDIRECTORY (lanedetector)
@@ -27,13 +27,13 @@ ADD_SUBDIRECTORY (proxy)
 # carolocup2013 needs this proxy version only to be able to run on the meili car. since we will run carolocup2013 only on the simulation environment, we don't need the proxy.
 
 # Application for sending driving commands.
-ADD_SUBDIRECTORY (extradriver)
+#ADD_SUBDIRECTORY (extradriver)
 
 # Application for sending parking commands.
-ADD_SUBDIRECTORY (parkingdriver)
+#ADD_SUBDIRECTORY (parkingdriver)
 
 # Application for recording the onboard video data.
-ADD_SUBDIRECTORY (VCR)
+#ADD_SUBDIRECTORY (VCR)
 
 # Application to wrap the motor controller.
 ADD_SUBDIRECTORY (UDP_Server)

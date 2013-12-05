@@ -49,8 +49,7 @@ Driver::Driver(const int32_t &argc, char **argv) :
     m_intGain(8.38) ,
     m_derGain(0.23) ,
     m_length(0.3) ,
-    m_serialPortPtr(),
-    m_protocol(),
+    m_protocol("/dev/ttyACM0", 24),
     ANGLE_TO_CURVATURE(2.5) ,
     SCALE_FACTOR (1200) ,
     m_timestamp(0) ,
@@ -77,7 +76,7 @@ Driver::~Driver() {}
 void Driver::setUp()
 {
     // This method will be call automatically _before_ running body().
-    m_speed = 0.4;
+    m_speed = 0.2;
     m_oldCurvature = 0;
     m_controlGains[0] = 10;
     m_controlGains[1] = 20;
@@ -90,25 +89,41 @@ void Driver::tearDown()
     // This method will be call automatically _after_ return from body().
 }
 
+int __nsleep(const struct timespec *req, struct timespec *rem)
+{
+    struct timespec temp_rem;
+    if(nanosleep(req,rem)==-1)
+        __nsleep(rem,&temp_rem);
+    else
+        return 1;
+}
+ 
+int msleep(unsigned long milisec)
+{
+    struct timespec req={0},rem={0};
+    time_t sec=(int)(milisec/1000);
+    milisec=milisec-(sec*1000);
+    req.tv_sec=sec;
+    req.tv_nsec=milisec*1000000L;
+    __nsleep(&req,&rem);
+    return 1;
+}
+
+uint16_t oldSteeringVal=0, oldSpeedVal=0;
+
 // This method will do the main data processing job.
 ModuleState::MODULE_EXITCODE Driver::body()
 {
-    core::base::LIFOQueue lifo;
-    addDataStoreFor(lifo);
+    //core::base::LIFOQueue lifo;
+    //addDataStoreFor(lifo);
     int x1, x2, x3, x4, y1, y2, y3, y4;
-    const string SERIAL_PORT = "/dev/ttyACM0";
-    const uint32_t SERIAL_SPEED = 115200;
-    core::wrapper::SerialPort *serialPort = core::wrapper::SerialPortFactory::createSerialPort(SERIAL_PORT, SERIAL_SPEED);
-    ArduinoMegaProtocol protocol;
-    protocol.setStringSender(serialPort);
-    //protocol.setArduinoMegaDataListener(this);
-    //serialPort->setPartialStringReceiver(&protocol);
+    cout << "Ready to go!" << endl;
 
     while (getModuleState() == ModuleState::RUNNING)
     {
         m_hasReceivedLaneDetectionData = false;
         LaneDetectionData ldd;
-        while (!lifo.isEmpty())
+        /*while (!lifo.isEmpty())
         {
             // Read the recently received container.
             Container con = lifo.pop();
@@ -255,12 +270,23 @@ ModuleState::MODULE_EXITCODE Driver::body()
         // Create container for finally sending the data.
         //Container c(Container::VEHICLECONTROL, vc);
         // Send container.
-        //getConference().send(c);
+        //getConference().send(c);*/
+        m_desiredSteeringWheelAngle = 0.2;
         stringstream speedStream, steeringAngleStream;
-        speedStream << 'm' << uint16_t((m_speed+2)/4.0*(1619-1523) + 1523) << '\0';
-        protocol.sendByStringSender(speedStream.str());
-        steeringAngleStream << 's' << uint16_t(m_desiredSteeringWheelAngle*180/M_PI) << '\0';
-        protocol.sendByStringSender(steeringAngleStream.str());
+	uint16_t speedVal = uint16_t((m_speed+2)/4.0*(1619-1523) + 1523);
+	if(speedVal != oldSpeedVal) {
+		cout << "Send speed: " << speedVal << endl;
+		m_protocol.setSpeed(speedVal);
+                oldSpeedVal = speedVal;
+		msleep(50);
+	}
+	uint16_t steeringVal = uint16_t(m_desiredSteeringWheelAngle*180/M_PI);
+	if(steeringVal != oldSteeringVal) {
+		cout << "Send angle: " << steeringVal << endl;
+        	m_protocol.setSteeringAngle(steeringVal);
+		oldSteeringVal = steeringVal;
+		msleep(50);
+	}
     }
 
     return ModuleState::OKAY;

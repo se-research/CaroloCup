@@ -24,7 +24,7 @@ namespace carolocup {
 
     using namespace std;
 
-    class SerialProtocol {
+    class SerialProtocolSample {
         public:
 
         private:
@@ -33,28 +33,27 @@ namespace carolocup {
              * already at compile time for unwanted bugs caused by any misusey.
              * of the copy constructor.
              */
-            SerialProtocol(const SerialProtocol &);
+            SerialProtocolSample(const SerialProtocolSample &);
 
             /**
              * "Forbidden" assignment operator. Goal: The compiler should warn
              * already at compile time for unwanted bugs caused by any misuse
              * of the assignment operator.
              */
-            SerialProtocol& operator=(const SerialProtocol &);
+            SerialProtocolSample& operator=(const SerialProtocolSample &);
 
         public:
             /**
              * Constructor.
              */
-            SerialProtocol();
-            SerialProtocol(const char*, int);
-            ~SerialProtocol();
+            SerialProtocolSample();
+            SerialProtocolSample(const char*, int);
+            ~SerialProtocolSample();
 
 			//Methods
 			void connect(const char *);
 			void disconnect();
-
-        protected:
+			int writeToSerial(stringstream *ss);
 			int fd;	//file descriptor for the port
 			bool portState;
 			char *buf;

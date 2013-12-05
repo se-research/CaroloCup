@@ -43,23 +43,30 @@ using namespace cv;
 
 ///////////////////////////////////////////////////////////////////////////////
 /*The three functions below are function declarations for the Thread functions*/
-void  *function1(void *argument);
-void  *function2(void *argument);
-void  *function3(void *argument);
+void  *functionBottom(void *argument);
+void  *functionMiddle(void *argument);
+void  *functionTop(void *argument);
 
 /*These are three Mat pointers, one for each segment of the image*/
 Mat *getFirstPointer;
 Mat *getSecondPointer;
 Mat *getThirdPointer;
 
+/* Mutex variables that would be shared between threads */
+pthread_mutex_t running_mutex_bottom = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t running_mutex_middle = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t running_mutex_top = PTHREAD_MUTEX_INITIALIZER;
+
 carolocup::Lines linesTop, linesMiddle, linesBottom;
-bool topDone = false, middleDone = false, bottomDone = false;
+volatile bool topDone = false, middleDone = false, bottomDone = false;
 bool debug;
 Config cfg;
 // Global variables for camera functions
 HIDS hCam = 0;
 char* ppcImgMem;
 int pid;
+pthread_t t1, t2; // t3 ;
+int ret, avg_time = 0, num_msmnt;
 ///////////////////////////////////////////////////////////////////////////////
 
 LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
@@ -205,20 +212,20 @@ bool LaneDetector::readSharedImage(Container &c)
 
 }
 
-void drawLines(carolocup::Lines* lines, Mat* dst) {
+void drawLines(carolocup::Lines* lines, Mat* dst, int offset) {
     Line dashed = lines->dashedLine;
     Line solidRight = lines->rightLine;
     Line solidLeft = lines->leftLine;
 
-    line( *dst, Point(dashed[0], dashed[1]), Point(dashed[2], dashed[3]), Scalar(0,255,0), 3, CV_AA);
-    line( *dst, Point(solidRight[0], solidRight[1]), Point(solidRight[2], solidRight[3]), Scalar(255,0,0), 3, CV_AA);
-    line( *dst, Point(solidLeft[0], solidLeft[1]), Point(solidLeft[2], solidLeft[3]), Scalar(0,0,255), 3, CV_AA);
-    if(lines->stopLineHeight != -1) {
+    line( *dst, Point(dashed[0], dashed[1]+offset), Point(dashed[2], dashed[3]+offset), Scalar(0,255,0), 3, CV_AA);
+    line( *dst, Point(solidRight[0], solidRight[1]+offset), Point(solidRight[2], solidRight[3]+offset), Scalar(255,0,0), 3, CV_AA);
+    line( *dst, Point(solidLeft[0], solidLeft[1]+offset), Point(solidLeft[2], solidLeft[3]+offset), Scalar(0,0,255), 3, CV_AA);
+    /*if(lines->stopLineHeight != -1) {
         line( *dst, Point(0, lines->stopLineHeight), Point(640, lines->stopLineHeight), Scalar(0,255,0), 3, CV_AA);
     }
     if(lines->startLineHeight != -1) {
         line( *dst, Point(0, lines->startLineHeight), Point(640, lines->startLineHeight), Scalar(255,0,0), 3, CV_AA);
-    }
+    }*/
 }
 
 /////////////////////////////////////////////////////START//////////////////////////////////////////////////////////////////////////////////
@@ -238,7 +245,10 @@ void *functionBottom(void *argument)
     linesBottom = road.getLines();
     //linesBottom.stopLineHeight = road.detectStopLine(10);
     //linesBottom.startLineHeight = road.detectStartLine(10);
+    pthread_mutex_lock(&running_mutex_bottom);
     bottomDone = true;
+    pthread_mutex_unlock(&running_mutex_bottom);
+    cout << "Bottom end" << endl;
     return 0;
 }
 
@@ -253,7 +263,10 @@ void *functionMiddle(void *argument)
     linesMiddle = road.getLines();
     //linesMiddle.stopLineHeight = road.detectStopLine(10);
     //linesMiddle.startLineHeight = road.detectStartLine(10);
+    pthread_mutex_lock(&running_mutex_middle);
     middleDone = true;
+    pthread_mutex_unlock(&running_mutex_middle);
+    cout << "Middle end" << endl;
     return 0;
 }
 
@@ -268,8 +281,32 @@ void *functionTop(void *argument)
     linesTop = road.getLines();
     //linesTop.stopLineHeight = road.detectStopLine(10);
     //linesTop.startLineHeight = road.detectStartLine(10);
+    pthread_mutex_lock(&running_mutex_top);
     topDone = true;
+    pthread_mutex_unlock(&running_mutex_top);
+    cout << "Top end" << endl;
     return 0;
+}
+
+
+int __nsleep(const struct timespec *req, struct timespec *rem)
+{
+    struct timespec temp_rem;
+    if(nanosleep(req,rem)==-1)
+        __nsleep(rem,&temp_rem);
+    else
+        return 1;
+}
+ 
+int msleep(unsigned long milisec)
+{
+    struct timespec req={0},rem={0};
+    time_t sec=(int)(milisec/1000);
+    milisec=milisec-(sec*1000);
+    req.tv_sec=sec;
+    req.tv_nsec=milisec*1000000L;
+    __nsleep(&req,&rem);
+    return 1;
 }
 
 //////////////////////////////////////////////////////END///////////////////////////////////////////////////////////////////////////////////
@@ -304,7 +341,7 @@ void LaneDetector::processImage()
     double h = m_frame.size().height;
     Mat getFirst = m_frame(cv::Rect(1, h/2-1, w-1, h/2-1));
     Mat getSecond  = m_frame(cv::Rect(1,h/4-1, w-1, h/4-1));
-    //Mat getThird = m_frame(cv::Rect(1,119,639,119));
+    //Mat getThird = m_frame(cv::Rect(1,1,w-1,h/4-1));
 
 
     getFirstPointer = &getFirst;
@@ -313,12 +350,18 @@ void LaneDetector::processImage()
 
     cout<<"Creating Threads............"<<endl;
     
-    /*Threes POSIX threads are created below and each of the threads
-    are assigned to run each of the three functions*/
-    pthread_t t1, t2; // t3 ;
-    pthread_create(&t1, NULL, functionBottom,NULL);
+    /*Threes POSIX threads are created below and each of the threads are assigned to run each of the three functions*/
+    cout << "Threads started!" << endl;
+    ret = pthread_create(&t1, NULL, functionBottom,NULL);
+    if(ret != 0) {
+        cout << "Unable to create p1" << endl;
+        bottomDone = true;
+    }
     pthread_create(&t2, NULL, functionMiddle,NULL);
-    // pthread_create(&t3, NULL, functionTop,NULL);
+    if(ret != 0) {
+        cout << "Unable to create p2" << endl;
+        middleDone = true;
+    }
 
 //////////////////////////////////////////////////////END////////////////////////////////////////////////////////////////////////////////
     //imshow("Input Image", m_frame);
@@ -332,9 +375,23 @@ void LaneDetector::processImage()
     lines.height = m_image->height;
     lines.stopLineHeight = road.detectStopLine(10);
     lines.startLineHeight = road.detectStartLine(10);*/
-    topDone = true;
     //middleDone = true;
-    while(!topDone || !bottomDone || !middleDone);
+    topDone = true;
+    while(true){
+        bool ok = false;
+        pthread_mutex_lock(&running_mutex_bottom);
+        if(bottomDone) ok = true;
+        pthread_mutex_unlock(&running_mutex_bottom);
+        pthread_mutex_lock(&running_mutex_middle);
+        if(middleDone) ok = ok && true;
+        pthread_mutex_unlock(&running_mutex_middle);
+        msleep(1);
+        if(ok) break;
+    }
+    pthread_join(t1,NULL);
+    pthread_join(t2,NULL);
+    bottomDone = false;
+    middleDone = false;
     cout<<"Threads Done............"<<endl;
     //carolocup::Lines lines = mergeLinesData();
     //LaneDetectionData data;
@@ -351,10 +408,16 @@ void LaneDetector::processImage()
 
     TimeStamp currentTime_strt7;
     double timeStep_total = (currentTime_strt7.toMicroseconds() - currentTime_strt1.toMicroseconds()) / 1000.0;
-    cout << "Total  " << timeStep_total << endl;
-    topDone = false;
-    bottomDone = false;
-    middleDone = false;
+    cout << "Total  " << timeStep_total << "ms" << endl;
+    if(avg_time == 0) {
+        avg_time = timeStep_total;
+        num_msmnt = 1;
+    } else {
+        avg_time = (avg_time * num_msmnt + timeStep_total) / (num_msmnt + 1);
+        num_msmnt = (num_msmnt + 1) % 10;
+    }
+    cout << dec;
+    cout << "avg_time: " << avg_time << "ms" << endl;
 
     /*if (m_debug) {
     imshow("output", dst);
@@ -364,11 +427,12 @@ void LaneDetector::processImage()
     /*As I stated earlier, because of restrictions with X SERVER and Multi-threads
     It will be difficult and messy trying to show the frames withing the thread functions
            So you can show them outside like I have done here*/
-    drawLines(&linesBottom, getFirstPointer);
-    drawLines(&linesMiddle, getSecondPointer);
-    imshow("First Frame", *getFirstPointer);
-    imshow("Second Frame", *getSecondPointer);
+    drawLines(&linesBottom, &m_frame, h/2);
+    drawLines(&linesMiddle, &m_frame, h/4);
+    //imshow("First Frame", *getFirstPointer);
+    //imshow("Second Frame", *getSecondPointer);
     //imshow("Third Frame", *getThirdPointer);
+    imshow("Output", m_frame);
 
 //////////////////////////////////////////////////////END////////////////////////////////////////////////////////////////////////////////
     waitKey(20);

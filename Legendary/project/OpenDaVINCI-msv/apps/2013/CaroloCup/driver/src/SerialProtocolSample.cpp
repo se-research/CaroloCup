@@ -1,29 +1,29 @@
 
-#include "SerialProtocol.h"
+#include "SerialProtocolSample.h"
 
 namespace carolocup {
 
 using namespace std;
 
-SerialProtocol::SerialProtocol() {
+SerialProtocolSample::SerialProtocolSample() {
 	fd = 0;
 	buf = NULL;
 	bufSize = 0;
 	portState = false;
 }
 
-SerialProtocol::SerialProtocol(const char *port, int bufSize) {
-	SerialProtocol();
+SerialProtocolSample::SerialProtocolSample(const char *port, int bufSize) {
+	SerialProtocolSample();
 	connect(port);
 	buf = new char[bufSize];
 	this->bufSize = bufSize;
 }
 
-SerialProtocol::~SerialProtocol() {
+SerialProtocolSample::~SerialProtocolSample() {
 	close(fd);
 }
 
-void SerialProtocol::connect(const char *port) {
+void SerialProtocolSample::connect(const char *port) {
 	fd = open(port, O_RDWR | O_NOCTTY | O_NDELAY);
 	if (fd == -1) {
 		perror("cannot open");
@@ -44,8 +44,13 @@ void SerialProtocol::connect(const char *port) {
 	options.c_cflag |= CS8;
 }
 
-void SerialProtocol::disconnect() {
+void SerialProtocolSample::disconnect() {
 	close(fd);
+}
+
+int SerialProtocolSample::writeToSerial(stringstream *ss) {
+	strcpy(buf, ss->str().c_str());
+    	return write(fd, buf, ss->str().size());
 }
 
 }
