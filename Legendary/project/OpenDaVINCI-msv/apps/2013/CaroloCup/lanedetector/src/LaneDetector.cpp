@@ -82,30 +82,19 @@ LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
     m_config(),
     m_frame()
 {
-    m_config.th1 = 40;
-    m_config.th2 = 10;
-    m_config.hlTh = 10;
-    m_config.hlMaxLineGap = 1;
-    m_config.hlMaxLineLength = 1;
-    m_config.caThVal = 175;
-    m_config.caThMax = 200;
-    m_config.caThTyp = 0;
-    m_config.birdF = 600;
-    m_config.birdDist = 300;
-    m_config.birdAlpha = 9;
-    m_config.birdBeta = 90;
-    m_config.birdGamma = 90;
-    m_config.dbEps = 7;
-    m_config.dbMinPts = 3;
-    m_config.dashMin = 15;
-    m_config.dashMax = 50;
-    m_config.dashWidth = 8;
-    m_config.solidMin = 120;
-    m_config.solidWidth = 8;
+    m_config.th1 = 200;
+    m_config.th2 = 250;
+    m_config.hlTh = 0;
+    m_config.caThVal = 300;
+    m_config.caThMax = 100;
+    m_config.caThTyp = 3;
     m_config.pGain = 10;
     m_config.intGain = 19;
     m_config.derGain = 23;
-    m_config.speed = 0;
+    m_config.houghMinAngle = 20;
+    m_config.houghMaxAngle = 160;
+    m_config.houghStartVal = 25;
+    m_config.houghMaxLines = 40;
 }
 
 LaneDetector::~LaneDetector()
@@ -116,20 +105,22 @@ void LaneDetector::setUp()
 {
     // This method will be call automatically _before_ running body().
 
-    //namedWindow("config",1);
-    createTrackbar("pGain", "config", &m_config.pGain, 100);
+    namedWindow("config",1);
+    /*createTrackbar("pGain", "config", &m_config.pGain, 100);
     createTrackbar("intGain", "config", &m_config.intGain, 100);
     createTrackbar("derGain", "config", &m_config.derGain, 100);
-    createTrackbar("speed", "config", &m_config.speed, 100);
+    createTrackbar("speed", "config", &m_config.speed, 100);*/
 
     createTrackbar("th1", "config", &m_config.th1, 250);
     createTrackbar("th2", "config", &m_config.th2, 250);
-    createTrackbar("th", "config", &m_config.hlTh, 250);
-    createTrackbar("maxLineLength", "config", &m_config.hlMaxLineLength, 250);
-    createTrackbar("maxLineGap", "config", &m_config.hlMaxLineGap, 250);
-    createTrackbar("thValue", "config", &m_config.caThVal, 250);
-    createTrackbar("binMax", "config", &m_config.caThMax, 250);
-    createTrackbar("thType", "config", &m_config.caThTyp, 4);
+    createTrackbar("thType", "config", &m_config.hlTh, 4);
+    //createTrackbar("maxLineLength", "config", &m_config.hlMaxLineLength, 250);
+    //createTrackbar("maxLineGap", "config", &m_config.hlMaxLineGap, 250);
+    createTrackbar("canTh", "config", &m_config.caThVal, 500);
+    createTrackbar("canThWithRatio", "config", &m_config.caThMax, 500);
+    createTrackbar("canNoOfKernels", "config", &m_config.caThTyp, 10);
+    createTrackbar("houghStart", "config", &m_config.houghStartVal, 100);
+    createTrackbar("houghMaxLines", "config", &m_config.houghMaxLines, 500);
 
     // BirdView
     //createTrackbar("f", "config", &m_config.birdF, 1500);
@@ -138,13 +129,13 @@ void LaneDetector::setUp()
     //createTrackbar("beta", "config", &m_config.birdBeta, 180);
     //createTrackbar("gamma", "config", &m_config.birdGamma, 360);
     // DBSCAN
-    createTrackbar("eps", "config", &m_config.dbEps, 100);
+    /*createTrackbar("eps", "config", &m_config.dbEps, 100);
     createTrackbar("minPts", "config", &m_config.dbMinPts, 100);
     createTrackbar("dashMin", "config", &m_config.dashMin, 100);
     createTrackbar("dashMax", "config", &m_config.dashMax, 200);
     createTrackbar("dashWidth", "config", &m_config.dashWidth, 25);
     createTrackbar("solidMin", "config", &m_config.solidMin, 150);
-    createTrackbar("solidWidth", "config", &m_config.solidWidth, 15);
+    createTrackbar("solidWidth", "config", &m_config.solidWidth, 15);*/
 }
 
 void LaneDetector::tearDown()
@@ -242,7 +233,7 @@ void *functionBottom(void *argument)
     int i = 0;
     argument = (void *) i;
     cout << argument << endl;
-    LineDetector road(*getFirstPointer, debug);
+    LineDetector road(*getFirstPointer, cfg, debug, 1);
     linesBottom = road.getLines();
     //linesBottom.stopLineHeight = road.detectStopLine(10);
     //linesBottom.startLineHeight = road.detectStartLine(10);
@@ -260,7 +251,7 @@ void *functionMiddle(void *argument)
     int i = 0;
     argument = (void *) i;
     cout << argument;
-    LineDetector road(*getSecondPointer, debug);
+    LineDetector road(*getSecondPointer, cfg, debug, 2);
     linesMiddle = road.getLines();
     //linesMiddle.stopLineHeight = road.detectStopLine(10);
     //linesMiddle.startLineHeight = road.detectStartLine(10);
@@ -278,7 +269,7 @@ void *functionTop(void *argument)
     argument = (void *) i;
     cout << argument;
 
-    LineDetector road(*getThirdPointer, debug);
+    LineDetector road(*getThirdPointer, cfg, debug, 3);
     linesTop = road.getLines();
     //linesTop.stopLineHeight = road.detectStopLine(10);
     //linesTop.startLineHeight = road.detectStartLine(10);
@@ -315,13 +306,21 @@ int msleep(unsigned long milisec)
 carolocup::Lines mergeLinesData()
 {
     linesBottom.dashedLine[1] = linesBottom.dashedLine[1] != 0 ? linesBottom.dashedLine[1] + h/2 : 0;
-    linesBottom.dashedLine[1] = linesBottom.dashedLine[3] != 0 ? linesBottom.dashedLine[3] + h/2 : 0;
+    linesBottom.dashedLine[3] = linesBottom.dashedLine[3] != 0 ? linesBottom.dashedLine[3] + h/2 : 0;
     linesBottom.leftLine[1] = linesBottom.leftLine[1] != 0 ? linesBottom.leftLine[1] + h/2 : 0;
     linesBottom.leftLine[3] = linesBottom.leftLine[3] != 0 ? linesBottom.leftLine[3] + h/2 : 0;
     linesBottom.rightLine[1] = linesBottom.rightLine[1] != 0 ? linesBottom.rightLine[1] + h/2 : 0;
     linesBottom.rightLine[3] = linesBottom.rightLine[3] != 0 ? linesBottom.rightLine[3] + h/2 : 0;
     linesBottom.width = w;
     linesBottom.height =  h;
+    linesMiddle.dashedLine[1] = linesMiddle.dashedLine[1] != 0 ? linesMiddle.dashedLine[1] + 3*h/8 : 0;
+    linesMiddle.dashedLine[3] = linesMiddle.dashedLine[3] != 0 ? linesMiddle.dashedLine[3] + 3*h/8 : 0;
+    linesMiddle.leftLine[1] = linesMiddle.leftLine[1] != 0 ? linesMiddle.leftLine[1] + 3*h/8 : 0;
+    linesMiddle.leftLine[3] = linesMiddle.leftLine[3] != 0 ? linesMiddle.leftLine[3] + 3*h/8: 0;
+    linesMiddle.rightLine[1] = linesMiddle.rightLine[1] != 0 ? linesMiddle.rightLine[1] + 3*h/8 : 0;
+    linesMiddle.rightLine[3] = linesMiddle.rightLine[3] != 0 ? linesMiddle.rightLine[3] + 3*h/8 : 0;
+    linesMiddle.width = w;
+    linesMiddle.height =  h;
     return linesBottom;
 }
 
@@ -346,7 +345,7 @@ void LaneDetector::processImage()
     //cout<<"Cloning............"<<endl;
     //dst.setTo( Scalar(0,0,0));
     debug = m_debug;
-    //cfg = m_config;
+    cfg = m_config;
 //////////////////////////////////////////////////////START//////////////////////////////////////////////////////////////////////////////////
     /*Each of Mat Images below represents a segment of the image
     and their respective addresses are assigned to each of the pointers below*/
@@ -355,12 +354,12 @@ void LaneDetector::processImage()
     w = m_frame.size().width;
     h = m_frame.size().height;
     Mat getFirst = m_frame(cv::Rect(1, h/2-1, w-1, h/2-1));
-    //Mat getSecond  = m_frame(cv::Rect(1,h/4-1, w-1, h/4-1));
+    Mat getSecond  = m_frame(cv::Rect(1,3*h/8-1, w-1, h/8-1));
     //Mat getThird = m_frame(cv::Rect(1,1,w-1,h/4-1));
 
 
     getFirstPointer = &getFirst;
-    //getSecondPointer = &getSecond;
+    getSecondPointer = &getSecond;
     //getThirdPointer = &getThird;
 
     cout<<"Creating Threads............"<<endl;
@@ -372,25 +371,12 @@ void LaneDetector::processImage()
         cout << "Unable to create p1" << endl;
         bottomDone = true;
     }
-    /*pthread_create(&t2, NULL, functionMiddle,NULL);
+    pthread_create(&t2, NULL, functionMiddle,NULL);
     if(ret != 0) {
         cout << "Unable to create p2" << endl;
         middleDone = true;
-    }*/
-
-//////////////////////////////////////////////////////END////////////////////////////////////////////////////////////////////////////////
-    //imshow("Input Image", m_frame);
-    //LineDetector road(m_frame, m_debug);
-    /*carolocup::Lines lines = road.getLines();
-    lines.pGain = m_config.pGain;
-    lines.intGain = m_config.intGain;
-    lines.derGain = m_config.derGain;
-    lines.speed = m_config.speed;
-    lines.width =  m_image->width;
-    lines.height = m_image->height;
-    lines.stopLineHeight = road.detectStopLine(10);
-    lines.startLineHeight = road.detectStartLine(10);*/
-    middleDone = true;
+    }
+    //middleDone = true;
     //topDone = true;
     while(true){
         bool ok = false;
@@ -404,7 +390,7 @@ void LaneDetector::processImage()
         if(ok) break;
     }
     pthread_join(t1,NULL);
-    //pthread_join(t2,NULL);
+    pthread_join(t2,NULL);
     bottomDone = false;
     middleDone = false;
     cout<<"Threads Done............"<<endl;
@@ -437,17 +423,30 @@ void LaneDetector::processImage()
     /*if (m_debug) {
     imshow("output", dst);
     }*/
-
-//////////////////////////////////////////////////////START//////////////////////////////////////////////////////////////////////////////////
     /*As I stated earlier, because of restrictions with X SERVER and Multi-threads
     It will be difficult and messy trying to show the frames withing the thread functions
            So you can show them outside like I have done here*/
-    //drawLines(&linesBottom, &m_frame, 0);
-    //drawLines(&linesMiddle, &m_frame, h/4);
+    //imshow("Input Image", m_frame);
+    //LineDetector roadB(getFirst, cfg, m_debug, 1);
+    //linesBottom = roadB.getLines();
+    //cfg.houghMinAngle = 5;
+    //cfg.houghMaxAngle = 175;
+    /*LineDetector roadM(getSecond, cfg, m_debug, 2);
+    linesMiddle = roadM.getLines();
+    lines.width =  w;
+    lines.height = h;
+    lines.pGain = m_config.pGain;
+    lines.intGain = m_config.intGain;
+    lines.derGain = m_config.derGain;
+    lines.speed = m_config.speed;
+    lines.stopLineHeight = road.detectStopLine(10);
+    lines.startLineHeight = road.detectStartLine(10);*/
+    drawLines(&linesBottom, &m_frame, 0);
+    drawLines(&linesMiddle, &m_frame, 0);
     //imshow("First Frame", *getFirstPointer);
     //imshow("Second Frame", *getSecondPointer);
     //imshow("Third Frame", *getThirdPointer);
-    //imshow("Output", m_frame);
+    imshow("Output", m_frame);
 
 //////////////////////////////////////////////////////END////////////////////////////////////////////////////////////////////////////////
     waitKey(20);

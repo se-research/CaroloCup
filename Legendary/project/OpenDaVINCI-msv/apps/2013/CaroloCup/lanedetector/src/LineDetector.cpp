@@ -3,7 +3,6 @@
 #include <math.h>
 
 #define USE_PPHT
-#define MAX_NUM_LINES    100
 
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
@@ -15,7 +14,9 @@ namespace carolocup
 using namespace std;
 using namespace cv;
 
-LineDetector::LineDetector(const Mat& f, const bool debug)
+int hMin, hMax;
+
+LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug, const int id)
     : m_lines(NULL)
     , m_debug(debug)
     , m_lastSolidRightTop()
@@ -23,17 +24,18 @@ LineDetector::LineDetector(const Mat& f, const bool debug)
     , supposedMidLine()
     , m_frame()
     , m_frameCanny()
+    , m_config(cfg)
 {
     m_frame = f.clone();
     Mat outputImg = f.clone();
     //if (m_debug)
     //imshow("m_frame",m_frame);
     // cvtColor( m_frame, m_frame, CV_BGR2GRAY );
-    threshold( m_frame, m_frame, 175, 200, 0 );
+    threshold( m_frame, m_frame, m_config.th1, m_config.th2, m_config.hlTh );
 
     //cout<<"Thresholding Done............"<<endl;
     // Canny
-    cv::Canny(m_frame, m_frameCanny, 180, 120, 3);
+    cv::Canny(m_frame, m_frameCanny, m_config.caThVal, m_config.caThMax, m_config.caThTyp);
     //cout<<"Canny Done............"<<endl;
     // Create and init MSAC
     MSAC msac;
@@ -42,6 +44,16 @@ LineDetector::LineDetector(const Mat& f, const bool debug)
     double h = m_frame.size().height;
     Size procSize = cv::Size(w, h);
     msac.init(mode, procSize, false);
+    /* middle section */
+    if(id == 2) {
+       hMin = m_config.houghMinAngle/4;
+       hMax = (180 - m_config.houghMaxAngle)/4 + 175;
+       m_config.houghStartVal =  m_config.houghStartVal * 3;
+       m_config.houghMaxLines = m_config.houghMaxLines / 2;
+    } else {
+       hMin = m_config.houghMinAngle;
+       hMax = m_config.houghMaxAngle;
+    }
 
     //cout<<"Initializing MSAC............"<<endl;
     // ++++++++++++++++++++++++++++++++++++++++
@@ -52,7 +64,9 @@ LineDetector::LineDetector(const Mat& f, const bool debug)
     // View
     //if(m_debug) imshow("Before output", frame);
     //if(m_debug) imshow("Output", outputImg);
-    //imshow("Output", outputImg);
+    //char c[1] = {id + '0'};
+    //imshow(c, outputImg);
+    //imshow("Canny", m_frameCanny);
 }
 
 LineDetector::~LineDetector()
@@ -70,21 +84,21 @@ Lines LineDetector::getLines()
         if(detectedLines.size() == 3)
         {
             cout<<"Lines == 3" << endl;
-            m_lines = new Lines(Vec4i(detectedLines[0].p1.x, detectedLines[0].p1.y, detectedLines[0].p2.x, detectedLines[0].p2.y)
+            m_lines = new Lines(Vec4i(detectedLines[2].p1.x, detectedLines[2].p1.y, detectedLines[2].p2.x, detectedLines[2].p2.y)
                                 , Vec4i(detectedLines[1].p1.x, detectedLines[1].p1.y, detectedLines[1].p2.x, detectedLines[1].p2.y)
-                                , Vec4i(detectedLines[2].p1.x, detectedLines[2].p1.y, detectedLines[2].p2.x, detectedLines[2].p2.y));
+                                , Vec4i(detectedLines[0].p1.x, detectedLines[0].p1.y, detectedLines[0].p2.x, detectedLines[0].p2.y));
         }
         else if (detectedLines.size() == 2)
         {
             cout<<"Lines == 2" << endl;
-            m_lines = new Lines(Vec4i(detectedLines[0].p1.x, detectedLines[0].p1.y, detectedLines[0].p2.x, detectedLines[0].p2.y)
+            m_lines = new Lines(Vec4i(detectedLines[1].p1.x, detectedLines[1].p1.y, detectedLines[1].p2.x, detectedLines[1].p2.y)
                                 , Vec4i(0,0,0,0)
-                                , Vec4i(detectedLines[1].p1.x, detectedLines[1].p1.y, detectedLines[1].p2.x, detectedLines[1].p2.y));
+                                , Vec4i(detectedLines[0].p1.x, detectedLines[0].p1.y, detectedLines[0].p2.x, detectedLines[0].p2.y));
         }
         else if (detectedLines.size() == 1)
         {
             cout<<"Lines == 1" << endl;
-            if(supposedMidLine.slope > detectedLines[0].slope)
+            if(supposedMidLine.slope < detectedLines[0].slope)
             {
                 m_lines = new Lines(Vec4i(0,0,0,0)
                                     , Vec4i(0,0,0,0)
@@ -101,9 +115,9 @@ Lines LineDetector::getLines()
         {
             cout<<"Lines > 3" << endl;
             int size = detectedLines.size();
-            m_lines = new Lines(Vec4i(detectedLines[size/2-1].p1.x, detectedLines[size/2-1].p1.y, detectedLines[size/2-1].p2.x, detectedLines[size/2-1].p2.y)
+            m_lines = new Lines(Vec4i(detectedLines[size/2+1].p1.x, detectedLines[size/2+1].p1.y, detectedLines[size/2+1].p2.x, detectedLines[size/2-1].p2.y)
                                 , Vec4i(detectedLines[size/2].p1.x, detectedLines[size/2].p1.y, detectedLines[size/2].p2.x, detectedLines[size/2].p2.y)
-                                , Vec4i(detectedLines[size/2+1].p1.x, detectedLines[size/2+1].p1.y, detectedLines[size/2+1].p2.x, detectedLines[size/2+1].p2.y));
+                                , Vec4i(detectedLines[size/2-1].p1.x, detectedLines[size/2-1].p1.y, detectedLines[size/2-1].p2.x, detectedLines[size/2+1].p2.y));
         } 
         else 
         {
@@ -160,7 +174,7 @@ void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv
 
     //cout<<"Initializing HoughLines............"<<endl;
     vector<Vec4i> lines;
-    int houghThreshold = 20;
+    int houghThreshold = m_config.houghStartVal;
     double w = imgGRAY.size().width;
     double h = imgGRAY.size().height;
     //if(imgGRAY.cols*imgGRAY.rows < 400*400)
@@ -170,7 +184,7 @@ void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv
     //cout<<"Getting Channels:  "<< m_frameCanny.channels()<<endl;
     cv::HoughLinesP(m_frameCanny, lines, 1, CV_PI/180, houghThreshold, 10,10);
     //cout<<"Houghing!!!............"<<endl;
-    while(lines.size() > MAX_NUM_LINES)
+    while(lines.size() > m_config.houghMaxLines)
     {
         lines.clear();
         houghThreshold += 10;
@@ -197,7 +211,7 @@ void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv
 
         // Store into vector of pairs of Points for msac
         // only if angle constraints are satisfied
-        if(slope > 20 && slope < 160)
+        if(slope > hMin && slope < hMax)
         {
             aux.clear();
             aux.push_back(pt1);

@@ -15,14 +15,14 @@ using namespace std;
 namespace carolocup {
 
 struct Config {
-  int th1, th2, hlTh, hlMaxLineGap, hlMaxLineLength, caThVal, caThMax, caThTyp,
-      birdF, birdDist, birdAlpha, birdBeta, birdGamma, dbEps, dbMinPts,
-      dashMin, dashMax, dashWidth, solidMin, solidWidth, pGain, intGain, derGain, speed;
+  int th1, th2, hlTh, caThVal, caThMax, caThTyp,
+      pGain, intGain, derGain, houghMinAngle, houghMaxAngle, houghStartVal, houghMaxLines;
+
 };
 
 class LineDetector {
 public:
-  LineDetector(const Mat& f, const bool debug);
+  LineDetector(const Mat& f, const Config& cfg, const bool debug, const int id);
   virtual ~LineDetector();
   Lines getLines();
   int detectStartLine(int dist);
@@ -54,6 +54,7 @@ private:
   Point m_lastSolidRightTop;
   std::vector<CustomLine> detectedLines;
   CustomLine supposedMidLine;
+  Config m_config;
 
 };
 

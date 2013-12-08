@@ -148,9 +148,9 @@ ModuleState::MODULE_EXITCODE Driver::body()
         }
         m_rightLine = lines.rightLine;
         
-        m_propGain = 1.75;//2.05;
+        m_propGain = 2.5;//2.05;
         m_intGain = 0;//8.39;
-        m_derGain = 0.1;//0.23;
+        m_derGain = 0.2;//0.23;
         m_speed = 0.7;
         // Temporary solution to stop the car if a stop line is detected
         //if (lines.stopLineHeight != -1)
@@ -213,7 +213,7 @@ ModuleState::MODULE_EXITCODE Driver::body()
         //float theta_avg = (theta1 + theta2) / 2;
 	cout << "P1.x: " << intP1_x << " P2.x: " << intP2_x << endl;
 
-        float x_goal = (intP1_x + intP2_x) /2 ;
+        float x_goal = (intP1_x + intP2_x) /2;
         float x_pl = scr_width/2;
        
 	float oldLateralError = m_lateralError;
@@ -231,7 +231,7 @@ ModuleState::MODULE_EXITCODE Driver::body()
             TimeStamp now;
             int32_t currTime = now.toMicroseconds();
             double sec = (currTime - m_timestamp) / (1000000.0);    //Why not 1.000000???
-            //m_intLateralError = m_intLateralError + m_speed * m_lateralError * cos(m_angularError) * sec;
+            m_intLateralError = m_intLateralError + 0.2 * m_lateralError * cos(m_angularError) * sec;
             m_derLateralError = (m_lateralError - oldLateralError) / sec;
             cout << endl;
             cout << "  sec: " << sec;
@@ -241,7 +241,7 @@ ModuleState::MODULE_EXITCODE Driver::body()
         m_timestamp = now.toMicroseconds();
         //Simple proportional control law, propGain needs to be updated
         m_desiredSteeringWheelAngle = m_lateralError*m_propGain;
-        //m_desiredSteeringWheelAngle += m_intLateralError*m_intGain;
+        m_desiredSteeringWheelAngle += m_intLateralError*m_intGain;
         m_desiredSteeringWheelAngle += m_derLateralError*m_derGain;
 
         cout << "  derLateral: " << m_derLateralError;
