@@ -11,16 +11,19 @@
 // This is our motor.
 Servo myMotor;
 Servo mySteering;
+Servo myCamera;
 Servo replicateSteering;
 Servo replicateMotor;
 
 int motorPin = 6;
 int steeringPin = 9;
+int cameraPin = 10;
 int steeringLedPin = 4;
 int motorLedPin = 7;
 int ledPin1 = 51;
 int ledPin2 = 53;
 long int lastTimeStamp;
+long int angleSum=0;
 
 boolean run = true;
 int speed = INIT_MOTOR_SPEED;
@@ -34,6 +37,11 @@ boolean brake = false;
 boolean applybrake = false;
 int multiplier = 1;
 boolean takeOver = false;
+int camCounter = 0;
+
+int ms;
+unsigned long int cnt=0, cntOld = 0;
+float carSpeed = 0;
 
 void setup()
 {
@@ -42,11 +50,13 @@ void setup()
   mySteering.attach(steeringPin);
   replicateSteering.attach(steeringLedPin);
   replicateMotor.attach(motorLedPin);
+  myCamera.attach(cameraPin);
   // Set a startup speed
   myMotor.writeMicroseconds(975);
   mySteering.write(90);
+  myCamera.write(90);
 
-  //  attachInterrupt(3, calcThrottle, FALLING);
+  attachInterrupt(3, countRotations, FALLING);
   pinMode(2, INPUT);
   pinMode(3, INPUT);
   // initialize serial communication
@@ -149,6 +159,22 @@ void loop()
     controlMotor();
     controlSteering();
   }
+  if (camCounter != 0) {
+    camCounter = (camCounter + 1)%10;
+  }
+  ms = ms + 1;
+  if(ms > 10) {
+    float diff = cnt;// - cntOld;
+    diff = diff * 0.6;
+    if(diff != carSpeed) {
+      Serial.print("Car speed:");
+      Serial.println(diff);
+      carSpeed = diff;
+    }
+    //cntOld = cnt;
+    cnt = 0;
+    ms=0;
+  }
   delay(10);
 }
 
@@ -166,9 +192,20 @@ void controlMotor() {
 
 void controlSteering() {
   Serial.print("angle: ");
+  int inpAngle = angle;
   angle = 90 + angle * multiplier;
   Serial.println(angle);
   mySteering.write(angle);
+  if(((angleSum < -40 && angle > 90 && angle < 123) || 
+     (angleSum > 40 && angle < 90 && angle > 57)) 
+     && camCounter == 0) {
+    int camAngle = 90 - ((angle - 90)/2);
+    myCamera.write(camAngle);
+    camCounter = 1;
+  } else if(camCounter == 0) {
+    myCamera.write(90);
+    camCounter = 1;
+  }
   if(angle > 100) { 
     replicateSteering.write(120);
   } 
@@ -178,6 +215,11 @@ void controlSteering() {
   else {
     replicateSteering.write(97);
   }
+  if(carSpeed > 0) {
+    angleSum = angleSum + inpAngle * multiplier;
+  }
+  Serial.print("Angle sum:");
+  Serial.println(angleSum);
 }
 
 void evaluateReceiver()
@@ -188,7 +230,7 @@ void evaluateReceiver()
   //Serial.println(receiverSpeed);
   //Serial.println(receiverSteer);
   receiverSteer = map(receiverSteer, 1600,2300,819,2219);
-  if(receiverSpeed < 1370) {
+  if(receiverSpeed > 670 && receiverSpeed < 1370 && !takeOver) {
     takeOver = true;
     digitalWrite(ledPin1, LOW);
     digitalWrite(ledPin2, HIGH);
@@ -204,7 +246,7 @@ void evaluateReceiver()
       lastTimeStamp = millis();
     }
   }
-  if(angle > 150 || angle < -150 ) {
+  if((angle > 150 || angle < -150) && takeOver) {
     digitalWrite(ledPin1, LOW);
     digitalWrite(ledPin2, LOW);
     takeOver = false;
@@ -216,4 +258,8 @@ void digitalToggle(int pin) {
     digitalWrite(pin, LOW);
   else
     digitalWrite(pin, HIGH);
+}
+
+void countRotations() {
+  cnt++;
 }

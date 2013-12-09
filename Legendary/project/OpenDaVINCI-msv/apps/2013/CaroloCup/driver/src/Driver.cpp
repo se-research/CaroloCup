@@ -110,6 +110,7 @@ int msleep(unsigned long milisec)
 }
 
 int16_t oldSteeringVal=0, oldSpeedVal=0;
+int16_t steeringVal=0;
 
 // This method will do the main data processing job.
 ModuleState::MODULE_EXITCODE Driver::body()
@@ -151,7 +152,7 @@ ModuleState::MODULE_EXITCODE Driver::body()
         m_propGain = 2.5;//2.05;
         m_intGain = 0;//8.39;
         m_derGain = 0.2;//0.23;
-        m_speed = 0.7;
+
         // Temporary solution to stop the car if a stop line is detected
         //if (lines.stopLineHeight != -1)
         //{
@@ -213,13 +214,19 @@ ModuleState::MODULE_EXITCODE Driver::body()
         //float theta_avg = (theta1 + theta2) / 2;
 	cout << "P1.x: " << intP1_x << " P2.x: " << intP2_x << endl;
 
-        float x_goal = (intP1_x + intP2_x) /2;
-        float x_pl = scr_width/2;
+        float x_goal = intP1_x + 100;//(intP1_x + intP2_x) /2 - 70;
+        float x_pl = scr_width/2 - 50;
+
+	cout << "Position: " << x_pl << endl;
+	cout << "Goal: " << x_goal << endl;
        
 	float oldLateralError = m_lateralError;
         //int x_error = (x_right + x_left - 752)/2;
         float theta_avg = lines.supposedMidLine.slope;
 	m_angularError = 90 - theta_avg;
+	if(steeringVal > 0) {
+	    m_angularError = m_angularError + steeringVal/2;
+        }
 	float theta = (m_angularError/180)*M_PI_2;
         m_lateralError = cos(theta) * (x_goal - x_pl);
 
