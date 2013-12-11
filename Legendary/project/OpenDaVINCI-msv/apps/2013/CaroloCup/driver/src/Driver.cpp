@@ -150,7 +150,7 @@ ModuleState::MODULE_EXITCODE Driver::body()
         m_rightLine = lines.rightLine;
         
         m_propGain = 2.5;//2.05;
-        m_intGain = 0;//8.39;
+        m_intGain = 8.39;
         m_derGain = 0.2;//0.23;
 
         // Temporary solution to stop the car if a stop line is detected
@@ -214,8 +214,12 @@ ModuleState::MODULE_EXITCODE Driver::body()
         //float theta_avg = (theta1 + theta2) / 2;
 	cout << "P1.x: " << intP1_x << " P2.x: " << intP2_x << endl;
 
-        float x_goal = intP1_x + 100;//(intP1_x + intP2_x) /2 - 70;
+        float x_goal = intP1_x + 70;//(intP1_x + intP2_x) /2 - 70;
         float x_pl = scr_width/2 - 50;
+
+	if(x_goal < x_pl && (x_goal + 100) > x_pl) {
+	    x_goal = x_pl;
+	}
 
 	cout << "Position: " << x_pl << endl;
 	cout << "Goal: " << x_goal << endl;
