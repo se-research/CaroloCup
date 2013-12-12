@@ -1,5 +1,6 @@
 #include "opencv2/opencv.hpp"
 #include "LineDetector.h"
+#include "math.h"
 
 using namespace carolocup;
 
@@ -30,7 +31,7 @@ int main(int , char** argv)
   }
 
   Config cfg;
-  cfg.th1 = 180;
+  cfg.th1 = 170;
   cfg.th2 = 230;
   cfg.hlTh = THRESH_BINARY;
   cfg.caThVal = 300;
@@ -41,16 +42,18 @@ int main(int , char** argv)
   cfg.houghStartVal = 25;
   cfg.houghMaxLines = 40;
 
-  int minArea = 3;
-  int maxArea = 20;
+  int minArea = 1;
+  int maxArea = 30;
+  int maxY = 200;
 
   //namedWindow("original",1);
   //namedWindow("thres",1);
   //namedWindow("canny",1);
   //namedWindow("birdView",1);
   namedWindow("config",1);
-  createTrackbar("min area", "config", &minArea, 5);
-  createTrackbar("max area", "config", &maxArea, 20);
+  createTrackbar("min times", "config", &minArea, 5);
+  createTrackbar("max times", "config", &maxArea, 40);
+  createTrackbar("max y", "config", &maxY, 400);
   // Canny
   createTrackbar("th1", "config", &cfg.th1, 255);
   createTrackbar("th2", "config", &cfg.th2, 255);
@@ -108,7 +111,8 @@ int main(int , char** argv)
     vector<RotatedRect> solidRect(contours.size());
     //vector<Point2f>center( contours.size() );
     //vector<float>radius( contours.size() );
-    int cnt = 0;
+    int cntDash = 0;
+    int cntSolid = 0;
     for( int i = 0; i < contours.size(); i++ )
     {
         approxPolyDP( Mat(contours[i]), contours_poly[i], 3, true );
@@ -132,15 +136,35 @@ int main(int , char** argv)
 		sizeY = sizeR;
 	} 
 	//cout << "Sizes [x,y] = [" << sizeX << "," << sizeY << "]" << endl;
-	if(sizeY > minArea*sizeX && sizeY < maxArea*sizeX && sizeY < 180 ) {
-             boundRect[cnt] = rect;
-	     cnt++;
-	} else if(sizeY > 4*minArea*sizeX && sizeY > 100){
-	     solidRect[i] = rect;
+	if(sizeY > minArea*sizeX && sizeY < maxArea*sizeX && sizeY < maxY ) {
+             boundRect[cntDash] = rect;
+	     cntDash++;
+	} else if(sizeY > 4*minArea*sizeX && sizeY > (maxY/2)){
+	     solidRect[cntSolid] = rect;
+	     cntSolid++;
+	     cout << "Angle: " << rect.angle << endl;
 	}
         //minEnclosingCircle( (Mat)contours_poly[i], center[i], radius[i] );
     }
-    cout << "Rects: " << (cnt - 1) << endl;
+    for(int j=0; j < cntSolid; j++) {
+	if(solidRect[j].angle < -10) {
+		float a = M_PI * (90 + solidRect[j].angle) / 180;
+		float b = solidRect[j].center.y - solidRect[j].center.x * a;
+		cout << "Equation [a,b]: [" << a << "," << b << "]" << endl;
+		for(int l=0; l < cntDash; l++) {
+			float res = a*boundRect[l].center.x + b;
+			cout << "[res, y] = [" << res << "," << boundRect[l].center.y << "]" << endl;
+			cout << "[x, y] = [" << boundRect[l].center.x << "," << boundRect[l].center.y << "]" << endl;
+			if(res > boundRect[l].center.y) {
+				boundRect[l] = boundRect[cntDash-1];
+				cntDash--;
+				l--;
+				cout<< cntDash <<endl;
+			}
+		}
+ 	}
+    }
+    cout << "Rects: " << (cntDash - 1) << endl;
     //LineDetector road(frame, cfg, true, 1);
     int ms = (difftime(clock(), start) / 1000);
     cout << ms << "ms" << endl;
@@ -173,7 +197,7 @@ int main(int , char** argv)
 
     /// Draw polygonal contour + bonding rects + circles
     //Mat drawing = Mat::zeros( threshold_output.size(), CV_8UC3 );
-    for( int i = 0; i< contours.size(); i++ )
+    /*for( int i = 0; i< contours.size(); i++ )
     {
        Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
        //drawContours( dst, contours_poly, i, color, 1, 8, vector<Vec4i>(), 0, Point() );
@@ -185,7 +209,23 @@ int main(int , char** argv)
           line( dst, rect_pts[j], rect_pts[(j+1)%4], 0, 1, 8 );
        //rectangle( dst, boundRect[i].tl(), boundRect[i].br(), color, 2, 8, 0 );
        //circle( dst, center[i], (int)radius[i], color, 2, 8, 0 );
+    }*/
+    for(int i = 0; i < cntDash; i++) {
+	Point2f rect_points[4]; boundRect[i].points( rect_points );
+	for( int j = 0; j < 4; j++ )
+          line( dst, rect_points[j], rect_points[(j+1)%4], 255, 1, 8 );
     }
+    for(int i = 0; i < cntSolid; i++) {
+	Point2f rect_points[4]; solidRect[i].points( rect_points );
+	for( int j = 0; j < 4; j++ )
+          line( dst, rect_points[j], rect_points[(j+1)%4], 0, 1, 8 );
+    }
+    Point p1, p2;
+    p1.x = 10;
+    p1.y = 10;
+    p2.x = 20;
+    p2.y = 20;
+    line( dst, p1, p2, 124, 1, 8 );
     //dst.setTo( Scalar(0,0,0));
 
     imshow("output", dst);
