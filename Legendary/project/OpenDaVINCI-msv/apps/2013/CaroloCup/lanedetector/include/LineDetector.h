@@ -16,7 +16,8 @@ namespace carolocup {
 
 struct Config {
   int th1, th2, hlTh, caThVal, caThMax, caThTyp,
-      pGain, intGain, derGain, houghMinAngle, houghMaxAngle, houghStartVal, houghMaxLines;
+      pGain, intGain, derGain, houghMinAngle, houghMaxAngle, 
+      houghStartVal, houghMaxLines, XTimesYMin, XTimesYMax, maxY;
 
 };
 
@@ -43,6 +44,8 @@ private:
   pair<vector<Point>::iterator,vector<Point>::iterator> findBiggestDistance(Cluster& c);
   Mat getBirdView(Mat& source);
   void processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv::Mat &outputImg);
+  CustomLine createLineFromRect(RotatedRect* rect, int sizeX, int sizeY);
+  void findLines(cv::Mat &outputImg);
   float getLineSlope(Point &p1, Point &p2);
   float getDist(const Point p1, const Point p2) const;
   int detectHorizontalLine(Mat canny_roi, int dist);

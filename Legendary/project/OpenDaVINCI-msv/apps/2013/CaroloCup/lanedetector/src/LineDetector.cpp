@@ -14,7 +14,11 @@ namespace carolocup
 using namespace std;
 using namespace cv;
 
-int hMin, hMax;
+int hMin = 15, hMax=165;
+int cntDash = 0;
+int cntSolid = 0;
+vector<CustomLine> dashLines;
+vector<CustomLine> solidLines;
 
 LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug, const int id)
     : m_lines(NULL)
@@ -30,13 +34,14 @@ LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug, co
     Mat outputImg = f.clone();
     //if (m_debug)
     //imshow("m_frame",m_frame);
-    // cvtColor( m_frame, m_frame, CV_BGR2GRAY );
-    threshold( m_frame, m_frame, m_config.th1, m_config.th2, m_config.hlTh );
+    
+    /// Detect edges using Threshold
+    threshold( m_frame, m_frame, cfg.th1, cfg.th2, cfg.hlTh );
+    //cv::Canny(getFirst, getFirst, cfg.caThVal, cfg.caThMax, cfg.caThTyp);
 
-    //cout<<"Thresholding Done............"<<endl;
-    // Canny
-    cv::Canny(m_frame, m_frameCanny, m_config.caThVal, m_config.caThMax, m_config.caThTyp);
-    //cout<<"Canny Done............"<<endl;
+    //Find dash and solid lines
+    findLines(outputImg);
+
     // Create and init MSAC
     MSAC msac;
     int mode = MODE_NIETO;
@@ -44,29 +49,12 @@ LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug, co
     double h = m_frame.size().height;
     Size procSize = cv::Size(w, h);
     msac.init(mode, procSize, false);
-    /* middle section */
-    if(id == 2) {
-       hMin = m_config.houghMinAngle/4;
-       hMax = (180 - m_config.houghMaxAngle)/4 + 175;
-       m_config.houghStartVal =  m_config.houghStartVal * 3;
-       m_config.houghMaxLines = m_config.houghMaxLines / 2;
-    } else {
-       hMin = m_config.houghMinAngle;
-       hMax = m_config.houghMaxAngle;
-    }
-
-    //cout<<"Initializing MSAC............"<<endl;
-    // ++++++++++++++++++++++++++++++++++++++++
-    // Process
-    // ++++++++++++++++++++++++++++++++++++++++
-    processImageMSAC(msac, 1, m_frame, outputImg);
+    //Process MSAC
+    //processImageMSAC(msac, 3, m_frame, outputImg);
 
     // View
     //if(m_debug) imshow("Before output", frame);
-    //if(m_debug) imshow("Output", outputImg);
-    //char c[1] = {id + '0'};
-    //imshow(c, outputImg);
-    //imshow("Canny", m_frameCanny);
+    if(m_debug) imshow("Output", outputImg);
 }
 
 LineDetector::~LineDetector()
@@ -130,103 +118,177 @@ Lines LineDetector::getLines()
     return *m_lines;
 }
 
+CustomLine LineDetector::createLineFromRect(RotatedRect* rect, int sizeX, int sizeY) {
+    CustomLine l;
+    Point pt1, pt2;
+    cout << "[centerx, centery] = [" << rect->center.x << "," << rect->center.y << "]" << endl;
+    cout << "Sizes: " << sizeX << " " << sizeY;
+    if(rect->angle < 90 ) {
+        float angle = rect->angle * M_PI / 180; 
+        float xOffset = cos(angle) * sizeY / 2;
+        float yOffset = sin(angle) * sizeY / 2;
+        pt1.y = rect->center.y + yOffset;
+        pt1.x = rect->center.x + xOffset;
+        pt2.y = rect->center.y - yOffset;
+        pt2.x = rect->center.x - xOffset; 
+    } else {
+        rect->angle = rect->angle - 180;
+        float angle = (-rect->angle) * M_PI / 180; 
+        float xOffset = cos(angle) * sizeY / 2;
+        float yOffset = sin(angle) * sizeY / 2;
+	pt1.y = rect->center.y + yOffset;
+        pt1.x = rect->center.x - xOffset;
+        pt2.y = rect->center.y - yOffset;
+        pt2.x = rect->center.x + xOffset; 
+    }
+    cout << "Angle: " << rect->angle << endl;
+    cout << "[x, y] = [" << pt1.x << "," << pt1.y << "]" << endl;
+    l.p1 = pt1;
+    l.p2 = pt2;
+    l.slope = rect->angle;
+    return l;
+}
+
+void LineDetector::findLines(cv::Mat &outputImg) {
+    vector<vector<Point> > contours;
+    vector<Vec4i> hierarchy;
+    cntDash = 0;
+    cntSolid = 0;
+    /// Find contours
+    findContours( m_frame, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+    dashLines = vector<CustomLine> (contours.size());
+    solidLines = vector<CustomLine> (contours.size());
+    vector<vector<Point> > contours_poly( contours.size() );
+    /// Approximate contours to polygons + get min area rects
+    for( int i = 0; i < contours.size(); i++ )
+    {
+	approxPolyDP( Mat(contours[i]), contours_poly[i], 3, true );
+	RotatedRect rect = minAreaRect(contours_poly[i]);
+	Point2f rect_points[4]; rect.points( rect_points );
+	//cout << "Angle: " << rect.angle << endl;
+	int sizeX = 0, sizeY = 0, sizeR = 0;
+	Point shortSideMiddle;
+	Point longSideMiddle;	
+	// Find rect sizes
+	for( int j = 0; j < 4; j++ ) {
+	  //cout << "Point [x,y] = [" << rect_points[j].x << "," << rect_points[j].y << "]" << endl;
+	  sizeR = cv::sqrt(cv::pow((rect_points[j].x - rect_points[(j+1)%4].x), 2) 
+				+ cv::pow((rect_points[j].y - rect_points[(j+1)%4].y), 2)); 
+	  //cout << "Size:" << sizeR << endl;
+	  if(sizeX == 0) {
+		sizeX = sizeR;
+		shortSideMiddle.x = (rect_points[j].x + rect_points[(j+1)%4].x)/2;
+		shortSideMiddle.y = (rect_points[j].y + rect_points[(j+1)%4].y)/2;
+	  } else if(sizeY == 0 && sizeR != sizeX) {
+		sizeY = sizeR;
+		longSideMiddle.x = (rect_points[j].x + rect_points[(j+1)%4].x)/2;
+		longSideMiddle.y = (rect_points[j].y + rect_points[(j+1)%4].y)/2;
+	  }
+	}
+	if(sizeX > sizeY) {
+		Point2f temp;
+		sizeR = sizeX;
+		sizeX = sizeY;
+		sizeY = sizeR;
+		temp = longSideMiddle;
+		longSideMiddle = shortSideMiddle;
+		shortSideMiddle = temp;
+	}
+
+	//Find real rect angle
+	Point rectCenter;
+	rectCenter.x = rect.center.x;
+	rectCenter.y = rect.center.y;
+        rect.angle = getLineSlope(shortSideMiddle, rectCenter);
+	//cout << "Sizes [x,y] = [" << sizeX << "," << sizeY << "]" << endl;
+
+	//Classify dash lines and solid lines
+	if(sizeY > m_config.XTimesYMin*sizeX && sizeY < m_config.XTimesYMax*sizeX && sizeY < m_config.maxY ) {
+	     dashLines[cntDash] = createLineFromRect(&rect, sizeX, sizeY);
+	     cntDash++;
+	} else if(sizeY > 4*m_config.XTimesYMin*sizeX && sizeY > (m_config.maxY/2)){
+	     solidLines[cntSolid] = createLineFromRect(&rect, sizeX, sizeY);
+	     cntSolid++;
+	}
+	//minEnclosingCircle( (Mat)contours_poly[i], center[i], radius[i] );
+    }
+
+    //Filter dashes outside the solid lines and merge solid lines
+    for(int j=0; j < cntSolid; j++) {
+	float a = M_PI * solidLines[j].slope / 180;
+	Point center;
+	center.x = (solidLines[j].p1.x + solidLines[j].p2.x) / 2;
+	center.y = (solidLines[j].p1.y + solidLines[j].p2.y) / 2;
+	float b = center.y - center.x * a;
+	//cout << "Equation [a,b]: [" << a << "," << b << "]" << endl;
+	for(int l=0; l < cntDash; l++) {
+ 	    Point dashCenter;
+	    dashCenter.x = (dashLines[l].p1.x + dashLines[l].p2.x) / 2;
+	    dashCenter.y = (dashLines[l].p1.y + dashLines[l].p2.y) / 2;
+	    float res = a*dashCenter.x + b;
+	    //cout << "[res, y] = [" << res << "," << dashCenter.y << "]" << endl;
+	    //cout << "[x, y] = [" << dashCenter.x << "," << dashCenter.y << "]" << endl;
+	    if(res > dashCenter.y) {
+		dashLines[l] = dashLines[cntDash-1];
+		cntDash--;
+		l--;
+		//cout<< cntDash <<endl;
+	    }
+	}
+	for(int k=j+1; k < cntSolid; k++) {
+	    Point sldCenter;
+	    sldCenter.x = (solidLines[k].p1.x + solidLines[k].p2.x) / 2;
+	    sldCenter.y = (solidLines[k].p1.y + solidLines[k].p2.y) / 2;
+	    float res = a*sldCenter.x + b;
+	    if(res > sldCenter.y) {
+		solidLines[k] = solidLines[cntSolid-1];
+		cntSolid--;
+		k--;
+		//cout<< cntDash <<endl;
+	    }
+	}
+    }
+    cout << "Dashes: " << cntDash << endl;
+    cout << "Solids: " << cntSolid << endl;
+
+    //Print lines
+    for(int i = 0; i < cntDash; i++) {
+	line(outputImg, dashLines[i].p1, dashLines[i].p2, 45, 2);
+    }
+    for(int i = 0; i < cntSolid; i++) {
+	line(outputImg, solidLines[i].p1, solidLines[i].p2, 0, 2);
+    }
+}
+
 /** This function contains the actions performed for each image*/
 void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv::Mat &outputImg)
 {
-    //cv::Mat imgCanny;
-
-    // Canny
-    //cv::Canny(imgGRAY, imgCanny, 180, 120, 3);
-
-    // Hough
     vector<vector<cv::Point> > lineSegments;
     vector<cv::Point> aux;
-#ifndef USE_PPHT
-    vector<Vec2f> lines;
-    cv::HoughLines( m_frameCanny, lines, 1, CV_PI/180, 200);
-
-
-
-    for(size_t i=0; i< lines.size(); i++)
+    int cnt = cntDash + cntSolid;
+    for(int i=0; i < cnt; i++)
     {
-        float rho = lines[i][0];
-        float theta = lines[i][1];
-
-        double a = cos(theta), b = sin(theta);
-        double x0 = a*rho, y0 = b*rho;
-
-        Point pt1, pt2;
-        pt1.x = cvRound(x0 + 1000*(-b));
-        pt1.y = cvRound(y0 + 1000*(a));
-        pt2.x = cvRound(x0 - 1000*(-b));
-        pt2.y = cvRound(y0 - 1000*(a));
-
-        aux.clear();
-        aux.push_back(pt1);
-        aux.push_back(pt2);
-        lineSegments.push_back(aux);
-
-        line(outputImg, pt1, pt2, CV_RGB(0, 0, 0), 1, 8);
-
-    }
-#else
-
-
-    //cout<<"Initializing HoughLines............"<<endl;
-    vector<Vec4i> lines;
-    int houghThreshold = m_config.houghStartVal;
-    double w = imgGRAY.size().width;
-    double h = imgGRAY.size().height;
-    //if(imgGRAY.cols*imgGRAY.rows < 400*400)
-    //houghThreshold = 100;
-    //cout<<"Graying............"<<endl;
-
-    //cout<<"Getting Channels:  "<< m_frameCanny.channels()<<endl;
-    cv::HoughLinesP(m_frameCanny, lines, 1, CV_PI/180, houghThreshold, 10,10);
-    //cout<<"Houghing!!!............"<<endl;
-    while(lines.size() > m_config.houghMaxLines)
-    {
-        lines.clear();
-        houghThreshold += 10;
-        cv::HoughLinesP(m_frameCanny, lines, 1, CV_PI/180, houghThreshold, 10, 10);
-    }
-    cout << "Hough: " << houghThreshold << endl;
-    for(size_t i=0; i<lines.size(); i++)
-    {
-        Point pt1, pt2;
-        pt1.x = lines[i][0];
-        pt1.y = lines[i][1];
-        pt2.x = lines[i][2];
-        pt2.y = lines[i][3];
-
-        //cout<<"Scalar Stuffs............"<<endl;
-        line(outputImg, pt1, pt2, Scalar(0), 2);
-
-        //cout << "Hurray!!!: "<< endl;
-        /*circle(outputImg, pt1, 2, CV_RGB(255,255,255), CV_FILLED);
-        circle(outputImg, pt1, 3, CV_RGB(0,0,0),1);
-        circle(outputImg, pt2, 2, CV_RGB(255,255,255), CV_FILLED);
-        circle(outputImg, pt2, 3, CV_RGB(0,0,0),1);*/
-        float slope = getLineSlope(pt1, pt2);
-
+	CustomLine l;
+	if(i < cntSolid) {
+	    l = solidLines[i]; 
+        } else {
+	    l = dashLines[i-cntSolid];
+	}
         // Store into vector of pairs of Points for msac
         // only if angle constraints are satisfied
-        if(slope > hMin && slope < hMax)
+        if(l.slope > hMin && l.slope < hMax)
         {
             aux.clear();
-            aux.push_back(pt1);
-            aux.push_back(pt2);
+            aux.push_back(l.p1);
+            aux.push_back(l.p2);
             lineSegments.push_back(aux);
         }
     }
-    //cout<<" HoughLines DONE!!!!!!!............"<<endl;
-#endif
 
     // Multiple vanishing points
     std::vector<cv::Mat> vps;            // vector of vps: vps[vpNum], with vpNum=0...numDetectedVps
     std::vector<std::vector<int> > CS;    // index of Consensus Set for all vps: CS[vpNum] is a vector containing indexes of lineSegments belonging to Consensus Set of vp numVp
     std::vector<int> numInliers;
-
     std::vector<std::vector<std::vector<cv::Point> > > lineSegmentsClusters;
 
     // Call msac function for multiple vanishing point estimation
@@ -244,9 +306,9 @@ void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv
         printf("\n");
     }
     // Draw line segments according to their cluster
-//    msac.drawCS(outputImg, lineSegmentsClusters, vps);
+    // msac.drawCS(outputImg, lineSegmentsClusters, vps);
     // Paint line segments
-    int vpFound = vps.size() > 0;
+/*    int vpFound = vps.size() > 0;
     std::vector<CustomLine> customLineSegments;
     CustomLine midLine;
     if(lineSegmentsClusters.size() > 0 && vpFound)
@@ -386,6 +448,7 @@ void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv
         line(outputImg, core.p1, core.p2, lineColor, 2);
         //cout << "Slope core: " << core.slope << endl;
     }
+*/
 }
 
 int LineDetector::detectHorizontalLine(Mat canny_roi, int dist)
