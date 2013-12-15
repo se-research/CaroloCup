@@ -43,7 +43,6 @@ private:
   Lines findCurves();
   pair<vector<Point>::iterator,vector<Point>::iterator> findBiggestDistance(Cluster& c);
   Mat getBirdView(Mat& source);
-  void processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv::Mat &outputImg);
   CustomLine createLineFromRect(RotatedRect* rect, int sizeX, int sizeY);
   void findLines(cv::Mat &outputImg);
   float getLineSlope(Point &p1, Point &p2);

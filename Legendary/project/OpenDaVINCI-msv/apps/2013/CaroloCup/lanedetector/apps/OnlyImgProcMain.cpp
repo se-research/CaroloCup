@@ -70,6 +70,7 @@ int main(int , char** argv)
 	    dst = getFirst.clone();
 	    
 	    LineDetector road(getFirst, cfg, true, 1);
+	    carolocup::Lines lines = road.getLines();
 	    int ms = (difftime(clock(), start) / 1000);
 	    cout << ms << "ms" << endl;
 	    if(avg_time == 0) {
@@ -81,8 +82,7 @@ int main(int , char** argv)
 	    }
 	    cout << "avg_time: " << avg_time << "ms" << endl;
 
-	    /*carolocup::Lines l = road.getLines();
-	    Line dashed = l.dashedLine;
+	    /*Line dashed = l.dashedLine;
 	    Line solidRight = l.rightLine;
 	    Line solidLeft = l.leftLine;
 

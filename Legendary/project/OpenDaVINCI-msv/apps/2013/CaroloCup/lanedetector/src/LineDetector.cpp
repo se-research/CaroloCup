@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#define USE_PPHT
+#define MIN_ANGLE 15
 
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
@@ -14,11 +14,11 @@ namespace carolocup
 using namespace std;
 using namespace cv;
 
-int hMin = 15, hMax=165;
 int cntDash = 0;
 int cntSolid = 0;
 vector<CustomLine> dashLines;
 vector<CustomLine> solidLines;
+int h, w;
 
 LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug, const int id)
     : m_lines(NULL)
@@ -42,18 +42,7 @@ LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug, co
     //Find dash and solid lines
     findLines(outputImg);
 
-    // Create and init MSAC
-    MSAC msac;
-    int mode = MODE_NIETO;
-    double w = m_frame.size().width;
-    double h = m_frame.size().height;
-    Size procSize = cv::Size(w, h);
-    msac.init(mode, procSize, false);
-    //Process MSAC
-    //processImageMSAC(msac, 3, m_frame, outputImg);
-
     // View
-    //if(m_debug) imshow("Before output", frame);
     if(m_debug) imshow("Output", outputImg);
 }
 
@@ -69,51 +58,54 @@ Lines LineDetector::getLines()
 {
     if (NULL == m_lines)
     {
-        if(detectedLines.size() == 3)
-        {
-            cout<<"Lines == 3" << endl;
-            m_lines = new Lines(Vec4i(detectedLines[2].p1.x, detectedLines[2].p1.y, detectedLines[2].p2.x, detectedLines[2].p2.y)
-                                , Vec4i(detectedLines[1].p1.x, detectedLines[1].p1.y, detectedLines[1].p2.x, detectedLines[1].p2.y)
-                                , Vec4i(detectedLines[0].p1.x, detectedLines[0].p1.y, detectedLines[0].p2.x, detectedLines[0].p2.y));
-        }
-        else if (detectedLines.size() == 2)
-        {
-            cout<<"Lines == 2" << endl;
-            m_lines = new Lines(Vec4i(detectedLines[1].p1.x, detectedLines[1].p1.y, detectedLines[1].p2.x, detectedLines[1].p2.y)
-                                , Vec4i(0,0,0,0)
-                                , Vec4i(detectedLines[0].p1.x, detectedLines[0].p1.y, detectedLines[0].p2.x, detectedLines[0].p2.y));
-        }
-        else if (detectedLines.size() == 1)
-        {
-            cout<<"Lines == 1" << endl;
-            if(supposedMidLine.slope < detectedLines[0].slope)
-            {
-                m_lines = new Lines(Vec4i(0,0,0,0)
-                                    , Vec4i(0,0,0,0)
-                                    , Vec4i(detectedLines[0].p1.x, detectedLines[0].p1.y, detectedLines[0].p2.x, detectedLines[0].p2.y));
-            }
-            else
-            {
-                m_lines = new Lines(Vec4i(detectedLines[0].p1.x, detectedLines[0].p1.y, detectedLines[0].p2.x, detectedLines[0].p2.y)
-                                    , Vec4i(0,0,0,0)
-                                    , Vec4i(0,0,0,0));
-            }
-        }
-        else if(detectedLines.size() > 3)
-        {
-            cout<<"Lines > 3" << endl;
-            int size = detectedLines.size();
-            m_lines = new Lines(Vec4i(detectedLines[size/2+1].p1.x, detectedLines[size/2+1].p1.y, detectedLines[size/2+1].p2.x, detectedLines[size/2-1].p2.y)
-                                , Vec4i(detectedLines[size/2].p1.x, detectedLines[size/2].p1.y, detectedLines[size/2].p2.x, detectedLines[size/2].p2.y)
-                                , Vec4i(detectedLines[size/2-1].p1.x, detectedLines[size/2-1].p1.y, detectedLines[size/2-1].p2.x, detectedLines[size/2+1].p2.y));
-        } 
-        else 
-        {
-	    m_lines = new Lines(Vec4i(0,0,0,0)
-                             , Vec4i(0,0,0,0)
-                             , Vec4i(0,0,0,0));
-        }
-        m_lines->setSupposedMidLine(supposedMidLine);
+	Vec4i dashLine, leftLine, rightLine;
+        //Pick the suitable dashLine
+	cout << "Pick lines!" << endl;
+	if(cntDash > 0) {
+		CustomLine supDashLine;
+		for(int i = 0; i < cntDash; i++) {
+		    if(dashLines[i].slope < supDashLine.slope) {
+			supDashLine = dashLines[i];
+		    }
+		}
+		cout << "Dash line slope: " << supDashLine.slope << endl;
+		dashLine = Vec4i(supDashLine.p1.x, supDashLine.p1.y, supDashLine.p2.x, supDashLine.p2.y);
+	} else {
+		dashLine = Vec4i(0,0,0,0);
+	}
+	if(cntSolid > 0) {
+		CustomLine supRightLine;
+
+		bool foundR, foundL;
+		for(int i = 0; i < cntSolid; i++) {
+		    int centerSolidLineX = (solidLines[i].p1.x + solidLines[i].p2.x)/2;
+		    if(solidLines[i].slope > 0 && solidLines[i].slope > supRightLine.slope && w/2 < centerSolidLineX) {
+			supRightLine = solidLines[i];
+			foundR = true;
+		    }
+		}
+		if(foundR) {
+			cout << "Right line slope: " << supRightLine.slope << endl;
+			rightLine = Vec4i(supRightLine.p1.x, supRightLine.p1.y, supRightLine.p2.x, supRightLine.p2.y);
+		}
+		CustomLine supLeftLine;
+		for(int i = 0; i < cntSolid; i++) {
+		    int centerSolidLineX = (solidLines[i].p1.x + solidLines[i].p2.x)/2;
+		    if(solidLines[i].slope < 0 && solidLines[i].slope < supLeftLine.slope && w/2 > centerSolidLineX) {
+			supLeftLine = solidLines[i];
+			foundL = true;
+		    }
+		}
+		if(foundL) {
+			cout << "Left line slope: " << supLeftLine.slope << endl;
+			leftLine = Vec4i(supLeftLine.p1.x, supLeftLine.p1.y, supLeftLine.p2.x, supLeftLine.p2.y);
+		}
+	} else {
+		leftLine = Vec4i(0,0,0,0);
+		rightLine = Vec4i(0,0,0,0);	
+	}
+	m_lines = new Lines(leftLine, dashLine, rightLine);
+        //m_lines->setSupposedMidLine(supposedMidLine);
     }
     return *m_lines;
 }
@@ -121,8 +113,8 @@ Lines LineDetector::getLines()
 CustomLine LineDetector::createLineFromRect(RotatedRect* rect, int sizeX, int sizeY) {
     CustomLine l;
     Point pt1, pt2;
-    cout << "[centerx, centery] = [" << rect->center.x << "," << rect->center.y << "]" << endl;
-    cout << "Sizes: " << sizeX << " " << sizeY;
+    //cout << "[centerx, centery] = [" << rect->center.x << "," << rect->center.y << "]" << endl;
+    //cout << "Sizes: " << sizeX << " " << sizeY;
     if(rect->angle < 90 ) {
         float angle = rect->angle * M_PI / 180; 
         float xOffset = cos(angle) * sizeY / 2;
@@ -141,8 +133,8 @@ CustomLine LineDetector::createLineFromRect(RotatedRect* rect, int sizeX, int si
         pt2.y = rect->center.y - yOffset;
         pt2.x = rect->center.x + xOffset; 
     }
-    cout << "Angle: " << rect->angle << endl;
-    cout << "[x, y] = [" << pt1.x << "," << pt1.y << "]" << endl;
+    //cout << "Angle: " << rect->angle << endl;
+    //cout << "[x, y] = [" << pt1.x << "," << pt1.y << "]" << endl;
     l.p1 = pt1;
     l.p2 = pt2;
     l.slope = rect->angle;
@@ -204,13 +196,12 @@ void LineDetector::findLines(cv::Mat &outputImg) {
 
 	//Classify dash lines and solid lines
 	if(sizeY > m_config.XTimesYMin*sizeX && sizeY < m_config.XTimesYMax*sizeX && sizeY < m_config.maxY ) {
-	     dashLines[cntDash] = createLineFromRect(&rect, sizeX, sizeY);
+	     dashLines[cntDash] = createLineFromRect(&rect, sizeX, sizeY);;
 	     cntDash++;
 	} else if(sizeY > 4*m_config.XTimesYMin*sizeX && sizeY > (m_config.maxY/2)){
 	     solidLines[cntSolid] = createLineFromRect(&rect, sizeX, sizeY);
 	     cntSolid++;
 	}
-	//minEnclosingCircle( (Mat)contours_poly[i], center[i], radius[i] );
     }
 
     //Filter dashes outside the solid lines and merge solid lines
@@ -248,207 +239,48 @@ void LineDetector::findLines(cv::Mat &outputImg) {
 	    }
 	}
     }
+
+    //Filter lines with very small angles 
+    //Solid  
+    for(int i=0; i < cntSolid; i++)
+    {
+	CustomLine l = solidLines[i]; 
+	int minAngle = MIN_ANGLE - 5;
+        //cout << "Slope: " << l.slope << " min is " << minAngle << endl;
+        if(l.slope < minAngle && l.slope > ((-1) * minAngle) )
+        {
+            solidLines[i] = solidLines[cntSolid-1];
+	    cntSolid--;
+	    i--;
+        }
+    }
+    //Dash and also positioned too high on the image or too left or too right
+    for(int i=0; i < cntDash; i++)
+    {
+	CustomLine l = dashLines[i];
+	int dashCenterX = (l.p1.x + l.p2.x) / 2;
+	int dashCenterY = (l.p1.y + l.p2.y) / 2;
+	//cout << "Slope: " << l.slope << " min is " << MIN_ANGLE << endl;
+        if((l.slope < MIN_ANGLE && l.slope > ((-1) * MIN_ANGLE)) || (dashCenterY < h/10) || (dashCenterX < h/10))
+        {
+            dashLines[i] = dashLines[cntDash-1];
+	    cntDash--;
+	    i--;
+        }
+    }
+
     cout << "Dashes: " << cntDash << endl;
     cout << "Solids: " << cntSolid << endl;
 
     //Print lines
     for(int i = 0; i < cntDash; i++) {
 	line(outputImg, dashLines[i].p1, dashLines[i].p2, 45, 2);
+	cout << "Dash line angle: " << dashLines[i].slope << endl;
     }
     for(int i = 0; i < cntSolid; i++) {
 	line(outputImg, solidLines[i].p1, solidLines[i].p2, 0, 2);
+	cout << "Solid line angle: " << solidLines[i].slope << endl;
     }
-}
-
-/** This function contains the actions performed for each image*/
-void LineDetector::processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv::Mat &outputImg)
-{
-    vector<vector<cv::Point> > lineSegments;
-    vector<cv::Point> aux;
-    int cnt = cntDash + cntSolid;
-    for(int i=0; i < cnt; i++)
-    {
-	CustomLine l;
-	if(i < cntSolid) {
-	    l = solidLines[i]; 
-        } else {
-	    l = dashLines[i-cntSolid];
-	}
-        // Store into vector of pairs of Points for msac
-        // only if angle constraints are satisfied
-        if(l.slope > hMin && l.slope < hMax)
-        {
-            aux.clear();
-            aux.push_back(l.p1);
-            aux.push_back(l.p2);
-            lineSegments.push_back(aux);
-        }
-    }
-
-    // Multiple vanishing points
-    std::vector<cv::Mat> vps;            // vector of vps: vps[vpNum], with vpNum=0...numDetectedVps
-    std::vector<std::vector<int> > CS;    // index of Consensus Set for all vps: CS[vpNum] is a vector containing indexes of lineSegments belonging to Consensus Set of vp numVp
-    std::vector<int> numInliers;
-    std::vector<std::vector<std::vector<cv::Point> > > lineSegmentsClusters;
-
-    // Call msac function for multiple vanishing point estimation
-    msac.multipleVPEstimation(lineSegments, lineSegmentsClusters, numInliers, vps, numVps);
-    for(unsigned int v=0; v<vps.size(); v++)
-    {
-        printf("VP %d (%.3f, %.3f, %.3f)", v, vps[v].at<float>(0,0), vps[v].at<float>(1,0), vps[v].at<float>(2,0));
-        fflush(stdout);
-        double vpNorm = cv::norm(vps[v]);
-        if(fabs(vpNorm - 1) < 0.001)
-        {
-            printf("(INFINITE)");
-            fflush(stdout);
-        }
-        printf("\n");
-    }
-    // Draw line segments according to their cluster
-    // msac.drawCS(outputImg, lineSegmentsClusters, vps);
-    // Paint line segments
-/*    int vpFound = vps.size() > 0;
-    std::vector<CustomLine> customLineSegments;
-    CustomLine midLine;
-    if(lineSegmentsClusters.size() > 0 && vpFound)
-    {
-        //cout << "number of lines: " << lineSegmentsClusters[0].size() << endl;
-        Point midLow;
-        midLow.x = w/2;
-        midLow.y = h;
-        for (unsigned int v = 0; v < vps.size(); v++)
-        {
-            Point vp;
-            vp.x = vps[v].at<float>(0,0);
-            vp.y = vps[v].at<float>(1,0);
-            cout << "VP: (" << vp.x << "," << vp.y << ")" << endl;
-            midLine.p1 = midLow;
-            midLine.p2 = vp;
-            midLine.slope = getLineSlope(midLow, vp);
-            for(unsigned int i=0; i<lineSegmentsClusters[0].size(); i++)
-            {
-                CustomLine l1, l2;
-                Point pt1 = lineSegmentsClusters[0][i][0];
-                Point pt2 = lineSegmentsClusters[0][i][1];
-                l1.p1 = pt1;
-                l1.p2 = vp;
-                l1.slope = getLineSlope(vp, pt1);
-                customLineSegments.push_back(l1);
-                l2.p1 = pt2;
-                l2.p2 = vp;
-                l2.slope = getLineSlope(vp, pt2);
-                customLineSegments.push_back(l2);
-                //cout << "Slope pt2: " << l2.slope << endl;
-                //cout << "Slope pt1: " << l1.slope << endl;
-                //cout << "Slope mid: " << midLine.slope << endl;
-                //line(outputImg, vp, pt2, cv::Scalar(0,0,255), 2);
-                //line(outputImg, vp, pt1, cv::Scalar(0,0,255), 2);
-                //line(outputImg, vp, midLow, cv::Scalar(0,0,255), 2);
-                //cout << "Line coord: [(" << pt1.x << "," << pt1.y << "),(" << pt2.x << "," << pt2.y << ")]" << endl;
-                line(outputImg, pt1, pt2, cv::Scalar(0,255,0), 2);
-            }
-        }
-        std::sort(customLineSegments.begin(), customLineSegments.end());
-        //cout << "Lines in " << customLineSegments.size() << endl;
-        CustomLine core = customLineSegments[0];
-        //cout << "Slope mid: " << midLine.slope << endl;
-        supposedMidLine = midLine;
-        int countSameLines = 0;
-        int countAllMergedLines = 0;
-        float sameLinesLength = 0;
-        float minLength = 2000;
-        float maxLength = 0;
-        //cout << "Prepare to draw!" << endl;
-        for(unsigned int i=0; i<customLineSegments.size() - 1; i++)
-        {
-            //cout << "curr slope:" << customLineSegments[i].slope << endl;
-            //cout << "Line coord: [(" << customLineSegments[i].p1.x << "," << customLineSegments[i].p1.y << "),(" << customLineSegments[i].p2.x << "," << customLineSegments[i].p2.y << ")]" << endl;
-            if(abs(customLineSegments[i].slope - customLineSegments[i+1].slope) > 10 )
-            {
-                //cout << "DRAW" << endl;
-                core.p1.y = h;
-                float radianSlope = tan((core.slope/180.) * M_PI);
-                float b = core.p2.y - radianSlope * core.p2.x;
-                core.p1.x = (h - b) / radianSlope;
-                //cout << "Same line :" << countSameLines << " " << countAllMergedLines << endl;
-                //cout << "Same line len: " << sameLinesLength << endl;
-                Scalar lineColor = cv::Scalar(255, 0, 0);
-                if((countSameLines/(float)countAllMergedLines) > 0.6 && countAllMergedLines > 2 && sameLinesLength < 1000)
-                {
-                    lineColor = cv::Scalar(255, 255, 0);
-                }
-                detectedLines.push_back(core);
-                line(outputImg, core.p1, core.p2, lineColor, 2);
-                //cout << "Slope core: " << core.slope << endl;
-                core = customLineSegments[i+1];
-                countSameLines = 0;
-                countAllMergedLines = 0;
-                sameLinesLength = 0;
-            }
-            else
-            {
-                //cout << "MERGE" << endl;
-                if(customLineSegments[i].slope < midLine.slope)
-                {
-                    core = customLineSegments[i];
-                    //cout << "Line coord: [(" << core.p1.x << "," << core.p1.y << "),(" << core.p2.x << "," << core.p2.y << ")]" << endl;
-                }
-                float segmentLength = getDist(customLineSegments[i].p1, customLineSegments[i+1].p1);
-                //cout << "Segment Length: " << segmentLength << endl;
-                if ((fEqual(sameLinesLength,0)) && (segmentLength > 10))
-                {
-                    sameLinesLength = segmentLength;
-                    minLength = segmentLength;
-                    maxLength = segmentLength;
-                    countSameLines = 1;
-                }
-                else
-                {
-                    float avg_len = (sameLinesLength*countSameLines + segmentLength) / (countSameLines + 1);
-                    if(abs(avg_len - segmentLength) < 30 && segmentLength > 10)
-                    {
-                        sameLinesLength = avg_len;
-                        countSameLines ++;
-                        if(minLength > segmentLength)
-                        {
-                            minLength = segmentLength;
-                        }
-                        if(maxLength < segmentLength)
-                        {
-                            maxLength = segmentLength;
-                        }
-                    }
-                    else
-                    {
-                        if((segmentLength > 10) && (((maxLength + 50) < segmentLength ) || (segmentLength < minLength - 50)))
-                        {
-                            sameLinesLength += 2000;
-                            //countSameLines = 1;
-                        }
-                    }
-                }
-                countAllMergedLines++;
-            }
-        }
-        //cout << "end drawing!" << endl;
-        //cout << "Line coord: [(" << core.p1.x << "," << core.p1.y << "),(" << core.p2.x << "," << core.p2.y << ")]" << endl;
-        Scalar lineColor = cv::Scalar(0,0,255);
-        if((countSameLines/(float)countAllMergedLines) > 0.6 && countAllMergedLines > 2 && sameLinesLength < 1000)
-        {
-            lineColor = cv::Scalar(255, 255, 0);
-        }
-        //cout << "Same line :" << countSameLines << " " << countAllMergedLines << endl;
-        //cout << "Same line len: " << sameLinesLength << endl;
-        core.p1.y = h;
-        float radianSlope = tan((core.slope/180.) * M_PI);
-        float b = core.p2.y - radianSlope * core.p2.x;
-        core.p1.x = (h - b) / radianSlope;
-        detectedLines.push_back(core);
-        line(outputImg, core.p1, core.p2, lineColor, 2);
-        //cout << "Slope core: " << core.slope << endl;
-    }
-*/
 }
 
 int LineDetector::detectHorizontalLine(Mat canny_roi, int dist)
