@@ -1,17 +1,28 @@
+/*
+ * Transforms.h
+ *
+ *  Created on: 14 dec 2013
+ *      Author: fredrik
+ */
+
 #ifndef TRANSFORMS_H_
 #define TRANSFORMS_H_
-
 #include "opencv2/core/core.hpp"
-//#include "opencv2/imgproc/imgproc.hpp"
-using namespace cv;
+#include <math.h>
 
-typedef struct CameraStruct_ {
-	float focal;
-	float u0, v0;
-	float height, theta0, gamma0;
-	Size size;
-} CameraStruct;
+namespace carolocup {
 
-Point2f ipm(Point img_pt, CameraStruct cam);
+    using namespace cv;
 
-#endif
+    typedef struct CameraStruct_ {
+        float focal;
+        float u0, v0;
+        float height, length, theta0, gamma0;
+        Size size;
+    } CameraStruct;
+
+    Point2f ipm(Point2i img_pt, CameraStruct cam);
+    Point2f ipm2(Point2i img_pt, CameraStruct cam);
+    Mat getBirdTransMatrix(CameraStruct cam);
+}
+#endif /* TRANSFORMS_H_ */
