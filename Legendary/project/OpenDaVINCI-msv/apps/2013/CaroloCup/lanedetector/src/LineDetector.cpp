@@ -2,8 +2,6 @@
 #include <stdio.h>
 #include <math.h>
 
-#define MIN_ANGLE 15
-
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
@@ -25,7 +23,6 @@ LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug, co
     , m_debug(debug)
     , m_lastSolidRightTop()
     , detectedLines()
-    , supposedMidLine()
     , m_frame()
     , m_frameCanny()
     , m_config(cfg)
@@ -34,13 +31,15 @@ LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug, co
     Mat outputImg = f.clone();
     //if (m_debug)
     //imshow("m_frame",m_frame);
-    
+    w = m_frame.size().width;
+    h = m_frame.size().height;
     /// Detect edges using Threshold
     threshold( m_frame, m_frame, cfg.th1, cfg.th2, cfg.hlTh );
     //cv::Canny(getFirst, getFirst, cfg.caThVal, cfg.caThMax, cfg.caThTyp);
 
     //Find dash and solid lines
     findLines(outputImg);
+
 
     // View
     if(m_debug) imshow("Output", outputImg);
@@ -58,11 +57,13 @@ Lines LineDetector::getLines()
 {
     if (NULL == m_lines)
     {
-	Vec4i dashLine, leftLine, rightLine;
+	Vec4i dashLine(0,0,0,0), leftLine(0,0,0,0), rightLine(0,0,0,0);
+
+	bool foundR=false, foundL=false, foundD=false;
+	CustomLine supDashLine, supRightLine, supLeftLine;
         //Pick the suitable dashLine
 	cout << "Pick lines!" << endl;
 	if(cntDash > 0) {
-		CustomLine supDashLine;
 		for(int i = 0; i < cntDash; i++) {
 		    if(dashLines[i].slope < supDashLine.slope) {
 			supDashLine = dashLines[i];
@@ -70,16 +71,12 @@ Lines LineDetector::getLines()
 		}
 		cout << "Dash line slope: " << supDashLine.slope << endl;
 		dashLine = Vec4i(supDashLine.p1.x, supDashLine.p1.y, supDashLine.p2.x, supDashLine.p2.y);
-	} else {
-		dashLine = Vec4i(0,0,0,0);
+		foundD = true;
 	}
 	if(cntSolid > 0) {
-		CustomLine supRightLine;
-
-		bool foundR, foundL;
 		for(int i = 0; i < cntSolid; i++) {
 		    int centerSolidLineX = (solidLines[i].p1.x + solidLines[i].p2.x)/2;
-		    if(solidLines[i].slope > 0 && solidLines[i].slope > supRightLine.slope && w/2 < centerSolidLineX) {
+		    if(solidLines[i].slope < 90 && solidLines[i].slope > supRightLine.slope && w/2 < centerSolidLineX) {
 			supRightLine = solidLines[i];
 			foundR = true;
 		    }
@@ -88,10 +85,9 @@ Lines LineDetector::getLines()
 			cout << "Right line slope: " << supRightLine.slope << endl;
 			rightLine = Vec4i(supRightLine.p1.x, supRightLine.p1.y, supRightLine.p2.x, supRightLine.p2.y);
 		}
-		CustomLine supLeftLine;
 		for(int i = 0; i < cntSolid; i++) {
 		    int centerSolidLineX = (solidLines[i].p1.x + solidLines[i].p2.x)/2;
-		    if(solidLines[i].slope < 0 && solidLines[i].slope < supLeftLine.slope && w/2 > centerSolidLineX) {
+		    if(solidLines[i].slope > 90 && solidLines[i].slope < supLeftLine.slope && w/2 > centerSolidLineX) {
 			supLeftLine = solidLines[i];
 			foundL = true;
 		    }
@@ -100,12 +96,101 @@ Lines LineDetector::getLines()
 			cout << "Left line slope: " << supLeftLine.slope << endl;
 			leftLine = Vec4i(supLeftLine.p1.x, supLeftLine.p1.y, supLeftLine.p2.x, supLeftLine.p2.y);
 		}
+	} 
+	Point vp;
+	Point goalP;
+	//Set goal height
+	goalP.y = h;
+	bool foundGoal;
+	//Trace different image scenarious
+	if(foundD) {
+		//We have a dash line
+		float da = (supDashLine.slope - 180) * M_PI / 180;
+		float db = supDashLine.p1.y - supDashLine.p1.x * da;
+		int dashGoalX = (goalP.y - db)/da;
+		if(foundR) {
+			//We have dash and right line
+			//Calculate vanishing point
+			float a = supRightLine.slope * M_PI / 180;
+			float b = supRightLine.p1.y - supRightLine.p1.x * a;
+			int rightGoalX = (goalP.y - b)/a;
+			if (da != a) {
+				vp.x = (b - db) / (da - a);
+			}
+			vp.y = da*vp.x + db;
+			goalP.x = (dashGoalX + rightGoalX)/2;
+			cout << "CASE: Dash and right" << endl;
+		} else if(foundL){
+			//We have dash and left line
+			float a = supLeftLine.slope * M_PI / 180;
+			float b = supLeftLine.p1.y - supLeftLine.p1.x * a;
+			if (da != a) {
+				vp.x = (b - db) / (da - a);
+			}
+			vp.y = da*vp.x + db;
+			goalP.x = dashGoalX + ROAD_SIZE/2;
+			cout << "CASE: Dash and left" << endl; 
+		} else {
+			//We have only dash line
+			//offset with half the size of road to the right
+			int dashHeightCrossingX = (h - db)/ da;
+			vp.x = dashHeightCrossingX + ROAD_SIZE/2;
+			vp.y = da*vp.x + db;
+			goalP.x = dashGoalX + ROAD_SIZE/2;
+			cout << "CASE: Only dash" << endl;
+		}
+		foundGoal = true;
 	} else {
-		leftLine = Vec4i(0,0,0,0);
-		rightLine = Vec4i(0,0,0,0);	
+		//No dash line
+		if(foundR) {
+			//We have only right line
+			//offset with half the size of road to the left
+			float a = supRightLine.slope * M_PI / 180;
+			float b = supRightLine.p1.y - supRightLine.p1.x * a;
+			int dashHeightCrossingX = (h - b)/ a;
+			vp.x = dashHeightCrossingX - ROAD_SIZE/2;
+			vp.y = a*vp.x + b;
+			foundGoal = true;
+			goalP.x = vp.x;
+			cout << "CASE: Only right" << endl;
+		} else if(foundL) {
+			//We have only left line
+			//offset with one and a half the size of road to the right
+			float a = supLeftLine.slope * M_PI / 180;
+			float b = supLeftLine.p1.y - supLeftLine.p1.x * a;
+			int dashHeightCrossingX = (h - b)/ a;
+			vp.x = dashHeightCrossingX + 3*ROAD_SIZE/2;
+			vp.y = a*vp.x + b;
+			foundGoal = true;
+			goalP.x = vp.x;
+			cout << "CASE: Only left" << endl;
+		}
 	}
 	m_lines = new Lines(leftLine, dashLine, rightLine);
-        //m_lines->setSupposedMidLine(supposedMidLine);
+	//If we have a goal set the position and 
+	if(foundGoal) {
+		//Suspect this position as the car position
+		Point position;
+		position.x = w/2;
+		position.y = h;
+		Point heading;
+		heading.x = w/2;
+		heading.y = 0;
+		//Create car orientation vector
+		CustomLine current;
+		current.p1 = heading;
+		current.p2 = position;
+		current.slope = getLineSlope(heading, position);
+        	m_lines->setCurrentLine(current);
+		//Set your goal
+		CustomLine goal;
+		goal.p1 = vp;
+		goal.p2 = goalP;
+		goal.slope = getLineSlope(vp, goalP); 
+		m_lines->setGoalLine(goal);
+	} else {
+		cout << "CASE: NONE" << endl;
+	}
     }
     return *m_lines;
 }

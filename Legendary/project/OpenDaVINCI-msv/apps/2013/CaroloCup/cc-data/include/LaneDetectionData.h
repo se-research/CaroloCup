@@ -43,7 +43,8 @@ namespace carolocup {
         leftLine(Vec4i(0,0,0,0)) ,
         rightLine(Vec4i(0,0,0,0)) ,
         dashedLine(Vec4i(0,0,0,0)),
-        supposedMidLine(),
+        goalLine(),
+	currentLine(),
         pGain(0),
         intGain(0),
         derGain(0),
@@ -57,7 +58,8 @@ namespace carolocup {
         leftLine(l) ,
         rightLine(r) ,
         dashedLine(d),
-        supposedMidLine(),
+        goalLine(),
+	currentLine(),
         pGain(0),
         intGain(0),
         derGain(0),
@@ -68,15 +70,18 @@ namespace carolocup {
         stopLineHeight(0)
     {}
       virtual ~Lines () {}
-      void setSupposedMidLine(const CustomLine &sm) {
-        supposedMidLine = sm;
+      void setGoalLine(const CustomLine &goal) {
+        goalLine = goal;
       }
-
+      void setCurrentLine(const CustomLine &curr) {
+        currentLine = curr;
+      }
 
       Vec4i leftLine;
       Vec4i rightLine;
       Vec4i dashedLine;
-      CustomLine supposedMidLine;
+      CustomLine goalLine;
+      CustomLine currentLine;
       int pGain;
       int intGain;
       int derGain;

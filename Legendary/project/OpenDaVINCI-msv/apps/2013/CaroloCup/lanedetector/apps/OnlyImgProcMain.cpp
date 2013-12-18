@@ -82,16 +82,20 @@ int main(int , char** argv)
 	    }
 	    cout << "avg_time: " << avg_time << "ms" << endl;
 
-	    /*Line dashed = l.dashedLine;
-	    Line solidRight = l.rightLine;
-	    Line solidLeft = l.leftLine;
+	    Line dashed = lines.dashedLine;
+	    Line solidRight = lines.rightLine;
+	    Line solidLeft = lines.leftLine;
 
-	    line( dst, Point(dashed[0], dashed[1]), Point(dashed[2], dashed[3]), Scalar(0,255,0), 3, CV_AA);
-	    line( dst, Point(solidRight[0], solidRight[1]), Point(solidRight[2], solidRight[3]), Scalar(255,0,0), 3, CV_AA);
-	    line( dst, Point(solidLeft[0], solidLeft[1]), Point(solidLeft[2], solidLeft[3]), Scalar(0,0,255), 3, CV_AA);*/
+	    //line( dst, Point(dashed[0], dashed[1]), Point(dashed[2], dashed[3]), 255, 3, CV_AA);
+	    //line( dst, Point(solidRight[0], solidRight[1]), Point(solidRight[2], solidRight[3]), 0, 3, CV_AA);
+	    //line( dst, Point(solidLeft[0], solidLeft[1]), Point(solidLeft[2], solidLeft[3]), 123, 3, CV_AA);
+	    line( dst, lines.goalLine.p1, lines.goalLine.p2, 255, 3, CV_AA);
+	    line( dst, lines.currentLine.p1, lines.currentLine.p2, 0, 3, CV_AA);
 	    //dst.setTo( Scalar(0,0,0));
 
-	    //imshow("output", dst);
+	    cout << "Goal [x, y] : [" << lines.goalLine.p2.x << ", " << lines.goalLine.p2.y << "]" << endl;
+	    cout << "Position [x, y] : [" << lines.currentLine.p2.x << ", " << lines.currentLine.p2.y << "]" << endl;
+	    imshow("Final output", dst);
 	      
     }
     // set state

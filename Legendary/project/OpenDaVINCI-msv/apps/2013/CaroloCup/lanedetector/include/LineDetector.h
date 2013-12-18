@@ -1,6 +1,10 @@
 #ifndef LINEDETECTOR_H_
 #define LINEDETECTOR_H_
 
+
+#define MIN_ANGLE 15
+#define ROAD_SIZE 770
+
 #include <queue>
 #include "opencv2/opencv.hpp"
 #include "LineDetectorTypes.h"
@@ -55,7 +59,8 @@ private:
   const bool m_debug;
   Point m_lastSolidRightTop;
   std::vector<CustomLine> detectedLines;
-  CustomLine supposedMidLine;
+  CustomLine currentLine;
+  CustomLine goalLine;
   Config m_config;
 
 };

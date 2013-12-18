@@ -205,32 +205,33 @@ ModuleState::MODULE_EXITCODE Driver::body()
         }
 
        
-        float theta1 = atan2(y1-y2, x1-x2);
+        /*float theta1 = atan2(y1-y2, x1-x2);
         float theta2 = atan2(y3-y4, x3-x4);
         float s1 = x1 * cos(theta1) + y1 * sin(theta1);
         float s2 = x3 * cos(theta2) + y3 * sin(theta2);
         float intP1_x = (s1 - sin(theta1) * scr_height) / cos(theta1);
         float intP2_x =  (s2 - sin(theta2) * scr_height) / cos(theta2);
         //float theta_avg = (theta1 + theta2) / 2;
-	cout << "P1.x: " << intP1_x << " P2.x: " << intP2_x << endl;
+	cout << "P1.x: " << intP1_x << " P2.x: " << intP2_x << endl;*/
 
-        float x_goal = intP1_x + 70;//(intP1_x + intP2_x) /2 - 70;
-        float x_pl = scr_width/2 - 50;
+        float x_goal = lines.goalLine.p2.x;//intP1_x + 70;//(intP1_x + intP2_x) /2 - 70;
+        float x_pl = lines.currentLine.p2.x;//scr_width/2 - 50;
 
-	if(x_goal < x_pl && (x_goal + 100) > x_pl) {
+/*	if(x_goal < x_pl && (x_goal + 100) > x_pl) {
 	    x_goal = x_pl;
-	}
+	}*/
 
 	cout << "Position: " << x_pl << endl;
 	cout << "Goal: " << x_goal << endl;
        
 	float oldLateralError = m_lateralError;
         //int x_error = (x_right + x_left - 752)/2;
-        float theta_avg = lines.supposedMidLine.slope;
-	m_angularError = 90 - theta_avg;
-	if(steeringVal > 0) {
+        float theta_avg = lines.goalLine.slope;//lines.supposedMidLine.slope;
+	float theta_curr = lines.currentLine.slope;
+	m_angularError = theta_curr - theta_avg;
+	/*if(steeringVal > 0) {
 	    m_angularError = m_angularError + steeringVal/2;
-        }
+        }*/
 	float theta = (m_angularError/180)*M_PI_2;
         m_lateralError = cos(theta) * (x_goal - x_pl);
 

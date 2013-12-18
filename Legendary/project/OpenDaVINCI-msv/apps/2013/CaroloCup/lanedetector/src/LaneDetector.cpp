@@ -67,7 +67,7 @@ char* ppcImgMem;
 int pid;
 pthread_t t1, t2; // t3 ;
 int ret, avg_time = 0, num_msmnt;
-double w, h;
+double width, height;
 ///////////////////////////////////////////////////////////////////////////////
 
 LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
@@ -305,22 +305,22 @@ int msleep(unsigned long milisec)
 
 carolocup::Lines mergeLinesData()
 {
-    linesBottom.dashedLine[1] = linesBottom.dashedLine[1] != 0 ? linesBottom.dashedLine[1] + h/2 : 0;
-    linesBottom.dashedLine[3] = linesBottom.dashedLine[3] != 0 ? linesBottom.dashedLine[3] + h/2 : 0;
-    linesBottom.leftLine[1] = linesBottom.leftLine[1] != 0 ? linesBottom.leftLine[1] + h/2 : 0;
-    linesBottom.leftLine[3] = linesBottom.leftLine[3] != 0 ? linesBottom.leftLine[3] + h/2 : 0;
-    linesBottom.rightLine[1] = linesBottom.rightLine[1] != 0 ? linesBottom.rightLine[1] + h/2 : 0;
-    linesBottom.rightLine[3] = linesBottom.rightLine[3] != 0 ? linesBottom.rightLine[3] + h/2 : 0;
-    linesBottom.width = w;
-    linesBottom.height =  h;
-    linesMiddle.dashedLine[1] = linesMiddle.dashedLine[1] != 0 ? linesMiddle.dashedLine[1] + 3*h/8 : 0;
-    linesMiddle.dashedLine[3] = linesMiddle.dashedLine[3] != 0 ? linesMiddle.dashedLine[3] + 3*h/8 : 0;
-    linesMiddle.leftLine[1] = linesMiddle.leftLine[1] != 0 ? linesMiddle.leftLine[1] + 3*h/8 : 0;
-    linesMiddle.leftLine[3] = linesMiddle.leftLine[3] != 0 ? linesMiddle.leftLine[3] + 3*h/8: 0;
-    linesMiddle.rightLine[1] = linesMiddle.rightLine[1] != 0 ? linesMiddle.rightLine[1] + 3*h/8 : 0;
-    linesMiddle.rightLine[3] = linesMiddle.rightLine[3] != 0 ? linesMiddle.rightLine[3] + 3*h/8 : 0;
-    linesMiddle.width = w;
-    linesMiddle.height =  h;
+    linesBottom.dashedLine[1] = linesBottom.dashedLine[1] != 0 ? linesBottom.dashedLine[1] + height/2 : 0;
+    linesBottom.dashedLine[3] = linesBottom.dashedLine[3] != 0 ? linesBottom.dashedLine[3] + height/2 : 0;
+    linesBottom.leftLine[1] = linesBottom.leftLine[1] != 0 ? linesBottom.leftLine[1] + height/2 : 0;
+    linesBottom.leftLine[3] = linesBottom.leftLine[3] != 0 ? linesBottom.leftLine[3] + height/2 : 0;
+    linesBottom.rightLine[1] = linesBottom.rightLine[1] != 0 ? linesBottom.rightLine[1] + height/2 : 0;
+    linesBottom.rightLine[3] = linesBottom.rightLine[3] != 0 ? linesBottom.rightLine[3] + height/2 : 0;
+    linesBottom.width = width;
+    linesBottom.height =  height;
+    linesMiddle.dashedLine[1] = linesMiddle.dashedLine[1] != 0 ? linesMiddle.dashedLine[1] + 3*height/8 : 0;
+    linesMiddle.dashedLine[3] = linesMiddle.dashedLine[3] != 0 ? linesMiddle.dashedLine[3] + 3*height/8 : 0;
+    linesMiddle.leftLine[1] = linesMiddle.leftLine[1] != 0 ? linesMiddle.leftLine[1] + 3*height/8 : 0;
+    linesMiddle.leftLine[3] = linesMiddle.leftLine[3] != 0 ? linesMiddle.leftLine[3] + 3*height/8: 0;
+    linesMiddle.rightLine[1] = linesMiddle.rightLine[1] != 0 ? linesMiddle.rightLine[1] + 3*height/8 : 0;
+    linesMiddle.rightLine[3] = linesMiddle.rightLine[3] != 0 ? linesMiddle.rightLine[3] + 3*height/8 : 0;
+    linesMiddle.width = width;
+    linesMiddle.height =  height;
     return linesBottom;
 }
 
@@ -351,11 +351,11 @@ void LaneDetector::processImage()
     and their respective addresses are assigned to each of the pointers below*/
     
     cout<<"Spliting............"<<endl;
-    w = m_frame.size().width;
-    h = m_frame.size().height;
-    Mat getFirst = m_frame(cv::Rect(1, h/2-1, w-1, h/2-1));
-    Mat getSecond  = m_frame(cv::Rect(1,3*h/8-1, w-1, h/8-1));
-    //Mat getThird = m_frame(cv::Rect(1,1,w-1,h/4-1));
+    width = m_frame.size().width;
+    height = m_frame.size().height;
+    Mat getFirst = m_frame(cv::Rect(1, height/2-1, width-1, height/2-1));
+    Mat getSecond  = m_frame(cv::Rect(1,3*height/8-1, width-1, height/8-1));
+    //Mat getThird = m_frame(cv::Rect(1,1,width-1,height/4-1));
 
 
     getFirstPointer = &getFirst;
