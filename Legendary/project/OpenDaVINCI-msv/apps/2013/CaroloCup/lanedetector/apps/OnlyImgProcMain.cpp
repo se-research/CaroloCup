@@ -1,5 +1,6 @@
 #include "opencv2/opencv.hpp"
 #include "LineDetector.h"
+#include "Transforms.h"
 #include "math.h"
 
 using namespace carolocup;
@@ -85,6 +86,35 @@ int main(int , char** argv)
 	    Line dashed = lines.dashedLine;
 	    Line solidRight = lines.rightLine;
 	    Line solidLeft = lines.leftLine;
+      CameraStruct cam;
+      cam.focal = 489.0;
+      cam.height = 0.15;
+      cam.length = 0.08;
+      cam.u0 = 183.0;
+      cam.v0 = 144.0;
+      cam.theta0 = -15;
+      cam.gamma0 = 0;
+      cam.size = Size(752, 480);
+      Point2i img_pt_1, img_pt_2;
+      Point2f real_pt_1, real_pt_2;
+      //Test dashed line distance
+      img_pt_1 = Point2i(dashed[0], dashed[1]);
+      img_pt_2 = Point2i(dashed[2], dashed[3]);
+      real_pt_1 = ipm2(img_pt_1, cam);
+      real_pt_2 = ipm2(img_pt_1, cam);
+      cout << "Distance of dashed line: " << sqrt(pow(real_pt_1.x-real_pt_2.x,2) + pow(real_pt_1.y-real_pt_2.y,2)) << endl;
+      //Test left solid line distance
+      img_pt_1 = Point2i(solidLeft[0], solidLeft[1]);
+      img_pt_2 = Point2i(solidLeft[2], solidLeft[3]);
+      real_pt_1 = ipm2(img_pt_1, cam);
+      real_pt_2 = ipm2(img_pt_1, cam);
+      cout << "Distance of left solid line: " << sqrt(pow(real_pt_1.x-real_pt_2.x,2) + pow(real_pt_1.y-real_pt_2.y,2)) << endl;
+      //Test right solid line distance
+      img_pt_1 = Point2i(solidRight[0], solidRight[1]);
+      img_pt_2 = Point2i(solidRight[2], solidRight[3]);
+      real_pt_1 = ipm2(img_pt_1, cam);
+      real_pt_2 = ipm2(img_pt_1, cam);
+      cout << "Distance of right solid line: " << sqrt(pow(real_pt_1.x-real_pt_2.x,2) + pow(real_pt_1.y-real_pt_2.y,2)) << endl;
 
 	    //line( dst, Point(dashed[0], dashed[1]), Point(dashed[2], dashed[3]), 255, 3, CV_AA);
 	    //line( dst, Point(solidRight[0], solidRight[1]), Point(solidRight[2], solidRight[3]), 0, 3, CV_AA);
