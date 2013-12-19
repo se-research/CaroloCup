@@ -93,6 +93,7 @@ int main(int , char** argv)
 	    line( dst, lines.currentLine.p1, lines.currentLine.p2, 0, 3, CV_AA);
 	    //dst.setTo( Scalar(0,0,0));
 
+	    cout << "VP [x, y] : [" << lines.goalLine.p1.x << ", " << lines.goalLine.p1.y << "]" << endl;
 	    cout << "Goal [x, y] : [" << lines.goalLine.p2.x << ", " << lines.goalLine.p2.y << "]" << endl;
 	    cout << "Position [x, y] : [" << lines.currentLine.p2.x << ", " << lines.currentLine.p2.y << "]" << endl;
 	    imshow("Final output", dst);
