@@ -52,6 +52,7 @@ private:
   float getLineSlope(Point &p1, Point &p2);
   float getDist(const Point p1, const Point p2) const;
   int detectHorizontalLine(Mat canny_roi, int dist);
+  int getRoadAngle(int lineDetected, int lineAngle);
 
   cv::Mat m_frame;
   cv::Mat m_frameCanny;

@@ -21,7 +21,7 @@ vector<CustomLine> dashLines;
 vector<CustomLine> solidLines;
 int h, w;
 int roadSize = ROAD_SIZE;
-int roadAngle = 89;
+int roadAngle = 91;
 
 LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug, const int id)
     : m_lines(NULL)
@@ -519,6 +519,28 @@ float LineDetector::getLineSlope(Point &p1, Point &p2)
 float LineDetector::getDist(const Point p1, const Point p2) const
 {
     return sqrt(pow(p1.x-p2.x, 2) + pow(p1.y-p2.y, 2));
+}
+
+/** Predicts the road angle considering one detected line */
+int LineDetector::getRoadAngle(int lineDetected, int lineAngle){
+   int roadAngle = 91;
+   switch(lineDetected) {
+       case 1: {
+           //founded line is right line
+       }; break;
+       case 2: {
+           //founded line is dash line
+	   if(lineAngle < 0) {
+               roadAngle = 65 + (lineAngle + 90) * 0.59;
+           } else {
+               roadAngle = 65 + (lineAngle - 90) * 0.59;
+           }
+       }; break;
+       case 3: {
+           //founded line is left line
+       }; break;
+   }
+   return roadAngle;
 }
 
 }

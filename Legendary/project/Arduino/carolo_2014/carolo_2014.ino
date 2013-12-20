@@ -2,10 +2,10 @@
 #include <Servo.h>
 #define MAX_STEERING_ANGLE_R 33
 #define MAX_STEERING_ANGLE_L -33
-#define MIN_MOTOR_SPEED 1500
+#define MIN_MOTOR_SPEED 1400
 #define MAX_MOTOR_SPEED 1623
 #define BRAKE_SPEED_MAX 1530
-#define BRAKE_SPEED_MIN 1450
+#define BRAKE_SPEED_MIN 1150
 #define INIT_MOTOR_SPEED 1520 
 
 // This is our motor.
@@ -49,6 +49,7 @@ int camMultiplier = 1;
 boolean takeOver = false;
 
 int ms;
+unsigned long time;
 unsigned long int cnt=0, cntOld = 0;
 float carSpeed = 0;
 
@@ -66,6 +67,8 @@ void setup()
   myMotor.writeMicroseconds(975);
   mySteering.write(90);
   myCamera.write(90);
+  
+  time = 0;
 
   attachInterrupt(3, countRotations, FALLING);
   pinMode(2, INPUT);
@@ -133,7 +136,7 @@ void loop()
             applyCruiseCtrl = true;
           } else if (readbyte == 45) {
             applyCruiseCtrl = false;
-            speed = 1520;
+            speed = 950;
             controlMotor();
           } else {
             applyCruiseCtrl = true;
@@ -214,37 +217,36 @@ void loop()
     controlMotor();
     controlSteering();
   }
+  unsigned long curr = millis();
   ms = ms + 1;
   //Calculate car speed
-  if(ms > 10) {
-    float diff = cnt;
-    diff = diff * 0.6;
-    if(diff != carSpeed) {
+  if(ms > 4) {
+    //Serial.println((curr - time));
+    int diff = cnt * 1000 / (curr - time);
+    float newSpeed = diff * 0.03;
+    if(newSpeed != carSpeed) {
       Serial.print("Car speed:");
-      Serial.println(diff);
-      carSpeed = diff;
+      Serial.println(newSpeed);
+      carSpeed = newSpeed;
     }
-    freq = int(cnt*2.5);
-    Serial.print("Frequency: ");
-    Serial.println(freq);
+    freq = int(diff*1.2);
     if (applyCruiseCtrl) {
       Serial.println("Enter cruise control");
+      Serial.print("Frequency: ");
+      Serial.println(freq);
       int error = setFreq - freq;
       Serial.print("Error: ");
       Serial.println(error);
       int errorSign = error < 0 ? -1 : +1;
-      /*
-      if (abs(error) > 15) {
-        speed += 10*errorSign;
-      }
-      else if (abs(error) > 8) {
+      if (abs(error) > 12) {
         speed += 5*errorSign;
       }
-      */
-      if (abs(error) > 2) {
+      else if (abs(error) > 6) {
+        speed += 3*errorSign;
+      } else if (abs(error) > 3) {
         speed += errorSign;
       }
-      speed = constrain(speed, 1535, 1623);
+      speed = constrain(speed, 1547, 1623);
       Serial.print("Speed :");
       Serial.println(speed);
       controlMotor();
@@ -254,9 +256,10 @@ void loop()
     }
     //cntOld = cnt;
     cnt = 0;
-    ms=0;
+    ms = 0;
+    time = curr;
   }
-  delay(10);
+  delay(5);
 }
 
 void controlMotor() {

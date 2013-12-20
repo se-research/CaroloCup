@@ -52,8 +52,8 @@ int main(int , char** argv)
   createTrackbar("max times", "config", &cfg.XTimesYMax, 40);
   createTrackbar("max y", "config", &cfg.maxY , 400);
   // Threshold
-  createTrackbar("th1", "config", &cfg.th1, 255);
-  createTrackbar("th2", "config", &cfg.th2, 255);
+  //createTrackbar("th1", "config", &cfg.th1, 255);
+  //createTrackbar("th2", "config", &cfg.th2, 255);
 
   Mat frame, dst;
   RNG rng( 0xFFFFFFFF );
