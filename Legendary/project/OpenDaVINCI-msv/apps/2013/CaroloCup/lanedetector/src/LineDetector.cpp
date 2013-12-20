@@ -215,6 +215,13 @@ Lines LineDetector::getLines()
 		goal.p1 = vp;
 		goal.p2 = goalP;
 		goal.slope = getLineSlope(vp, goalP); 
+		if(goal.slope > 90) {
+			goal.p1.x = goal.p1.x + 60;
+			goal.p2.x = goal.p2.x + 60;
+		} else {
+			goal.p1.x = goal.p1.x - 60;
+			goal.p2.x = goal.p2.x - 60;
+		}
 		m_lines->setGoalLine(goal);
 	} else {
 		cout << "CASE: NONE" << endl;
