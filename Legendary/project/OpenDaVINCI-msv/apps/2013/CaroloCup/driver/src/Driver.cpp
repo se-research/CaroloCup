@@ -49,7 +49,7 @@ Driver::Driver(const int32_t &argc, char **argv) :
     m_intGain(8.38) ,
     m_derGain(0.23) ,
     m_length(0.3) ,
-    m_wheelRadius(0.026),
+    m_wheelRadius(0.54),
     m_protocol("/dev/ttyACM0", 6),
     ANGLE_TO_CURVATURE(2.5) ,
     SCALE_FACTOR (752/0.41) ,
@@ -77,7 +77,7 @@ Driver::~Driver() {}
 void Driver::setUp()
 {
     // This method will be call automatically _before_ running body().
-    m_speed = 0.72;
+    m_speed = 0.7;
     m_oldCurvature = 0;
     m_controlGains[0] = 10;
     m_controlGains[1] = 20;
@@ -111,6 +111,7 @@ int msleep(unsigned long milisec)
 }
 
 int16_t oldSteeringVal=0, oldSpeedVal=0;
+int speedCnt = 0;
 int16_t steeringVal=0;
 
 // This method will do the main data processing job.
@@ -226,13 +227,14 @@ ModuleState::MODULE_EXITCODE Driver::body()
        
 	float oldLateralError = m_lateralError;
         //int x_error = (x_right + x_left - 752)/2;
-	float a = lines.goalLine.slope * M_PI / 180;
+	float a = tan(lines.goalLine.slope * M_PI / 180);
 	float b = lines.goalLine.p1.y - lines.goalLine.p1.x * a;
 	int x_coord = -b/a;
+	x_goal = (x_coord + x_goal)/2;
 	float theta_avg = M_PI/2;
-    	if((x_coord - x_pl)!= 0)
+    	if((x_goal - x_pl)!= 0)
     	{
-        	theta_avg = (0 -lines.currentLine.p2.y) / ((float)(x_coord - x_pl));
+        	theta_avg = (0 -lines.currentLine.p2.y) / ((float)(x_goal - x_pl));
         	theta_avg = atan(theta_avg);
     	}
     	if(theta_avg < 0)
@@ -252,7 +254,7 @@ ModuleState::MODULE_EXITCODE Driver::body()
 	/*if(steeringVal > 0) {
 	    m_angularError = m_angularError + steeringVal/2;
         }*/
-	float theta = (m_angularError/180)*M_PI_2;
+	float theta = m_angularError/180*M_PI;
 	int x_err = x_goal - x_pl;
         m_lateralError = cos(theta) * x_err;
 
@@ -323,26 +325,33 @@ ModuleState::MODULE_EXITCODE Driver::body()
 	//m_desiredSteeringWheelAngle=-0.2;
         stringstream speedStream, steeringAngleStream;
 	uint16_t speedVal = uint16_t((m_speed+0.5)/4.0*(1619-1523) + 1523);
-    uint16_t wheelFreqVal = uint16_t(m_speed/m_wheelRadius*10);
-    // cout << "Send wheel frequency: " << wheelFreqVal << endl;
-    // m_protocol.setWheelFrequency(wheelFreqVal);
-	//if(speedVal != oldSpeedVal) {
-		cout << "Send speed: " << speedVal << endl;
-		m_protocol.setSpeed(speedVal);
-        oldSpeedVal = speedVal;
-		msleep(1);
+        uint16_t wheelFreqVal = uint16_t(m_speed/m_wheelRadius*10);
+	if(wheelFreqVal != oldSpeedVal) {
+        	m_protocol.setWheelFrequency(wheelFreqVal);
+	        cout << "Send wheel frequency: " << wheelFreqVal << endl;
+	        oldSpeedVal = wheelFreqVal;
+		speedCnt++;
+	}
+	if(speedCnt > 10) {
+		oldSpeedVal = -1;
+		speedCnt = 0;
+	}
+        //cout << "Send speed: " << speedVal << endl;
+        //m_protocol.setSpeed(speedVal);
+	msleep(2);
 	//}
 	float desSteering = m_desiredSteeringWheelAngle*180/M_PI;
-	cout << desSteering <<endl;
+	cout << "Desired steering: " << desSteering <<endl;
 	if(desSteering > 32) desSteering = 32;
 	if(desSteering < -32) desSteering = -32;
 	int16_t steeringVal = int16_t(desSteering);
-	//if(steeringVal != oldSteeringVal) {
+	if(steeringVal != oldSteeringVal) {
 		cout << "Send angle: " << steeringVal << endl;
         	m_protocol.setSteeringAngle(steeringVal);
 		oldSteeringVal = steeringVal;
-		msleep(1);
-		//m_protocol.setBrakeForce('+');
+	}
+	msleep(1);
+	//m_protocol.setBrakeForce('+');
 	//}
 	/*if(x_err > 200) {
 		cout << "Cam angle: 10" << endl;

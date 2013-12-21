@@ -4,6 +4,7 @@
 
 #define MIN_ANGLE 15
 #define ROAD_SIZE 770
+#define ROAD_GOAL 0.5
 
 #include <queue>
 #include "opencv2/opencv.hpp"

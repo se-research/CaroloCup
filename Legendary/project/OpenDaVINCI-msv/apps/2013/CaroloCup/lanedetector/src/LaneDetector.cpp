@@ -82,7 +82,7 @@ LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
     m_config(),
     m_frame()
 {
-    m_config.th1 = 180;
+    m_config.th1 = 225;
     m_config.th2 = 230;
     m_config.hlTh = THRESH_BINARY;
     m_config.caThVal = 300;
@@ -95,9 +95,9 @@ LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
     m_config.houghMaxAngle = 160;
     m_config.houghStartVal = 25;
     m_config.houghMaxLines = 40;
-    m_config.XTimesYMin = 1;
-    m_config.XTimesYMax = 30;
-    m_config.maxY = 260;
+    m_config.XTimesYMin = 0;
+    m_config.XTimesYMax = 15;
+    m_config.maxY = 220;
 }
 
 LaneDetector::~LaneDetector()
@@ -115,8 +115,8 @@ void LaneDetector::setUp()
     createTrackbar("speed", "config", &m_config.speed, 100);*/
 
     createTrackbar("th1", "config", &m_config.th1, 250);
-    createTrackbar("th2", "config", &m_config.th2, 250);
-    createTrackbar("thType", "config", &m_config.hlTh, 4);
+    //createTrackbar("th2", "config", &m_config.th2, 250);
+    //createTrackbar("thType", "config", &m_config.hlTh, 4);
     //createTrackbar("maxLineLength", "config", &m_config.hlMaxLineLength, 250);
     //createTrackbar("maxLineGap", "config", &m_config.hlMaxLineGap, 250);
     /*createTrackbar("canTh", "config", &m_config.caThVal, 500);
@@ -363,7 +363,7 @@ void LaneDetector::processImage()
     cout<<"Spliting............"<<endl;
     width = m_frame.size().width;
     height = m_frame.size().height;
-    Mat getFirst = m_frame(cv::Rect(1, 6*height/16-1, width-1, 10*height/16-1));
+    Mat getFirst = m_frame(cv::Rect(1, 5*height/16-1, width-1, 11*height/16-1));
     //Mat getFirst = m_frame(cv::Rect(1, height/2-1, width-1, height/2-1));
     //Mat getSecond  = m_frame(cv::Rect(1,3*height/8-1, width-1, height/8-1));
     //Mat getThird = m_frame(cv::Rect(1,1,width-1,height/4-1));

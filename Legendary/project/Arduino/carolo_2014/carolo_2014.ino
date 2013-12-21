@@ -217,10 +217,10 @@ void loop()
     controlMotor();
     controlSteering();
   }
-  unsigned long curr = millis();
   ms = ms + 1;
   //Calculate car speed
-  if(ms > 4) {
+  if(ms > 3) {
+    unsigned long curr = millis();
     //Serial.println((curr - time));
     int diff = cnt * 1000 / (curr - time);
     float newSpeed = diff * 0.03;
@@ -231,9 +231,9 @@ void loop()
     }
     freq = int(diff*1.2);
     if (applyCruiseCtrl) {
-      Serial.println("Enter cruise control");
-      Serial.print("Frequency: ");
-      Serial.println(freq);
+      //Serial.println("Enter cruise control");
+      //Serial.print("Frequency: ");
+      //Serial.println(freq);
       int error = setFreq - freq;
       Serial.print("Error: ");
       Serial.println(error);
@@ -247,8 +247,8 @@ void loop()
         speed += errorSign;
       }
       speed = constrain(speed, 1547, 1623);
-      Serial.print("Speed :");
-      Serial.println(speed);
+      //Serial.print("Speed :");
+      //Serial.println(speed);
       controlMotor();
       /*
       speed = 1520 + propGain*error + intGain*acumFreqError;
@@ -259,7 +259,7 @@ void loop()
     ms = 0;
     time = curr;
   }
-  delay(5);
+  delay(10);
 }
 
 void controlMotor() {

@@ -14,7 +14,7 @@ namespace carolocup {
 	}
 
 	void ArduinoMegaProtocol::setWheelFrequency(int freq) {
-		stingstream ss;
+		stringstream ss;
 		ss << 'f' << freq << '/';
 		int errorCode = m_SerialProtocol.writeToSerial(&ss);
  	}
