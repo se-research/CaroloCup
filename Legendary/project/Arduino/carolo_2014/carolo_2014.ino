@@ -193,9 +193,11 @@ void loop()
       }
       if(brake) {
         if(applybrake) {
+          digitalWrite(ledPin1, HIGH);
           replicateMotor.writeMicroseconds(1000);
         } 
         else {
+          digitalWrite(ledPin1, LOW);
           replicateMotor.writeMicroseconds(1530);
         }
       }
@@ -267,9 +269,11 @@ void controlMotor() {
   Serial.println(speed);
   myMotor.writeMicroseconds(speed);
   if(speed < BRAKE_SPEED_MAX && speed > BRAKE_SPEED_MIN) {
+    digitalWrite(ledPin1, HIGH);
     replicateMotor.writeMicroseconds(1000);
   } 
   else {
+    digitalWrite(ledPin1, LOW);
     replicateMotor.writeMicroseconds(1530);
   }
 }
@@ -309,8 +313,7 @@ void evaluateReceiver()
   receiverSteer = map(receiverSteer, 1600,2300,819,2219);
   if(receiverSpeed > 670 && receiverSpeed < 1370 && !takeOver) {
     takeOver = true;
-    digitalWrite(ledPin1, LOW);
-    digitalWrite(ledPin2, HIGH);
+    digitalWrite(ledPin2, LOW);
     lastTimeStamp = millis();
   }
   if(takeOver) {
@@ -318,13 +321,11 @@ void evaluateReceiver()
     receiverSteer = (receiverSteer - 1519)/10;
     angle = receiverSteer * (-1);
     if (millis() - lastTimeStamp >= 500) {
-      digitalToggle(ledPin1);
       digitalToggle(ledPin2);
       lastTimeStamp = millis();
     }
   }
   if((angle > 150 || angle < -150) && takeOver) {
-    digitalWrite(ledPin1, LOW);
     digitalWrite(ledPin2, LOW);
     takeOver = false;
   }
