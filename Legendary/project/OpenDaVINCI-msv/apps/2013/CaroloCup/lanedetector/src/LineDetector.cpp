@@ -22,6 +22,7 @@ vector<CustomLine> solidLines;
 int h, w;
 int roadSize = ROAD_SIZE;
 int roadAngle = 91;
+bool foundStopStartLine = false;
 
 LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug, const int id)
     : m_lines(NULL)
@@ -39,8 +40,7 @@ LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug, co
     w = m_frame.size().width;
     h = m_frame.size().height;
     /// Detect edges using Threshold
-    threshold( m_frame, m_frame, cfg.th1, 255, CV_THRESH_BINARY); //| CV_THRESH_OTSU );
-    //cv::Canny(getFirst, getFirst, cfg.caThVal, cfg.caThMax, cfg.caThTyp);
+    threshold( m_frame, m_frame, cfg.th1, 255, CV_THRESH_BINARY);
 
     //Find dash and solid lines
     findLines(outputImg);
@@ -90,7 +90,7 @@ Lines LineDetector::getLines()
 		for(int i = 0; i < cntSolid; i++) {
 		    int centerSolidLineX = (solidLines[i].p1.x + solidLines[i].p2.x)/2;
 		    //if(solidLines[i].slope < 90 && solidLines[i].slope > supRightLine.slope) {
-		    if(solidLines[i].slope < 90 && solidLines[i].slope > 0 && min(solidLines[i].p1.x, solidLines[i].p2.x) < min(supRightLine.p1.x, supRightLine.p2.x)) {
+		    if(solidLines[i].slope < 90 && solidLines[i].slope > 0 && min(solidLines[i].p1.x, solidLines[i].p2.x) < min(supRightLine.p1.x, supRightLine.p2.x) && max(solidLines[i].p1.x, solidLines[i].p2.x) > w/2) {
 			supRightLine = solidLines[i];
 			foundR = true;
 		    }
@@ -104,7 +104,7 @@ Lines LineDetector::getLines()
 		for(int i = 0; i < cntSolid; i++) {
 		    int centerSolidLineX = (solidLines[i].p1.x + solidLines[i].p2.x)/2;
 		    //if(solidLines[i].slope > -90 && solidLines[i].slope < supLeftLine.slope) {
-		    if(solidLines[i].slope > -90 && solidLines[i].slope < 0 && min(solidLines[i].p1.x, solidLines[i].p2.x) > min(supLeftLine.p1.x, supLeftLine.p2.x)) {
+		    if(solidLines[i].slope > -90 && solidLines[i].slope < 0 && min(solidLines[i].p1.x, solidLines[i].p2.x) > min(supLeftLine.p1.x, supLeftLine.p2.x) && min(solidLines[i].p1.x, solidLines[i].p2.x) < w/2) {
 			supLeftLine = solidLines[i];
 			foundL = true;
 		    }
@@ -351,13 +351,23 @@ void LineDetector::findLines(cv::Mat &outputImg) {
 	rectCenter.x = rect.center.x;
 	rectCenter.y = rect.center.y;
         rect.angle = getLineSlope(shortSideMiddle, rectCenter);
-	//cout << "Sizes [x,y] = [" << sizeX << "," << sizeY << "]" << endl;
+	/*if(sizeX > 0 && sizeY > 0) {
+		cout << "Sizes [x,y] = [" << sizeX << "," << sizeY << "]" << endl;
+		int boundLow = m_config.XTimesYMin*sizeX;
+		int boundHigh = m_config.XTimesYMax*sizeX;
+		int boundHigh2 = m_config.maxY;
+		cout << "Bounds: " << boundLow << "," << boundHigh << "," << boundHigh2 << endl;
+	}*/
 
+	int area = sizeX * sizeY;
+	/*if(area > 0) {
+		cout << "Area" << area << endl;
+	}*/
 	//Classify dash lines and solid lines
-	if(sizeY > m_config.XTimesYMin*sizeX && sizeY < m_config.XTimesYMax*sizeX && sizeY < m_config.maxY ) {
+	if(sizeY > m_config.XTimesYMin*sizeX && sizeY < m_config.XTimesYMax*sizeX && sizeY < m_config.maxY) {
 	     dashLines[cntDash] = createLineFromRect(&rect, sizeX, sizeY);
 	     cntDash++;
-	} else if(sizeY > sizeX && sizeY > (m_config.maxY/2)){
+	} else if(sizeY > sizeX && sizeY > (m_config.maxY/2) && area < m_config.maxArea * 10000){
 	     solidLines[cntSolid] = createLineFromRect(&rect, sizeX, sizeY);
 	     cntSolid++;
 	}
@@ -365,37 +375,42 @@ void LineDetector::findLines(cv::Mat &outputImg) {
 
     //Filter dashes outside the solid lines and merge solid lines
     for(int j=0; j < cntSolid; j++) {
-	float a = M_PI * solidLines[j].slope / 180;
+	float a = tan(M_PI * solidLines[j].slope / 180);
 	Point center;
 	center.x = (solidLines[j].p1.x + solidLines[j].p2.x) / 2;
 	center.y = (solidLines[j].p1.y + solidLines[j].p2.y) / 2;
 	float b = center.y - center.x * a;
 	//cout << "Equation [a,b]: [" << a << "," << b << "]" << endl;
-	for(int l=0; l < cntDash; l++) {
- 	    Point dashCenter;
-	    dashCenter.x = (dashLines[l].p1.x + dashLines[l].p2.x) / 2;
-	    dashCenter.y = (dashLines[l].p1.y + dashLines[l].p2.y) / 2;
-	    float res = a*dashCenter.x + b;
-	    //cout << "[res, y] = [" << res << "," << dashCenter.y << "]" << endl;
-	    //cout << "[x, y] = [" << dashCenter.x << "," << dashCenter.y << "]" << endl;
-	    if(res > dashCenter.y) {
-		dashLines[l] = dashLines[cntDash-1];
-		cntDash--;
-		l--;
-		//cout<< cntDash <<endl;
-	    }
-	}
-	for(int k=j+1; k < cntSolid; k++) {
-	    Point sldCenter;
-	    sldCenter.x = (solidLines[k].p1.x + solidLines[k].p2.x) / 2;
-	    sldCenter.y = (solidLines[k].p1.y + solidLines[k].p2.y) / 2;
-	    float res = a*sldCenter.x + b;
-	    if(res > sldCenter.y) {
-		solidLines[k] = solidLines[cntSolid-1];
-		cntSolid--;
-		k--;
-		//cout<< cntDash <<endl;
-	    }
+	//cout << "Dashes" << endl;
+	if((solidLines[j].slope > MIN_ANGLE - 5 && max(solidLines[j].p1.x, solidLines[j].p1.x) > w/2) ||
+		(solidLines[j].slope < (-1) * (MIN_ANGLE - 5) && min(solidLines[j].p1.x, solidLines[j].p1.x) < w/2)) {
+		for(int l=0; l < cntDash; l++) {
+	 	    Point dashCenter;
+		    dashCenter.x = (dashLines[l].p1.x + dashLines[l].p2.x) / 2;
+		    dashCenter.y = (dashLines[l].p1.y + dashLines[l].p2.y) / 2;
+		    float res = a*dashCenter.x + b;
+		    //cout << "[res, y] = [" << res << "," << dashCenter.y << "]" << endl;
+		    //cout << "[x, y] = [" << dashCenter.x << "," << dashCenter.y << "]" << endl;
+		    if(res > dashCenter.y) {
+			dashLines[l] = dashLines[cntDash-1];
+			cntDash--;
+			l--;
+			//cout<< cntDash <<endl;
+		    }
+		}
+		//cout << "Solids" << endl;
+		for(int k=j+1; k < cntSolid; k++) {
+		    Point sldCenter;
+		    sldCenter.x = (solidLines[k].p1.x + solidLines[k].p2.x) / 2;
+		    sldCenter.y = (solidLines[k].p1.y + solidLines[k].p2.y) / 2;
+		    float res = a*sldCenter.x + b;
+		    if(res > sldCenter.y) {
+			solidLines[k] = solidLines[cntSolid-1];
+			cntSolid--;
+			k--;
+			//cout<< cntSolid <<endl;
+		    }
+		}
 	}
     }
 
@@ -406,11 +421,12 @@ void LineDetector::findLines(cv::Mat &outputImg) {
 	CustomLine l = solidLines[i]; 
 	int minAngle = MIN_ANGLE - 5;
         //cout << "Slope: " << l.slope << " min is " << minAngle << endl;
-        if(l.slope < minAngle && l.slope > ((-1) * minAngle) )
+        if(abs(l.slope) < minAngle )
         {
             solidLines[i] = solidLines[cntSolid-1];
 	    cntSolid--;
 	    i--;
+	    foundStopStartLine = true;
         }
     }
     //Dash also positioned too high on the image or too left or too right
@@ -430,6 +446,7 @@ void LineDetector::findLines(cv::Mat &outputImg) {
 
     cout << "Dashes: " << cntDash << endl;
     cout << "Solids: " << cntSolid << endl;
+    cout << "StopLine: " << foundStopStartLine << endl;
 
     //Print lines
     for(int i = 0; i < cntDash; i++) {
@@ -536,12 +553,6 @@ float LineDetector::getLineSlope(Point &p1, Point &p2)
     return slope*180/M_PI;
 }
 
-/** Get distance between two points */
-float LineDetector::getDist(const Point p1, const Point p2) const
-{
-    return sqrt(pow(p1.x-p2.x, 2) + pow(p1.y-p2.y, 2));
-}
-
 /** Predicts the road angle considering one detected line */
 int LineDetector::getRoadAngle(int lineDetected, int lineAngle){
    int roadAngle = 89;
@@ -549,7 +560,7 @@ int LineDetector::getRoadAngle(int lineDetected, int lineAngle){
        case 1: {
            //founded line is right line
 	   if(lineAngle < 63 && lineAngle >= 25) {
-		roadAngle = 29.1 + 1.44*lineAngle;
+		roadAngle = 29.1 + 1.18*lineAngle;//1.44
 	   } else if(lineAngle < 25) {
 		roadAngle = 65;
 	   }
@@ -557,15 +568,15 @@ int LineDetector::getRoadAngle(int lineDetected, int lineAngle){
        case 2: {
            //founded line is dash line
 	   if(lineAngle < 0) {
-               roadAngle = 65 + (lineAngle + 90) * 0.59;
+               roadAngle = 65 + (lineAngle + 90) * 0.45;//0.59;
            } else {
-               roadAngle = 65 + (lineAngle - 90) * 0.59;
+               roadAngle = 65 + (lineAngle - 90) * 0.45;//0.59;
            }
        }; break;
        case 3: {
            //founded line is left line
 	   if(lineAngle > -63 && lineAngle <= -25) {
-		roadAngle = 29.1 - 1.44*lineAngle;
+		roadAngle = 29.1 - 1.18*lineAngle; //1.44
 	   } else if(lineAngle > -25) {
 		roadAngle = 65;
 	   }

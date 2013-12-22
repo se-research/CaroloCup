@@ -41,34 +41,14 @@ using namespace core::data;
 using namespace core::data::image;
 using namespace cv;
 
-///////////////////////////////////////////////////////////////////////////////
-/*The three functions below are function declarations for the Thread functions*/
-void  *functionBottom(void *argument);
-void  *functionMiddle(void *argument);
-void  *functionTop(void *argument);
-
-/*These are three Mat pointers, one for each segment of the image*/
-Mat *getFirstPointer;
-Mat *getSecondPointer;
-Mat *getThirdPointer;
-
-/* Mutex variables that would be shared between threads */
-pthread_mutex_t running_mutex_bottom = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t running_mutex_middle = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t running_mutex_top = PTHREAD_MUTEX_INITIALIZER;
-
-carolocup::Lines linesTop, linesMiddle, linesBottom;
-volatile bool topDone = false, middleDone = false, bottomDone = false;
 bool debug;
 Config cfg;
 // Global variables for camera functions
 HIDS hCam = 0;
 char* ppcImgMem;
 int pid;
-pthread_t t1, t2; // t3 ;
 int ret, avg_time = 0, num_msmnt;
-double width, height;
-///////////////////////////////////////////////////////////////////////////////
+double width = 752, height = 480;
 
 LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
     ConferenceClientModule(argc, argv, "lanedetector") ,
@@ -85,19 +65,10 @@ LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
     m_config.th1 = 225;
     m_config.th2 = 230;
     m_config.hlTh = THRESH_BINARY;
-    m_config.caThVal = 300;
-    m_config.caThMax = 100;
-    m_config.caThTyp = 3;
-    m_config.pGain = 10;
-    m_config.intGain = 19;
-    m_config.derGain = 23;
-    m_config.houghMinAngle = 20;
-    m_config.houghMaxAngle = 160;
-    m_config.houghStartVal = 25;
-    m_config.houghMaxLines = 40;
     m_config.XTimesYMin = 0;
-    m_config.XTimesYMax = 15;
-    m_config.maxY = 220;
+    m_config.XTimesYMax = 30;
+    m_config.maxY = 190;
+    m_config.maxArea = 4;
 }
 
 LaneDetector::~LaneDetector()
@@ -109,41 +80,15 @@ void LaneDetector::setUp()
     // This method will be call automatically _before_ running body().
 
     namedWindow("config",1);
-    /*createTrackbar("pGain", "config", &m_config.pGain, 100);
-    createTrackbar("intGain", "config", &m_config.intGain, 100);
-    createTrackbar("derGain", "config", &m_config.derGain, 100);
-    createTrackbar("speed", "config", &m_config.speed, 100);*/
 
+    //Thresholding
     createTrackbar("th1", "config", &m_config.th1, 250);
-    //createTrackbar("th2", "config", &m_config.th2, 250);
-    //createTrackbar("thType", "config", &m_config.hlTh, 4);
-    //createTrackbar("maxLineLength", "config", &m_config.hlMaxLineLength, 250);
-    //createTrackbar("maxLineGap", "config", &m_config.hlMaxLineGap, 250);
-    /*createTrackbar("canTh", "config", &m_config.caThVal, 500);
-    createTrackbar("canThWithRatio", "config", &m_config.caThMax, 500);
-    createTrackbar("canNoOfKernels", "config", &m_config.caThTyp, 10);
-    createTrackbar("houghStart", "config", &m_config.houghStartVal, 100);
-    createTrackbar("houghMaxLines", "config", &m_config.houghMaxLines, 500);*/
 
     //Dash properties
     createTrackbar("min times", "config", &m_config.XTimesYMin, 5);
     createTrackbar("max times", "config", &m_config.XTimesYMax, 40);
     createTrackbar("max y", "config", &m_config.maxY , 400);
-
-    // BirdView
-    //createTrackbar("f", "config", &m_config.birdF, 1500);
-    //createTrackbar("dist", "config", &m_config.birdDist, 500);
-    //createTrackbar("alpha", "config", &m_config.birdAlpha, 25);
-    //createTrackbar("beta", "config", &m_config.birdBeta, 180);
-    //createTrackbar("gamma", "config", &m_config.birdGamma, 360);
-    // DBSCAN
-    /*createTrackbar("eps", "config", &m_config.dbEps, 100);
-    createTrackbar("minPts", "config", &m_config.dbMinPts, 100);
-    createTrackbar("dashMin", "config", &m_config.dashMin, 100);
-    createTrackbar("dashMax", "config", &m_config.dashMax, 200);
-    createTrackbar("dashWidth", "config", &m_config.dashWidth, 25);
-    createTrackbar("solidMin", "config", &m_config.solidMin, 150);
-    createTrackbar("solidWidth", "config", &m_config.solidWidth, 15);*/
+    createTrackbar("max area", "config", &m_config.maxArea , 7);
 }
 
 void LaneDetector::tearDown()
@@ -230,67 +175,6 @@ void drawLines(carolocup::Lines* lines, Mat* dst, int offset) {
     }*/
 }
 
-/////////////////////////////////////////////////////START//////////////////////////////////////////////////////////////////////////////////
-/*The three functions below are the functions that is run by each of the threads
-You can do stuff with the image segment in each function. Because of issues with
-	 X server and Multi-threads I can't use"imshow within the Thread functions",
-	If you want to show the images, show them outside the function somewhere in
-	the processImage() function*/
-
-void *functionBottom(void *argument)
-{
-    cout << "\nRunning this from Thread_Bottom" << endl;
-    int i = 0;
-    argument = (void *) i;
-    cout << argument << endl;
-    LineDetector road(*getFirstPointer, cfg, debug, 1);
-    linesBottom = road.getLines();
-    //linesBottom.stopLineHeight = road.detectStopLine(10);
-    //linesBottom.startLineHeight = road.detectStartLine(10);
-    pthread_mutex_lock(&running_mutex_bottom);
-    bottomDone = true;
-    pthread_mutex_unlock(&running_mutex_bottom);
-    cout << "Bottom end" << endl;
-    return 0;
-}
-
-
-void *functionMiddle(void *argument)
-{
-    cout << "\nRunning this from Thread_Middle" << endl;
-    int i = 0;
-    argument = (void *) i;
-    cout << argument;
-    LineDetector road(*getSecondPointer, cfg, debug, 2);
-    linesMiddle = road.getLines();
-    //linesMiddle.stopLineHeight = road.detectStopLine(10);
-    //linesMiddle.startLineHeight = road.detectStartLine(10);
-    pthread_mutex_lock(&running_mutex_middle);
-    middleDone = true;
-    pthread_mutex_unlock(&running_mutex_middle);
-    cout << "Middle end" << endl;
-    return 0;
-}
-
-void *functionTop(void *argument)
-{
-    cout << "\nRunning this from Thread_Top" << endl;
-    int i = 0;
-    argument = (void *) i;
-    cout << argument;
-
-    LineDetector road(*getThirdPointer, cfg, debug, 3);
-    linesTop = road.getLines();
-    //linesTop.stopLineHeight = road.detectStopLine(10);
-    //linesTop.startLineHeight = road.detectStartLine(10);
-    pthread_mutex_lock(&running_mutex_top);
-    topDone = true;
-    pthread_mutex_unlock(&running_mutex_top);
-    cout << "Top end" << endl;
-    return 0;
-}
-
-
 int __nsleep(const struct timespec *req, struct timespec *rem)
 {
     struct timespec temp_rem;
@@ -311,40 +195,8 @@ int msleep(unsigned long milisec)
     return 1;
 }
 
-//////////////////////////////////////////////////////END///////////////////////////////////////////////////////////////////////////////////
-
-carolocup::Lines mergeLinesData()
-{
-    linesBottom.dashedLine[1] = linesBottom.dashedLine[1] != 0 ? linesBottom.dashedLine[1] + height/2 : 0;
-    linesBottom.dashedLine[3] = linesBottom.dashedLine[3] != 0 ? linesBottom.dashedLine[3] + height/2 : 0;
-    linesBottom.leftLine[1] = linesBottom.leftLine[1] != 0 ? linesBottom.leftLine[1] + height/2 : 0;
-    linesBottom.leftLine[3] = linesBottom.leftLine[3] != 0 ? linesBottom.leftLine[3] + height/2 : 0;
-    linesBottom.rightLine[1] = linesBottom.rightLine[1] != 0 ? linesBottom.rightLine[1] + height/2 : 0;
-    linesBottom.rightLine[3] = linesBottom.rightLine[3] != 0 ? linesBottom.rightLine[3] + height/2 : 0;
-    linesBottom.width = width;
-    linesBottom.height =  height;
-    linesMiddle.dashedLine[1] = linesMiddle.dashedLine[1] != 0 ? linesMiddle.dashedLine[1] + 3*height/8 : 0;
-    linesMiddle.dashedLine[3] = linesMiddle.dashedLine[3] != 0 ? linesMiddle.dashedLine[3] + 3*height/8 : 0;
-    linesMiddle.leftLine[1] = linesMiddle.leftLine[1] != 0 ? linesMiddle.leftLine[1] + 3*height/8 : 0;
-    linesMiddle.leftLine[3] = linesMiddle.leftLine[3] != 0 ? linesMiddle.leftLine[3] + 3*height/8: 0;
-    linesMiddle.rightLine[1] = linesMiddle.rightLine[1] != 0 ? linesMiddle.rightLine[1] + 3*height/8 : 0;
-    linesMiddle.rightLine[3] = linesMiddle.rightLine[3] != 0 ? linesMiddle.rightLine[3] + 3*height/8 : 0;
-    linesMiddle.width = width;
-    linesMiddle.height =  height;
-    return linesBottom;
-}
-
-/*
-matrix<double,4,1> getCurvePolynom() {
-    
-}
-*/
-
 void LaneDetector::processImage()
 {
-
-    /*Mat pickMat(m_image,false);
-     imshow("Source Image", pickMat);*/
 
     TimeStamp currentTime_strt1;
     //Mat dst;
@@ -353,60 +205,11 @@ void LaneDetector::processImage()
     //dst = m_frame.clone();
 
     //cout<<"Cloning............"<<endl;
-    //dst.setTo( Scalar(0,0,0));
     debug = m_debug;
     cfg = m_config;
-//////////////////////////////////////////////////////START//////////////////////////////////////////////////////////////////////////////////
-    /*Each of Mat Images below represents a segment of the image
-    and their respective addresses are assigned to each of the pointers below*/
-    
-    cout<<"Spliting............"<<endl;
-    width = m_frame.size().width;
-    height = m_frame.size().height;
-    Mat getFirst = m_frame(cv::Rect(1, 5*height/16-1, width-1, 11*height/16-1));
-    //Mat getFirst = m_frame(cv::Rect(1, height/2-1, width-1, height/2-1));
-    //Mat getSecond  = m_frame(cv::Rect(1,3*height/8-1, width-1, height/8-1));
-    //Mat getThird = m_frame(cv::Rect(1,1,width-1,height/4-1));
 
-
-    //getFirstPointer = &getFirst;
-    //getSecondPointer = &getSecond;
-    //getThirdPointer = &getThird;
-
-    //cout<<"Creating Threads............"<<endl;
-    
-    /*Threes POSIX threads are created below and each of the threads are assigned to run each of the three functions*/
-    /*cout << "Threads started!" << endl;
-    ret = pthread_create(&t1, NULL, functionBottom,NULL);
-    if(ret != 0) {
-        cout << "Unable to create p1" << endl;
-        bottomDone = true;
-    }
-    pthread_create(&t2, NULL, functionMiddle,NULL);
-    if(ret != 0) {
-        cout << "Unable to create p2" << endl;
-        middleDone = true;
-    }
-    //middleDone = true;
-    //topDone = true;
-    while(true){
-        bool ok = false;
-        pthread_mutex_lock(&running_mutex_bottom);
-        if(bottomDone) ok = true;
-        pthread_mutex_unlock(&running_mutex_bottom);
-        pthread_mutex_lock(&running_mutex_middle);
-        if(middleDone) ok = ok && true;
-        pthread_mutex_unlock(&running_mutex_middle);
-        msleep(1);
-        if(ok) break;
-    }
-    pthread_join(t1,NULL);
-    pthread_join(t2,NULL);
-    bottomDone = false;
-    middleDone = false;
-    cout<<"Threads Done............"<<endl;
-    carolocup::Lines lines = mergeLinesData();*/
-    LineDetector road(getFirst, cfg, true, 1);
+    Mat neededPart = m_frame(cv::Rect(1, 3*height/16-1, width-1, 8*height/16-1));
+    LineDetector road(neededPart, cfg, true, 1);
     carolocup::Lines lines = road.getLines();
     if(&lines != NULL) cout << "We have lines!" << endl;
     LaneDetectionData data;
@@ -435,40 +238,14 @@ void LaneDetector::processImage()
     cout << dec;
     cout << "avg_time: " << avg_time << "ms" << endl;
 
-    /*if (m_debug) {
-    imshow("output", dst);
-    }*/
-    /*As I stated earlier, because of restrictions with X SERVER and Multi-threads
-    It will be difficult and messy trying to show the frames withing the thread functions
-           So you can show them outside like I have done here*/
-    //imshow("Input Image", m_frame);
-    //LineDetector roadB(getFirst, cfg, m_debug, 1);
-    //linesBottom = roadB.getLines();
-    //cfg.houghMinAngle = 5;
-    //cfg.houghMaxAngle = 175;
-    /*LineDetector roadM(getSecond, cfg, m_debug, 2);
-    linesMiddle = roadM.getLines();
-    lines.width =  w;
-    lines.height = h;
-    lines.pGain = m_config.pGain;
-    lines.intGain = m_config.intGain;
-    lines.derGain = m_config.derGain;
-    lines.speed = m_config.speed;
-    lines.stopLineHeight = road.detectStopLine(10);
-    lines.startLineHeight = road.detectStartLine(10);*/
-    //drawLines(&linesBottom, &m_frame, 0);
-    drawLines(&lines, &getFirst, 0);
-    //imshow("First Frame", *getFirstPointer);
-    //imshow("Second Frame", *getSecondPointer);
-    //imshow("Third Frame", *getThirdPointer);
+    drawLines(&lines, &neededPart, 0);
+
     cout << "VP [x, y] : [" << lines.goalLine.p1.x << ", " << lines.goalLine.p1.y << "]" << endl;
     cout << "Goal [x, y] : [" << lines.goalLine.p2.x << ", " << lines.goalLine.p2.y << "]" << endl;
     cout << "Position [x, y] : [" << lines.currentLine.p2.x << ", " << lines.currentLine.p2.y << "]" << endl;
-    imshow("Result", getFirst);
+    imshow("Result", neededPart);
 
-//////////////////////////////////////////////////////END////////////////////////////////////////////////////////////////////////////////
     waitKey(20);
-    //}
 }
 
 // This method will do the main data processing job.
@@ -478,72 +255,7 @@ ModuleState::MODULE_EXITCODE LaneDetector::body()
     KeyValueConfiguration kv = getKeyValueConfiguration();
     m_cameraId = kv.getValue<int32_t> ("lanedetector.camera_id");
     m_debug = kv.getValue<int32_t> ("lanedetector.debug") == 1;
-////////////////////////////////////////////////////////////////////////////////
-    /*	HIDS m_hCam=1;
-    	int m_nBitsPerPixel=8;
-    	int m_nColorMode= 6;
-    	int m_nSizeX = 758;
-    	int m_nSizeY = 480;
-    	char* m_pcImageMemory=NULL;
-    	int m_lMemoryId=0;
 
-    	//double dEnable = 1;
-    	double nominal = 128;
-
-
-    	//int ret = is_SetAutoParameter(m_hCam,IS_SET_ENABLE_AUTO_GAIN,&dEnable,0);
-    	is_SetAutoParameter(m_hCam,IS_SET_AUTO_REFERENCE,&nominal,0);
-
-    	INT nRet = is_InitCamera(&m_hCam,NULL);
-    	if(nRet != IS_SUCCESS)
-    	{
-    	    cout << "Error: Camera not found" << endl;
-    	    abort();
-    	}
-    	if(nRet == IS_SUCCESS)
-    	{
-
-    	    is_GetColorDepth(m_hCam,&m_nBitsPerPixel,&m_nColorMode);
-    	    if(is_SetColorMode(m_hCam,m_nColorMode) != IS_SUCCESS)
-    		{   cout << "Error: Set ColorMode" << endl; }
-    	}
-
-    	INT *pnSizeX = &m_nSizeX;
-    	INT *pnSizeY = &m_nSizeY;
-    	INT nAOISupported = 0;
-
-    	BOOL bAOISupported = TRUE;
-    	if (is_ImageFormat (m_hCam,IMGFRMT_CMD_GET_ARBITRARY_AOI_SUPPORTED,(void*)&nAOISupported,sizeof(nAOISupported))  == IS_SUCCESS)
-    	{
-    	    bAOISupported = (nAOISupported != 0);
-    	}
-    	if (bAOISupported)
-    	{
-    	    SENSORINFO sInfo;
-    	    is_GetSensorInfo(m_hCam,&sInfo);
-    	    *pnSizeX = sInfo.nMaxWidth;
-    	    *pnSizeY = sInfo.nMaxHeight;
-
-    	}
-    	else
-    	{
-    	    //IS_RECT rectAOI;
-    	    //rectAOI.s32X = 0;
-    	    //rectAOI.s32Y = 0;
-    	    //rectAOI.s32Width = m_nSizeX;
-    	    //rectAOI.s32Height = m_nSizeY;
-    	   // is_AOI(m_hCam,IS_AOI_IMAGE_SET_AOI,(void*)&rectAOI,sizeof(rectAOI));
-    	}
-    	nRet = is_AllocImageMem(m_hCam,m_nSizeX,m_nSizeY,m_nBitsPerPixel,&m_pcImageMemory,&m_lMemoryId);
-    	nRet = nRet && is_SetImageMem(m_hCam, m_pcImageMemory, m_lMemoryId);
-
-    	nRet = nRet && is_SetDisplayMode(m_hCam,IS_SET_DM_DIB);
-    	if(nRet != IS_SUCCESS)
-    	{
-    	    cout << "Error: is_SetDisplayMode" << endl;
-    	}*/
-
-////////////////////////////////////////////////////////////////////////////////
     bool isInitSuccess = init_camera();
     if(isInitSuccess)
     {
@@ -556,39 +268,8 @@ ModuleState::MODULE_EXITCODE LaneDetector::body()
                 img->imageData = (char*) newPointer;
                 Mat rawImg(img, false);
                 m_frame = rawImg.clone();
-                //m_frame = rawImg(cv::Rect(1,1,639, 479));
-                //m_frame = rawImg(cv::Rect(1,239,751,239));
-                //cvNamedWindow("image", CV_WINDOW_AUTOSIZE);
-                //cvShowImage("image", img);
-                //cout<<"Processing"<<endl;
                 processImage();
             }
-            /*
-                    if(m_hCam != 0)
-            	{
-
-                    //is_FreezeVideo(m_hCam,IS_WAIT);
-            	is_CaptureVideo(m_hCam,IS_WAIT);
-            	is_RenderBitmap(m_hCam,m_lMemoryId,NULL,IS_RENDER_FIT_TO_WINDOW);
-
-                    void *newPointer;
-                    if(is_GetImageMem(m_hCam, (void**)newPointer) == IS_SUCCESS){
-            	    img = cvCreateImageHeader(cvSize(758,480),IPL_DEPTH_8U,1);
-            	    img->imageData = (char*) newPointer;
-                        cvNamedWindow("image", CV_WINDOW_AUTOSIZE);
-            	    cvShowImage("image", img);
-                        cout<<"Processing"<<endl;
-
-                        Mat Maa(img, false);
-                        m_frame = Maa.clone();
-                        cout<<"In progress"<<endl;
-                        //processImage();
-                        cout<<"Processing Done"<<endl;
-                    }
-                   // cv::imshow("Mat", Maa);
-                   //is_FreeImageMem(m_hCam,m_pcImageMemory,m_lMemoryId);
-                   // is_ExitCamera(m_hCam);
-                   cvWaitKey(99);*/
         }
     }
     deinit_camera();
@@ -603,7 +284,7 @@ bool LaneDetector::init_camera()
 {
     int nRet = is_InitCamera (&hCam, NULL);
 
-    is_AllocImageMem(hCam,752, 480, 1 ,&ppcImgMem, &pid);
+    is_AllocImageMem(hCam, width, height, 1 ,&ppcImgMem, &pid);
     is_SetImageMem(hCam, ppcImgMem, pid);
     is_SetDisplayMode (hCam, IS_SET_DM_DIB);
     is_SetColorMode (hCam, IS_CM_MONO8);

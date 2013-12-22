@@ -2,8 +2,8 @@
 #define LINEDETECTOR_H_
 
 
-#define MIN_ANGLE 15
-#define ROAD_SIZE 770
+#define MIN_ANGLE 10
+#define ROAD_SIZE 640//770
 #define ROAD_GOAL 0.5
 
 #include <queue>
@@ -22,7 +22,7 @@ namespace carolocup {
 struct Config {
   int th1, th2, hlTh, caThVal, caThMax, caThTyp,
       pGain, intGain, derGain, houghMinAngle, houghMaxAngle, 
-      houghStartVal, houghMaxLines, XTimesYMin, XTimesYMax, maxY;
+      houghStartVal, houghMaxLines, XTimesYMin, XTimesYMax, maxY, maxArea;
 
 };
 

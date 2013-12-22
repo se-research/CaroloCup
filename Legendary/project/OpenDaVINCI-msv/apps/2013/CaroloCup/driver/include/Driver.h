@@ -86,7 +86,6 @@ namespace carolocup {
       float m_curvatureDifferential;
       float m_oldCurvature;
       float m_speed;
-      float m_wheelFreq;
       double m_lateralError;
       double m_intLateralError;
       double m_derLateralError;

@@ -38,6 +38,9 @@ ADD_SUBDIRECTORY (proxy)
 # Application to wrap the motor controller.
 ADD_SUBDIRECTORY (UDP_Server)
 
+# Application to wrap the lidar communication.
+ADD_SUBDIRECTORY (Lidar)
+
 # Special target to simplify the rsync command.
 IF("${PANDABOARD}" STREQUAL "YES")
 ADD_CUSTOM_TARGET(push2meili-1-CaroloCup-2013
