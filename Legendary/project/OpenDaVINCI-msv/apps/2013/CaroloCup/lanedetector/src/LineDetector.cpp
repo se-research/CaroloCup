@@ -357,7 +357,7 @@ void LineDetector::findLines(cv::Mat &outputImg) {
 	if(sizeY > m_config.XTimesYMin*sizeX && sizeY < m_config.XTimesYMax*sizeX && sizeY < m_config.maxY ) {
 	     dashLines[cntDash] = createLineFromRect(&rect, sizeX, sizeY);
 	     cntDash++;
-	} else if(sizeY > 4*m_config.XTimesYMin*sizeX && sizeY > (m_config.maxY/2)){
+	} else if(sizeY > sizeX && sizeY > (m_config.maxY/2)){
 	     solidLines[cntSolid] = createLineFromRect(&rect, sizeX, sizeY);
 	     cntSolid++;
 	}
