@@ -102,7 +102,7 @@ Lines LineDetector::getLines()
 	bool foundR=false, foundL=false, foundD=false, shrinkSize=false;
 	CustomLine supDashLine, supRightLine, supLeftLine;
         //Pick the suitable dashLine
-	cout << "Pick lines!" << endl;
+	//cout << "Pick lines!" << endl;
 	if(cntDash > 0) {
 		supDashLine.p1.y = 0;
 		supDashLine.p2.y = 0;
@@ -119,7 +119,7 @@ Lines LineDetector::getLines()
 		    //cout << "Dash y: " << max(dashLines[i].p1.y,dashLines[i].p2.y) << endl;
 		    //cout << "Dash max: " << max(dashLines[i+1].p1.y,dashLines[i+1].p2.y) << " Dash min: " <<  min(dashLines[i].p1.y,dashLines[i].p2.y) << endl;
 		    if(i != cntDash - 1 && max(dashLines[i+1].p1.y,dashLines[i+1].p2.y) > min(dashLines[i].p1.y,dashLines[i].p2.y)) {
-			cout << "Removing wrong dash!" << endl;
+			//cout << "Removing wrong dash!" << endl;
 			int positionX = getIntersectionWithBottom(dashLines[i]);
 			int nPositionX = getIntersectionWithBottom(dashLines[i+1]);
 			//cout << "Curr closenest: " << abs(oldDashGoalX - positionX) << ", other:" << abs(oldDashGoalX - nPositionX) << endl;
@@ -141,7 +141,9 @@ Lines LineDetector::getLines()
 			    if(i > 0) {
 	         	    	i--;
 	    		    }
-			    cout << "Remove dash becuase of intersection! (" << YI << ") " << endl;
+			    if(m_debug) {
+				    cout << "Remove dash becuase of intersection! (" << YI << ") " << endl;
+			    }
 		    }
 		    //if(max(dashLines[i].p1.y,dashLines[i].p2.y) > max(supDashLine.p1.y, supDashLine.p2.y)) {
 			//supDashLine = dashLines[i];
@@ -159,7 +161,9 @@ Lines LineDetector::getLines()
 			supDashLine = dashLines[0];
 			int dashSupPosX = getIntersectionWithBottom(supDashLine);
 			//if(supDashLine.slope < 0) {
-			cout << "Dash line slope: " << supDashLine.slope << endl;
+			if(m_debug) {
+				cout << "Dash line slope: " << supDashLine.slope << endl;
+			}
 		        /*Point2f dwpm1 = getWorldPoint(Point2i(supDashLine.p1.x, supDashLine.p1.y + offset));
 			cout << "World dash point1: " << dwpm1.x << "," << dwpm1.y << endl;
 		        Point2f dwpm2 = getWorldPoint(Point2i(supDashLine.p2.x, supDashLine.p2.y + offset));
@@ -200,7 +204,9 @@ Lines LineDetector::getLines()
 			int rSupPosX = getIntersectionWithBottom(supRightLine);
 			//cout << "Right diff x: " << abs(rSupPosX - oldRightGoalX) << endl;
 			if(abs(rSupPosX - oldRightGoalX) < calcRoadSize * 0.8 || oldRightGoalX == 0) {
-				cout << "Right line slope: " << supRightLine.slope << endl;
+				if(m_debug) {
+					cout << "Right line slope: " << supRightLine.slope << endl;
+				}
 				rightLine = Vec4i(supRightLine.p1.x, supRightLine.p1.y, supRightLine.p2.x, supRightLine.p2.y);
 				oldRightGoalX = rSupPosX;
 			} else {
@@ -220,7 +226,9 @@ Lines LineDetector::getLines()
 		if(foundL) {
 			int lSupPosX = getIntersectionWithBottom(supLeftLine);
 			if(abs(lSupPosX - oldLeftGoalX) < calcRoadSize * 0.8 || oldLeftGoalX == 0) {
-				cout << "Left line slope: " << supLeftLine.slope << endl;
+				if(m_debug){
+					cout << "Left line slope: " << supLeftLine.slope << endl;
+				}
 				leftLine = Vec4i(supLeftLine.p1.x, supLeftLine.p1.y, supLeftLine.p2.x, supLeftLine.p2.y);
 				oldLeftGoalX = lSupPosX;
 			} else {
@@ -243,9 +251,11 @@ Lines LineDetector::getLines()
 		oldDashGoalX = dashGoalX;
 		int dashCenterX = (supDashLine.p1.x + supDashLine.p2.x)/2;
 		int dashCenterY = (supDashLine.p1.y + supDashLine.p2.y)/2;
-		cout << "Dash center: " << dashCenterX << "," << dashCenterY << endl;
-		//cout << da << "*dx + " << db << endl;
-		cout << "Dash line X: " << dashGoalX << endl;
+		if(m_debug) {
+			cout << "Dash center: " << dashCenterX << "," << dashCenterY << endl;
+			//cout << da << "*dx + " << db << endl;
+			cout << "Dash line X: " << dashGoalX << endl;
+		}
 		if(foundR) {
 			//We have dash and right line
 			//Calculate vanishing point
@@ -262,12 +272,14 @@ Lines LineDetector::getLines()
 			calcRoadAngle = getRoadAngle(2, supDashLine.slope);
 			calcRoadSize = getRoadSize(calcRoadAngle);
 			goalP.x = dashGoalX + roadSz*ROAD_GOAL;//(dashGoalX + rightGoalX)/2;//dashGoalX + ROAD_SIZE/2;
-			cout << "Road size: " <<  roadSz << endl;
-			cout << "Road angle prediction: " << calcRoadAngle << endl;
-			cout << "Road size prediction: " << calcRoadSize << endl;
-			cout << "Road angle: " << (180 - abs(supDashLine.slope) - abs(supRightLine.slope)) << endl;
-			cout << "Right line X: " << rightGoalX << endl;
-			cout << "CASE: Dash and right" << endl;
+			if(m_debug) {
+				cout << "Road size: " <<  roadSz << endl;
+				cout << "Road angle prediction: " << calcRoadAngle << endl;
+				cout << "Road size prediction: " << calcRoadSize << endl;
+				cout << "Road angle: " << (180 - abs(supDashLine.slope) - abs(supRightLine.slope)) << endl;
+				cout << "Right line X: " << rightGoalX << endl;
+				cout << "CASE: Dash and right" << endl;
+			}
 			oldLeftGoalX = 0;
 		/*} else if(foundL){
 			//We have dash and left line
@@ -284,7 +296,7 @@ Lines LineDetector::getLines()
 			//We have only dash line
 			//offset with half the size of road to the right
 			calcRoadAngle = getRoadAngle(2, supDashLine.slope);
-			double inp[3], outA[3], outS[3];
+			/*double inp[3], outA[3], outS[3];
 			if(supDashLine.slope < 0) {
 				inp[0] = 180 + supDashLine.slope;
 			} else {
@@ -294,7 +306,7 @@ Lines LineDetector::getLines()
 			inp[2] = (supDashLine.p1.y + supDashLine.p2.y)/2;
 			nnRoadAngleCalc(inp, outA);
 			nnRoadSizeCalc(inp, outS);
-			cout << "NN result: " << outA[0] << ", " << outS[0] << endl;
+			cout << "NN result: " << outA[0] << ", " << outS[0] << endl;*/
 			calcRoadSize = getRoadSize(calcRoadAngle);
 			/*if(shrinkSize) {
 				calcRoadSize = 0.8 * calcRoadSize;
@@ -306,10 +318,12 @@ Lines LineDetector::getLines()
 			}
 			float a = tan(expectedRightLineAngle * M_PI / 180);
 			float b = goalP.y - expectedRightLineX * a;
-			cout << "Road angle prediction: " << calcRoadAngle << endl;
-			cout << "Road size prediction: " << calcRoadSize << endl;
-			cout << "Expected right line X: " << expectedRightLineX << endl;
-			cout << "Expected right line angle: " << expectedRightLineAngle << endl;
+			if(m_debug) {
+				cout << "Road angle prediction: " << calcRoadAngle << endl;
+				cout << "Road size prediction: " << calcRoadSize << endl;
+				cout << "Expected right line X: " << expectedRightLineX << endl;
+				cout << "Expected right line angle: " << expectedRightLineAngle << endl;
+			}
 			//cout << a << "*x + " << b << endl;
 			if (da != a) {
 				vp.x = (b - db) / (da - a);
@@ -329,7 +343,9 @@ Lines LineDetector::getLines()
 			float a = tan(supRightLine.slope * M_PI / 180);
 			float b = supRightLine.p1.y - supRightLine.p1.x * a;
 			int rightGoalX = (h - b)/ a;
-			cout << "Right line X: " << rightGoalX << endl;
+			if(m_debug) {
+				cout << "Right line X: " << rightGoalX << endl;
+			}
 			//cout << a << "*x + " << b << endl;
 			calcRoadAngle = getRoadAngle(1, supRightLine.slope);
 			calcRoadSize = getRoadSize(calcRoadAngle);
@@ -338,10 +354,12 @@ Lines LineDetector::getLines()
 			if(expectedDashLineAngle > 90) {
 				expectedDashLineAngle = expectedDashLineAngle - 180;
 			}
-			cout << "Road angle prediction: " << calcRoadAngle << endl;
-			cout << "Road size prediction: " << calcRoadSize << endl;
-			cout << "Expected dash line X: " << expectedDashLineX << endl;
-			cout << "Expected dash line angle: " << expectedDashLineAngle << endl;
+			if(m_debug) {
+				cout << "Road angle prediction: " << calcRoadAngle << endl;
+				cout << "Road size prediction: " << calcRoadSize << endl;
+				cout << "Expected dash line X: " << expectedDashLineX << endl;
+				cout << "Expected dash line angle: " << expectedDashLineAngle << endl;
+			}
 			float da = tan(expectedDashLineAngle * M_PI / 180);
 			float db = goalP.y - expectedDashLineX * da;
 			//cout << da << "*x + " << db << endl;
@@ -360,7 +378,9 @@ Lines LineDetector::getLines()
 			float a = tan(supLeftLine.slope * M_PI / 180);
 			float b = supLeftLine.p1.y - supLeftLine.p1.x * a;
 			int leftGoalX = (h - b)/ a;
-			cout << "Left line X: " << leftGoalX << endl;
+			if(m_debug){
+				cout << "Left line X: " << leftGoalX << endl;
+			}			
 			//cout << a << "*x + " << b << endl;
 			calcRoadAngle = getRoadAngle(3, supLeftLine.slope);
 			calcRoadSize = getRoadSize(calcRoadAngle);
@@ -369,10 +389,12 @@ Lines LineDetector::getLines()
 			if(expectedDashLineAngle > 90) {
 				expectedDashLineAngle = expectedDashLineAngle - 180;
 			}			
-			cout << "Road angle prediction: " << calcRoadAngle << endl;
-			cout << "Road size prediction: " << calcRoadSize << endl;
-			cout << "Expected dash line X: " << expectedDashLineX << endl;
-			cout << "Expected dash line angle: " << expectedDashLineAngle << endl;
+			if(m_debug) {
+				cout << "Road angle prediction: " << calcRoadAngle << endl;
+				cout << "Road size prediction: " << calcRoadSize << endl;
+				cout << "Expected dash line X: " << expectedDashLineX << endl;
+				cout << "Expected dash line angle: " << expectedDashLineAngle << endl;
+			}
 			float da = tan(expectedDashLineAngle * M_PI / 180);
 			float db = goalP.y - expectedDashLineX * da;
 			//cout << da << "*x + " << db << endl;
@@ -389,7 +411,9 @@ Lines LineDetector::getLines()
 	}
 	m_lines = new Lines(leftLine, dashLine, rightLine);
 	//If we have a goal set the position and
-	cout << "Road size diff: " << abs(currRoadSize - calcRoadSize) << endl;
+	if(m_debug){
+		cout << "Road size diff: " << abs(currRoadSize - calcRoadSize) << endl;
+	}
 	if(foundGoal && abs(currRoadSize - calcRoadSize) < 0.5*currRoadSize) {
 		//Suspect this position as the car position
 		Point position;
@@ -539,7 +563,7 @@ void LineDetector::findLines(cv::Mat &outputImg) {
 	     	dashLines[cntDash] = createLineFromRect(&rect, sizeX, sizeY);
 	     	cntDash++;
 	     }*/
-	     cout << "Dash Rect y: " << rectCenter.y << endl;
+	     //cout << "Dash Rect y: " << rectCenter.y << endl;
 	} else if(sizeY > sizeX && sizeY > (m_config.maxY/2) && area < m_config.maxArea * 10000){
 	     solidLines[cntSolid] = createLineFromRect(&rect, sizeX, sizeY);
 	     cntSolid++;
@@ -555,14 +579,16 @@ void LineDetector::findLines(cv::Mat &outputImg) {
 		}
 	     }
 	     YI = rectCenter.y;
-	     cout << "Intersection x: " << minXI << ", Intersection y: " << minYI << ", Center y: " << rectCenter.y << endl; 
+	     if(m_debug) {
+	     	cout << "Intersection x: " << minXI << ", Intersection y: " << minYI << ", Center y: " << rectCenter.y << endl; 
+	     }
 	     intersectionOn = true;
 	     foundIntersection = true;
 	}
     }
     if(intersectionOn && !foundIntersection){
 	YI = h;
-	cout << "INNNN" << endl;
+	//cout << "INNNN" << endl;
     }
 
     //Filter dashes outside the solid lines and merge solid lines
@@ -657,11 +683,15 @@ void LineDetector::findLines(cv::Mat &outputImg) {
     //Print lines
     for(int i = 0; i < cntDash; i++) {
 	line(outputImg, dashLines[i].p1, dashLines[i].p2, 45, 2);
-	cout << "Dash line angle: " << dashLines[i].slope << endl;
+	if(m_debug){
+		cout << "Dash line angle: " << dashLines[i].slope << endl;
+	}
     }
     for(int i = 0; i < cntSolid; i++) {
 	line(outputImg, solidLines[i].p1, solidLines[i].p2, 0, 2);
-	cout << "Solid line angle: " << solidLines[i].slope << endl;
+	if(m_debug) {
+		cout << "Solid line angle: " << solidLines[i].slope << endl;
+	}
     }
 }
 
@@ -768,7 +798,7 @@ int LineDetector::getRoadAngle(int lineDetected, int lineAngle){
    int roadAngle = ROAD_ANGLE;
    float c1 = (roadAngle - 29.1)/(180 - abs(MID_DASH_ANGLE) - roadAngle);
    float c2 = (roadAngle - 65.0)/(MID_DASH_ANGLE + 90);
-   cout << "Road angle consts: " << c1 << "," << c2 << endl;
+   //cout << "Road angle consts: " << c1 << "," << c2 << endl;
    switch(lineDetected) {
        case 1: {
            //founded line is right line
@@ -811,7 +841,7 @@ int LineDetector::getRoadSize(int roadAngle) {
    } else if(roadAngle > (ROAD_ANGLE - 15) && roadAngle < ROAD_ANGLE) {
 	roadSize = 5*(2*ROAD_ANGLE - roadAngle) + (ROAD_SIZE - ROAD_ANGLE*5);
    } else if(roadAngle < (ROAD_ANGLE - 15) && roadAngle > (ROAD_ANGLE - 25)) {
-	cout << "SZ S" << endl;
+	//cout << "SZ S" << endl;
 	float a = (ROAD_SIZE -  5)/5;
 	float b = 3*ROAD_SIZE - (ROAD_ANGLE + 25) * a;
 	roadSize = (2*ROAD_ANGLE - roadAngle) * a + b;

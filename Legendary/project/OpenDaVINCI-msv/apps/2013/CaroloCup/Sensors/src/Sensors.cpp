@@ -49,8 +49,8 @@ pthread_t t1, t2;
 
 unsigned char starter[1];
 unsigned char infra[13];
-unsigned char ultra[7];
-unsigned short int lenght = 2;
+unsigned char ultra[9];
+//unsigned short int lenght = 2;
 
 int fd;
 int timeCount = 0;
@@ -128,7 +128,7 @@ namespace carolocup {
         cerr<<"Couldn't Attach to Memory"<<endl;
     }
 
-	fd = open("/dev/ttyACM0", O_RDWR | O_NOCTTY | O_NDELAY);
+	fd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NDELAY);
    //fd = open("/dev/ttyACM0", O_RDWR | O_NOCTTY | O_NDELAY);
 
     if (fd == -1){
@@ -166,9 +166,9 @@ namespace carolocup {
 
   while(1){
 
-  sleep(0.005);
+//  sleep(0.005);
 
-  timeCount++;
+  //timeCount++;
 //////////////////////Hall Effect/////////////////////////////////////////////////
 /*results = get_gpio_data(); 
  
@@ -184,23 +184,22 @@ namespace carolocup {
 ////////////////////////Hall Effect/////////////////////////////////////////////////////
 
 
-int n;
-    if(timeCount == 20){
-       n = read(fd, starter, 1);
+    //if(timeCount > 20){
+    //   timeCount = 0;
+       int n = read(fd, starter, 1);
 
 ///////////////////////////////////////////////////gatherData.setUltrasonicDistance(1,  10);
 ///////////////////////////////////////////////////gatherData.setUltrasonicDistance(2,  20);
 
-gatherData.setUltrasonicDistance(1,  10);
-gatherData.setUltrasonicDistance(2,  20);
+//gatherData.setUltrasonicDistance(1,  10);
+//gatherData.setUltrasonicDistance(2,  20);
 
-}
+//}
 
         if(n < 0){
         fputs("read failed!\n", stderr);
 
-
-        getData->firstInfraredDistance = 5;
+        /*getData->firstInfraredDistance = 5;
    	getData->secondInfraredDistance = 10;
    	getData->thirdInfraredDistance = 15;
    	getData->fourthInfraredDistance = 20;
@@ -212,17 +211,14 @@ cout<<"\nGOT ULTRASONIC BACK  "<<gatherData.getUltrasonicDistance(2)<<endl;
 
 Container contSensor(Container::USER_DATA_3, gatherData);
         // Send containers.
-        getConference().send(contSensor);
+        getConference().send(contSensor);*/
         }
 
-
+	//cout << infra << " " << n << endl;
     if(starter[0] == 'i'){
 
-    int n = read(fd, infra, 12);
-
-
-	//char firstInfra[2] = {(infra[0]),(infra[1])};
- 	//string lala(firstInfra, 2);
+//cout<<"IIIIIIIIIIIIIIIIIII"<<endl;
+int n = read(fd, infra, 12);
 	char firstInfra[2]; 
 	firstInfra[0] = infra[0];
 	firstInfra[1] = infra[1];
@@ -252,82 +248,82 @@ Container contSensor(Container::USER_DATA_3, gatherData);
 
   	int one = 1;
 	int two = 2;
-	int three = 3;
+	int threes = 3;
 	int four = 4;
-   	if(firstInfra[0] == '0'){
-	cout<<"Found First: "<<firstInfra[1]<<endl;
-	firstInfraDist = firstInfra[1];
-        gatherData.setInfraredDistance(one, firstInfraDist);
+   	//if(firstInfra[0] == '0'){
+	firstInfraDist = converter(firstInfra, 2);
+	cout<<"Found First: "<<firstInfraDist<<endl;
 	getData->firstInfraredDistance = firstInfraDist;
- 	}
+ 	//}
 
-	else if(firstInfra[0] != '0'){
+	//else if(firstInfra[0] != '0'){
 
-	firstInfraDist = atoi(firstInfra);
-        gatherData.setInfraredDistance(one, firstInfraDist);
-        cout<<"More than Ten First: "<<firstInfraDist<<endl;
-	getData->firstInfraredDistance = firstInfraDist;
-         }
+	//firstInfraDist = atoi(firstInfra);
+        //cout<<"More than Ten First: "<<firstInfraDist<<endl;
+	//getData->firstInfraredDistance = firstInfraDist;
+         //}
 
-        if(secondInfra[0] == '0'){
-	cout<<"Found Second: "<<secondInfra[1]<<endl;
-	secondInfraDist = secondInfra[1];
-        gatherData.setInfraredDistance(two, secondInfraDist);
+        //if(secondInfra[0] == '0'){
+	secondInfraDist = converter(secondInfra, 2);	
+	cout<<"Found Second: "<<secondInfraDist<<endl;
    	getData->secondInfraredDistance = secondInfraDist;
- 	}
+ 	//}
 
-	else if(secondInfra[0] != '0'){
-	secondInfraDist = atoi(secondInfra);
-        gatherData.setInfraredDistance(two, secondInfraDist);
-        cout<<"More than Ten Second: "<<secondInfraDist<<endl;
-   	getData->secondInfraredDistance = secondInfraDist;
-         }
+	//else if(secondInfra[0] != '0'){
+	//secondInfraDist = atoi(secondInfra);
+        //cout<<"More than Ten Second: "<<secondInfraDist<<endl;
+   	//getData->secondInfraredDistance = secondInfraDist;
+        // }
 
-        if(thirdInfra[0] == '0'){
-	cout<<"Found Third: "<<thirdInfra[1]<<endl;
-	thirdInfraDist = thirdInfra[1];
-        gatherData.setInfraredDistance(three, thirdInfraDist);
+       // if(thirdInfra[0] == '0'){
+	thirdInfraDist = converter(thirdInfra, 2);	
+	cout<<"Found Third: "<<thirdInfraDist<<endl;
    	getData->thirdInfraredDistance = thirdInfraDist;
- 	}
+ 	//}
 
-	else if(thirdInfra[0] != '0'){
-	thirdInfraDist = atoi(thirdInfra);
-        gatherData.setInfraredDistance(three, thirdInfraDist);
-        cout<<"More than Ten Third: "<<thirdInfraDist<<endl;
-   	getData->thirdInfraredDistance = thirdInfraDist;
-         }
+	//else if(thirdInfra[0] != '0'){
+	//thirdInfraDist = atoi(thirdInfra);
+        //cout<<"More than Ten Third: "<<thirdInfraDist<<endl;
+   	//getData->thirdInfraredDistance = thirdInfraDist;
+        // }
 
-        if(fourthInfra[0] == '0'){
-	cout<<"Found Fourth: "<<fourthInfra[1]<<endl;
-	fourthInfraDist = fourthInfra[1];
-        gatherData.setInfraredDistance(four, fourthInfraDist);
+       // if(fourthInfra[0] == '0'){
+	fourthInfraDist = converter(fourthInfra, 2);
+	cout<<"Found Fourth: "<<fourthInfraDist<<endl;
    	getData->fourthInfraredDistance = fourthInfraDist;
- 	}
+ 	//}
 
-	else if(fourthInfra[0] != '0'){
-	fourthInfraDist = atoi(fourthInfra);
-        gatherData.setInfraredDistance(four, fourthInfraDist);
-        cout<<"More than Ten Fourth: "<<fourthInfraDist<<endl;
-   	getData->fourthInfraredDistance = fourthInfraDist;
-         }
+	//else if(fourthInfra[0] != '0'){
+	//fourthInfraDist = atoi(fourthInfra);
+        //cout<<"More than Ten Fourth: "<<fourthInfraDist<<endl;
+   	//getData->fourthInfraredDistance = fourthInfraDist;
+        // }
     }  //End of main if
 
-    //  }   //end of if statement when start byte is found
-    
+      }   //end of if statement when start byte is found
+   
+  
     if(starter[0] == 'u'){
 
-    int n = read(fd, ultra, 6);
 
-	char firstUltra[2];
+//cout<<"UUUUUUUUUUUUUUUUUUUUUUUUUU"<<endl;
+
+    int n = read(fd, ultra, 8);
+
+cout<<ultra<<endl;
+
+	char firstUltra[3];
 	firstUltra[0] = ultra[0];
 	firstUltra[1] = ultra[1];
+	firstUltra[2] = ultra[2];
 
-        char secondUltra[2];
-	secondUltra[0] = ultra[3];
-	secondUltra[1] = ultra[4];
+        char secondUltra[3];
+	secondUltra[0] = ultra[4];
+	secondUltra[1] = ultra[5];
+	secondUltra[2] = ultra[6];
 
-        char three = ultra[2];        //The ',' symbol
-	char six = ultra[5];          //The '.' symbol
+        char three = ultra[3];        //The ',' symbol
+	char six = ultra[7];          //The '.' symbol
 
 	int firstUltraDist;
 	int secondUltraDist;
@@ -337,30 +333,35 @@ Container contSensor(Container::USER_DATA_3, gatherData);
 	int one = 1;
 	int two = 2;
 
-   	if(firstUltra[0] == '0'){
+	
+	firstUltraDist = converter(firstUltra, 3);
+	getData->firstUltrasonicDistance = firstUltraDist;
+	cout<<"Found First Ultra: "<<firstUltraDist<<endl;
+
+	secondUltraDist = converter(secondUltra, 3);
+	getData->secondUltrasonicDistance = secondUltraDist;
+	cout<<"Found Second Ultra: "<<secondUltraDist<<endl;
+
+   	/*if(firstUltra[0] == '0'){
 	cout<<"Found First Ultra: "<<firstUltra[1]<<endl;
 	firstUltraDist = firstUltra[1];
-	//gatherData.setUltrasonicDistance(&one, &firstUltraDist);
    	getData->firstUltrasonicDistance = firstUltraDist;
  	}
         else if(firstUltra[0] != '0'){
 	firstUltraDist = atoi(firstUltra);
-        gatherData.setUltrasonicDistance(one, firstUltraDist);
         cout<<"More than Ten First Ultra: "<<firstUltraDist<<endl;
    	getData->firstUltrasonicDistance = firstUltraDist;
          }
         if(secondUltra[0] == '0'){
 	cout<<"Found Second Ultra: "<<secondUltra[1]<<endl;
 	secondUltraDist = secondUltra[1];
-	gatherData.setUltrasonicDistance(two, secondUltraDist);
    	getData->secondUltrasonicDistance = secondUltraDist;
  	}
         else if(secondUltra[0] != '0'){
 	secondUltraDist = atoi(secondUltra);
-        gatherData.setUltrasonicDistance(two, secondUltraDist);
         cout<<"More than Ten Second Ultra: "<<secondUltraDist<<endl;
    	getData->secondUltrasonicDistance = secondUltraDist;
-         }
+         }*/
 
     }
 
@@ -370,11 +371,10 @@ Container contSensor(Container::USER_DATA_3, gatherData);
         Container contSensor(Container::USER_DATA_3, gatherData);
         // Send containers.
         getConference().send(contSensor);
-
-        } //If statement controlled by Time count
-
-    } //End of infinite while loop
-
+      //  } //If statement controlled by Time count
+//cout << "Inside" << endl;
+   } //End of infinite while loop
+//cout << "Time: " << timeCount << endl;
 
   } //End of ModuleState::RUNNING
 
@@ -382,18 +382,21 @@ Container contSensor(Container::USER_DATA_3, gatherData);
     }
 
 
-/* int Sensors::converter(char* arrayInput){
+int Sensors::converter(char* arrayInput, int lenght){
      	int num = 0;
 
 	for(int i = 0;i < lenght; i++){
-
-	num = (arrayInput[i]*pow(10, lenght-i)+num);
+		if(arrayInput[i] < '0' || arrayInput[i] > '9') {
+			arrayInput[i] = '0';
+		}
+		arrayInput[i] = arrayInput[i] - '0';
+		num = (arrayInput[i]*pow(10, lenght-i-1)+num);
 
 	}
 
-    return num/10;  
+    return num;  
 
-   } *///End of Converter function  
+}//End of Converter function  
 
 
 /* Initializes the the pins and opens a thread for continual reading. To be
@@ -601,4 +604,5 @@ int pins_state(int pin_data[])
 
 
 } // carolocup
+
 

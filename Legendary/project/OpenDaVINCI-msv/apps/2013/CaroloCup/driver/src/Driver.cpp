@@ -92,7 +92,7 @@ Driver::Driver(const int32_t &argc, char **argv) :
     m_derGain(0.23) ,
     m_length(0.3) ,
     m_wheelRadius(0.27),
-    m_protocol("/dev/ttyUSB0", 6),
+    m_protocol("/dev/ttyUSB1", 6),
     ANGLE_TO_CURVATURE(2.5) ,
     SCALE_FACTOR (752/0.41) ,
     m_timestamp(0) ,
@@ -111,7 +111,7 @@ Driver::~Driver() {}
 void Driver::setUp()
 {
     // This method will be call automatically _before_ running body().
-    m_speed = 0.55;
+    m_speed = 0.5;
     m_oldCurvature = 0;
     m_controlGains[0] = 10;
     m_controlGains[1] = 20;
@@ -145,8 +145,9 @@ int msleep(unsigned long milisec)
 }
 
 int16_t oldSteeringVal=0, oldSpeedVal=0;
-int speedCnt = 0;
+int speedCnt = 0, steerCnt = 0;
 int16_t steeringVal=0;
+bool debug = false;
 
 // This method will do the main data processing job.
 ModuleState::MODULE_EXITCODE Driver::body()
@@ -154,7 +155,7 @@ ModuleState::MODULE_EXITCODE Driver::body()
     core::base::LIFOQueue lifo;
     addDataStoreFor(lifo);
     int x1, x2, x3, x4, y1, y2, y3, y4;
-    cout << "Ready to go!" << endl; 
+    //cout << "Ready to go!" << endl; 
 
     if ((shmid = shmget(key,  sizeof(allSensors), IPC_CREAT | 0666)) < 0) {
         cerr<<"Couldn't Create Memory"<<endl;
@@ -216,7 +217,7 @@ is done by "getData.getDistance().readingIndex" for the reading index e.t.c
             {
                 // We have found our expected container.
                 getData = con.getData<LidarData> ();
-                cout<<"GOT LIDAR DATA FROM THE CONTAINER"<<endl;
+                /*cout<<"GOT LIDAR DATA FROM THE CONTAINER"<<endl;
 
 
         cout<<"Reading Index:  "<<getLidarData->readingIndex<<endl;
@@ -227,17 +228,17 @@ is done by "getData.getDistance().readingIndex" for the reading index e.t.c
 	cout<<"thirdDegree:  "<<getLidarData->thirdDegree<<endl;
 	cout<<"thirdDistance:  "<<getLidarData->thirdDistance<<endl;
 	cout<<"fourthDegree:  "<<getLidarData->fourthDegree<<endl;
-	cout<<"fourthDistance:  "<<getLidarData->fourthDistance<<endl;
+	cout<<"fourthDistance:  "<<getLidarData->fourthDistance<<endl;*/
 
        lidarLookUp[getLidarData->firstDegree][1] = getLidarData->firstDistance;
        lidarLookUp[getLidarData->secondDegree][1] = getLidarData->secondDistance;
        lidarLookUp[getLidarData->thirdDegree][1] = getLidarData->thirdDistance;
        lidarLookUp[getLidarData->fourthDegree][1] = getLidarData->fourthDistance;
 
-cout<<"First:  "<<lidarLookUp[getLidarData->firstDegree][1]<<endl;
+/*cout<<"First:  "<<lidarLookUp[getLidarData->firstDegree][1]<<endl;
 cout<<"Second:  "<<lidarLookUp[getLidarData->secondDegree][1]<<endl;
 cout<<"Third:  "<<lidarLookUp[getLidarData->thirdDegree][1]<<endl;
-cout<<"Fourth:  "<<lidarLookUp[getLidarData->fourthDegree][1]<<endl;
+cout<<"Fourth:  "<<lidarLookUp[getLidarData->fourthDegree][1]<<endl;*/
 
          
                 break;
@@ -247,15 +248,15 @@ cout<<"Fourth:  "<<lidarLookUp[getLidarData->fourthDegree][1]<<endl;
             {
                 // We have found our expected container.
                 gatherData = con.getData<SensorData> ();
-                cout<<"GOT SENSOR DATA FROM THE CONTAINER:   "<<gatherData.getUltrasonicDistance(2)<<endl;
+     
              
-        cout<<"First:   "<<getSensorData->firstInfraredDistance<<endl;
+        /*cout<<"First:   "<<getSensorData->firstInfraredDistance<<endl;
    	cout<<"Second:   "<<getSensorData->secondInfraredDistance<<endl;
    	cout<<"Third:   "<<getSensorData->thirdInfraredDistance<<endl;
    	cout<<"Fourth:   "<<getSensorData->fourthInfraredDistance<<endl;
 
    	cout<<"Fifth:   "<<getSensorData->firstUltrasonicDistance<<endl;
-   	cout<<"Sixth:   "<<getSensorData->secondUltrasonicDistance<<endl;
+   	cout<<"Sixth:   "<<getSensorData->secondUltrasonicDistance<<endl;*/
  
                 break;
 		//lifo.clear();
@@ -304,6 +305,7 @@ cout<<"Fourth:  "<<lidarLookUp[getLidarData->fourthDegree][1]<<endl;
             continue;
         }
 
+	if(debug)
         {
             cout << ",propGain: " << m_propGain;
             cout << ",intGain: " << m_intGain;
@@ -333,10 +335,12 @@ cout<<"Fourth:  "<<lidarLookUp[getLidarData->fourthDegree][1]<<endl;
 	}
 
 	float theta_curr = lines.currentLine.slope;
-	cout << "Position: " << x_pl << endl;
-	cout << "Goal: " << x_goal << endl;
-	cout << "Curr Orientation: " << theta_curr << endl;
-	cout << "Goal Orientation: " << theta_avg << endl;
+	if(debug) {
+		cout << "Position: " << x_pl << endl;
+		cout << "Goal: " << x_goal << endl;
+		cout << "Curr Orientation: " << theta_curr << endl;
+		cout << "Goal Orientation: " << theta_avg << endl;
+	}
 	m_angularError = theta_avg - theta_curr;
 	float theta = m_angularError/180*M_PI;
 	int x_err = x_goal - x_pl;
@@ -355,8 +359,8 @@ cout<<"Fourth:  "<<lidarLookUp[getLidarData->fourthDegree][1]<<endl;
 		m_intLateralError = 2*m_lateralError;
             }
             m_derLateralError = (m_lateralError - oldLateralError) / sec;
-            cout << endl;
-            cout << "  sec: " << sec;
+            //cout << endl;
+            //cout << "  sec: " << sec;
         }
 
         TimeStamp now;
@@ -367,30 +371,37 @@ cout<<"Fourth:  "<<lidarLookUp[getLidarData->fourthDegree][1]<<endl;
         m_desiredSteeringWheelAngle += m_intLateralError*m_intGain;
         m_desiredSteeringWheelAngle += m_derLateralError*m_derGain;
 
-	cout << "  x_error: " << x_err;
-        cout << "  derLateral: " << m_derLateralError;
-        cout << "  intLateral: " << m_intLateralError;
-        cout << "  lateral: " << m_lateralError;
-        cout << "  orentation: " << m_angularError;
-	cout << "  theta: " << theta;
-        cout << "  angle: " << m_desiredSteeringWheelAngle;
-        cout << "  speed: " << m_speed;
-        cout << "  width " << scr_width;
-        cout << "  height: " << scr_height;
-        cout << endl;
+	if(debug) {
+		cout << "  x_error: " << x_err;
+		cout << "  derLateral: " << m_derLateralError;
+		cout << "  intLateral: " << m_intLateralError;
+		cout << "  lateral: " << m_lateralError;
+		cout << "  orentation: " << m_angularError;
+		cout << "  theta: " << theta;
+		cout << "  angle: " << m_desiredSteeringWheelAngle;
+		cout << "  speed: " << m_speed;
+		cout << "  width " << scr_width;
+		cout << "  height: " << scr_height;
+		cout << endl;
+	}
 
         stringstream speedStream, steeringAngleStream;
-	uint16_t speedVal = uint16_t((m_speed+0.5)/4.0*(1619-1523) + 1523);
+	uint16_t speedVal = 1567;//uint16_t((m_speed+0.5)/4.0*(1619-1523) + 1523);
 	float angularSpeed = m_speed/m_wheelRadius * 10;
         uint16_t wheelFreqVal = uint16_t(angularSpeed);
 
-	if(wheelFreqVal != oldSpeedVal) {
-        	m_protocol.setWheelFrequency(wheelFreqVal);
-	        cout << "Send wheel frequency: " << wheelFreqVal << endl;
-	        oldSpeedVal = wheelFreqVal;
+	if(speedVal != oldSpeedVal) {
+		m_protocol.setSpeed(speedVal);
+		cout << "Send wheel speed: " << speedVal << endl;
+        //	m_protocol.setWheelFrequency(wheelFreqVal);
+	//        cout << "Send wheel frequency: " << wheelFreqVal << endl;
+	//        oldSpeedVal = wheelFreqVal;
+		oldSpeedVal = speedVal;
+		speedCnt++;
+	} else {
 		speedCnt++;
 	}
-	if(speedCnt > 10) {
+	if(speedCnt > 30) {
 		oldSpeedVal = -1;
 		speedCnt = 0;
 	}
@@ -398,17 +409,28 @@ cout<<"Fourth:  "<<lidarLookUp[getLidarData->fourthDegree][1]<<endl;
 
 	float desSteering = m_desiredSteeringWheelAngle*180/M_PI;
 	cout << "Desired steering: " << desSteering <<endl;
-	if(desSteering > 43) desSteering = 43;
-	if(desSteering < -43) desSteering = -43;
+	if(desSteering > 41) desSteering = 42;
+	if(desSteering < -41) desSteering = -42;
 
 	int16_t steeringVal = int16_t(desSteering);
 	if(steeringVal != oldSteeringVal) {
 		cout << "Send angle: " << steeringVal << endl;
         	m_protocol.setSteeringAngle(steeringVal);
 		oldSteeringVal = steeringVal;
+		steerCnt ++;
+	} else {
+		steerCnt++;
+	}
+	if(steerCnt > 3) {
+		oldSteeringVal = -90;
+		steerCnt = 0;
 	}
 	msleep(1);
     }
+    msleep(5);
+    m_protocol.setSpeed(1520);
+    msleep(5);
+    m_protocol.setSteeringAngle(0);
     return ModuleState::OKAY;
 }
 

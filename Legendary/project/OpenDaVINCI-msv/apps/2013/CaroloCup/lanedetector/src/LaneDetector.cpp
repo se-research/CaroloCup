@@ -67,7 +67,7 @@ LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
     m_config.hlTh = THRESH_BINARY;
     m_config.XTimesYMin = 0;
     m_config.XTimesYMax = 30;
-    m_config.maxY = 220;
+    m_config.maxY = 225;
     m_config.maxArea = 4;
 }
 
@@ -78,17 +78,6 @@ LaneDetector::~LaneDetector()
 void LaneDetector::setUp()
 {
     // This method will be call automatically _before_ running body().
-
-    namedWindow("config",1);
-
-    //Thresholding
-    createTrackbar("th1", "config", &m_config.th1, 250);
-
-    //Dash properties
-    createTrackbar("min times", "config", &m_config.XTimesYMin, 5);
-    createTrackbar("max times", "config", &m_config.XTimesYMax, 40);
-    createTrackbar("max y", "config", &m_config.maxY , 400);
-    createTrackbar("max area", "config", &m_config.maxArea , 7);
 }
 
 void LaneDetector::tearDown()
@@ -206,10 +195,11 @@ void LaneDetector::processImage()
 
     //cout<<"Cloning............"<<endl;
     debug = m_debug;
+    cout << "Debug: " << debug << endl;
     cfg = m_config;
 
     Mat neededPart = m_frame(cv::Rect(1, 2*height/16-1, width-1, 10*height/16-1));
-    LineDetector road(neededPart, cfg, true, 1);
+    LineDetector road(neededPart, cfg, debug, 1);
     carolocup::Lines lines = road.getLines();
     if(&lines != NULL) cout << "We have lines!" << endl;
     LaneDetectionData data;
@@ -220,14 +210,14 @@ void LaneDetector::processImage()
     Container con(Container::USER_DATA_1, data);
 
     // Send the data:
-    cout << "Send..." << endl;
+    //cout << "Send..." << endl;
     getConference().send(con);
 
     // Create an instance of data structure for parking and set some values.
 
     TimeStamp currentTime_strt7;
     double timeStep_total = (currentTime_strt7.toMicroseconds() - currentTime_strt1.toMicroseconds()) / 1000.0;
-    cout << "Total  " << timeStep_total << "ms" << endl;
+    if(debug) cout << "Total  " << timeStep_total << "ms" << endl;
     if(avg_time == 0) {
         avg_time = timeStep_total;
         num_msmnt = 1;
@@ -235,8 +225,10 @@ void LaneDetector::processImage()
         avg_time = (avg_time * num_msmnt + timeStep_total) / (num_msmnt + 1);
         num_msmnt = (num_msmnt + 1) % 10;
     }
-    cout << dec;
-    cout << "avg_time: " << avg_time << "ms" << endl;
+    if(debug) {
+        cout << dec;
+        cout << "avg_time: " << avg_time << "ms" << endl;
+    }
 
     if(lines.goalLine.p1.x == 0 && lines.goalLine.p1.y == 0 && lines.goalLine.p2.x == 0 && lines.goalLine.p2.y == 0 && lines.currentLine.p2.x == 0 && lines.currentLine.p2.y == 0) {
 	cout << "Nothing in..." << endl;
@@ -244,10 +236,13 @@ void LaneDetector::processImage()
     	drawLines(&lines, &neededPart, 0);
     }
 
-    cout << "VP [x, y] : [" << lines.goalLine.p1.x << ", " << lines.goalLine.p1.y << "]" << endl;
-    cout << "Goal [x, y] : [" << lines.goalLine.p2.x << ", " << lines.goalLine.p2.y << "]" << endl;
-    cout << "Position [x, y] : [" << lines.currentLine.p2.x << ", " << lines.currentLine.p2.y << "]" << endl;
-    imshow("Result", neededPart);
+    if(debug) {
+	    cout << "VP [x, y] : [" << lines.goalLine.p1.x << ", " << lines.goalLine.p1.y << "]" << endl;
+	    cout << "Goal [x, y] : [" << lines.goalLine.p2.x << ", " << lines.goalLine.p2.y << "]" << endl;
+	    cout << "Position [x, y] : [" << lines.currentLine.p2.x << ", " << lines.currentLine.p2.y << "]" << endl;
+
+	    imshow("Result", neededPart);
+    }
 
     waitKey(20);
 }
@@ -259,6 +254,19 @@ ModuleState::MODULE_EXITCODE LaneDetector::body()
     KeyValueConfiguration kv = getKeyValueConfiguration();
     m_cameraId = kv.getValue<int32_t> ("lanedetector.camera_id");
     m_debug = kv.getValue<int32_t> ("lanedetector.debug") == 1;
+
+    if(m_debug) {
+	    namedWindow("config",1);
+
+	    //Thresholding
+	    createTrackbar("th1", "config", &m_config.th1, 250);
+
+	    //Dash properties
+	    createTrackbar("min times", "config", &m_config.XTimesYMin, 5);
+	    createTrackbar("max times", "config", &m_config.XTimesYMax, 40);
+	    createTrackbar("max y", "config", &m_config.maxY , 400);
+	    createTrackbar("max area", "config", &m_config.maxArea , 7);
+    }
 
     bool isInitSuccess = init_camera();
     if(isInitSuccess)

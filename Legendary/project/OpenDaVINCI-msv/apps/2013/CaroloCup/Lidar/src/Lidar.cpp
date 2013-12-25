@@ -126,7 +126,7 @@ namespace carolocup {
     }
  
 
-   fd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NDELAY);
+   fd = open("/dev/ttyUSB1", O_RDWR | O_NOCTTY | O_NDELAY);
 
     if (fd == -1){
 	perror("cannot open");
@@ -261,7 +261,7 @@ if(fow > 100 && fow < 500){
 	printf("Index: %d   Degree: %d   Distance: %d\n\n\n", Pointer4->readingIndex, Pointer4->degree, Pointer4->distance);
 
       
-	sendData.setIndex(Pointer1->readingIndex);
+	/*sendData.setIndex(Pointer1->readingIndex);
 	sendData.setFirstDeg(Pointer1->degree);
 	sendData.setFirstDist(Pointer1->distance);
 	sendData.setSecondDeg(Pointer2->degree);
@@ -269,11 +269,11 @@ if(fow > 100 && fow < 500){
    	sendData.setThirDeg(Pointer3->degree);
 	sendData.setThirdDist(Pointer3->distance);
    	sendData.setFourthDeg(Pointer4->degree);
-	sendData.setFourthDist(Pointer4->distance);
+	sendData.setFourthDist(Pointer4->distance);*/
 
 
 
- unsigned int readingIndex;
+/* unsigned int readingIndex;
   unsigned int firstDegree;
   unsigned int firstDistance;
   unsigned int secondDegree;
@@ -282,7 +282,7 @@ if(fow > 100 && fow < 500){
   unsigned int thirdDistance;
   unsigned int fourthDegree;
   unsigned int fourthDistance;
-
+*/
         getLidarData->readingIndex = Pointer1->readingIndex;
         getLidarData->firstDegree = Pointer1->degree;
         getLidarData->firstDistance = Pointer1->distance;

@@ -35,7 +35,7 @@ namespace carolocup {
 //void  * function1(void * argument);
 //void  * function2(void * argument);
 
-     int converter(char* arrayInput);
+     int converter(char* arrayInput, int lenght);
 
 	/*void initialize_pin_reading();    //Hall Effect
 	int get_movement_data();          //Hall Effect

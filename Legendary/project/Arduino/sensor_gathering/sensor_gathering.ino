@@ -1,5 +1,7 @@
 #include <Wire.h>
-#define ADDRESS 112
+#include <stdio.h>
+#define ADDRESSBACK 115
+#define ADDRESSFRONT 112
 
 int irpin1 = 0;                 // analog pin used to connect the sharp sensor
 int irpin2 = 1;                 // analog pin used to connect the sharp sensor
@@ -55,7 +57,9 @@ void loop()
   ir2 = getDistance(analogRead(irpin2));
   ir3 = getDistance(analogRead(irpin3));
   ir4 = getDistance(analogRead(irpin4)); 
-  Serial.print("i");
+  char irStr[13];
+  sprintf(irStr, "i%2d,%2d,%2d,%2d.", ir1, ir2, ir3, ir4);
+/*  Serial.print("i");
   Serial.print(ir1);
   Serial.print(",");
   Serial.print(ir2);
@@ -63,10 +67,11 @@ void loop()
   Serial.print(ir3);
   Serial.print(",");
   Serial.print(ir4);
-  Serial.println(".");
+  Serial.println(".");*/
+  Serial.println(irStr);
 
-  // step 1: instruct sensor to read echoes
-  Wire.beginTransmission(ADDRESS); // transmit to device #112 (0x70)
+  //instruct sensor to read echoes
+  Wire.beginTransmission(ADDRESSFRONT); // transmit to front sensor #112 (0x70)(It is actually 0xE0)
                                // the address specified in the datasheet is 224 (0xE0)
                                // but i2c adressing uses the high 7 bits so it's 112
   Wire.write(byte(0x00));      // sets register pointer to the command register (0x00)  
@@ -74,27 +79,55 @@ void loop()
                                // use 0x51 for centimeters
                                // use 0x52 for ping microseconds
   Wire.endTransmission();      // stop transmitting
+  Wire.beginTransmission(ADDRESSBACK); // transmit to Back sensor #115 (0x73) (It is actually 0xE6)
+  Wire.write(byte(0x00));      // sets register pointer to the command register (0x00)  
+  Wire.write(byte(0x51));      // command sensor to measure in "inches" (0x50) 
+                               // use 0x51 for centimeters
+                               // use 0x52 for ping microseconds
+  Wire.endTransmission();      // stop transmitting
+  // wait for readings to happen
 
-  // step 2: wait for readings to happen
   delay(70);                   // datasheet suggests at least 65 milliseconds
 
-  // step 3: instruct sensor to return a particular echo reading
-  Wire.beginTransmission(ADDRESS); // transmit to device #112
+ // instruct sensor to return a particular echo reading
+  Wire.beginTransmission(ADDRESSFRONT); // transmit to device #112
+  Wire.write(byte(0x02));      // sets register pointer to echo #1 register (0x02)
+  Wire.endTransmission();      // stop transmitting
+  Wire.beginTransmission(ADDRESSBACK); // transmit to device #115
   Wire.write(byte(0x02));      // sets register pointer to echo #1 register (0x02)
   Wire.endTransmission();      // stop transmitting
 
-  // step 4: request reading from sensor
-  Wire.requestFrom(ADDRESS, 2);    // request 2 bytes from slave device #112
+  // request reading from sensor
+  Wire.requestFrom(ADDRESSFRONT, 2);    // request 2 bytes from slave device #112
   // step 5: receive reading from sensor
+  int uf = -1;
   if(2<= Wire.available())    // if two bytes were received
   {
     reading = Wire.read();  // receive high byte (overwrites previous reading)
     reading = reading << 8;    // shift high byte to be high 8 bits
     reading |= Wire.read(); // receive low byte as lower 8 bits
-    Serial.print("u");
-    Serial.print(reading);   // print the reading
-    Serial.println(".");
+    uf = reading;
   }
+   Wire.requestFrom(ADDRESSBACK, 2);    // request 2 bytes from slave device #112
+  // step 5: receive reading from sensor
+  int ub = -1;
+  if(2<= Wire.available())    // if two bytes were received
+  {
+    reading = Wire.read();  // receive high byte (overwrites previous reading)
+    reading = reading << 8;    // shift high byte to be high 8 bits
+    reading |= Wire.read(); // receive low byte as lower 8 bits
+    ub = reading;
+  }
+
+  char uStr[9];
+
+  sprintf(uStr, "u%3d,%3d.", uf, ub);
+  /*Serial.print("u");
+  Serial.print(uff);
+  Serial.print(",");
+  Serial.print(ubf);
+  Serial.println(".");*/
+  Serial.println(uStr);
   /*ms++;
   if(ms > 2) {
     //Calculate car speed
