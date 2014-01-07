@@ -44,7 +44,7 @@ int main(int , char** argv)
   cfg.houghMaxLines = 40;
   cfg.XTimesYMin = 1;
   cfg.XTimesYMax = 30;
-  cfg.maxY = 200;
+  cfg.maxY = 230;
 
   namedWindow("config",1);
   //Dash properties

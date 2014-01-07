@@ -6,6 +6,9 @@
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 
+#include <iostream>
+#include <fstream>
+
 namespace carolocup
 {
 
@@ -36,7 +39,7 @@ LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug, co
     w = m_frame.size().width;
     h = m_frame.size().height;
     /// Detect edges using Threshold
-    threshold( m_frame, m_frame, cfg.th1, cfg.th2, cfg.hlTh );
+    threshold( m_frame, m_frame, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU );
     //cv::Canny(getFirst, getFirst, cfg.caThVal, cfg.caThMax, cfg.caThTyp);
 
     //Find dash and solid lines
@@ -59,6 +62,8 @@ Lines LineDetector::getLines()
 {
     if (NULL == m_lines)
     {
+	ofstream mylog;
+	mylog.open("test.log", ios::out | ios::app);
 	Vec4i dashLine(0,0,0,0), leftLine(0,0,0,0), rightLine(0,0,0,0);
 
 	bool foundR=false, foundL=false, foundD=false;
@@ -112,7 +117,7 @@ Lines LineDetector::getLines()
 		float da = tan(supDashLine.slope * M_PI / 180);
 		float db = supDashLine.p1.y - supDashLine.p1.x * da;
 		int dashGoalX = (goalP.y - db)/da;
-		cout << da << "*dx + " << db << endl;
+		//cout << da << "*dx + " << db << endl;
 		cout << "Dash line X: " << dashGoalX << endl;
 		if(foundR) {
 			//We have dash and right line
@@ -125,13 +130,14 @@ Lines LineDetector::getLines()
 				vp.x = (b - db) / (da - a);
 			}
 			vp.y = da*vp.x + db;
-			roadAngle = abs(supDashLine.slope) + abs(supRightLine.slope);
+			//roadAngle = abs(supDashLine.slope) + abs(supRightLine.slope);
+			mylog << supDashLine.slope << "," << supRightLine.slope << endl;
 			goalP.x = dashGoalX + ROAD_SIZE/2; //(dashGoalX + rightGoalX)/2;
 			cout << "Road size: " <<  (rightGoalX - dashGoalX) << endl;
 			cout << "Road angle: " << roadAngle << endl;
 			cout << "Right line X: " << rightGoalX << endl;
 			cout << "CASE: Dash and right" << endl;
-		} else if(foundL){
+		/*} else if(foundL){
 			//We have dash and left line
 			float a = tan(supLeftLine.slope * M_PI / 180);
 			float b = supLeftLine.p1.y - supLeftLine.p1.x * a;
@@ -141,7 +147,7 @@ Lines LineDetector::getLines()
 			}
 			vp.y = da*vp.x + db;
 			goalP.x = dashGoalX + ROAD_SIZE/2;
-			cout << "CASE: Dash and left" << endl; 
+			cout << "CASE: Dash and left" << endl;*/ 
 		} else {
 			//We have only dash line
 			//offset with half the size of road to the right
@@ -150,6 +156,7 @@ Lines LineDetector::getLines()
 			float a = tan(expectedRightLineAngle * M_PI / 180);
 			float b = goalP.y - expectedRightLineX * a;
 			cout << "Expected right line X: " << expectedRightLineX << endl;
+			cout << "Expected right line angle: " << expectedRightLineAngle << endl;
 			//cout << a << "*x + " << b << endl;
 			if (da != a) {
 				vp.x = (b - db) / (da - a);
@@ -167,9 +174,12 @@ Lines LineDetector::getLines()
 			float a = tan(supRightLine.slope * M_PI / 180);
 			float b = supRightLine.p1.y - supRightLine.p1.x * a;
 			int rightGoalX = (h - b)/ a;
+			cout << "Right line X: " << rightGoalX << endl;
 			//cout << a << "*x + " << b << endl;
 			int expectedDashLineX = rightGoalX - ROAD_SIZE;
 			float expectedDashLineAngle = supRightLine.slope - roadAngle;
+			cout << "Expected dash line X: " << expectedDashLineX << endl;
+			cout << "Expected dash line angle: " << expectedDashLineAngle << endl;
 			float da = tan(expectedDashLineAngle * M_PI / 180);
 			float db = goalP.y - expectedDashLineX * da;
 			//cout << da << "*x + " << db << endl;
@@ -233,6 +243,7 @@ Lines LineDetector::getLines()
 	} else {
 		cout << "CASE: NONE" << endl;
 	}
+	mylog.close();
     }
     return *m_lines;
 }
