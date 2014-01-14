@@ -37,7 +37,7 @@ Point2f ipm(Point2i img_pt, CameraStruct cam) {
     Mat tc2 = (Mat_<double>(3,1) << 0, a, 0);
     Mat x = (Mat_<double>(3,1) << u, v, 1);
     Mat X = (K*R).inv()*(x + tc2 - K*tc1);
-    return Point2f(X.at<double>(0,0), X.at<double>(1,0));
+    return Point2f(X.at<double>(0,0)/X.at<double>(0,2), X.at<double>(1,0)/X.at<double>(0,2));
 }
 
 Point2f ipm2(Point2i img_pt, CameraStruct cam) {
@@ -47,9 +47,22 @@ Point2f ipm2(Point2i img_pt, CameraStruct cam) {
 	return Point2f(X.at<double>(0,0), X.at<double>(1,0));
 }
 
+Point2f ipm3(Point2i img_pt, CameraStruct cam) {
+	float h = cam.height;
+	float theta = cam.theta0*CV_PI/180;
+	float gamma = cam.gamma0*CV_PI/180;
+	float alphaU = atan2(cam.u0, cam.focal);
+	float alphaV = atan2(cam.v0, cam.focal);
+	float m = cam.size.height, n = cam.size.width;
+	float u = img_pt.x, v = img_pt.y;
+	float x = h/tan(theta-alphaU + u*2*alphaU/(m-1))*cos(gamma-alphaV + v*2*alphaV/(n-1));
+	float z = h/tan(theta-alphaU + u*2*alphaU/(m-1))*sin(gamma-alphaV + v*2*alphaV/(n-1));
+	return Point2f(x, z);
+}
+
 Mat getBirdTransMatrix(CameraStruct cam) {
     //double alpha = ((double)cam.theta0-90.)*CV_PI/180 ;
-	double alpha = cam.theta0*CV_PI/180;
+	double alpha = -cam.theta0*CV_PI/180;
     //double beta = ((double)cam.theta0)*CV_PI/180;
     double beta = 0*CV_PI/180;
     double gamma = cam.gamma0-90*CV_PI/180;
@@ -89,7 +102,7 @@ Mat getBirdTransMatrix(CameraStruct cam) {
         0,0,0,1);
 
     // Composed rotation matrix with (RX,RY,RZ)
-    Mat R=RX*RY*RZ ;
+    Mat R=RX;
 
     // Translation matrix on the Z axis change dist will change the height
     Mat TZ=(Mat_<double>(4,4)<<
@@ -104,12 +117,12 @@ Mat getBirdTransMatrix(CameraStruct cam) {
     	0,0,0,1);
 
     // Camera Intrisecs matrix 3D -> 2D
-    Mat A2=(Mat_<double>(3,4)<<
+    Mat A2=(Mat_<double>(3,4) <<
         f,0,u0,0,
         0,f,v0,0,
         0,0,1,0);
 
     // Final and overall transformation matrix
-    return A2*(TZ*(R*(TCam*A1)));
+    return A2*(TZ*(R*(A1)));
 }
 }

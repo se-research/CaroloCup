@@ -23,6 +23,7 @@ namespace carolocup {
 
     Point2f ipm(Point2i img_pt, CameraStruct cam);
     Point2f ipm2(Point2i img_pt, CameraStruct cam);
+    Point2f ipm3(Point2i img_pt, CameraStruct cam);
     Mat getBirdTransMatrix(CameraStruct cam);
 }
 #endif /* TRANSFORMS_H_ */
