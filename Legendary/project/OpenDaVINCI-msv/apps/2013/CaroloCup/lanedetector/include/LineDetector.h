@@ -59,8 +59,6 @@ private:
   const bool m_debug;
   Point m_lastSolidRightTop;
   std::vector<CustomLine> detectedLines;
-  CustomLine currentLine;
-  CustomLine goalLine;
   Config m_config;
 
 };

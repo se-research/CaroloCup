@@ -19,6 +19,12 @@ namespace carolocup {
 		int error_code = m_SerialProtocol.writeToSerial(&ss);
 	}
 
+	void ArduinoMegaProtocol::setCamAngle(int angle) {
+		stringstream ss;
+		ss << 'c' << angle << '/';
+		int error_code = m_SerialProtocol.writeToSerial(&ss);
+	}
+
 	void ArduinoMegaProtocol::setBrakeForce(char brakeFrc) {
 		stringstream ss;
 		ss << 'b' << brakeFrc << '/';

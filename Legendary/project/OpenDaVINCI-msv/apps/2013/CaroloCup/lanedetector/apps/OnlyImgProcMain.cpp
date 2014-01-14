@@ -44,7 +44,7 @@ int main(int , char** argv)
   cfg.houghMaxLines = 40;
   cfg.XTimesYMin = 1;
   cfg.XTimesYMax = 30;
-  cfg.maxY = 200;
+  cfg.maxY = 230;
 
   namedWindow("config",1);
   //Dash properties
@@ -86,7 +86,7 @@ int main(int , char** argv)
 	    Line dashed = lines.dashedLine;
 	    Line solidRight = lines.rightLine;
 	    Line solidLeft = lines.leftLine;
-      CameraStruct cam;
+      /*CameraStruct cam;
       cam.focal = 489.0;
       cam.height = 0.15;
       cam.length = 0.08;
@@ -114,7 +114,7 @@ int main(int , char** argv)
       img_pt_2 = Point2i(solidRight[2], solidRight[3]);
       real_pt_1 = ipm2(img_pt_1, cam);
       real_pt_2 = ipm2(img_pt_1, cam);
-      cout << "Distance of right solid line: " << sqrt(pow(real_pt_1.x-real_pt_2.x,2) + pow(real_pt_1.y-real_pt_2.y,2)) << endl;
+      cout << "Distance of right solid line: " << sqrt(pow(real_pt_1.x-real_pt_2.x,2) + pow(real_pt_1.y-real_pt_2.y,2)) << endl;*/
 
 	    //line( dst, Point(dashed[0], dashed[1]), Point(dashed[2], dashed[3]), 255, 3, CV_AA);
 	    //line( dst, Point(solidRight[0], solidRight[1]), Point(solidRight[2], solidRight[3]), 0, 3, CV_AA);

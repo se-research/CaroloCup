@@ -24,25 +24,26 @@ int ledPin1 = 51;
 int ledPin2 = 53;
 
 long int lastTimeStamp;
-long int angleSum=0;
 
 boolean run = true;
 int speed = INIT_MOTOR_SPEED;
 int angle = 0;
 int freq = 0;
 int setFreq = 0;
+int camAngle = 0;
 int read;
 int readbyte;
 boolean first = true;
 boolean motor = false;
 boolean steering = false;
 boolean brake = false;
+boolean camera = false;
 boolean applybrake = false;
 boolean cruiseCtrl = false;
 boolean applyCruiseCtrl = false;
 int multiplier = 1;
+int camMultiplier = 1;
 boolean takeOver = false;
-int camCounter = 0;
 
 int ms;
 unsigned long int cnt=0, cntOld = 0;
@@ -89,6 +90,7 @@ void loop()
   //Serial.print("speed reading: ");
   if(!takeOver) {
     if((read = Serial.available()) > 0) {
+      //Read data
       while(read > 0) {
         readbyte = Serial.read();
         //Serial.println(readbyte);
@@ -107,7 +109,15 @@ void loop()
             angle = angle * 10 + (readbyte - 48);
           }
         }
-        if (!first && brake) {
+        if(!first && camera){
+          if(readbyte < 48) {
+            camMultiplier = -1;
+          } 
+          else {
+            camAngle = camAngle * 10 + (readbyte - 48);
+          }
+        }
+        if(!first && brake) {
           if(readbyte == 43) {
             applybrake = true;
           } 
@@ -140,12 +150,19 @@ void loop()
           brake = true;
           first = false;
         }
-        if (first && readbyte == 99) {
+        if (first && readbyte == 102) {
           cruiseCtrl = true;
           first = false;
         }
+        if(first && readbyte == 99) {
+          camera = true;
+          first = false;
+          camAngle = 0;
+          camMultiplier = 1;
+        }
         read = read - 1;
       }
+      //Process data
       if(motor) {
         //Serial.println(speed);
         if(speed > MIN_MOTOR_SPEED && speed < MAX_MOTOR_SPEED) {
@@ -156,6 +173,12 @@ void loop()
         //Serial.println(angle);
         if(angle > MAX_STEERING_ANGLE_L && angle < MAX_STEERING_ANGLE_R) {
           controlSteering();
+        }
+      }
+      if(camera) {
+        Serial.println(camAngle);
+        if(camAngle > MAX_STEERING_ANGLE_L && camAngle < MAX_STEERING_ANGLE_R) {
+          controlCamera();
         }
       }
       if(brake) {
@@ -172,7 +195,9 @@ void loop()
       steering = false;
       brake = false;
       cruiseCtrl = false;
+      camera = false;
       multiplier = 1;
+      camMultiplier = 1;
     }
     if (applyCruiseCtrl) {
       Serial.println("Enter cruise control");
@@ -196,12 +221,10 @@ void loop()
     controlMotor();
     controlSteering();
   }
-  if (camCounter != 0) {
-    camCounter = (camCounter + 1)%10;
-  }
   ms = ms + 1;
+  //Calculate car speed
   if(ms > 10) {
-    float diff = cnt;// - cntOld;
+    float diff = cnt;
     diff = diff * 0.6;
     if(diff != carSpeed) {
       Serial.print("Car speed:");
@@ -236,16 +259,6 @@ void controlSteering() {
   angle = 90 + angle * multiplier;
   Serial.println(angle);
   mySteering.write(angle);
-  if(((angleSum < -40 && angle > 90 && angle < 123) || 
-     (angleSum > 40 && angle < 90 && angle > 57)) 
-     && camCounter == 0) {
-    int camAngle = 90 - ((angle - 90)/2);
-    myCamera.write(camAngle);
-    camCounter = 1;
-  } else if(camCounter == 0) {
-    myCamera.write(90);
-    camCounter = 1;
-  }
   if(angle > 100) { 
     replicateSteering.write(120);
   } 
@@ -255,11 +268,14 @@ void controlSteering() {
   else {
     replicateSteering.write(97);
   }
-  if(carSpeed > 0) {
-    angleSum = angleSum + inpAngle * multiplier;
-  }
-  Serial.print("Angle sum:");
-  Serial.println(angleSum);
+}
+
+void controlCamera() {
+  Serial.print("cam angle: ");
+  int inpAngle = camAngle;
+  camAngle = 90 + camAngle * camMultiplier;
+  Serial.println(camAngle);
+  myCamera.write(camAngle);
 }
 
 void evaluateReceiver()

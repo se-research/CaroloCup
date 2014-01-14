@@ -6,6 +6,9 @@
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 
+#include <iostream>
+#include <fstream>
+
 namespace carolocup
 {
 
@@ -17,6 +20,8 @@ int cntSolid = 0;
 vector<CustomLine> dashLines;
 vector<CustomLine> solidLines;
 int h, w;
+int roadSize = ROAD_SIZE;
+int roadAngle = 89;
 
 LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug, const int id)
     : m_lines(NULL)
@@ -34,7 +39,7 @@ LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug, co
     w = m_frame.size().width;
     h = m_frame.size().height;
     /// Detect edges using Threshold
-    threshold( m_frame, m_frame, cfg.th1, cfg.th2, cfg.hlTh );
+    threshold( m_frame, m_frame, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU );
     //cv::Canny(getFirst, getFirst, cfg.caThVal, cfg.caThMax, cfg.caThTyp);
 
     //Find dash and solid lines
@@ -57,6 +62,8 @@ Lines LineDetector::getLines()
 {
     if (NULL == m_lines)
     {
+	ofstream mylog;
+	mylog.open("test.log", ios::out | ios::app);
 	Vec4i dashLine(0,0,0,0), leftLine(0,0,0,0), rightLine(0,0,0,0);
 
 	bool foundR=false, foundL=false, foundD=false;
@@ -107,14 +114,15 @@ Lines LineDetector::getLines()
 	//Trace different image scenarious
 	if(foundD) {
 		//We have a dash line
-		float da = supDashLine.slope * M_PI / 180;
+		float da = tan(supDashLine.slope * M_PI / 180);
 		float db = supDashLine.p1.y - supDashLine.p1.x * da;
 		int dashGoalX = (goalP.y - db)/da;
 		//cout << da << "*dx + " << db << endl;
+		cout << "Dash line X: " << dashGoalX << endl;
 		if(foundR) {
 			//We have dash and right line
 			//Calculate vanishing point
-			float a = supRightLine.slope * M_PI / 180;
+			float a = tan(supRightLine.slope * M_PI / 180);
 			float b = supRightLine.p1.y - supRightLine.p1.x * a;
 			//cout << a << "*x + " << b << endl;
 			int rightGoalX = (goalP.y - b)/a;
@@ -122,12 +130,16 @@ Lines LineDetector::getLines()
 				vp.x = (b - db) / (da - a);
 			}
 			vp.y = da*vp.x + db;
+			//roadAngle = abs(supDashLine.slope) + abs(supRightLine.slope);
+			mylog << supDashLine.slope << "," << supRightLine.slope << endl;
 			goalP.x = dashGoalX + ROAD_SIZE/2; //(dashGoalX + rightGoalX)/2;
-			cout << "Road size: " <<  (dashGoalX + rightGoalX) << endl;
+			cout << "Road size: " <<  (rightGoalX - dashGoalX) << endl;
+			cout << "Road angle: " << roadAngle << endl;
+			cout << "Right line X: " << rightGoalX << endl;
 			cout << "CASE: Dash and right" << endl;
-		} else if(foundL){
+		/*} else if(foundL){
 			//We have dash and left line
-			float a = supLeftLine.slope * M_PI / 180;
+			float a = tan(supLeftLine.slope * M_PI / 180);
 			float b = supLeftLine.p1.y - supLeftLine.p1.x * a;
 			//cout << a << "*x + " << b << endl;
 			if (da != a) {
@@ -135,14 +147,16 @@ Lines LineDetector::getLines()
 			}
 			vp.y = da*vp.x + db;
 			goalP.x = dashGoalX + ROAD_SIZE/2;
-			cout << "CASE: Dash and left" << endl; 
+			cout << "CASE: Dash and left" << endl;*/ 
 		} else {
 			//We have only dash line
 			//offset with half the size of road to the right
 			int expectedRightLineX = dashGoalX + ROAD_SIZE;
-			float expectedRightLineAngle = supDashLine.slope + 99;
-			float a = expectedRightLineAngle * M_PI / 180;
+			float expectedRightLineAngle = supDashLine.slope + roadAngle;
+			float a = tan(expectedRightLineAngle * M_PI / 180);
 			float b = goalP.y - expectedRightLineX * a;
+			cout << "Expected right line X: " << expectedRightLineX << endl;
+			cout << "Expected right line angle: " << expectedRightLineAngle << endl;
 			//cout << a << "*x + " << b << endl;
 			if (da != a) {
 				vp.x = (b - db) / (da - a);
@@ -157,40 +171,43 @@ Lines LineDetector::getLines()
 		if(foundR) {
 			//We have only right line
 			//offset with half the size of road to the left
-			float a = supRightLine.slope * M_PI / 180;
+			float a = tan(supRightLine.slope * M_PI / 180);
 			float b = supRightLine.p1.y - supRightLine.p1.x * a;
 			int rightGoalX = (h - b)/ a;
+			cout << "Right line X: " << rightGoalX << endl;
 			//cout << a << "*x + " << b << endl;
 			int expectedDashLineX = rightGoalX - ROAD_SIZE;
-			float expectedDashLineAngle = supRightLine.slope - 129;
-			float da = expectedDashLineAngle * M_PI / 180;
-			float db = goalP.y - expectedDashLineAngle * a;
+			float expectedDashLineAngle = supRightLine.slope - roadAngle;
+			cout << "Expected dash line X: " << expectedDashLineX << endl;
+			cout << "Expected dash line angle: " << expectedDashLineAngle << endl;
+			float da = tan(expectedDashLineAngle * M_PI / 180);
+			float db = goalP.y - expectedDashLineX * da;
 			//cout << da << "*x + " << db << endl;
 			if (da != a) {
 				vp.x = (b - db) / (da - a);
 			}
 			vp.y = a*vp.x + b;
 			foundGoal = true;
-			goalP.x = rightGoalX - ROAD_SIZE/2;
+			goalP.x = expectedDashLineX + ROAD_SIZE/2;
 			cout << "CASE: Only right" << endl;
 		} else if(foundL) {
 			//We have only left line
 			//offset with one and a half the size of road to the right
-			float a = supLeftLine.slope * M_PI / 180;
+			float a = tan(supLeftLine.slope * M_PI / 180);
 			float b = supLeftLine.p1.y - supLeftLine.p1.x * a;
 			int leftGoalX = (h - b)/ a;
 			//cout << a << "*x + " << b << endl;
 			int expectedDashLineX = leftGoalX + ROAD_SIZE;
-			float expectedDashLineAngle = supLeftLine.slope + 129;
-			float da = expectedDashLineAngle * M_PI / 180;
-			float db = goalP.y - expectedDashLineAngle * a;
+			float expectedDashLineAngle = supLeftLine.slope + roadAngle;
+			float da = tan(expectedDashLineAngle * M_PI / 180);
+			float db = goalP.y - expectedDashLineX * da;
 			//cout << da << "*x + " << db << endl;
 			if (da != a) {
 				vp.x = (b - db) / (da - a);
 			}
 			vp.y = a*vp.x + b;
 			foundGoal = true;
-			goalP.x = leftGoalX + 3*ROAD_SIZE/2;
+			goalP.x = expectedDashLineX + ROAD_SIZE/2;
 			cout << "CASE: Only left" << endl;
 		}
 	}
@@ -215,10 +232,18 @@ Lines LineDetector::getLines()
 		goal.p1 = vp;
 		goal.p2 = goalP;
 		goal.slope = getLineSlope(vp, goalP); 
+		/*if(goal.slope > 90) {
+			goal.p1.x = goal.p1.x + 60;
+			goal.p2.x = goal.p2.x + 60;
+		} else {
+			goal.p1.x = goal.p1.x - 60;
+			goal.p2.x = goal.p2.x - 60;
+		}*/
 		m_lines->setGoalLine(goal);
 	} else {
 		cout << "CASE: NONE" << endl;
 	}
+	mylog.close();
     }
     return *m_lines;
 }
@@ -309,7 +334,7 @@ void LineDetector::findLines(cv::Mat &outputImg) {
 
 	//Classify dash lines and solid lines
 	if(sizeY > m_config.XTimesYMin*sizeX && sizeY < m_config.XTimesYMax*sizeX && sizeY < m_config.maxY ) {
-	     dashLines[cntDash] = createLineFromRect(&rect, sizeX, sizeY);;
+	     dashLines[cntDash] = createLineFromRect(&rect, sizeX, sizeY);
 	     cntDash++;
 	} else if(sizeY > 4*m_config.XTimesYMin*sizeX && sizeY > (m_config.maxY/2)){
 	     solidLines[cntSolid] = createLineFromRect(&rect, sizeX, sizeY);
@@ -367,14 +392,14 @@ void LineDetector::findLines(cv::Mat &outputImg) {
 	    i--;
         }
     }
-    //Dash and also positioned too high on the image or too left or too right
+    //Dash also positioned too high on the image or too left or too right
     for(int i=0; i < cntDash; i++)
     {
 	CustomLine l = dashLines[i];
 	int dashCenterX = (l.p1.x + l.p2.x) / 2;
 	int dashCenterY = (l.p1.y + l.p2.y) / 2;
 	//cout << "Slope: " << l.slope << " min is " << MIN_ANGLE << endl;
-        if((l.slope < MIN_ANGLE && l.slope > ((-1) * MIN_ANGLE)) || (dashCenterY < h/10) || (dashCenterX < h/10))
+        if((l.slope < MIN_ANGLE && l.slope > ((-1) * MIN_ANGLE)) || (dashCenterY < h/10) || (dashCenterX < w/20) || (dashCenterX > 19*w/20))
         {
             dashLines[i] = dashLines[cntDash-1];
 	    cntDash--;

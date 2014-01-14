@@ -82,9 +82,9 @@ LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
     m_config(),
     m_frame()
 {
-    m_config.th1 = 250;
-    m_config.th2 = 250;
-    m_config.hlTh = 0;
+    m_config.th1 = 180;
+    m_config.th2 = 230;
+    m_config.hlTh = THRESH_BINARY;
     m_config.caThVal = 300;
     m_config.caThMax = 100;
     m_config.caThTyp = 3;
@@ -95,6 +95,9 @@ LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
     m_config.houghMaxAngle = 160;
     m_config.houghStartVal = 25;
     m_config.houghMaxLines = 40;
+    m_config.XTimesYMin = 1;
+    m_config.XTimesYMax = 30;
+    m_config.maxY = 260;
 }
 
 LaneDetector::~LaneDetector()
@@ -116,11 +119,16 @@ void LaneDetector::setUp()
     createTrackbar("thType", "config", &m_config.hlTh, 4);
     //createTrackbar("maxLineLength", "config", &m_config.hlMaxLineLength, 250);
     //createTrackbar("maxLineGap", "config", &m_config.hlMaxLineGap, 250);
-    createTrackbar("canTh", "config", &m_config.caThVal, 500);
+    /*createTrackbar("canTh", "config", &m_config.caThVal, 500);
     createTrackbar("canThWithRatio", "config", &m_config.caThMax, 500);
     createTrackbar("canNoOfKernels", "config", &m_config.caThTyp, 10);
     createTrackbar("houghStart", "config", &m_config.houghStartVal, 100);
-    createTrackbar("houghMaxLines", "config", &m_config.houghMaxLines, 500);
+    createTrackbar("houghMaxLines", "config", &m_config.houghMaxLines, 500);*/
+
+    //Dash properties
+    createTrackbar("min times", "config", &m_config.XTimesYMin, 5);
+    createTrackbar("max times", "config", &m_config.XTimesYMax, 40);
+    createTrackbar("max y", "config", &m_config.maxY , 400);
 
     // BirdView
     //createTrackbar("f", "config", &m_config.birdF, 1500);
@@ -212,6 +220,8 @@ void drawLines(carolocup::Lines* lines, Mat* dst, int offset) {
     line( *dst, Point(dashed[0], dashed[1]+offset), Point(dashed[2], dashed[3]+offset), Scalar(0,255,0), 3, CV_AA);
     line( *dst, Point(solidRight[0], solidRight[1]+offset), Point(solidRight[2], solidRight[3]+offset), Scalar(255,0,0), 3, CV_AA);
     line( *dst, Point(solidLeft[0], solidLeft[1]+offset), Point(solidLeft[2], solidLeft[3]+offset), Scalar(0,0,255), 3, CV_AA);
+    line( *dst, lines->goalLine.p1, lines->goalLine.p2, 255, 3, CV_AA);
+    line( *dst, lines->currentLine.p1, lines->currentLine.p2, 0, 3, CV_AA);
     /*if(lines->stopLineHeight != -1) {
         line( *dst, Point(0, lines->stopLineHeight), Point(640, lines->stopLineHeight), Scalar(0,255,0), 3, CV_AA);
     }
@@ -353,19 +363,20 @@ void LaneDetector::processImage()
     cout<<"Spliting............"<<endl;
     width = m_frame.size().width;
     height = m_frame.size().height;
-    Mat getFirst = m_frame(cv::Rect(1, height/2-1, width-1, height/2-1));
-    Mat getSecond  = m_frame(cv::Rect(1,3*height/8-1, width-1, height/8-1));
+    Mat getFirst = m_frame(cv::Rect(1, 6*height/16-1, width-1, 10*height/16-1));
+    //Mat getFirst = m_frame(cv::Rect(1, height/2-1, width-1, height/2-1));
+    //Mat getSecond  = m_frame(cv::Rect(1,3*height/8-1, width-1, height/8-1));
     //Mat getThird = m_frame(cv::Rect(1,1,width-1,height/4-1));
 
 
-    getFirstPointer = &getFirst;
-    getSecondPointer = &getSecond;
+    //getFirstPointer = &getFirst;
+    //getSecondPointer = &getSecond;
     //getThirdPointer = &getThird;
 
-    cout<<"Creating Threads............"<<endl;
+    //cout<<"Creating Threads............"<<endl;
     
     /*Threes POSIX threads are created below and each of the threads are assigned to run each of the three functions*/
-    cout << "Threads started!" << endl;
+    /*cout << "Threads started!" << endl;
     ret = pthread_create(&t1, NULL, functionBottom,NULL);
     if(ret != 0) {
         cout << "Unable to create p1" << endl;
@@ -394,7 +405,10 @@ void LaneDetector::processImage()
     bottomDone = false;
     middleDone = false;
     cout<<"Threads Done............"<<endl;
-    carolocup::Lines lines = mergeLinesData();
+    carolocup::Lines lines = mergeLinesData();*/
+    LineDetector road(getFirst, cfg, true, 1);
+    carolocup::Lines lines = road.getLines();
+    if(&lines != NULL) cout << "We have lines!" << endl;
     LaneDetectionData data;
     data.setLaneDetectionData(lines);
     // Create a container from your data structure so that it can be transferred.
@@ -403,6 +417,7 @@ void LaneDetector::processImage()
     Container con(Container::USER_DATA_1, data);
 
     // Send the data:
+    cout << "Send..." << endl;
     getConference().send(con);
 
     // Create an instance of data structure for parking and set some values.
@@ -441,12 +456,15 @@ void LaneDetector::processImage()
     lines.speed = m_config.speed;
     lines.stopLineHeight = road.detectStopLine(10);
     lines.startLineHeight = road.detectStartLine(10);*/
-    drawLines(&linesBottom, &m_frame, 0);
-    drawLines(&linesMiddle, &m_frame, 0);
+    //drawLines(&linesBottom, &m_frame, 0);
+    drawLines(&lines, &getFirst, 0);
     //imshow("First Frame", *getFirstPointer);
     //imshow("Second Frame", *getSecondPointer);
     //imshow("Third Frame", *getThirdPointer);
-    imshow("Output", m_frame);
+    cout << "VP [x, y] : [" << lines.goalLine.p1.x << ", " << lines.goalLine.p1.y << "]" << endl;
+    cout << "Goal [x, y] : [" << lines.goalLine.p2.x << ", " << lines.goalLine.p2.y << "]" << endl;
+    cout << "Position [x, y] : [" << lines.currentLine.p2.x << ", " << lines.currentLine.p2.y << "]" << endl;
+    imshow("Result", getFirst);
 
 //////////////////////////////////////////////////////END////////////////////////////////////////////////////////////////////////////////
     waitKey(20);

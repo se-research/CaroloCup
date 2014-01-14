@@ -76,7 +76,7 @@ Driver::~Driver() {}
 void Driver::setUp()
 {
     // This method will be call automatically _before_ running body().
-    m_speed = 0.8;
+    m_speed = 0.72;
     m_oldCurvature = 0;
     m_controlGains[0] = 10;
     m_controlGains[1] = 20;
@@ -128,7 +128,7 @@ ModuleState::MODULE_EXITCODE Driver::body()
         {
             // Read the recently received container.
             Container con = lifo.pop();
-
+	    //cout << "Container type: " << con.getDataType();
             // Check the container type if it is one of our expected types.
             if (con.getDataType() == Container::USER_DATA_1)
             {
@@ -136,7 +136,10 @@ ModuleState::MODULE_EXITCODE Driver::body()
                 ldd = con.getData<LaneDetectionData> ();
                 m_hasReceivedLaneDetectionData = true;
                 break;
+		//lifo.clear();
             }
+	    cout << "WAIT..." << endl;
+	    //lifo.clear();
         }
         lifo.clear();
 
@@ -149,8 +152,8 @@ ModuleState::MODULE_EXITCODE Driver::body()
         }
         m_rightLine = lines.rightLine;
         
-        m_propGain = 2.5;//2.05;
-        m_intGain = 8.39;
+        m_propGain = 4.5;//4.5;//2.05;
+        m_intGain = 0;//8.39; //8.39;
         m_derGain = 0.2;//0.23;
 
         // Temporary solution to stop the car if a stop line is detected
@@ -170,9 +173,8 @@ ModuleState::MODULE_EXITCODE Driver::body()
         x4 = m_rightLine[2];
         y4 = m_rightLine[3];
 
-        if (( x1 == 0 && y1 == 0 && x2 == 0 && y2 == 0 ) ||
-                ( x3 == 0 && y3 == 0 && x4 == 0 && y4 == 0 ) ||
-                x1 == x2 || x3 == x4 )
+        if (( x1 == 0 && y1 == 0 && x2 == 0 && y2 == 0 ) &&
+                ( x3 == 0 && y3 == 0 && x4 == 0 && y4 == 0 ))
         {
             continue;
         }
@@ -189,7 +191,7 @@ ModuleState::MODULE_EXITCODE Driver::body()
             //y4 = 435;
 
             cout << endl;
-            cout << "x1: " << x1;
+            /*cout << "x1: " << x1;
             cout << ",x2: " << x2;
             cout << ",x3: " << x3;
             cout << ",x4: " << x4;
@@ -197,7 +199,7 @@ ModuleState::MODULE_EXITCODE Driver::body()
             cout << ",y2: " << y2;
             cout << ",y3: " << y3;
             cout << ",y4: " << y4;
-            cout << endl;
+            cout << endl;*/
             cout << ",propGain: " << m_propGain;
             cout << ",intGain: " << m_intGain;
             cout << ",derGain: " << m_derGain;
@@ -220,20 +222,38 @@ ModuleState::MODULE_EXITCODE Driver::body()
 /*	if(x_goal < x_pl && (x_goal + 100) > x_pl) {
 	    x_goal = x_pl;
 	}*/
-
-	cout << "Position: " << x_pl << endl;
-	cout << "Goal: " << x_goal << endl;
        
 	float oldLateralError = m_lateralError;
         //int x_error = (x_right + x_left - 752)/2;
-        float theta_avg = lines.goalLine.slope;//lines.supposedMidLine.slope;
+	float a = lines.goalLine.slope * M_PI / 180;
+	float b = lines.goalLine.p1.y - lines.goalLine.p1.x * a;
+	int x_coord = -b/a;
+	float theta_avg = M_PI/2;
+    	if((x_coord - x_pl)!= 0)
+    	{
+        	theta_avg = (0 -lines.currentLine.p2.y) / ((float)(x_coord - x_pl));
+        	theta_avg = atan(theta_avg);
+    	}
+    	if(theta_avg < 0)
+    	{
+        	theta_avg = 180 + (theta_avg*180/M_PI);
+    	} else {
+    		theta_avg = theta_avg*180/M_PI;
+	}
+        //float theta_avg = lines.goalLine.slope;//lines.supposedMidLine.slope;
 	float theta_curr = lines.currentLine.slope;
-	m_angularError = theta_curr - theta_avg;
+	cout << "Position: " << x_pl << endl;
+	cout << "Goal: " << x_goal << endl;
+	//theta_curr = theta_curr + oldSteeringVal;
+	cout << "Curr Orientation: " << theta_curr << endl;
+	cout << "Goal Orientation: " << theta_avg << endl;
+	m_angularError = theta_avg - theta_curr;
 	/*if(steeringVal > 0) {
 	    m_angularError = m_angularError + steeringVal/2;
         }*/
 	float theta = (m_angularError/180)*M_PI_2;
-        m_lateralError = cos(theta) * (x_goal - x_pl);
+	int x_err = x_goal - x_pl;
+        m_lateralError = cos(theta) * x_err;
 
         //Scale from pixels to meters
         m_lateralError = m_lateralError/SCALE_FACTOR;
@@ -243,7 +263,10 @@ ModuleState::MODULE_EXITCODE Driver::body()
             TimeStamp now;
             int32_t currTime = now.toMicroseconds();
             double sec = (currTime - m_timestamp) / (1000000.0);    //Why not 1.000000???
-            m_intLateralError = m_intLateralError + 0.2 * m_lateralError * cos(m_angularError) * sec;
+	    m_intLateralError = m_intLateralError + m_speed * m_lateralError * sec;
+	    if(abs(m_intLateralError) > 2*abs(m_lateralError)) {
+		m_intLateralError = 0;
+            }
             m_derLateralError = (m_lateralError - oldLateralError) / sec;
             cout << endl;
             cout << "  sec: " << sec;
@@ -255,7 +278,7 @@ ModuleState::MODULE_EXITCODE Driver::body()
         m_desiredSteeringWheelAngle = m_lateralError*m_propGain;
         m_desiredSteeringWheelAngle += m_intLateralError*m_intGain;
         m_desiredSteeringWheelAngle += m_derLateralError*m_derGain;
-
+	cout << "  x_error: " << x_err;
         cout << "  derLateral: " << m_derLateralError;
         cout << "  intLateral: " << m_intLateralError;
 
@@ -305,7 +328,7 @@ ModuleState::MODULE_EXITCODE Driver::body()
                 oldSpeedVal = speedVal;
 		msleep(1);
 	//}
-	float desSteering = m_desiredSteeringWheelAngle*180/M_PI_2;
+	float desSteering = m_desiredSteeringWheelAngle*180/M_PI;
 	cout << desSteering <<endl;
 	if(desSteering > 32) desSteering = 32;
 	if(desSteering < -32) desSteering = -32;
@@ -317,6 +340,17 @@ ModuleState::MODULE_EXITCODE Driver::body()
 		msleep(1);
 		//m_protocol.setBrakeForce('+');
 	//}
+	/*if(x_err > 200) {
+		cout << "Cam angle: 10" << endl;
+        	m_protocol.setCamAngle(10);
+	} else if (x_err < -200) {
+		cout << "Cam angle: -10" << endl;
+		m_protocol.setCamAngle(-10);
+	} else {
+		cout << "Cam angle: 0" << endl;
+		m_protocol.setCamAngle(0);
+	}
+	msleep(1);*/
     }
     return ModuleState::OKAY;
 }
