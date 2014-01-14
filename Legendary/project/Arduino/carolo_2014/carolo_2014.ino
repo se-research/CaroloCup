@@ -22,12 +22,15 @@ int steeringLedPin = 4;
 int motorLedPin = 7;
 int ledPin1 = 51;
 int ledPin2 = 53;
+
 long int lastTimeStamp;
 long int angleSum=0;
 
 boolean run = true;
 int speed = INIT_MOTOR_SPEED;
 int angle = 0;
+int freq = 0;
+int setFreq = 0;
 int read;
 int readbyte;
 boolean first = true;
@@ -35,6 +38,8 @@ boolean motor = false;
 boolean steering = false;
 boolean brake = false;
 boolean applybrake = false;
+boolean cruiseCtrl = false;
+boolean applyCruiseCtrl = false;
 int multiplier = 1;
 boolean takeOver = false;
 int camCounter = 0;
@@ -42,6 +47,8 @@ int camCounter = 0;
 int ms;
 unsigned long int cnt=0, cntOld = 0;
 float carSpeed = 0;
+
+int reading = 0;
 
 void setup()
 {
@@ -79,7 +86,8 @@ void loop()
     run = false;
   }
   evaluateReceiver();
-  if(!takeOver) { 
+  //Serial.print("speed reading: ");
+  if(!takeOver) {
     if((read = Serial.available()) > 0) {
       while(read > 0) {
         readbyte = Serial.read();
@@ -88,10 +96,10 @@ void loop()
           break;
         }
 
-        if(!first && motor) {
+        if (!first && motor) {
           speed = speed * 10 + (readbyte - 48);
         }
-        if(!first && steering){
+        if (!first && steering){
           if(readbyte < 48) {
             multiplier = -1;
           } 
@@ -99,7 +107,7 @@ void loop()
             angle = angle * 10 + (readbyte - 48);
           }
         }
-        if(!first && brake) {
+        if (!first && brake) {
           if(readbyte == 43) {
             applybrake = true;
           } 
@@ -107,7 +115,17 @@ void loop()
             applybrake = false;
           }
         }
-        if(first && readbyte == 109) {
+        if (!first && cruiseCtrl) {
+          if (readbyte == 43) {
+            applyCruiseCtrl = true;
+          } else if (readbyte == 45) {
+            applyCruiseCtrl = false;
+          } else {
+            applyCruiseCtrl = true;
+            setFreq = setFreq * 10 + (readbyte - 48);
+          }
+        }
+        if (first && readbyte == 109) {
           motor = true;
           first = false;
           speed = 0;
@@ -120,6 +138,10 @@ void loop()
         }
         if(first && readbyte == 98) {
           brake = true;
+          first = false;
+        }
+        if (first && readbyte == 99) {
+          cruiseCtrl = true;
           first = false;
         }
         read = read - 1;
@@ -149,7 +171,22 @@ void loop()
       motor = false;
       steering = false;
       brake = false;
+      cruiseCtrl = false;
       multiplier = 1;
+    }
+    if (applyCruiseCtrl) {
+      Serial.println("Enter cruise control");
+      int error = setFreq - freq;
+      Serial.print("Error: ");
+      Serial.println(error);
+      int errorSign = error < 0 ? -1 : +1;
+      if (abs(error) > 40) {
+        speed += errorSign;
+      } else if (abs(error) > 10) {
+        speed += errorSign;
+      }
+      speed = constrain(speed, 1520, 1623);
+      controlMotor();
     }
   } 
   else {
@@ -171,6 +208,9 @@ void loop()
       Serial.println(diff);
       carSpeed = diff;
     }
+    freq = int(cnt*16.6667);
+    Serial.print("Frequency: ");
+    Serial.println(freq);
     //cntOld = cnt;
     cnt = 0;
     ms=0;
