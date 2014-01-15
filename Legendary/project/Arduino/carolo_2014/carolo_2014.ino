@@ -30,6 +30,9 @@ int speed = INIT_MOTOR_SPEED;
 int angle = 0;
 int freq = 0;
 int setFreq = 0;
+int acumFreqError = 0;
+int propGain = 1;
+int intGain = 5;
 int camAngle = 0;
 int read;
 int readbyte;
@@ -130,9 +133,12 @@ void loop()
             applyCruiseCtrl = true;
           } else if (readbyte == 45) {
             applyCruiseCtrl = false;
+            speed = 1520;
+            controlMotor();
           } else {
             applyCruiseCtrl = true;
             setFreq = setFreq * 10 + (readbyte - 48);
+            acumFreqError = 0;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
           }
         }
         if (first && readbyte == 109) {
@@ -153,6 +159,7 @@ void loop()
         if (first && readbyte == 102) {
           cruiseCtrl = true;
           first = false;
+          setFreq = 0;
         }
         if(first && readbyte == 99) {
           camera = true;
@@ -199,20 +206,6 @@ void loop()
       multiplier = 1;
       camMultiplier = 1;
     }
-    if (applyCruiseCtrl) {
-      Serial.println("Enter cruise control");
-      int error = setFreq - freq;
-      Serial.print("Error: ");
-      Serial.println(error);
-      int errorSign = error < 0 ? -1 : +1;
-      if (abs(error) > 40) {
-        speed += errorSign;
-      } else if (abs(error) > 10) {
-        speed += errorSign;
-      }
-      speed = constrain(speed, 1520, 1623);
-      controlMotor();
-    }
   } 
   else {
     multiplier = 1;
@@ -231,9 +224,34 @@ void loop()
       Serial.println(diff);
       carSpeed = diff;
     }
-    freq = int(cnt*16.6667);
+    freq = int(cnt*2.5);
     Serial.print("Frequency: ");
     Serial.println(freq);
+    if (applyCruiseCtrl) {
+      Serial.println("Enter cruise control");
+      int error = setFreq - freq;
+      Serial.print("Error: ");
+      Serial.println(error);
+      int errorSign = error < 0 ? -1 : +1;
+      /*
+      if (abs(error) > 15) {
+        speed += 10*errorSign;
+      }
+      else if (abs(error) > 8) {
+        speed += 5*errorSign;
+      }
+      */
+      if (abs(error) > 2) {
+        speed += errorSign;
+      }
+      speed = constrain(speed, 1535, 1623);
+      Serial.print("Speed :");
+      Serial.println(speed);
+      controlMotor();
+      /*
+      speed = 1520 + propGain*error + intGain*acumFreqError;
+      */
+    }
     //cntOld = cnt;
     cnt = 0;
     ms=0;

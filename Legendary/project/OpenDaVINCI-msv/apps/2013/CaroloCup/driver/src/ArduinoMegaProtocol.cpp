@@ -13,6 +13,12 @@ namespace carolocup {
 		int errorCode = m_SerialProtocol.writeToSerial(&ss);
 	}
 
+	void ArduinoMegaProtocol::setWheelFrequency(int freq) {
+		stingstream ss;
+		ss << 'f' << freq << '/';
+		int errorCode = m_SerialProtocol.writeToSerial(&ss);
+ 	}
+
 	void ArduinoMegaProtocol::setSteeringAngle(int angle) {
 		stringstream ss;
 		ss << 's' << angle << '/';

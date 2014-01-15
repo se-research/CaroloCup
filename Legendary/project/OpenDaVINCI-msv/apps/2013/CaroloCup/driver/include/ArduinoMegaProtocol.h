@@ -11,6 +11,7 @@ namespace carolocup {
 		ArduinoMegaProtocol(const char *port, int bufSize);
 		~ArduinoMegaProtocol();
 		void setSpeed(int speed);
+		void setWheelFrequency(int freq);
 		void setSteeringAngle(int angle);
 		void setCamAngle(int angle);
 		void setBrakeForce(char brakeFrc);

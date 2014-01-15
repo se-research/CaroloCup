@@ -49,6 +49,7 @@ Driver::Driver(const int32_t &argc, char **argv) :
     m_intGain(8.38) ,
     m_derGain(0.23) ,
     m_length(0.3) ,
+    m_wheelRadius(0.026),
     m_protocol("/dev/ttyACM0", 6),
     ANGLE_TO_CURVATURE(2.5) ,
     SCALE_FACTOR (752/0.41) ,
@@ -322,10 +323,13 @@ ModuleState::MODULE_EXITCODE Driver::body()
 	//m_desiredSteeringWheelAngle=-0.2;
         stringstream speedStream, steeringAngleStream;
 	uint16_t speedVal = uint16_t((m_speed+0.5)/4.0*(1619-1523) + 1523);
+    uint16_t wheelFreqVal = uint16_t(m_speed/m_wheelRadius*10);
+    // cout << "Send wheel frequency: " << wheelFreqVal << endl;
+    // m_protocol.setWheelFrequency(wheelFreqVal);
 	//if(speedVal != oldSpeedVal) {
 		cout << "Send speed: " << speedVal << endl;
 		m_protocol.setSpeed(speedVal);
-                oldSpeedVal = speedVal;
+        oldSpeedVal = speedVal;
 		msleep(1);
 	//}
 	float desSteering = m_desiredSteeringWheelAngle*180/M_PI;
