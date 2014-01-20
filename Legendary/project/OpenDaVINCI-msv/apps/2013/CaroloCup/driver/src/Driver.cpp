@@ -17,6 +17,7 @@
 
 // Data structures from msv-data library:
 #include "SensorBoardData.h"
+#include "LidarData.h"
 
 #include "Driver.h"
 
@@ -126,6 +127,7 @@ ModuleState::MODULE_EXITCODE Driver::body()
     {
         m_hasReceivedLaneDetectionData = false;
         LaneDetectionData ldd;
+        LidarData getData;
         while (!lifo.isEmpty())
         {
             // Read the recently received container.
@@ -137,6 +139,16 @@ ModuleState::MODULE_EXITCODE Driver::body()
                 // We have found our expected container.
                 ldd = con.getData<LaneDetectionData> ();
                 m_hasReceivedLaneDetectionData = true;
+                break;
+		//lifo.clear();
+            }
+
+           /*Getting the LidarData from the container with the ID USER_DATA_2*/
+	   if (con.getDataType() == Container::USER_DATA_2)
+            {
+                // We have found our expected container.
+                getData = con.getData<LidarData> ();
+                cout<<"GOT LIDAR DATA FROM THE CONTAINER"<<endl;
                 break;
 		//lifo.clear();
             }
