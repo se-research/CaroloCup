@@ -30,7 +30,8 @@ namespace carolocup {
         virtual ~CustomLine () {}
 
         bool operator < (const CustomLine& other ) const {
-           return slope < other.slope;
+	   return max(p1.y,p2.y) > max(other.p1.y, other.p2.y);
+           //return slope < other.slope;
         }
 
         Point p1, p2;

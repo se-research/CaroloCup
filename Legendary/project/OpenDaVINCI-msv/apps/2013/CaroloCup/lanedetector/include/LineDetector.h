@@ -3,8 +3,10 @@
 
 
 #define MIN_ANGLE 10
-#define ROAD_SIZE 640//770
+#define ROAD_SIZE 660//770
 #define ROAD_GOAL 0.5
+#define ROAD_ANGLE 86
+#define MID_DASH_ANGLE -46
 
 #include <queue>
 #include "opencv2/opencv.hpp"
@@ -24,6 +26,10 @@ struct Config {
       pGain, intGain, derGain, houghMinAngle, houghMaxAngle, 
       houghStartVal, houghMaxLines, XTimesYMin, XTimesYMax, maxY, maxArea;
 
+};
+
+struct CameraStruct {
+	Mat aCol1And2, b;
 };
 
 class LineDetector {
@@ -54,6 +60,9 @@ private:
   float getDist(const Point p1, const Point p2) const;
   int detectHorizontalLine(Mat canny_roi, int dist);
   int getRoadAngle(int lineDetected, int lineAngle);
+  int getRoadSize(int roadAngle);
+  Point2f getWorldPoint(Point2i imgPoint);
+  int getIntersectionWithBottom(CustomLine l) const;
 
   cv::Mat m_frame;
   cv::Mat m_frameCanny;

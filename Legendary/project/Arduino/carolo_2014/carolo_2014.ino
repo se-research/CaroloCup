@@ -1,7 +1,7 @@
 // Need the Servo library
 #include <Servo.h>
-#define MAX_STEERING_ANGLE_R 33
-#define MAX_STEERING_ANGLE_L -33
+#define MAX_STEERING_ANGLE_R 43
+#define MAX_STEERING_ANGLE_L -43
 #define MIN_MOTOR_SPEED 1400
 #define MAX_MOTOR_SPEED 1623
 #define BRAKE_SPEED_MAX 1530

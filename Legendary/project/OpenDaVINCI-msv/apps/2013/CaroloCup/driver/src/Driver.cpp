@@ -50,7 +50,7 @@ Driver::Driver(const int32_t &argc, char **argv) :
     m_intGain(8.38) ,
     m_derGain(0.23) ,
     m_length(0.3) ,
-    m_wheelRadius(0.54),
+    m_wheelRadius(0.27),
     m_protocol("/dev/ttyACM0", 6),
     ANGLE_TO_CURVATURE(2.5) ,
     SCALE_FACTOR (752/0.41) ,
@@ -70,7 +70,7 @@ Driver::~Driver() {}
 void Driver::setUp()
 {
     // This method will be call automatically _before_ running body().
-    m_speed = 0.7;
+    m_speed = 0.4;
     m_oldCurvature = 0;
     m_controlGains[0] = 10;
     m_controlGains[1] = 20;
@@ -154,8 +154,8 @@ ModuleState::MODULE_EXITCODE Driver::body()
         m_rightLine = lines.rightLine;
         
         m_propGain = 4.8;//4.5;//2.05;
-        m_intGain = 1.0;//8.39; //8.39;
-        m_derGain = 0.2;//0.23;
+        m_intGain = 1.0;//1.0;//8.39; //8.39;
+        m_derGain = 0.25;//0.23;
 
         // Temporary solution to stop the car if a stop line is detected
         //if (lines.stopLineHeight != -1)
@@ -257,7 +257,8 @@ ModuleState::MODULE_EXITCODE Driver::body()
 
         stringstream speedStream, steeringAngleStream;
 	uint16_t speedVal = uint16_t((m_speed+0.5)/4.0*(1619-1523) + 1523);
-        uint16_t wheelFreqVal = uint16_t(m_speed/m_wheelRadius*10);
+	float angularSpeed = m_speed/m_wheelRadius * 10;
+        uint16_t wheelFreqVal = uint16_t(angularSpeed);
 
 	if(wheelFreqVal != oldSpeedVal) {
         	m_protocol.setWheelFrequency(wheelFreqVal);
