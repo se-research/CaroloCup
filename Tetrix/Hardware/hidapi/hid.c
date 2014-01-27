@@ -64,7 +64,7 @@ static __u32 kernel_version = 0;
 
 hid_device *new_hid_device()
 {
-	hid_device *dev = calloc(1, sizeof(hid_device));
+  hid_device *dev = (hid_device*)calloc(1, sizeof(hid_device));
 	dev->device_handle = -1;
 	dev->blocking = 1;
 	dev->uses_numbered_reports = 0;
@@ -84,7 +84,7 @@ static wchar_t *copy_udev_string(struct udev_device *dev, const char *udev_name)
 	if (str) {
 		/* Convert the string from UTF-8 to wchar_t */
 		size_t wlen = mbstowcs(NULL, str, 0);
-		ret = calloc(wlen+1, sizeof(wchar_t));
+		ret = (wchar_t*)calloc(wlen+1, sizeof(wchar_t));
 		mbstowcs(ret, str, wlen+1);
 		ret[wlen] = 0x0000;
 	}
@@ -281,7 +281,7 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 			size_t len;
 
 		    	/* VID/PID match. Create the record. */
-			tmp = malloc(sizeof(struct hid_device_info));
+			tmp = (struct hid_device_info*)malloc(sizeof(struct hid_device_info));
 			if (cur_dev) {
 				cur_dev->next = tmp;
 			}
@@ -295,7 +295,7 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 			str = dev_path;
 			if (str) {
 				len = strlen(str);
-				cur_dev->path = calloc(len+1, sizeof(char));
+				cur_dev->path = (char*)calloc(len+1, sizeof(char));
 				strncpy(cur_dev->path, str, len+1);
 				cur_dev->path[len] = '\0';
 			}
