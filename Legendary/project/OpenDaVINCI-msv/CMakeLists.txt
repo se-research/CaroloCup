@@ -11,7 +11,8 @@ PROJECT (OPENDAVINCI)
 # Set compile flags.
 IF(UNIX)
     SET (CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-fPIC")
-    SET (CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-Wno-deprecated -Wall -Werror -Wextra -Wfloat-equal -Wshadow -Wpointer-arith -Wwrite-strings -Wpacked -Wredundant-decls -Wmissing-format-attribute -ansi -pipe")
+#    SET (CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-Wno-deprecated -Wall -Werror -Wextra -Wfloat-equal -Wshadow -Wpointer-arith -Wwrite-strings -Wpacked -Wredundant-decls -Wmissing-format-attribute -ansi -pipe")
+   SET (CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-Wfloat-equal -Wpointer-arith -Wwrite-strings -Wpacked -Wmissing-format-attribute -ansi -pipe")
 
     # Remove "-ansi" flag for clang on Darwin.
     IF(NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
@@ -50,7 +51,7 @@ ADD_SUBDIRECTORY (libopendavinci)
 # ADD_SUBDIRECTORY (hesperia)
 ADD_SUBDIRECTORY (supercomponent)
 ADD_SUBDIRECTORY (tools)
-ADD_SUBDIRECTORY (examples)
+#ADD_SUBDIRECTORY (examples)
 
 # Apps contains msv, carolocup2013, ...
 ADD_SUBDIRECTORY (apps)

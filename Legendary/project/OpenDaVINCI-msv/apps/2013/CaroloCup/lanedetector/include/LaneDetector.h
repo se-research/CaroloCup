@@ -7,7 +7,6 @@
 #ifndef LANEDETECTOR_H_
 #define LANEDETECTOR_H_
 
-//#include <opencv/cv.h>
 #include "opencv2/opencv.hpp"
 #include "core/SharedPointer.h"
 #include "core/base/ConferenceClientModule.h"
@@ -68,10 +67,13 @@ private:
   bool m_hasAttachedToSharedImageMemory;
   core::SharedPointer<core::wrapper::SharedMemory> m_sharedImageMemory;
   IplImage *m_image;
+  IplImage *img;
   uint32_t m_cameraId;
   int init;
   bool m_debug;
   Config m_config;
+  Mat m_frame;
+
 
 ///////////////////////////////////////7
 //void *PrintHello(void *threadid);
@@ -82,6 +84,9 @@ private:
   virtual void tearDown();
 
   void processImage();
+  bool init_camera();
+  bool deinit_camera();
+  bool get_image(char*& img);
 };
 
 } // carolocup

@@ -1,6 +1,13 @@
 #ifndef LINEDETECTOR_H_
 #define LINEDETECTOR_H_
 
+
+#define MIN_ANGLE 10
+#define ROAD_SIZE 660//770
+#define ROAD_GOAL 0.5
+#define ROAD_ANGLE 86
+#define MID_DASH_ANGLE -46
+
 #include <queue>
 #include "opencv2/opencv.hpp"
 #include "LineDetectorTypes.h"
@@ -15,22 +22,19 @@ using namespace std;
 namespace carolocup {
 
 struct Config {
-  int th1, th2, hlTh, hlMaxLineGap, hlMaxLineLength, caThVal, caThMax, caThTyp,
-      birdF, birdDist, birdAlpha, birdBeta, birdGamma, dbEps, dbMinPts,
-      dashMin, dashMax, dashWidth, solidMin, solidWidth, pGain, intGain, derGain, speed;
+  int th1, th2, hlTh, caThVal, caThMax, caThTyp,
+      pGain, intGain, derGain, houghMinAngle, houghMaxAngle, 
+      houghStartVal, houghMaxLines, XTimesYMin, XTimesYMax, maxY, maxArea;
+
 };
 
-struct CustomLine {
-  Point p1, p2;
-  float slope;
-  bool operator < (const CustomLine& other ) const {
-     return slope < other.slope;
-  }
+struct CameraStruct {
+	Mat aCol1And2, b;
 };
 
 class LineDetector {
 public:
-  LineDetector(const Mat& f, const Config& cfg, const bool debug);
+  LineDetector(const Mat& f, const Config& cfg, const bool debug, const int id);
   virtual ~LineDetector();
   Lines getLines();
   int detectStartLine(int dist);
@@ -50,21 +54,23 @@ private:
   Lines findCurves();
   pair<vector<Point>::iterator,vector<Point>::iterator> findBiggestDistance(Cluster& c);
   Mat getBirdView(Mat& source);
-  void processImageMSAC(MSAC &msac, int numVps, cv::Mat &imgGRAY, cv::Mat &outputImg);
+  CustomLine createLineFromRect(RotatedRect* rect, int sizeX, int sizeY);
+  void findLines(cv::Mat &outputImg);
   float getLineSlope(Point &p1, Point &p2);
   float getDist(const Point p1, const Point p2) const;
   int detectHorizontalLine(Mat canny_roi, int dist);
+  int getRoadAngle(int lineDetected, int lineAngle);
+  int getRoadSize(int roadAngle);
+  Point2f getWorldPoint(Point2i imgPoint);
+  int getIntersectionWithBottom(CustomLine l) const;
 
   cv::Mat m_frame;
   cv::Mat m_frameCanny;
-  //vector<Vec4i> m_houghLines;
   Lines* m_lines;
-  Dbscan* m_clusters;
-  const Config m_config;
   const bool m_debug;
   Point m_lastSolidRightTop;
   std::vector<CustomLine> detectedLines;
-  CustomLine supposedMidLine;
+  Config m_config;
 
 };
 

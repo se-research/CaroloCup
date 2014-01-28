@@ -22,8 +22,8 @@ namespace carolocup {
 	using namespace cv;
 
 	LaneDetectionData::LaneDetectionData() :
-    m_lines(Vec4i(0,0,0,0),Vec4i(0,0,0,0),Vec4i(0,0,0,0)) {
-  }
+          m_lines(Vec4i(0,0,0,0),Vec4i(0,0,0,0),Vec4i(0,0,0,0)) {
+       }
 
 	LaneDetectionData::LaneDetectionData(const LaneDetectionData &obj) :
 			SerializableData(),

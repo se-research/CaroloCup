@@ -8,6 +8,7 @@ PROJECT (2013-CaroloCup-lanedetector)
 
 # OpenCV libraries.
 SET (OpenCV_LIBS opencv_core opencv_imgproc opencv_highgui opencv_calib3d)
+SET (Ueye_LIBS ueye_api)
 
 # Include directories from core.
 INCLUDE_DIRECTORIES (${libopendavinci_SOURCE_DIR}/include)
@@ -29,7 +30,10 @@ ENDIF("${PANDABOARD}" STREQUAL "YES")
 FILE(GLOB_RECURSE lanedetector-sources "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 ADD_LIBRARY (2013-CaroloCup-lanedetectorlib STATIC ${lanedetector-sources})
 ADD_EXECUTABLE (2013-CaroloCup-lanedetector "${CMAKE_CURRENT_SOURCE_DIR}/apps/MainModule.cpp")
-TARGET_LINK_LIBRARIES (2013-CaroloCup-lanedetector 2013-CaroloCup-lanedetectorlib ${CCDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS} ${OpenCV_LIBS}) 
+
+#LINK_DIRECTORIES (/lib/ueye_api)
+
+TARGET_LINK_LIBRARIES (2013-CaroloCup-lanedetector 2013-CaroloCup-lanedetectorlib ${CCDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS} ${OpenCV_LIBS} ${Ueye_LIBS}) 
 
 # Recipe for installing "lanedetector".
 INSTALL(TARGETS 2013-CaroloCup-lanedetector RUNTIME DESTINATION bin/2013/CaroloCup RENAME lanedetector) 
@@ -39,5 +43,5 @@ IF(CXXTEST_FOUND)
     FILE(GLOB_RECURSE lanedetector-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
     
     CXXTEST_ADD_TEST(2013-CaroloCup-lanedetectorTestSuite lanedetectorTestSuite.cpp ${lanedetector-testsuites})
-    TARGET_LINK_LIBRARIES(2013-CaroloCup-lanedetectorTestSuite 2013-CaroloCup-lanedetectorlib ${CCDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS} ${OpenCV_LIBS})
+    TARGET_LINK_LIBRARIES(2013-CaroloCup-lanedetectorTestSuite 2013-CaroloCup-lanedetectorlib ${CCDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS} ${OpenCV_LIBS} ${Ueye_LIBS})
 ENDIF(CXXTEST_FOUND)

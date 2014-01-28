@@ -20,12 +20,32 @@ namespace carolocup {
 	using namespace std;
 	using namespace cv;
 
+  class CustomLine {
+    public:
+        CustomLine () :
+            p1(),
+            p2(),
+	    slope(0) {
+        }
+        virtual ~CustomLine () {}
+
+        bool operator < (const CustomLine& other ) const {
+	   return max(p1.y,p2.y) > max(other.p1.y, other.p2.y);
+           //return slope < other.slope;
+        }
+
+        Point p1, p2;
+        float slope;
+  };
+
   class Lines {
     public:
       Lines () :
         leftLine(Vec4i(0,0,0,0)) ,
         rightLine(Vec4i(0,0,0,0)) ,
         dashedLine(Vec4i(0,0,0,0)),
+        goalLine(),
+	currentLine(),
         pGain(0),
         intGain(0),
         derGain(0),
@@ -39,6 +59,8 @@ namespace carolocup {
         leftLine(l) ,
         rightLine(r) ,
         dashedLine(d),
+        goalLine(),
+	currentLine(),
         pGain(0),
         intGain(0),
         derGain(0),
@@ -49,10 +71,18 @@ namespace carolocup {
         stopLineHeight(0)
     {}
       virtual ~Lines () {}
+      void setGoalLine(const CustomLine &goal) {
+        goalLine = goal;
+      }
+      void setCurrentLine(const CustomLine &curr) {
+        currentLine = curr;
+      }
 
       Vec4i leftLine;
       Vec4i rightLine;
       Vec4i dashedLine;
+      CustomLine goalLine;
+      CustomLine currentLine;
       int pGain;
       int intGain;
       int derGain;
