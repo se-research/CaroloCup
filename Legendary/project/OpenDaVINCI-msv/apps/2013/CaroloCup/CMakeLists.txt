@@ -16,7 +16,16 @@ ADD_SUBDIRECTORY (cc-data)
 ADD_SUBDIRECTORY (sensorboard)
 #ADD_SUBDIRECTORY (testsensorboardsender)
 
-# Application for receiving data from hesperia or a USB camera.
+# Application for receiving and processing data from the Discovery board.
+ADD_SUBDIRECTORY (SensorboardParking)
+
+ADD_SUBDIRECTORY (ParkingDriverNew)
+
+ADD_SUBDIRECTORY (Lidar)
+
+ADD_SUBDIRECTORY (Sensors)
+
+# Application for building Lanedetector.
 ADD_SUBDIRECTORY (lanedetector)
 
 # Application for sending driving commands.
@@ -38,8 +47,13 @@ ADD_SUBDIRECTORY (proxy)
 # Application to wrap the motor controller.
 ADD_SUBDIRECTORY (UDP_Server)
 
+<<<<<<< Updated upstream
 # Application to wrap the lidar communication.
 ADD_SUBDIRECTORY (Lidar)
+=======
+# Application for Mapping Component.
+#ADD_SUBDIRECTORY (MappingNew)
+>>>>>>> Stashed changes
 
 # Special target to simplify the rsync command.
 IF("${PANDABOARD}" STREQUAL "YES")
