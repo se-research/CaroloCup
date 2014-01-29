@@ -47,13 +47,12 @@ ADD_SUBDIRECTORY (proxy)
 # Application to wrap the motor controller.
 ADD_SUBDIRECTORY (UDP_Server)
 
-<<<<<<< Updated upstream
 # Application to wrap the lidar communication.
 ADD_SUBDIRECTORY (Lidar)
-=======
+
 # Application for Mapping Component.
 #ADD_SUBDIRECTORY (MappingNew)
->>>>>>> Stashed changes
+
 
 # Special target to simplify the rsync command.
 IF("${PANDABOARD}" STREQUAL "YES")
