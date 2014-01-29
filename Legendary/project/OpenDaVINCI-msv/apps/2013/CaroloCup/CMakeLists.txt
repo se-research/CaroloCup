@@ -21,8 +21,6 @@ ADD_SUBDIRECTORY (SensorboardParking)
 
 ADD_SUBDIRECTORY (ParkingDriverNew)
 
-ADD_SUBDIRECTORY (Lidar)
-
 ADD_SUBDIRECTORY (Sensors)
 
 # Application for building Lanedetector.
