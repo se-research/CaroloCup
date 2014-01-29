@@ -122,21 +122,41 @@ namespace carolocup {
    }		
 
     	while (getModuleState() == ModuleState::RUNNING) {
-
+   //LidarData data;
+   LidarData sendData;
 
 ///////////////////////READ FROM PORT//////////////////////////////////
-  while(1){
+ // while(1){
    
-  sleep(0.00001);
-  cout << "Waiting..." <<endl;
+  //sleep(0.00001);
+ // cout << "Waiting..." <<endl;
 //count++;
 /////////////////////////////////////////////////////
   clock_t start = clock(); 
 
        int n = read(fd, starter, 1);
+/*data.setIndex(1);
+data.setFirstDeg(2);
+data.setFirstDist(3);
+data.setSecondDeg(4);
+data.setSecondDist(5);
+data.setThirDeg(6);
+data.setThirdDist(7);
+data.setFourthDeg(8);
+data.setFourthDist(9);*/
 
         if(n < 0){
         fputs("read failed!\n", stderr);
+
+/*cout<<"LALALALALAALALAALALALAAL:   "<<data.getDistance().readingIndex<<endl;
+cout<<"LALALALALAALALAALALALAAL:   "<<data.getDistance().firstDegree<<endl;
+cout<<"LALALALALAALALAALALALAAL:   "<<data.getDistance().firstDistance<<endl;
+cout<<"LALALALALAALALAALALALAAL:   "<<data.getDistance().secondDegree<<endl;
+cout<<"LALALALALAALALAALALALAAL:   "<<data.getDistance().secondDistance<<endl;
+cout<<"LALALALALAALALAALALALAAL:   "<<data.getDistance().thirdDegree<<endl;
+cout<<"LALALALALAALALAALALALAAL:   "<<data.getDistance().thirdDistance<<endl;
+cout<<"LALALALALAALALAALALALAAL:   "<<data.getDistance().fourthDegree<<endl;
+cout<<"LALALALALAALALAALALALAAL:   "<<data.getDistance().fourthDistance<<endl;*/
         }
 
     if(starter[0] == 0xFA){
@@ -175,7 +195,6 @@ namespace carolocup {
 	printf("Index: %d   Degree: %d   Distance: %d\n", Pointer3->readingIndex, Pointer3->degree, Pointer3->distance);
 	printf("Index: %d   Degree: %d   Distance: %d\n\n\n", Pointer4->readingIndex, Pointer4->degree, Pointer4->distance);
 
-        LidarData sendData;
       
 	sendData.setIndex(Pointer1->readingIndex);
 	sendData.setFirstDeg(Pointer1->degree);
@@ -202,7 +221,7 @@ namespace carolocup {
 
       }   //end of if statement when start byte is found
 
-    } //End of infinite while loop
+   // } //End of infinite while loop
 
 
   } //End of ModuleState::RUNNING

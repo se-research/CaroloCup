@@ -102,6 +102,7 @@ Mat getBirdTransMatrix(CameraStruct cam) {
         0,0,0,1);
 
     // Composed rotation matrix with (RX,RY,RZ)
+    // Use only rotation around x-axis
     Mat R=RX;
 
     // Translation matrix on the Z axis change dist will change the height
