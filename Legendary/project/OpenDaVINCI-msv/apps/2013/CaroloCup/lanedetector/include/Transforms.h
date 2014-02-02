@@ -15,9 +15,9 @@ namespace carolocup {
     using namespace cv;
 
     typedef struct CameraStruct_ {
-        float focal;
+        float focal, focal2;
         float u0, v0;
-        float height, length, theta0, gamma0;
+        float height, length, theta0, beta0, gamma0;
         Size size;
     } CameraStruct;
 

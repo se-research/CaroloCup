@@ -3,10 +3,10 @@
 
 
 #define MIN_ANGLE 10
-#define ROAD_SIZE 660//770
+#define ROAD_SIZE 670//770
 #define ROAD_GOAL 0.5
-#define ROAD_ANGLE 86
-#define MID_DASH_ANGLE -46
+#define ROAD_ANGLE 79
+#define MID_DASH_ANGLE -53
 
 #include <queue>
 #include "opencv2/opencv.hpp"
@@ -26,10 +26,6 @@ struct Config {
       pGain, intGain, derGain, houghMinAngle, houghMaxAngle, 
       houghStartVal, houghMaxLines, XTimesYMin, XTimesYMax, maxY, maxArea;
 
-};
-
-struct CameraStruct {
-	Mat aCol1And2, b;
 };
 
 class LineDetector {

@@ -17,9 +17,9 @@ ADD_SUBDIRECTORY (sensorboard)
 #ADD_SUBDIRECTORY (testsensorboardsender)
 
 # Application for receiving and processing data from the Discovery board.
-ADD_SUBDIRECTORY (SensorboardParking)
+# ADD_SUBDIRECTORY (SensorboardParking)
 
-ADD_SUBDIRECTORY (ParkingDriverNew)
+# ADD_SUBDIRECTORY (ParkingDriverNew)
 
 ADD_SUBDIRECTORY (Sensors)
 
