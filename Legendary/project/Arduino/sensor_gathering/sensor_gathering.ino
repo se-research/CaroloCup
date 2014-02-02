@@ -18,16 +18,16 @@ int size = 28;
 int reading = 0;
 
 unsigned long time;
-unsigned long int cntF=0, cntR=0, cntOldF = 0, cntOldR = 0;
-int ms = 0;
+/*unsigned long int cntF=0, cntR=0, cntOldF = 0, cntOldR = 0;
+int ms = 0;*/
 
 void setup()
 {
   Serial.begin(115200);               // starts the serial monitor
   Wire.begin();
   
-  attachInterrupt(0, countRotationsF, FALLING);
-  attachInterrupt(1, countRotationsR, FALLING);
+  //attachInterrupt(0, countRotationsF, FALLING);
+  //attachInterrupt(1, countRotationsR, FALLING);
 }
 
 int getDistance(int val)
@@ -95,14 +95,14 @@ void loop()
     Serial.print(reading);   // print the reading
     Serial.println(".");
   }
-  ms++;
+  /*ms++;
   if(ms > 2) {
     //Calculate car speed
     unsigned long curr = millis();
-    /*Serial.print(cntF);
+    Serial.print(cntF);
     Serial.print(",");
     Serial.println(cntR);
-    Serial.println((curr - time));*/
+    Serial.println((curr - time));
     int diffF = cntF * 1000 / (curr - time);
     int diffR = cntR * 1000 / (curr - time);
     float carSpeedF = diffF * 0.03;
@@ -116,14 +116,14 @@ void loop()
     cntF = 0;
     cntR = 0;
     time = curr;
-  }
+  }*/
 }
 
-void countRotationsF() {
+/*void countRotationsF() {
   cntF++;
 }
 
 void countRotationsR() {
   cntR++;
-}
+}*/
 

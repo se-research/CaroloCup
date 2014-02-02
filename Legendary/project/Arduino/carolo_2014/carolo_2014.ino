@@ -5,23 +5,24 @@
 #define MIN_MOTOR_SPEED 1400
 #define MAX_MOTOR_SPEED 1623
 #define BRAKE_SPEED_MAX 1530
-#define BRAKE_SPEED_MIN 1150
+#define BRAKE_SPEED_MIN 900
 #define INIT_MOTOR_SPEED 1520 
 
 // This is our motor.
 Servo myMotor;
 Servo mySteering;
-Servo myCamera;
-Servo replicateSteering;
-Servo replicateMotor;
 
 int motorPin = 6;
 int steeringPin = 9;
-int cameraPin = 10;
-int steeringLedPin = 4;
-int motorLedPin = 7;
-int ledPin1 = 51;
-int ledPin2 = 53;
+int stopLed1 = 22;
+int stopLed2 = 52;
+int stopLed3 = 23;
+int blueLed = 53;
+
+int rearLeftLed = 24;
+int frontLeftLed = 51;
+int rearRightLed = 25;
+int frontRightLed = 50;
 
 long int lastTimeStamp;
 
@@ -30,43 +31,41 @@ int speed = INIT_MOTOR_SPEED;
 int angle = 0;
 int freq = 0;
 int setFreq = 0;
-int acumFreqError = 0;
 int propGain = 1;
 int intGain = 5;
-int camAngle = 0;
 int read;
 int readbyte;
 boolean first = true;
 boolean motor = false;
 boolean steering = false;
 boolean brake = false;
-boolean camera = false;
 boolean applybrake = false;
 boolean cruiseCtrl = false;
 boolean applyCruiseCtrl = false;
 int multiplier = 1;
-int camMultiplier = 1;
 boolean takeOver = false;
+boolean indicators = false;
 
 int ms;
 unsigned long time;
 unsigned long int cnt=0, cntOld = 0;
 float carSpeed = 0;
+int takeOverTokens = 10;
 
 int reading = 0;
+boolean blinkingLeft = false;
+boolean blinkingRight = false;
+boolean stopBlinking = true;
 
 void setup()
 {
   // Setup the servos
   myMotor.attach(motorPin);
   mySteering.attach(steeringPin);
-  replicateSteering.attach(steeringLedPin);
-  replicateMotor.attach(motorLedPin);
-  myCamera.attach(cameraPin);
+
   // Set a startup speed
   myMotor.writeMicroseconds(975);
   mySteering.write(90);
-  myCamera.write(90);
   
   time = 0;
 
@@ -77,12 +76,20 @@ void setup()
   Serial.begin(115200);
   Serial.println("initialized");
 
-  pinMode(ledPin1, OUTPUT);
-  pinMode(ledPin2, OUTPUT);
+  pinMode(blueLed, OUTPUT);
+  pinMode(stopLed1, OUTPUT);
+  pinMode(stopLed2, OUTPUT);
+  pinMode(stopLed3, OUTPUT);
+  
+  pinMode(rearLeftLed, OUTPUT);
+  pinMode(frontLeftLed, OUTPUT);
+  pinMode(rearRightLed, OUTPUT);
+  pinMode(frontRightLed, OUTPUT);
 }
 
 void loop()
 {
+  //time = millis();
   if(run) {
     myMotor.writeMicroseconds(speed);
     Serial.print("speed: ");
@@ -92,6 +99,7 @@ void loop()
     speed = 0;
     run = false;
   }
+  evaluateIndicators();
   evaluateReceiver();
   //Serial.print("speed reading: ");
   if(!takeOver) {
@@ -115,14 +123,6 @@ void loop()
             angle = angle * 10 + (readbyte - 48);
           }
         }
-        if(!first && camera){
-          if(readbyte < 48) {
-            camMultiplier = -1;
-          } 
-          else {
-            camAngle = camAngle * 10 + (readbyte - 48);
-          }
-        }
         if(!first && brake) {
           if(readbyte == 43) {
             applybrake = true;
@@ -140,8 +140,22 @@ void loop()
             controlMotor();
           } else {
             applyCruiseCtrl = true;
-            setFreq = setFreq * 10 + (readbyte - 48);
-            acumFreqError = 0;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+            setFreq = setFreq * 10 + (readbyte - 48);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+          }
+        }
+        if(!first && indicators) {
+          if(readbyte == 108) {
+            blinkingLeft = true;
+            stopBlinking = false;
+          } else if(readbyte == 114){
+            blinkingRight = true;
+            stopBlinking = false;
+          } else if(readbyte == 115) {
+            stopBlinking = true;
+          } else if(readbyte == 97) {
+            blinkingLeft = true;
+            blinkingRight = true;
+            stopBlinking = false;
           }
         }
         if (first && readbyte == 109) {
@@ -164,11 +178,9 @@ void loop()
           first = false;
           setFreq = 0;
         }
-        if(first && readbyte == 99) {
-          camera = true;
+        if (first && readbyte == 105) {
+          indicators = true;
           first = false;
-          camAngle = 0;
-          camMultiplier = 1;
         }
         read = read - 1;
       }
@@ -185,20 +197,13 @@ void loop()
           controlSteering();
         }
       }
-      if(camera) {
-        Serial.println(camAngle);
-        if(camAngle > MAX_STEERING_ANGLE_L && camAngle < MAX_STEERING_ANGLE_R) {
-          controlCamera();
-        }
-      }
+
       if(brake) {
         if(applybrake) {
-          digitalWrite(ledPin1, HIGH);
-          replicateMotor.writeMicroseconds(1000);
+          brakeLeds(true);
         } 
         else {
-          digitalWrite(ledPin1, LOW);
-          replicateMotor.writeMicroseconds(1530);
+          brakeLeds(false);
         }
       }
 
@@ -207,9 +212,7 @@ void loop()
       steering = false;
       brake = false;
       cruiseCtrl = false;
-      camera = false;
       multiplier = 1;
-      camMultiplier = 1;
     }
   } 
   else {
@@ -252,9 +255,6 @@ void loop()
       //Serial.print("Speed :");
       //Serial.println(speed);
       controlMotor();
-      /*
-      speed = 1520 + propGain*error + intGain*acumFreqError;
-      */
     }
     //cntOld = cnt;
     cnt = 0;
@@ -262,6 +262,7 @@ void loop()
     time = curr;
   }
   delay(10);
+  //Serial.println((millis()-time));
 }
 
 void controlMotor() {
@@ -269,12 +270,10 @@ void controlMotor() {
   Serial.println(speed);
   myMotor.writeMicroseconds(speed);
   if(speed < BRAKE_SPEED_MAX && speed > BRAKE_SPEED_MIN) {
-    digitalWrite(ledPin1, HIGH);
-    replicateMotor.writeMicroseconds(1000);
+    brakeLeds(true);
   } 
   else {
-    digitalWrite(ledPin1, LOW);
-    replicateMotor.writeMicroseconds(1530);
+    brakeLeds(false);
   }
 }
 
@@ -284,50 +283,76 @@ void controlSteering() {
   angle = 90 + angle * multiplier;
   Serial.println(angle);
   mySteering.write(angle);
-  if(angle > 100) { 
-    replicateSteering.write(120);
-  } 
-  else if(angle < 80){
-    replicateSteering.write(60);
-  } 
-  else {
-    replicateSteering.write(97);
-  }
-}
-
-void controlCamera() {
-  Serial.print("cam angle: ");
-  int inpAngle = camAngle;
-  camAngle = 90 + camAngle * camMultiplier;
-  Serial.println(camAngle);
-  myCamera.write(camAngle);
 }
 
 void evaluateReceiver()
 {
-  int receiverSpeed = pulseIn(2, HIGH, 25000);
-  receiverSpeed = map(receiverSpeed, 1200,2600,1159,1759);
-  int receiverSteer = pulseIn(3, HIGH, 25000);
+  int receiverSpeed, receiverSteer;
+  if(!takeOver) {
+     receiverSpeed = pulseIn(2, HIGH, 5000);
+     receiverSteer = pulseIn(3, HIGH, 5000);
+  } else {
+     receiverSpeed = pulseIn(2, HIGH, 100000);
+     receiverSteer = pulseIn(3, HIGH, 100000);
+  }
+  //receiverSpeed = map(receiverSpeed, 1200,2600,1159,1759);
+  //receiverSteer = map(receiverSteer, 1600,2300,819,2219);
   //Serial.println(receiverSpeed);
   //Serial.println(receiverSteer);
-  receiverSteer = map(receiverSteer, 1600,2300,819,2219);
-  if(receiverSpeed > 670 && receiverSpeed < 1370 && !takeOver) {
-    takeOver = true;
-    digitalWrite(ledPin2, LOW);
-    lastTimeStamp = millis();
+  //if(receiverSpeed > 1170 && receiverSpeed < 1370 && !takeOver) {
+  if(receiverSteer > 1900) {
+    if((takeOverTokens--) == 0) {
+      takeOver = true;
+      digitalWrite(blueLed, LOW);
+      lastTimeStamp = millis();
+    }
+  } else {
+    takeOverTokens = 10;
   }
   if(takeOver) {
     speed = receiverSpeed;
     receiverSteer = (receiverSteer - 1519)/10;
     angle = receiverSteer * (-1);
     if (millis() - lastTimeStamp >= 500) {
-      digitalToggle(ledPin2);
+      digitalToggle(blueLed);
       lastTimeStamp = millis();
     }
   }
   if((angle > 150 || angle < -150) && takeOver) {
-    digitalWrite(ledPin2, LOW);
+    digitalWrite(blueLed, LOW);
+    angle = 0;
+    controlSteering();
     takeOver = false;
+  }
+}
+
+int blinkCntL = 0, blinkCntR = 0;
+void evaluateIndicators() {
+  if(stopBlinking) {
+    blinkingLeft = false;
+    blinkingRight = false;
+  }
+  if(blinkingLeft) {
+    if(blinkCntL++ > 25) {
+      digitalToggle(rearLeftLed);
+      digitalToggle(frontLeftLed);
+      blinkCntL = 0;
+    }
+  } else {
+    digitalWrite(rearLeftLed, LOW);
+    digitalWrite(frontLeftLed, LOW);
+    blinkCntL = 0;
+  }
+  if(blinkingRight) {
+    if(blinkCntR++ > 25) {
+      digitalToggle(rearRightLed);
+      digitalToggle(frontRightLed);
+      blinkCntR = 0;
+    }
+  } else {
+    digitalWrite(rearRightLed, LOW);
+    digitalWrite(frontRightLed, LOW);
+    blinkCntR = 0;
   }
 }
 
@@ -336,6 +361,18 @@ void digitalToggle(int pin) {
     digitalWrite(pin, LOW);
   else
     digitalWrite(pin, HIGH);
+}
+
+void brakeLeds(bool on) {
+  if(on) {
+      digitalWrite(stopLed1, HIGH);
+      digitalWrite(stopLed2, HIGH);
+      digitalWrite(stopLed3, HIGH);
+  } else {
+      digitalWrite(stopLed1, LOW);
+      digitalWrite(stopLed2, LOW);
+      digitalWrite(stopLed3, LOW);
+  }
 }
 
 void countRotations() {

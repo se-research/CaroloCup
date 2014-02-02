@@ -18,6 +18,7 @@
 // Data structures from msv-data library:
 #include "SensorBoardData.h"
 #include "LidarData.h"
+#include "SensorData.h"
 
 #include "Driver.h"
 
@@ -115,10 +116,32 @@ ModuleState::MODULE_EXITCODE Driver::body()
     int x1, x2, x3, x4, y1, y2, y3, y4;
     cout << "Ready to go!" << endl;
 
+
+/*
+typedef struct {
+
+  unsigned int readingIndex;
+  unsigned int firstDegree;
+  unsigned int firstDistance;
+  unsigned int secondDegree;
+  unsigned int secondDistance;
+  unsigned int thirdDegree;
+  unsigned int thirdDistance;
+  unsigned int fourthDegree;
+  unsigned int fourthDistance;
+} lidarReading;
+
+Lidar data is stored in a struct above and getting data from it
+is done by "getData.getDistance().readingIndex" for the reading index e.t.c
+*/
+
+
+
     while (getModuleState() == ModuleState::RUNNING)
     {
         m_hasReceivedLaneDetectionData = false;
         LaneDetectionData ldd;
+	SensorData gatherData;
         LidarData getData;
         while (!lifo.isEmpty())
         {
@@ -140,6 +163,17 @@ ModuleState::MODULE_EXITCODE Driver::body()
                 cout<<"GOT LIDAR DATA FROM THE CONTAINER"<<endl;
                 break;
             }
+
+	   if (con.getDataType() == Container::USER_DATA_3)
+            {
+                // We have found our expected container.
+                gatherData = con.getData<SensorData> ();
+                cout<<"GOT SENSOR DATA FROM THE CONTAINER"<<endl;
+                break;
+		//lifo.clear();
+            }
+
+
 	    cout << "WAIT..." << endl;
         }
         lifo.clear();
