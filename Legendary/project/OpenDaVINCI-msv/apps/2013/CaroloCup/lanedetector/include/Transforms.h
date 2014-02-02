@@ -17,7 +17,7 @@ namespace carolocup {
     typedef struct CameraStruct_ {
         float focal, focal2;
         float u0, v0;
-        float height, length, theta0, beta0, gamma0;
+        float height, length, alpha, beta, gamma;
         Size size;
     } CameraStruct;
 
@@ -25,5 +25,6 @@ namespace carolocup {
     Point2f ipm2(Point2i img_pt, CameraStruct cam);
     Point2f ipm3(Point2i img_pt, CameraStruct cam);
     Mat getBirdTransMatrix(CameraStruct cam);
+    Point2f ipmFinal(Point2i p, CameraStruct cam);
 }
 #endif /* TRANSFORMS_H_ */

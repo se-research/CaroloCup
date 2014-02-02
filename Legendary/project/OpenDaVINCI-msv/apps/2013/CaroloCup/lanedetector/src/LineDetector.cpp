@@ -774,9 +774,9 @@ Point2f LineDetector::getWorldPoint(Point2i p){
     cam.v0 = 240;
     cam.height = 192;
     cam.length = 88;
-    cam.theta0 = 24;
-    cam.beta0 = 87;
-    cam.gamma0 = 90;
+    cam.alpha = 24;
+    cam.beta = 87;
+    cam.gamma = 90;
     cam.size.width = w;
     cam.size.height = h;
 
