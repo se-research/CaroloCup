@@ -51,7 +51,7 @@ Driver::Driver(const int32_t &argc, char **argv) :
     m_derGain(0.23) ,
     m_length(0.3) ,
     m_wheelRadius(0.27),
-    m_protocol("/dev/ttyACM0", 6),
+    m_protocol("/dev/ttyUSB0", 6),
     ANGLE_TO_CURVATURE(2.5) ,
     SCALE_FACTOR (752/0.41) ,
     m_timestamp(0) ,
@@ -70,7 +70,7 @@ Driver::~Driver() {}
 void Driver::setUp()
 {
     // This method will be call automatically _before_ running body().
-    m_speed = 0.4;
+    m_speed = 0.55;
     m_oldCurvature = 0;
     m_controlGains[0] = 10;
     m_controlGains[1] = 20;

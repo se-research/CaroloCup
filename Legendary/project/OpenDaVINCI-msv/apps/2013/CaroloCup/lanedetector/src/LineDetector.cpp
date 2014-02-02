@@ -1,6 +1,7 @@
 #include "LineDetector.h"
 #include <stdio.h>
 #include <math.h>
+#include "Transforms.h"
 
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
@@ -8,6 +9,9 @@
 
 #include <iostream>
 #include <fstream>
+
+#include "nnRoadSizeCalc.h"
+#include "nnRoadAngleCalc.h"
 
 namespace carolocup
 {
@@ -51,10 +55,27 @@ LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug, co
     findLines(outputImg);
 
     /*Point2i pm;
-    pm.x = w/2;
-    pm.y = h + offset;
+    pm.x = 752/2;
+    pm.y = 480;
     Point2f wpm = getWorldPoint(pm);
+    cout << "World mid point: " << wpm.x << "," << wpm.y << endl;
+    pm.x = 0;
+    pm.y = 480;
+    wpm = getWorldPoint(pm);
+    cout << "World mid point: " << wpm.x << "," << wpm.y << endl;
+    pm.x = 752;
+    pm.y = 480;
+    wpm = getWorldPoint(pm);
+    cout << "World mid point: " << wpm.x << "," << wpm.y << endl;
+    pm.x = 0;
+    pm.y = 0;
+    wpm = getWorldPoint(pm);
+    cout << "World mid point: " << wpm.x << "," << wpm.y << endl;
+    pm.x = 752/2;
+    pm.y = 480/2;
+    wpm = getWorldPoint(pm);
     cout << "World mid point: " << wpm.x << "," << wpm.y << endl;*/
+
 
     // View
     if(m_debug) imshow("Output", outputImg);
@@ -99,15 +120,15 @@ Lines LineDetector::getLines()
 			cout << "Removing wrong dash!" << endl;
 			int positionX = getIntersectionWithBottom(dashLines[i]);
 			int nPositionX = getIntersectionWithBottom(dashLines[i+1]);
-			cout << "Curr closenest: " << abs(oldDashGoalX - positionX) << ", other:" << abs(oldDashGoalX - nPositionX) << endl;
+			//cout << "Curr closenest: " << abs(oldDashGoalX - positionX) << ", other:" << abs(oldDashGoalX - nPositionX) << endl;
 			if(abs(oldDashGoalX - positionX) < abs(oldDashGoalX - nPositionX)) {
 			    dashLines[i+1] = dashLines[cntDash-1];
 			    cntDash--;
 			} else {
 			    dashLines[i] = dashLines[cntDash-1];
 			    cntDash--;
-			    i--;
 			}
+			i--;
 		    }
 		    //if(max(dashLines[i].p1.y,dashLines[i].p2.y) > max(supDashLine.p1.y, supDashLine.p2.y)) {
 			//supDashLine = dashLines[i];
@@ -130,7 +151,7 @@ Lines LineDetector::getLines()
                 Point2f dwpm2 = getWorldPoint(Point2i(supDashLine.p2.x, supDashLine.p2.y + offset));
 		cout << "World dash point2: " << dwpm2.x << "," << dwpm2.y << endl;
 		cout << "World dash size: " << getDist(dwpm1, dwpm2)<< endl;*/
-		cout << "Dash diff: " << abs(dashSupPosX - oldDashGoalX) << endl;
+		//cout << "Dash diff: " << abs(dashSupPosX - oldDashGoalX) << endl;
 		if(abs(dashSupPosX - oldDashGoalX) < calcRoadSize * 0.8 || oldDashGoalX == 0) {
 			if(max(supDashLine.p1.x, supDashLine.p2.x) < w/10) {
 				shrinkSize = true;
@@ -162,7 +183,7 @@ Lines LineDetector::getLines()
 		}
 		if(foundR) {
 			int rSupPosX = getIntersectionWithBottom(supRightLine);
-			cout << "Right diff x: " << abs(rSupPosX - oldRightGoalX) << endl;
+			//cout << "Right diff x: " << abs(rSupPosX - oldRightGoalX) << endl;
 			if(abs(rSupPosX - oldRightGoalX) < calcRoadSize * 0.8 || oldRightGoalX == 0) {
 				cout << "Right line slope: " << supRightLine.slope << endl;
 				rightLine = Vec4i(supRightLine.p1.x, supRightLine.p1.y, supRightLine.p2.x, supRightLine.p2.y);
@@ -205,6 +226,9 @@ Lines LineDetector::getLines()
 		float db = supDashLine.p1.y - supDashLine.p1.x * da;
 		int dashGoalX = (goalP.y - db)/da;
 		oldDashGoalX = dashGoalX;
+		int dashCenterX = (supDashLine.p1.x + supDashLine.p2.x)/2;
+		int dashCenterY = (supDashLine.p1.y + supDashLine.p2.y)/2;
+		cout << "Dash center: " << dashCenterX << "," << dashCenterY << endl;
 		//cout << da << "*dx + " << db << endl;
 		cout << "Dash line X: " << dashGoalX << endl;
 		if(foundR) {
@@ -219,7 +243,7 @@ Lines LineDetector::getLines()
 			}
 			vp.y = da*vp.x + db;
 			int roadSz =  (rightGoalX - dashGoalX);
-			//mylog << supDashLine.slope << "," << supRightLine.slope << "," << roadSz << endl;
+			//mylog << supDashLine.slope << "," << dashCenterX << "," << dashCenterY << "," << roadSz << "," << (180 - abs(supDashLine.slope) - abs(supRightLine.slope)) << endl;
 			calcRoadAngle = getRoadAngle(2, supDashLine.slope);
 			calcRoadSize = getRoadSize(calcRoadAngle);
 			goalP.x = dashGoalX + roadSz*ROAD_GOAL;//(dashGoalX + rightGoalX)/2;//dashGoalX + ROAD_SIZE/2;
@@ -244,10 +268,21 @@ Lines LineDetector::getLines()
 			//We have only dash line
 			//offset with half the size of road to the right
 			calcRoadAngle = getRoadAngle(2, supDashLine.slope);
-			calcRoadSize = getRoadSize(calcRoadAngle);
-			if(shrinkSize) {
-				calcRoadSize = 0.8 * calcRoadSize;
+			double inp[3], outA[3], outS[3];
+			if(supDashLine.slope < 0) {
+				inp[0] = 180 + supDashLine.slope;
+			} else {
+				inp[0] = supDashLine.slope;
 			}
+			inp[1] = (supDashLine.p1.x + supDashLine.p2.x)/2;
+			inp[2] = (supDashLine.p1.y + supDashLine.p2.y)/2;
+			nnRoadAngleCalc(inp, outA);
+			nnRoadSizeCalc(inp, outS);
+			cout << "NN result: " << outA[0] << ", " << outS[0] << endl;
+			calcRoadSize = getRoadSize(calcRoadAngle);
+			/*if(shrinkSize) {
+				calcRoadSize = 0.8 * calcRoadSize;
+			}*/
 			int expectedRightLineX = dashGoalX + calcRoadSize;
 			float expectedRightLineAngle = 180 - abs(supDashLine.slope) - calcRoadAngle;
 			if(expectedRightLineAngle > 90) {
@@ -728,31 +763,51 @@ int LineDetector::getRoadSize(int roadAngle) {
    return roadSize;
 }
 
-Point2f ipm(Point2i imgPt, CameraStruct cam) {
-	Mat A = cam.aCol1And2;
-	Mat b = cam.b;
-	Mat aCol3 = (Mat_<double>(3,1) << imgPt.x, imgPt.y, 1);
-	hconcat(A, aCol3, A);
-	Mat worldPt = A.inv()*b;
-        Point2f worldPoint;
-	return Point2f(worldPt.at<double>(0,0), worldPt.at<double>(1,0));
-}
+Point2f LineDetector::getWorldPoint(Point2i p){
+    p.x = p.x - 376;
+    p.y = 480 - p.y;
 
-Point2f LineDetector::getWorldPoint(Point2i imgPoint){
-	Mat intrinsic = (Mat_<double>(3,3) << 460.40, 0, 0, 0, 461.87, 0, 356.29, 213.80, 1);
-	Mat rot = (Mat_<double>(3,3) << 0.0033, -0.2242, 0.9745, 0.9997, -0.0239, -0.0089, 0.0253, 0.9742, 0.2241);
-	Mat tr = (Mat_<double>(1,3) << -54.3132, 89.9935, 308.4711);
-	Mat transform;
-	vconcat(rot.rowRange(0,2), tr, transform);
-	transform = intrinsic*transform;
+    CameraStruct cam;
+    cam.focal = 420;
+    cam.focal2 = 420;
+    cam.u0 = 752/2;
+    cam.v0 = 240;
+    cam.height = 192;
+    cam.length = 88;
+    cam.theta0 = 24;
+    cam.beta0 = 87;
+    cam.gamma0 = 90;
+    cam.size.width = w;
+    cam.size.height = h;
 
-	Mat a12 = -transform.colRange(0,2);
-	Mat b = transform.col(2);
-	CameraStruct cam;
-	cam.aCol1And2 = a12;
-	cam.b = b;
-	
-	return ipm(imgPoint, cam);
+    /*double camera_matrix[3][3] =
+    {-0.688196, -4.10335, 13.8586,
+     -0.0523179, -6.23605, 69.5388,
+     -0.000121023, -0.022983, -0.559884,
+    };*/
+
+   Mat camera_matrix = getBirdTransMatrix(cam);
+   /*cout << "Transform matrix" << endl;
+   for(int i=0; i < camera_matrix.size().height; i++) {
+       for(int j=0; j < camera_matrix.size().width; j++) {
+	   cout << camera_matrix.at<double>(j,i) << " ";
+       }
+       cout << endl;
+   }*/
+
+   double u, v, w;
+   Point2f res;
+   w = 1 / (camera_matrix.at<double>(2,0) * p.x + camera_matrix.at<double>(2,1)* p.y
+       + camera_matrix.at<double>(2,2));
+   u = w * p.x;
+   v = w * p.y;
+
+   res.x = camera_matrix.at<double>(0,0) * u + camera_matrix.at<double>(0,1) * v
+    + camera_matrix.at<double>(0,2) * w;
+   res.y = camera_matrix.at<double>(1,0) * u + camera_matrix.at<double>(1,1) * v
+    + camera_matrix.at<double>(1,2) * w;
+   
+   return res;
 }
 
 int LineDetector::getIntersectionWithBottom(CustomLine l) const {

@@ -61,12 +61,13 @@ Point2f ipm3(Point2i img_pt, CameraStruct cam) {
 }
 
 Mat getBirdTransMatrix(CameraStruct cam) {
-    //double alpha = ((double)cam.theta0-90.)*CV_PI/180 ;
-	double alpha = -cam.theta0*CV_PI/180;
-    //double beta = ((double)cam.theta0)*CV_PI/180;
-    double beta = 0*CV_PI/180;
-    double gamma = cam.gamma0-90*CV_PI/180;
+    double alpha = ((double)cam.theta0-90.)*CV_PI/180 ;
+    //double alpha = -cam.theta0*CV_PI/180;
+    double beta = ((double)cam.beta0-90)*CV_PI/180;
+    //double beta = 0*CV_PI/180;
+    double gamma = ((double)cam.gamma0-90.)*CV_PI/180;
     double f = cam.focal;
+    double f2 = cam.focal2;
     double dist = cam.height;
     double a = cam.length;
 
@@ -102,7 +103,7 @@ Mat getBirdTransMatrix(CameraStruct cam) {
         0,0,0,1);
 
     // Composed rotation matrix with (RX,RY,RZ)
-    Mat R=RX;
+    Mat R = RX * RY * RZ;
 
     // Translation matrix on the Z axis change dist will change the height
     Mat TZ=(Mat_<double>(4,4)<<
@@ -119,7 +120,7 @@ Mat getBirdTransMatrix(CameraStruct cam) {
     // Camera Intrisecs matrix 3D -> 2D
     Mat A2=(Mat_<double>(3,4) <<
         f,0,u0,0,
-        0,f,v0,0,
+        0,f2,v0,0,
         0,0,1,0);
 
     // Final and overall transformation matrix

@@ -62,12 +62,12 @@ LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
     m_config(),
     m_frame()
 {
-    m_config.th1 = 180;
+    m_config.th1 = 120;
     m_config.th2 = 230;
     m_config.hlTh = THRESH_BINARY;
     m_config.XTimesYMin = 0;
     m_config.XTimesYMax = 30;
-    m_config.maxY = 205;
+    m_config.maxY = 220;
     m_config.maxArea = 4;
 }
 
@@ -208,7 +208,7 @@ void LaneDetector::processImage()
     debug = m_debug;
     cfg = m_config;
 
-    Mat neededPart = m_frame(cv::Rect(1, 3*height/16-1, width-1, 8*height/16-1));
+    Mat neededPart = m_frame(cv::Rect(1, 2*height/16-1, width-1, 10*height/16-1));
     LineDetector road(neededPart, cfg, true, 1);
     carolocup::Lines lines = road.getLines();
     if(&lines != NULL) cout << "We have lines!" << endl;

@@ -29,7 +29,7 @@ ENDIF("${PANDABOARD}" STREQUAL "YES")
 # Recipe for building "lanedetector".
 FILE(GLOB_RECURSE lanedetector-sources "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 ADD_LIBRARY (2013-CaroloCup-lanedetectorlib STATIC ${lanedetector-sources})
-ADD_EXECUTABLE (2013-CaroloCup-lanedetector "${CMAKE_CURRENT_SOURCE_DIR}/apps/MainModule.cpp")
+ADD_EXECUTABLE (2013-CaroloCup-lanedetector "${CMAKE_CURRENT_SOURCE_DIR}/apps/MainModule.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/src/nnRoadSizeCalc.cpp")
 
 #LINK_DIRECTORIES (/lib/ueye_api)
 
