@@ -37,7 +37,7 @@ namespace carolocup {
 
      int converter(char* arrayInput);
 
-	void initialize_pin_reading();    //Hall Effect
+	/*void initialize_pin_reading();    //Hall Effect
 	int get_movement_data();          //Hall Effect
 	int map_pins();			  //Hall Effect
 	void setup_gpiopin(int channel, int bit, int value, int pullval); //Hall Effect
@@ -46,7 +46,7 @@ namespace carolocup {
 	int is_movement();		//Hall Effect
 	int *get_gpio_data();		//Hall Effect
 	int pins_state(int pin_data[]);		//Hall Effect
-	int calculate_movement(int before, int after);	   //Hall Effect
+	int calculate_movement(int before, int after);	   //Hall Effect*/
 
 
         protected:

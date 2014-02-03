@@ -68,6 +68,27 @@ reading *Pointer3 = &Distance3;	//Pointer to the third distance
 reading Distance4;			//The fourth distance info from the packet 
 reading *Pointer4 = &Distance4;	//Pointer to the fourth distance
 
+typedef struct {
+
+  unsigned int readingIndex;
+  unsigned int firstDegree;
+  unsigned int firstDistance;
+  unsigned int secondDegree;
+  unsigned int secondDistance;
+  unsigned int thirdDegree;
+  unsigned int thirdDistance;
+  unsigned int fourthDegree;
+  unsigned int fourthDistance;
+} lidarForward;
+
+//////////////////Shared Memory//////////////
+    int Lidarshmid;
+    key_t Lidarkey = 5555;
+    lidarForward *getLidarData;
+     int follow = 0;
+
+
+
 
 namespace carolocup {
 
@@ -93,6 +114,15 @@ namespace carolocup {
 
     // This method will do the main data processing job.
     ModuleState::MODULE_EXITCODE Lidar::body() {
+
+   if ((Lidarshmid = shmget(Lidarkey, sizeof(lidarForward), IPC_CREAT | 0666)) < 0) {
+        cerr<<"Couldn't Create Shared Memory"<<endl;
+    }
+
+    if ((getLidarData = (lidarForward *)shmat(Lidarshmid, (void *)0, 0)) == (lidarForward *) -1) {
+        cerr<<"Couldn't Attach to Memory"<<endl;
+    }
+ 
 
    fd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NDELAY);
 
@@ -157,6 +187,23 @@ cout<<"LALALALALAALALAALALALAAL:   "<<data.getDistance().thirdDegree<<endl;
 cout<<"LALALALALAALALAALALALAAL:   "<<data.getDistance().thirdDistance<<endl;
 cout<<"LALALALALAALALAALALALAAL:   "<<data.getDistance().fourthDegree<<endl;
 cout<<"LALALALALAALALAALALALAAL:   "<<data.getDistance().fourthDistance<<endl;*/
+
+	getLidarData->readingIndex = 10;
+        getLidarData->firstDegree = 20;
+        getLidarData->firstDistance = 30;
+        getLidarData->secondDegree = 40;
+	getLidarData->secondDistance = 50;
+	getLidarData->thirdDegree = 60;
+	getLidarData->thirdDistance = 70;
+	getLidarData->fourthDegree = 80;
+	getLidarData->fourthDistance = 90;
+
+ //Create container for sending the Lidar data
+        Container contData(Container::USER_DATA_2, sendData);
+        // Send containers.
+        getConference().send(contData);
+
+
         }
 
     if(starter[0] == 0xFA){
@@ -205,6 +252,28 @@ cout<<"LALALALALAALALAALALALAAL:   "<<data.getDistance().fourthDistance<<endl;*/
 	sendData.setThirdDist(Pointer3->distance);
    	sendData.setFourthDeg(Pointer4->degree);
 	sendData.setFourthDist(Pointer4->distance);
+
+
+
+ unsigned int readingIndex;
+  unsigned int firstDegree;
+  unsigned int firstDistance;
+  unsigned int secondDegree;
+  unsigned int secondDistance;
+  unsigned int thirdDegree;
+  unsigned int thirdDistance;
+  unsigned int fourthDegree;
+  unsigned int fourthDistance;
+
+        getLidarData->readingIndex = Pointer1->readingIndex;
+        getLidarData->firstDegree = Pointer1->degree;
+        getLidarData->firstDistance = Pointer1->distance;
+        getLidarData->secondDegree = Pointer2->degree;
+	getLidarData->secondDistance = Pointer2->distance;
+	getLidarData->thirdDegree = Pointer3->degree;
+	getLidarData->thirdDistance = Pointer3->distance;
+	getLidarData->fourthDegree = Pointer4->degree;
+	getLidarData->fourthDistance = Pointer4->distance;
 
         //Create container for sending the Lidar data
         Container contData(Container::USER_DATA_2, sendData);

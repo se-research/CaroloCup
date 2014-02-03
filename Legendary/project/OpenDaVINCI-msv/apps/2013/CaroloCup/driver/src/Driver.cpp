@@ -22,6 +22,44 @@
 
 #include "Driver.h"
 
+
+typedef struct{
+
+   int firstInfraredDistance;
+   int secondInfraredDistance;
+   int thirdInfraredDistance;
+   int fourthInfraredDistance;
+
+   int firstUltrasonicDistance;
+   int secondUltrasonicDistance;
+
+ }allSensors;
+
+typedef struct {
+
+  unsigned int readingIndex;
+  unsigned int firstDegree;
+  unsigned int firstDistance;
+  unsigned int secondDegree;
+  unsigned int secondDistance;
+  unsigned int thirdDegree;
+  unsigned int thirdDistance;
+  unsigned int fourthDegree;
+  unsigned int fourthDistance;
+} lidarForward;
+
+//////////////////Shared Memory//////////////
+    int shmid;
+    key_t key = 5678;
+    allSensors *getSensorData;
+     int follow = 0;
+
+    int Lidarshmid;
+    key_t Lidarkey = 5555;
+    lidarForward *getLidarData;
+    
+
+
 namespace carolocup
 {
 
@@ -114,7 +152,23 @@ ModuleState::MODULE_EXITCODE Driver::body()
     core::base::LIFOQueue lifo;
     addDataStoreFor(lifo);
     int x1, x2, x3, x4, y1, y2, y3, y4;
-    cout << "Ready to go!" << endl;
+    cout << "Ready to go!" << endl; 
+
+    if ((shmid = shmget(key,  sizeof(allSensors), IPC_CREAT | 0666)) < 0) {
+        cerr<<"Couldn't Create Memory"<<endl;
+    }
+    
+   if ((getSensorData = (allSensors *)shmat(shmid, 0, 0)) == (allSensors *) -1) {
+        cerr<<"Couldn't attach to memory"<<endl;
+    }
+
+    if ((Lidarshmid = shmget(Lidarkey, sizeof(lidarForward), IPC_CREAT | 0666)) < 0) {
+        cerr<<"Couldn't Create Shared Memory"<<endl;
+    }
+
+    if ((getLidarData = (lidarForward *)shmat(Lidarshmid, (void *)0, 0)) == (lidarForward *) -1) {
+        cerr<<"Couldn't Attach to Memory"<<endl;
+    }
 
 
 /*
@@ -161,6 +215,19 @@ is done by "getData.getDistance().readingIndex" for the reading index e.t.c
                 // We have found our expected container.
                 getData = con.getData<LidarData> ();
                 cout<<"GOT LIDAR DATA FROM THE CONTAINER"<<endl;
+
+
+        cout<<"Reading Index:  "<<getLidarData->readingIndex<<endl;
+        cout<<"firstDegree:  "<<getLidarData->firstDegree<<endl;
+        cout<<"firstDistance:  "<<getLidarData->firstDistance<<endl;
+        cout<<"secondDegree:  "<<getLidarData->secondDegree<<endl;
+	cout<<"secondDistance:  "<<getLidarData->secondDistance<<endl;
+	cout<<"thirdDegree:  "<<getLidarData->thirdDegree<<endl;
+	cout<<"thirdDistance:  "<<getLidarData->thirdDistance<<endl;
+	cout<<"fourthDegree:  "<<getLidarData->fourthDegree<<endl;
+	cout<<"fourthDistance:  "<<getLidarData->fourthDistance<<endl;
+
+         
                 break;
             }
 
@@ -169,6 +236,15 @@ is done by "getData.getDistance().readingIndex" for the reading index e.t.c
                 // We have found our expected container.
                 gatherData = con.getData<SensorData> ();
                 cout<<"GOT SENSOR DATA FROM THE CONTAINER:   "<<gatherData.getUltrasonicDistance(2)<<endl;
+             
+        cout<<"First:   "<<getSensorData->firstInfraredDistance<<endl;
+   	cout<<"Second:   "<<getSensorData->secondInfraredDistance<<endl;
+   	cout<<"Third:   "<<getSensorData->thirdInfraredDistance<<endl;
+   	cout<<"Fourth:   "<<getSensorData->fourthInfraredDistance<<endl;
+
+   	cout<<"Fifth:   "<<getSensorData->firstUltrasonicDistance<<endl;
+   	cout<<"Sixth:   "<<getSensorData->secondUltrasonicDistance<<endl;
+ 
                 break;
 		//lifo.clear();
             }
