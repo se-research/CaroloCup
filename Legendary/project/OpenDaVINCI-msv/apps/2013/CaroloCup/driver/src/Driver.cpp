@@ -168,7 +168,7 @@ is done by "getData.getDistance().readingIndex" for the reading index e.t.c
             {
                 // We have found our expected container.
                 gatherData = con.getData<SensorData> ();
-                cout<<"GOT SENSOR DATA FROM THE CONTAINER"<<endl;
+                cout<<"GOT SENSOR DATA FROM THE CONTAINER:   "<<gatherData.getUltrasonicDistance(2)<<endl;
                 break;
 		//lifo.clear();
             }

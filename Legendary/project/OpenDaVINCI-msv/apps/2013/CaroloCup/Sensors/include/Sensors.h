@@ -12,6 +12,7 @@
 #include "core/data/Container.h"
 
 
+
 namespace carolocup {
 
     using namespace std;
@@ -35,6 +36,17 @@ namespace carolocup {
 //void  * function2(void * argument);
 
      int converter(char* arrayInput);
+
+	void initialize_pin_reading();    //Hall Effect
+	int get_movement_data();          //Hall Effect
+	int map_pins();			  //Hall Effect
+	void setup_gpiopin(int channel, int bit, int value, int pullval); //Hall Effect
+	int read_gpio_pin(int channel, int bit );	//Hall Effect
+	void* loop_retrieving(void *arg);	//Hall Effect
+	int is_movement();		//Hall Effect
+	int *get_gpio_data();		//Hall Effect
+	int pins_state(int pin_data[]);		//Hall Effect
+	int calculate_movement(int before, int after);	   //Hall Effect
 
 
         protected:
