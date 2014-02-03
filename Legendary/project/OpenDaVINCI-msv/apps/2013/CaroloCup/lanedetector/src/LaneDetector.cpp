@@ -238,7 +238,11 @@ void LaneDetector::processImage()
     cout << dec;
     cout << "avg_time: " << avg_time << "ms" << endl;
 
-    drawLines(&lines, &neededPart, 0);
+    if(lines.goalLine.p1.x == 0 && lines.goalLine.p1.y == 0 && lines.goalLine.p2.x == 0 && lines.goalLine.p2.y == 0 && lines.currentLine.p2.x == 0 && lines.currentLine.p2.y == 0) {
+	cout << "Nothing in..." << endl;
+    } else {
+    	drawLines(&lines, &neededPart, 0);
+    }
 
     cout << "VP [x, y] : [" << lines.goalLine.p1.x << ", " << lines.goalLine.p1.y << "]" << endl;
     cout << "Goal [x, y] : [" << lines.goalLine.p2.x << ", " << lines.goalLine.p2.y << "]" << endl;

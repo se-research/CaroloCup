@@ -15,14 +15,14 @@ Servo mySteering;
 int motorPin = 6;
 int steeringPin = 9;
 int stopLed1 = 22;
-int stopLed2 = 52;
+int stopLed2 = 29;
 int stopLed3 = 23;
-int blueLed = 53;
+int blueLed = 40;
 
 int rearLeftLed = 24;
-int frontLeftLed = 51;
+int frontLeftLed = 43;
 int rearRightLed = 25;
-int frontRightLed = 50;
+int frontRightLed = 42;
 
 long int lastTimeStamp;
 
@@ -295,12 +295,15 @@ void evaluateReceiver()
      receiverSpeed = pulseIn(2, HIGH, 100000);
      receiverSteer = pulseIn(3, HIGH, 100000);
   }
-  //receiverSpeed = map(receiverSpeed, 1200,2600,1159,1759);
+  receiverSpeed = map(receiverSpeed, 1400,2500,1000,2000);
+  if(receiverSpeed > 1572) {
+    receiverSpeed = 1572;
+  }
   //receiverSteer = map(receiverSteer, 1600,2300,819,2219);
   //Serial.println(receiverSpeed);
   //Serial.println(receiverSteer);
   //if(receiverSpeed > 1170 && receiverSpeed < 1370 && !takeOver) {
-  if(receiverSteer > 1900) {
+  if(receiverSteer > 2100) {
     if((takeOverTokens--) == 0) {
       takeOver = true;
       digitalWrite(blueLed, LOW);
@@ -311,8 +314,8 @@ void evaluateReceiver()
   }
   if(takeOver) {
     speed = receiverSpeed;
-    receiverSteer = (receiverSteer - 1519)/10;
-    angle = receiverSteer * (-1);
+    receiverSteer = (receiverSteer - 1959)/10;
+    angle = receiverSteer; //* (-1);
     if (millis() - lastTimeStamp >= 500) {
       digitalToggle(blueLed);
       lastTimeStamp = millis();

@@ -263,9 +263,9 @@ is done by "getData.getDistance().readingIndex" for the reading index e.t.c
         }
         m_rightLine = lines.rightLine;
         
-        m_propGain = 4.8;//4.5;//2.05;
-        m_intGain = 1.0;//1.0;//8.39; //8.39;
-        m_derGain = 0.25;//0.23;
+        m_propGain = 4.5;//4.5;//2.05;
+        m_intGain = 2;//1.0;//8.39; //8.39;
+        m_derGain = 0.4;//0.23;
 
         // Temporary solution to stop the car if a stop line is detected
         //if (lines.stopLineHeight != -1)
@@ -384,8 +384,8 @@ is done by "getData.getDistance().readingIndex" for the reading index e.t.c
 
 	float desSteering = m_desiredSteeringWheelAngle*180/M_PI;
 	cout << "Desired steering: " << desSteering <<endl;
-	if(desSteering > 32) desSteering = 32;
-	if(desSteering < -32) desSteering = -32;
+	if(desSteering > 43) desSteering = 43;
+	if(desSteering < -43) desSteering = -43;
 
 	int16_t steeringVal = int16_t(desSteering);
 	if(steeringVal != oldSteeringVal) {
