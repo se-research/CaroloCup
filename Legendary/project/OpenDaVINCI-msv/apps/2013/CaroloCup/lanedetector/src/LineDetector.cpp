@@ -27,10 +27,12 @@ int h, w, offset;
 int roadSize = ROAD_SIZE;
 int roadAngle = 91;
 bool foundStopStartLine = false;
+bool intersectionOn = false;
 int oldDashGoalX = 0;
 int oldRightGoalX = 0;
 int oldLeftGoalX = 0;
 int calcRoadSize, calcRoadAngle;
+float minXI, minYI, YI; 
 
 LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug, const int id)
     : m_lines(NULL)
@@ -128,7 +130,18 @@ Lines LineDetector::getLines()
 			    dashLines[i] = dashLines[cntDash-1];
 			    cntDash--;
 			}
-			i--;
+			if(i > 0) {
+			    i--;
+			}
+		    }
+			
+		    if(intersectionOn && ((dashLines[i].p1.y + dashLines[i].p2.y) /2) < YI) {
+			    dashLines[i] = dashLines[cntDash-1];
+			    cntDash--;
+			    if(i > 0) {
+	         	    	i--;
+	    		    }
+			    cout << "Remove dash becuase of intersection! (" << YI << ") " << endl;
 		    }
 		    //if(max(dashLines[i].p1.y,dashLines[i].p2.y) > max(supDashLine.p1.y, supDashLine.p2.y)) {
 			//supDashLine = dashLines[i];
@@ -142,26 +155,28 @@ Lines LineDetector::getLines()
 			}*/
 		    //}
 		}
-		supDashLine = dashLines[0];
-		int dashSupPosX = getIntersectionWithBottom(supDashLine);
-	        //if(supDashLine.slope < 0) {
-		cout << "Dash line slope: " << supDashLine.slope << endl;
-                /*Point2f dwpm1 = getWorldPoint(Point2i(supDashLine.p1.x, supDashLine.p1.y + offset));
-		cout << "World dash point1: " << dwpm1.x << "," << dwpm1.y << endl;
-                Point2f dwpm2 = getWorldPoint(Point2i(supDashLine.p2.x, supDashLine.p2.y + offset));
-		cout << "World dash point2: " << dwpm2.x << "," << dwpm2.y << endl;
-		cout << "World dash size: " << getDist(dwpm1, dwpm2)<< endl;*/
-		//cout << "Dash diff: " << abs(dashSupPosX - oldDashGoalX) << endl;
-		if(abs(dashSupPosX - oldDashGoalX) < calcRoadSize * 0.8 || oldDashGoalX == 0) {
-			if(max(supDashLine.p1.x, supDashLine.p2.x) < w/10) {
-				shrinkSize = true;
+		if(cntDash > 0) {
+			supDashLine = dashLines[0];
+			int dashSupPosX = getIntersectionWithBottom(supDashLine);
+			//if(supDashLine.slope < 0) {
+			cout << "Dash line slope: " << supDashLine.slope << endl;
+		        /*Point2f dwpm1 = getWorldPoint(Point2i(supDashLine.p1.x, supDashLine.p1.y + offset));
+			cout << "World dash point1: " << dwpm1.x << "," << dwpm1.y << endl;
+		        Point2f dwpm2 = getWorldPoint(Point2i(supDashLine.p2.x, supDashLine.p2.y + offset));
+			cout << "World dash point2: " << dwpm2.x << "," << dwpm2.y << endl;
+			cout << "World dash size: " << getDist(dwpm1, dwpm2)<< endl;*/
+			//cout << "Dash diff: " << abs(dashSupPosX - oldDashGoalX) << endl;
+			if(abs(dashSupPosX - oldDashGoalX) < calcRoadSize * 0.8 || oldDashGoalX == 0) {
+				/*if(max(supDashLine.p1.x, supDashLine.p2.x) < w/10) {
+					shrinkSize = true;
+				}*/
+				dashLine = Vec4i(supDashLine.p1.x, supDashLine.p1.y, supDashLine.p2.x, supDashLine.p2.y);
+				foundD = true;
 			}
-			dashLine = Vec4i(supDashLine.p1.x, supDashLine.p1.y, supDashLine.p2.x, supDashLine.p2.y);
-			foundD = true;
 		}
 	}
 	//bool isInvertedR = false;
-	if(cntSolid > 0) {
+	if(cntSolid > 0 && !intersectionOn) {
 		supRightLine.p1.x = w;
 		supRightLine.p2.x = w;
 		for(int i = 0; i < cntSolid; i++) {
@@ -217,7 +232,7 @@ Lines LineDetector::getLines()
 	Point goalP;
 	//Set goal height
 	goalP.y = h;
-	bool foundGoal;
+	bool foundGoal = false;
 	//Trace different image scenarious
 	int currRoadSize = calcRoadSize;
 	if(foundD) {
@@ -253,6 +268,7 @@ Lines LineDetector::getLines()
 			cout << "Road angle: " << (180 - abs(supDashLine.slope) - abs(supRightLine.slope)) << endl;
 			cout << "Right line X: " << rightGoalX << endl;
 			cout << "CASE: Dash and right" << endl;
+			oldLeftGoalX = 0;
 		/*} else if(foundL){
 			//We have dash and left line
 			float a = tan(supLeftLine.slope * M_PI / 180);
@@ -300,6 +316,8 @@ Lines LineDetector::getLines()
 			}
 			vp.y = da*vp.x + db;
 			goalP.x = dashGoalX + calcRoadSize*ROAD_GOAL;
+			oldRightGoalX = 0;
+			oldLeftGoalX = 0;
 			cout << "CASE: Only dash" << endl;
 		}
 		foundGoal = true;
@@ -333,6 +351,8 @@ Lines LineDetector::getLines()
 			vp.y = a*vp.x + b;
 			foundGoal = true;
 			goalP.x = expectedDashLineX + calcRoadSize*ROAD_GOAL;
+			oldDashGoalX = 0;
+			oldLeftGoalX = 0;
 			cout << "CASE: Only right" << endl;
 		} else if(foundL) {
 			//We have only left line
@@ -362,6 +382,8 @@ Lines LineDetector::getLines()
 			vp.y = a*vp.x + b;
 			foundGoal = true;
 			goalP.x = expectedDashLineX + calcRoadSize*ROAD_GOAL;
+			oldDashGoalX = 0;
+			oldRightGoalX = 0;
 			cout << "CASE: Only left" << endl;
 		}
 	}
@@ -437,6 +459,7 @@ CustomLine LineDetector::createLineFromRect(RotatedRect* rect, int sizeX, int si
 void LineDetector::findLines(cv::Mat &outputImg) {
     vector<vector<Point> > contours;
     vector<Vec4i> hierarchy;
+    bool foundIntersection = false;
     cntDash = 0;
     cntSolid = 0;
     /// Find contours
@@ -516,10 +539,30 @@ void LineDetector::findLines(cv::Mat &outputImg) {
 	     	dashLines[cntDash] = createLineFromRect(&rect, sizeX, sizeY);
 	     	cntDash++;
 	     }*/
+	     cout << "Dash Rect y: " << rectCenter.y << endl;
 	} else if(sizeY > sizeX && sizeY > (m_config.maxY/2) && area < m_config.maxArea * 10000){
 	     solidLines[cntSolid] = createLineFromRect(&rect, sizeX, sizeY);
 	     cntSolid++;
+	} else if(area > m_config.maxArea * 10000){
+	     minXI = w;
+	     minYI = h;
+	     for( int j = 0; j < 4; j++ ) {
+		if(minXI > rect_points[j].x) {
+			minXI = rect_points[j].x;
+		}
+		if(minYI > rect_points[j].y) {
+			minYI = rect_points[j].y;
+		}
+	     }
+	     YI = rectCenter.y;
+	     cout << "Intersection x: " << minXI << ", Intersection y: " << minYI << ", Center y: " << rectCenter.y << endl; 
+	     intersectionOn = true;
+	     foundIntersection = true;
 	}
+    }
+    if(intersectionOn && !foundIntersection){
+	YI = h;
+	cout << "INNNN" << endl;
     }
 
     //Filter dashes outside the solid lines and merge solid lines
@@ -574,11 +617,14 @@ void LineDetector::findLines(cv::Mat &outputImg) {
         {
             solidLines[i] = solidLines[cntSolid-1];
 	    cntSolid--;
-	    i--;
+	    if(i > 0) {
+	    	i--;
+	    }
 	    foundStopStartLine = true;
         }
     }
     //Dash also positioned too high on the image or too left or too right
+    int maxDashY = 0;
     for(int i=0; i < cntDash; i++)
     {
 	CustomLine l = dashLines[i];
@@ -589,13 +635,24 @@ void LineDetector::findLines(cv::Mat &outputImg) {
         {
             dashLines[i] = dashLines[cntDash-1];
 	    cntDash--;
-	    i--;
+	    if(i > 0) {
+	    	i--;
+	    }
         }
+
+	if(maxDashY < max(dashLines[i].p1.y, dashLines[i].p2.y)) {
+		maxDashY = max(dashLines[i].p1.y, dashLines[i].p2.y);
+	}
+    }
+
+    if((cntSolid > 0 && cntDash>1 && maxDashY < (9*h/10)) || YI < 120) {
+	//cout << "Switch off: " << minXI << "," << YI << "," << maxDashY << "==========================================================================================" << endl;
+	intersectionOn = false;
     }
 
     cout << "Dashes: " << cntDash << endl;
     cout << "Solids: " << cntSolid << endl;
-    cout << "StopLine: " << foundStopStartLine << endl;
+    cout << "Intersection: " << intersectionOn << endl;
 
     //Print lines
     for(int i = 0; i < cntDash; i++) {

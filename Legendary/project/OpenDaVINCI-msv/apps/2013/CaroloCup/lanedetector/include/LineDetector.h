@@ -2,11 +2,11 @@
 #define LINEDETECTOR_H_
 
 
-#define MIN_ANGLE 10
-#define ROAD_SIZE 670//770
+#define MIN_ANGLE 15
+#define ROAD_SIZE 680//770
 #define ROAD_GOAL 0.5
-#define ROAD_ANGLE 79
-#define MID_DASH_ANGLE -53
+#define ROAD_ANGLE 85
+#define MID_DASH_ANGLE -48
 
 #include <queue>
 #include "opencv2/opencv.hpp"
