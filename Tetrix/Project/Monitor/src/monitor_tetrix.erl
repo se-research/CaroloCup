@@ -4,7 +4,7 @@
 -export([start/0]).
 
 %% Internal exports
--export([init/1]).
+-export([init/1, startup_tetrix/0]).
 
 -define(SERVER, ?MODULE). 
 
@@ -41,8 +41,13 @@ loop(State)->
               false ->
                     timer:sleep(1000),
                     io:format("false: no connection\n",[]),
-                    os:cmd(".././init_tetrix"), 
-                    net_kernel:connect_node(list_to_atom("node1@" ++ State#state.host) ),
+                    case startup_tetrix() of
+                     ok ->
+                       net_kernel:connect_node(list_to_atom("node1@" ++ State#state.host) )
+                    end,
+ 
+     %               os:cmd(".././init_tetrix"), 
+     %               net_kernel:connect_node(list_to_atom("node1@" ++ State#state.host) ),
 %                    os:cmd("cd ../;./run.sh &"), 
 %                    timer:sleep(3000),
 %                    net_kernel:connect_node(list_to_atom("node1@" ++ Host) ),
@@ -55,8 +60,11 @@ loop(State)->
         case rpc:multicall(nodes(), erlang, is_alive, []) of
             {[],[]} ->
                  io:format("no nodes are alive\n",[]),
-                 os:cmd(".././init_tetrix"), 
-                 net_kernel:connect_node(list_to_atom("node1@" ++ State#state.host) ),
+                 %os:cmd(".././init_tetrix"), 
+                 case startup_tetrix() of
+                    ok ->
+                      net_kernel:connect_node(list_to_atom("node1@" ++ State#state.host) )
+                 end,
  
 %                os:cmd("erl -pa /ebin/ -sname node1 -setcookie nodes -noshell &"),
                 timer:sleep(1000),
@@ -83,3 +91,18 @@ loop(State)->
 get_hostname()->
   RawHost = os:cmd("hostname"),
   string:strip(RawHost,right,$\n).
+
+startup_tetrix() ->
+  os:cmd(".././init_tetrix"), 
+  RawAnswer = os:cmd("./src/tetrix_available.sh"),  
+  Answer = string:strip(RawAnswer,right,$\n),
+
+  case Answer of
+    "0" ->
+        io:format("looping, trying to start tetrix app", []),
+        startup_tetrix();
+    "1" ->
+        ok 
+  end. 
+
+

@@ -197,7 +197,7 @@ int main(int argc, char *argv[])
 		//setDisplay("Hello",(long)ptr);
 		setSpeed(atoi(str),(long)ptr);
 		//setAngle(atoi(str),(long)ptr);
-		setBrakeLight(0,(long)ptr);
+		setBrakeLight(1,(long)ptr);
 		setRightSignalLight(1,(long)ptr);
 		setLeftSignalLight(1,(long)ptr);
 		printf("Speed(m/s): %.1f; ",getAxelSpeed((long)ptr));
