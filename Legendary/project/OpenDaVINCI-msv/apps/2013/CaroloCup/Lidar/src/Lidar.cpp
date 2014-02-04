@@ -48,6 +48,8 @@ unsigned int sid, sra1, sra2, srb1, srb2, src1, src2, srd1, srd2;
 int fd; 			//File descriptor for the port
 bool portState = false;
 
+int fow = 0;
+
 
 typedef struct{
 
@@ -177,6 +179,7 @@ data.setFourthDist(9);*/
 
         if(n < 0){
         fputs("read failed!\n", stderr);
+   fow++;
 
 /*cout<<"LALALALALAALALAALALALAAL:   "<<data.getDistance().readingIndex<<endl;
 cout<<"LALALALALAALALAALALALAAL:   "<<data.getDistance().firstDegree<<endl;
@@ -188,6 +191,7 @@ cout<<"LALALALALAALALAALALALAAL:   "<<data.getDistance().thirdDistance<<endl;
 cout<<"LALALALALAALALAALALALAAL:   "<<data.getDistance().fourthDegree<<endl;
 cout<<"LALALALALAALALAALALALAAL:   "<<data.getDistance().fourthDistance<<endl;*/
 
+if(fow<100 || fow > 500){
 	getLidarData->readingIndex = 10;
         getLidarData->firstDegree = 20;
         getLidarData->firstDistance = 30;
@@ -197,6 +201,20 @@ cout<<"LALALALALAALALAALALALAAL:   "<<data.getDistance().fourthDistance<<endl;*/
 	getLidarData->thirdDistance = 70;
 	getLidarData->fourthDegree = 80;
 	getLidarData->fourthDistance = 90;
+}
+
+if(fow > 100 && fow < 500){
+	getLidarData->readingIndex = 10;
+        getLidarData->firstDegree = 20;
+        getLidarData->firstDistance = 3000;
+        getLidarData->secondDegree = 40;
+	getLidarData->secondDistance = 5000;
+	getLidarData->thirdDegree = 60;
+	getLidarData->thirdDistance = 7000;
+	getLidarData->fourthDegree = 80;
+	getLidarData->fourthDistance = 9000;
+}
+
 
  //Create container for sending the Lidar data
         Container contData(Container::USER_DATA_2, sendData);

@@ -48,6 +48,8 @@ typedef struct {
   unsigned int fourthDistance;
 } lidarForward;
 
+int lidarLookUp[360][2];
+
 //////////////////Shared Memory//////////////
     int shmid;
     key_t key = 5678;
@@ -227,6 +229,16 @@ is done by "getData.getDistance().readingIndex" for the reading index e.t.c
 	cout<<"fourthDegree:  "<<getLidarData->fourthDegree<<endl;
 	cout<<"fourthDistance:  "<<getLidarData->fourthDistance<<endl;
 
+       lidarLookUp[getLidarData->firstDegree][1] = getLidarData->firstDistance;
+       lidarLookUp[getLidarData->secondDegree][1] = getLidarData->secondDistance;
+       lidarLookUp[getLidarData->thirdDegree][1] = getLidarData->thirdDistance;
+       lidarLookUp[getLidarData->fourthDegree][1] = getLidarData->fourthDistance;
+
+cout<<"First:  "<<lidarLookUp[getLidarData->firstDegree][1]<<endl;
+cout<<"Second:  "<<lidarLookUp[getLidarData->secondDegree][1]<<endl;
+cout<<"Third:  "<<lidarLookUp[getLidarData->thirdDegree][1]<<endl;
+cout<<"Fourth:  "<<lidarLookUp[getLidarData->fourthDegree][1]<<endl;
+
          
                 break;
             }
@@ -253,6 +265,8 @@ is done by "getData.getDistance().readingIndex" for the reading index e.t.c
 	    cout << "WAIT..." << endl;
         }
         lifo.clear();
+
+
 
         // The two lines are delivered in a struct containing two Vec4i objects (vector of 4 integers)
         Lines lines = ldd.getLaneDetectionData();
