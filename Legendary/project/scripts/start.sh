@@ -10,7 +10,7 @@ while read -r line < $serialPort; do
 
     # Stop and kill the processes
     for pid in $(cat $pidfile); do
-      kill -9 $pid
+      kill $pid
     done
 
   elif [[ $line == "YELLOW" ]]; then
