@@ -33,6 +33,9 @@ unsigned char buffer[22];
 
 unsigned char starter[1];
 
+int init=0;
+int *init_level = &init;
+
 unsigned char byte1, byte2, byte3, byte4, byte5, 
 	      byte6, byte7, byte8, byte9, byte10, 
               byte11, byte12, byte13, byte14, byte15, byte16, 
@@ -90,8 +93,6 @@ typedef struct {
      int follow = 0;
 
 
-
-
 namespace carolocup {
 
     using namespace std;
@@ -126,7 +127,7 @@ namespace carolocup {
     }
  
 
-   fd = open("/dev/ttyUSB1", O_RDWR | O_NOCTTY | O_NDELAY);
+   fd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NDELAY);
 
     if (fd == -1){
 	perror("cannot open");
@@ -154,92 +155,94 @@ namespace carolocup {
    }		
 
     	while (getModuleState() == ModuleState::RUNNING) {
-   //LidarData data;
+
    LidarData sendData;
 
 ///////////////////////READ FROM PORT//////////////////////////////////
  // while(1){
    
   //sleep(0.00001);
- // cout << "Waiting..." <<endl;
-//count++;
-/////////////////////////////////////////////////////
-  clock_t start = clock(); 
-
-       int n = read(fd, starter, 1);
-/*data.setIndex(1);
-data.setFirstDeg(2);
-data.setFirstDist(3);
-data.setSecondDeg(4);
-data.setSecondDist(5);
-data.setThirDeg(6);
-data.setThirdDist(7);
-data.setFourthDeg(8);
-data.setFourthDist(9);*/
-
-        if(n < 0){
+ int n = 0;
+      if(n < 0){
         fputs("read failed!\n", stderr);
-   fow++;
-
-/*cout<<"LALALALALAALALAALALALAAL:   "<<data.getDistance().readingIndex<<endl;
-cout<<"LALALALALAALALAALALALAAL:   "<<data.getDistance().firstDegree<<endl;
-cout<<"LALALALALAALALAALALALAAL:   "<<data.getDistance().firstDistance<<endl;
-cout<<"LALALALALAALALAALALALAAL:   "<<data.getDistance().secondDegree<<endl;
-cout<<"LALALALALAALALAALALALAAL:   "<<data.getDistance().secondDistance<<endl;
-cout<<"LALALALALAALALAALALALAAL:   "<<data.getDistance().thirdDegree<<endl;
-cout<<"LALALALALAALALAALALALAAL:   "<<data.getDistance().thirdDistance<<endl;
-cout<<"LALALALALAALALAALALALAAL:   "<<data.getDistance().fourthDegree<<endl;
-cout<<"LALALALALAALALAALALALAAL:   "<<data.getDistance().fourthDistance<<endl;*/
-
-if(fow<100 || fow > 500){
-	getLidarData->readingIndex = 10;
-        getLidarData->firstDegree = 20;
-        getLidarData->firstDistance = 30;
-        getLidarData->secondDegree = 40;
-	getLidarData->secondDistance = 50;
-	getLidarData->thirdDegree = 60;
-	getLidarData->thirdDistance = 70;
-	getLidarData->fourthDegree = 80;
-	getLidarData->fourthDistance = 90;
-}
-
-if(fow > 100 && fow < 500){
-	getLidarData->readingIndex = 10;
-        getLidarData->firstDegree = 20;
-        getLidarData->firstDistance = 3000;
-        getLidarData->secondDegree = 40;
-	getLidarData->secondDistance = 5000;
-	getLidarData->thirdDegree = 60;
-	getLidarData->thirdDistance = 7000;
-	getLidarData->fourthDegree = 80;
-	getLidarData->fourthDistance = 9000;
-}
-
-
- //Create container for sending the Lidar data
-        Container contData(Container::USER_DATA_2, sendData);
-        // Send containers.
-        getConference().send(contData);
-
 
         }
-
+if(*init_level == 0){
+       n = read(fd, starter, 1);
+}
     if(starter[0] == 0xFA){
+*init_level = 1;
+byte1 = starter[0];
 
-         int p = read(fd, buffer, sizeof(buffer));
- 
-                int i = 0;
+}
+else{
+  *init_level = 0;
+continue;
+}
 
-	byte1 = starter[0]; byte2 = buffer[i]; byte3 = buffer[i+1]; byte4 = buffer[i+2];
-	byte5 = buffer[i+3]; byte6 = buffer[i+4]; byte7 = buffer[i+5]; byte8 = buffer[i+6];
-	byte9 = buffer[i+7]; byte10 = buffer[i+8]; byte11 = buffer[i+9]; byte12 = buffer[i+10];
-	byte13 = buffer[i+11]; byte14 = buffer[i+12]; byte15 = buffer[i+13]; byte16 = buffer[i+14];
-    	byte17 = buffer[i+15]; byte18 = buffer[i+16]; byte19 = buffer[i+17]; byte20 = buffer[i+18];
-	byte21 = buffer[i+19]; byte22 = buffer[i+20];	
+if(*init_level == 1){
+
+unsigned char start[1];
+       n = read(fd, start, 1);
+
+   if(start[0] >= 0xA0 && start[0] <= 0xF9){
+   byte2 = start[0];
+   byte1 = 0xFA;
+
+*init_level = 2;
+    }  
+
+else if(start[0] != 0xFA){
+      *init_level = 0;
+continue;
+}
+}
+if(*init_level == 2){
+         int p; 
+  unsigned char star[1];
+	p = read(fd, star, 1);
+	byte3 = star[0];
+       	p = read(fd, starter, 1); 
+	byte4 = starter[0];
+       	p = read(fd, starter, 1); 
+	byte5 = starter[0];
+       	p = read(fd, starter, 1); 
+	byte6 = starter[0];
+       	p = read(fd, starter, 1); 
+	byte7 = starter[0];
+       	p = read(fd, starter, 1); 
+	byte8 = starter[0];
+       	p = read(fd, starter, 1); 
+	byte9 = starter[0];
+       	p = read(fd, starter, 1); 
+	byte10 = starter[0];
+       	p = read(fd, starter, 1); 
+	byte11 = starter[0];
+       	p = read(fd, starter, 1); 
+	byte12 = starter[0];
+       	p = read(fd, starter, 1); 
+	byte13 = starter[0];
+       	p = read(fd, starter, 1); 
+	byte14 = starter[0];
+       	p = read(fd, starter, 1); 
+	byte15 = starter[0];
+       	p = read(fd, starter, 1); 
+	byte16 = starter[0];
+       	p = read(fd, starter, 1); 
+    	byte17 = starter[0];
+       	p = read(fd, starter, 1); 
+	byte18 = starter[0];
+       	p = read(fd, starter, 1); 
+	byte19 = starter[0];
+       	p = read(fd, starter, 1); 
+	byte20 = starter[0];
+       	p = read(fd, starter, 1); 
+	byte21 = starter[0];
+       	p = read(fd, starter, 1); 
+	byte22 = starter[0];
 
 
 	if(validate_buffer() == true){
-
 	sid = byte2;
 	sra1 = byte5; sra2 = byte6;
 	srb1 = byte9; srb2 = byte10;
@@ -247,7 +250,6 @@ if(fow > 100 && fow < 500){
 	srd1 = byte17; srd2 = byte18;
 
 	getDistances(sid, sra1, sra2, srb1, srb2, src1, src2, srd1, srd2);
-	//cout<<"YESSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS"<<endl;
 	}
 
 	else{
@@ -260,29 +262,6 @@ if(fow > 100 && fow < 500){
 	printf("Index: %d   Degree: %d   Distance: %d\n", Pointer3->readingIndex, Pointer3->degree, Pointer3->distance);
 	printf("Index: %d   Degree: %d   Distance: %d\n\n\n", Pointer4->readingIndex, Pointer4->degree, Pointer4->distance);
 
-      
-	/*sendData.setIndex(Pointer1->readingIndex);
-	sendData.setFirstDeg(Pointer1->degree);
-	sendData.setFirstDist(Pointer1->distance);
-	sendData.setSecondDeg(Pointer2->degree);
-	sendData.setSecondDist(Pointer2->distance);
-   	sendData.setThirDeg(Pointer3->degree);
-	sendData.setThirdDist(Pointer3->distance);
-   	sendData.setFourthDeg(Pointer4->degree);
-	sendData.setFourthDist(Pointer4->distance);*/
-
-
-
-/* unsigned int readingIndex;
-  unsigned int firstDegree;
-  unsigned int firstDistance;
-  unsigned int secondDegree;
-  unsigned int secondDistance;
-  unsigned int thirdDegree;
-  unsigned int thirdDistance;
-  unsigned int fourthDegree;
-  unsigned int fourthDistance;
-*/
         getLidarData->readingIndex = Pointer1->readingIndex;
         getLidarData->firstDegree = Pointer1->degree;
         getLidarData->firstDistance = Pointer1->distance;
@@ -299,12 +278,6 @@ if(fow > 100 && fow < 500){
         getConference().send(contData);
 
 ////////////////////////////////////////////////////
-//if(count == 90){
-//clock_t end = clock();
-//clock_t duration = end - start;
-//cout<<"This is the number of clicks " << duration<<"\n"<<endl;
-//cout<<"This is the duration " << (((float)duration)/CLOCKS_PER_SEC) * 1000.0<<"\n"<<endl;
-//}
 
       }   //end of if statement when start byte is found
 
@@ -334,7 +307,7 @@ void Lidar::getDistances(unsigned int id, unsigned int ra1, unsigned int ra2, un
 
   if(id < 160 || id > 249){
         return;
-  }
+ }
 
 
 	Pointer1->readingIndex = id;
