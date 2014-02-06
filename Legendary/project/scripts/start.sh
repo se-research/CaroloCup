@@ -36,4 +36,7 @@ while read -r line < $serialPort; do
     echo "Bad input from serial port: '$line'"
     echo "Current State: '$state'"
   fi
+
+  # Wait until somebody pushes a button
+  read -p "Press any key to read from serial bus." -n1 -s; echo ""
 done
