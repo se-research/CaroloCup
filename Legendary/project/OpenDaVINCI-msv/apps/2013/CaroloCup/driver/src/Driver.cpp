@@ -217,10 +217,10 @@ is done by "getData.getDistance().readingIndex" for the reading index e.t.c
             {
                 // We have found our expected container.
                 getData = con.getData<LidarData> ();
-                /*cout<<"GOT LIDAR DATA FROM THE CONTAINER"<<endl;
+                cout<<"GOT LIDAR DATA FROM THE CONTAINER"<<endl;
 
 
-        cout<<"Reading Index:  "<<getLidarData->readingIndex<<endl;
+        /*cout<<"Reading Index:  "<<getLidarData->readingIndex<<endl;
         cout<<"firstDegree:  "<<getLidarData->firstDegree<<endl;
         cout<<"firstDistance:  "<<getLidarData->firstDistance<<endl;
         cout<<"secondDegree:  "<<getLidarData->secondDegree<<endl;
@@ -235,10 +235,10 @@ is done by "getData.getDistance().readingIndex" for the reading index e.t.c
        lidarLookUp[getLidarData->thirdDegree][1] = getLidarData->thirdDistance;
        lidarLookUp[getLidarData->fourthDegree][1] = getLidarData->fourthDistance;
 
-/*cout<<"First:  "<<lidarLookUp[getLidarData->firstDegree][1]<<endl;
+cout<<"First:  "<<lidarLookUp[getLidarData->firstDegree][1]<<endl;
 cout<<"Second:  "<<lidarLookUp[getLidarData->secondDegree][1]<<endl;
 cout<<"Third:  "<<lidarLookUp[getLidarData->thirdDegree][1]<<endl;
-cout<<"Fourth:  "<<lidarLookUp[getLidarData->fourthDegree][1]<<endl;*/
+cout<<"Fourth:  "<<lidarLookUp[getLidarData->fourthDegree][1]<<endl;
 
          
                 break;
