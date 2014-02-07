@@ -5,7 +5,7 @@
 #define MIN_MOTOR_SPEED 800
 #define MAX_MOTOR_SPEED 1623
 #define BRAKE_SPEED_MAX 1530
-#define BRAKE_SPEED_MIN 900
+#define BRAKE_SPEED_MIN 1300
 #define INIT_MOTOR_SPEED 1520 
 
 // This is our motor.

@@ -25,6 +25,9 @@
 #include <pthread.h>
 #include "Driver.h"
 
+#define PARK_SPEED 1563
+#define REVERSE_SPEED 1230
+
 
 pthread_t t1;
 pthread_mutex_t lock;
@@ -61,7 +64,7 @@ int sensorData[7];
 bool inPSpot = false;
 bool outPSpot = false;
 int distanceTR = 0;
-int pstate = 0; // 0 - searching; 1 - parking started; 2 - adjustments
+int pstate = 0; // 0 - searching; 1 - parking started; 3 - man1; 4 - man2; 5 - man3; 6 - finish
 int reverseCnt = 0;
 bool reverseDone = false;
 
@@ -101,7 +104,7 @@ Driver::Driver(const int32_t &argc, char **argv) :
     m_derGain(0.23) ,
     m_length(0.3) ,
     m_wheelRadius(0.27),
-    m_protocol("/dev/ttyACM1", 6),
+    m_protocol("/dev/ttyACM0", 6),
     ANGLE_TO_CURVATURE(2.5) ,
     SCALE_FACTOR (752/0.41) ,
     m_timestamp(0) ,
@@ -205,7 +208,7 @@ is done by "getData.getDistance().readingIndex" for the reading index e.t.c
 */
 
     if(isParking) {
-	m_speed = 1562;
+	m_speed = PARK_SPEED;
     }
 
 
@@ -294,58 +297,6 @@ int i = 0;
 		    }
 	    }
 
-           /*Getting the LidarData from the container with the ID USER_DATA_2*/
-	   if (con.getDataType() == Container::USER_DATA_2)
-            {
-                // We have found our expected container.
-                getData = con.getData<LidarData> ();
-                /*cout<<"GOT LIDAR DATA FROM THE CONTAINER"<<endl;
-
-
-        cout<<"Reading Index:  "<<getLidarData->readingIndex<<endl;
-        cout<<"firstDegree:  "<<getLidarData->firstDegree<<endl;
-        cout<<"firstDistance:  "<<getLidarData->firstDistance<<endl;
-        cout<<"secondDegree:  "<<getLidarData->secondDegree<<endl;
-	cout<<"secondDistance:  "<<getLidarData->secondDistance<<endl;
-	cout<<"thirdDegree:  "<<getLidarData->thirdDegree<<endl;
-	cout<<"thirdDistance:  "<<getLidarData->thirdDistance<<endl;
-	cout<<"fourthDegree:  "<<getLidarData->fourthDegree<<endl;
-	cout<<"fourthDistance:  "<<getLidarData->fourthDistance<<endl;*/
-
-//if(ll == lidarLookUp[getLidarData->firstDegree][1]){
-       lidarLookUp[getLidarData->firstDegree]= getLidarData->firstDistance;
-       lidarLookUp[getLidarData->secondDegree]= getLidarData->secondDistance;
-       lidarLookUp[getLidarData->thirdDegree]= getLidarData->thirdDistance;
-       lidarLookUp[getLidarData->fourthDegree]= getLidarData->fourthDistance;
-
-	pthread_mutex_lock(&lock);
-    	pthread_create(&t1, NULL, function1,NULL);
-	pthread_mutex_unlock(&lock);
-     //  }
-         //i++;  
-break;
-            }
-
-	   if (con.getDataType() == Container::USER_DATA_3)
-            {
-                // We have found our expected container.
-                gatherData = con.getData<SensorData> ();
-     
-             
-        /*cout<<"First:   "<<getSensorData->firstInfraredDistance<<endl;
-   	cout<<"Second:   "<<getSensorData->secondInfraredDistance<<endl;
-   	cout<<"Third:   "<<getSensorData->thirdInfraredDistance<<endl;
-   	cout<<"Fourth:   "<<getSensorData->fourthInfraredDistance<<endl;
-
-   	cout<<"Fifth:   "<<getSensorData->firstUltrasonicDistance<<endl;
-   	cout<<"Sixth:   "<<getSensorData->secondUltrasonicDistance<<endl;*/
-
-                break;
-
-            }
-
-
-
 	    cout << "WAIT..." << endl;
         }
         lifo.clear();
@@ -367,7 +318,6 @@ break;
 		if(!res) continue;
 	} else {
 		//cout << "Parking..." << endl;
-		pstate = 0;
 		bool res = parking();
 	}
 
@@ -376,9 +326,9 @@ break;
 	cout<<"Third:  "<<lidarLookUp[getLidarData->thirdDegree]<<endl;
 	cout<<"Fourth:  "<<lidarLookUp[getLidarData->fourthDegree]<<endl;*/
 
-for(int i = 0; i < 360; i++){
-cout<<lidarLookUp[i]<<endl;
-}
+	/*for(int i = 0; i < 360; i++){
+	cout<<lidarLookUp[i]<<endl;
+	}*/
 
 
         stringstream speedStream, steeringAngleStream;
@@ -572,6 +522,7 @@ bool Driver::laneFollowing(LaneDetectionData* data) {
 }
 
 int prevIRVal = 0;
+int accDistance = 0;
 
 bool Driver::parking() {
 	int prevVal = 0, prevAngle = 0;
@@ -617,65 +568,185 @@ bool Driver::parking() {
 	switch(pstate) {
 	case 0: {
 		// Searching
-		m_desiredSteeringWheelAngle = 3*M_PI/180;
-		if(sensorData[3]==1 && sensorData[2] < 20 && !inPSpot) {
+		m_desiredSteeringWheelAngle = 0*M_PI/180;
+		if(sensorData[3]==1 && sensorData[2] < 25 && !inPSpot) {
 			cout << "In space " << sensorData[6] << endl;
 			distanceTR = sensorData[6];
 			inPSpot = true;
-		} else if(sensorData[3] > 3 && sensorData[3] < 27 && (sensorData[2] == 1 || sensorData[2] > 20) && inPSpot) {
+		} else if(sensorData[3] > 3 && sensorData[3] < 27 && (sensorData[2] == 1 || sensorData[2] > 25) && inPSpot) {
 			cout << "Out space " << sensorData[6] << endl;
 			distanceTR = sensorData[6] - distanceTR;
 			cout << "Real distance: " <<  distanceTR;
-			if(distanceTR > 450) {
-				m_speed = 1520;
+			if(distanceTR >= 12) {
 				pstate = 1;
 			}
 			inPSpot = false;
 		/*} else if( ((sensorData[3] > 3 && sensorData[3] <= 27) && inPSpot) {
 			cout << "Space taken" << endl;*/
-		} else if ((sensorData[3] > 3 && sensorData[3] <= 27) && (sensorData[2] > 3 && sensorData[2] < 20) && !inPSpot) {
+		} else if ((sensorData[3] > 3 && sensorData[3] <= 27) && (sensorData[2] > 3 && sensorData[2] < 25) && !inPSpot) {
 			cout << "Obstacle" << endl;
-		} else if( (sensorData[3] < 3 || sensorData[3] > 27) && (sensorData[2] < 3 || sensorData[2] > 20) ) {
+		} else if( (sensorData[3] < 3 || sensorData[3] > 27) && (sensorData[2] < 3 || sensorData[2] > 25) ) {
 			cout << "Free" << endl;
 		}
 	}; break;
 	case 1: {
 		//Parking started
-		m_desiredSteeringWheelAngle = (-42)*M_PI/180;
+		cout << "Parking Started" << endl;
+		m_desiredSteeringWheelAngle = 2*M_PI/180;
 		if(!reverseDone) {
 			reverseDone = doReverse();
 		} else {
-			if(sensorData[3] > 3 && sensorData[3] <= 27) {
+			if(accDistance == 0) {
+				distanceTR = sensorData[6];
+				cout << "dist: " << distanceTR << endl;
+				accDistance = 1;
+			} else {
+				int diff = sensorData[6] - distanceTR;
+				cout << "dist: " << distanceTR << endl;
+				accDistance = accDistance + diff;
+				distanceTR = sensorData[6];
+			}
+			cout << "acc: " << accDistance << endl;
+			if(accDistance > 7) {
+				accDistance = 0;
+				pstate = 2;
+				reverseDone = false;
+			}
+		}
+	}; break;
+	case 2: {
+		cout << "Forward Left" << endl;
+		m_desiredSteeringWheelAngle = (-42)*M_PI/180;
+		m_speed = PARK_SPEED;
+		if(accDistance == 0) {
+			distanceTR = sensorData[6];
+			cout << "dist: " << distanceTR << endl;
+			accDistance = 1;
+		} else {
+			int diff = sensorData[6] - distanceTR;
+			cout << "dist: " << distanceTR << endl;
+			accDistance = accDistance + diff;
+			distanceTR = sensorData[6];
+		}
+		cout << "acc: " << accDistance << endl;
+		if(accDistance > 7) {
+			accDistance = 0;
+			pstate = 3;
+		}
+		
+	} break;
+	case 3: {
+		cout << "Backward straight" << endl;
+		m_desiredSteeringWheelAngle = 0*M_PI/180;
+		if(!reverseDone) {
+			reverseDone = doReverse();
+		} else {
+			if(accDistance == 0) {
+				distanceTR = sensorData[6];
+				cout << "dist: " << distanceTR << endl;
+				accDistance = 1;
+			} else {
+				int diff = sensorData[6] - distanceTR;
+				cout << "dist: " << distanceTR << endl;
+				accDistance = accDistance + diff;
+				distanceTR = sensorData[6];
+			}
+			cout << "acc: " << accDistance << endl;
+			if(accDistance > 14) {
+				accDistance = 0;
+				pstate = 4;
+				reverseDone = false;
+			}
+		}
+	} break;
+	case 4: {
+		cout << "Backward Left" << endl;
+		m_desiredSteeringWheelAngle = (-42)*M_PI/180;
+		m_speed = REVERSE_SPEED + 5;
+		if(sensorData[5] < 12 || (sensorData[0] > 3 && sensorData[0] < 11) || (sensorData[1] > 3 && sensorData[1] < 11) ) {
+			pstate = 5;
+			m_speed = 1520;
+		}
+		/*			if(sensorData[2] > 3 && sensorData[2] <= 27) {
 				if(prevIRVal != 0) {
 					if(sensorData[3] > prevIRVal) {
-						pstate = 2;
+						pstate = 3;
 						m_speed = 1520;
 					}
 				}
 				prevIRVal = sensorData[3];
+			}*/
+	} break;
+	case 5: {
+		cout << "Forward correction" << endl;
+		m_speed = PARK_SPEED - 8;
+		m_desiredSteeringWheelAngle = 42*M_PI/180;
+		//cout << sensorData[0] << "," << sensorData[1] << endl;
+		if( (sensorData[1] - sensorData[2]) == 0 || sensorData[4] < 12) {
+			pstate = 6;
+		}
+	}break;
+	case 6: {
+		//cout << sensorData[4] << ", " << sensorData[5] << endl;
+		if(sensorData[4] < 12) {
+			pstate=7;
+		/*} else if (sensorData[5] < 10 || (sensorData[0] > 3 && sensorData[0] < 11) || (sensorData[1] > 3 && sensorData[1] < 11)) {
+			pstate=5;*/
+		} else {
+			m_speed = 1520;
+			m_desiredSteeringWheelAngle = 0*M_PI/180;
+			cout << "FINISH" << endl;
+			pstate = 8;
+		}
+	} break;
+	case 7: {
+		cout << "Backward straight" << endl;
+		m_desiredSteeringWheelAngle = 0*M_PI/180;
+		if(!reverseDone) {
+			reverseDone = doReverse();
+		} else {
+			if(accDistance == 0) {
+				distanceTR = sensorData[6];
+				cout << "dist: " << distanceTR << endl;
+				accDistance = 1;
+			} else {
+				int diff = sensorData[6] - distanceTR;
+				cout << "dist: " << distanceTR << endl;
+				accDistance = accDistance + diff;
+				distanceTR = sensorData[6];
+			}
+			cout << "acc: " << accDistance << endl;
+			if(accDistance > 2) {
+				accDistance = 0;
+				pstate = 5;
+				reverseDone = false;
 			}
 		}
-		
-	} break;
+	}
+	default: {
+	}
 	}
 	//cout << endl;
 	return true;
 }
 
 bool Driver::doReverse() {
-		if(reverseCnt == 0) {
-			m_speed = 900;
-			reverseCnt++;
-			return false;
-		} else if (reverseCnt == 1) {
+		cout << "Cnt: " << reverseCnt << endl;
+		if(reverseCnt < 2) {
+			m_speed = 1400;
+		} else if (reverseCnt < 4) {
 			m_speed = 1520;
-			reverseCnt++;
-			return false;
-		} else if (reverseCnt == 2) {
-			m_speed = 1280;
+		} else if (reverseCnt < 6) {
+			m_speed = REVERSE_SPEED;
+		/*} else if (reverseCnt < 8) {
+			m_speed = 1520;
+		} else if (reverseCnt == 10) {
+			m_speed = REVERSE_SPEED;*/
 			reverseCnt = 0;
 			return true;	
 		}
+		reverseCnt++;
+		return false;
 }
 
 float Driver::feedbackLinearizationController()

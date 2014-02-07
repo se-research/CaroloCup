@@ -44,10 +44,6 @@
 
 using namespace std;
 
-pthread_t t2;
-pthread_mutex_t lock;
-
-
 unsigned char starter[1];
 unsigned char infra[13];
 unsigned char ultra[9];
@@ -70,17 +66,18 @@ int resultSaved[3] = {0, 0, 0};
 ////////////////////////////////////////Hall Effect
 
 //////////////////Shared Memory//////////////
-    int shmid;
-    key_t key = 5678;
-    allSensors *getData;
-     int follow = 0;
+int shmid;
+key_t key = 5678;
+allSensors *getData;
+allSensors sensors;
+int follow = 0;
 
-     int converter(char* arrayInput, int lenght);
+int converter(char* arrayInput, int lenght);
 
 
 namespace carolocup {
 
-    void  *function2(void *argument);
+    void  *sensorGathering(void *argument);
 
     using namespace std;
     using namespace core::base;
@@ -122,65 +119,72 @@ namespace carolocup {
     // This method will do the main data processing job.
     ModuleState::MODULE_EXITCODE Sensors::body() {
 
-   if ((shmid = shmget(key, sizeof(allSensors), IPC_CREAT | 0666)) < 0) {
-        cerr<<"Couldn't Create Shared Memory"<<endl;
-    }
+		    if ((shmid = shmget(key, sizeof(allSensors), IPC_CREAT | 0666)) < 0) {
+			cerr<<"Couldn't Create Shared Memory"<<endl;
+		    }
 
-    if ((getData = (allSensors *)shmat(shmid, (void *)0, 0)) == (allSensors *) -1) {
-        cerr<<"Couldn't Attach to Memory"<<endl;
-    }
+		    if ((getData = (allSensors *)shmat(shmid, (void *)0, 0)) == (allSensors *) -1) {
+			cerr<<"Couldn't Attach to Memory"<<endl;
+		    }
 
-	fd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NDELAY);
-   //fd = open("/dev/ttyACM0", O_RDWR | O_NOCTTY | O_NDELAY);
+			fd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NDELAY);
+		   //fd = open("/dev/ttyACM0", O_RDWR | O_NOCTTY | O_NDELAY);
 
-    if (fd == -1){
-	perror("cannot open");
-     }
+		    if (fd == -1){
+			perror("cannot open");
+		     }
 
-    else
-    	fcntl(fd, F_SETFL, 0);
-	struct termios options;
-	tcgetattr(fd, &options);
-	cfsetispeed(&options, B115200);
-	cfsetospeed(&options, B115200);
-	options.c_cflag |= (CLOCAL | CREAD);
-	//tcsetattr(fd, TCSANOW, &options);
-	options.c_cflag &= ~CSIZE;
-	options.c_cflag &= ~PARENB;
-	options.c_cflag &= ~CSTOPB;
-	options.c_cflag &= ~CSIZE;
-	options.c_cflag |= CS8;
- 	tcflush(fd, TCIFLUSH);
-   	tcflush(fd, TCIOFLUSH);
+		    else
+		    	fcntl(fd, F_SETFL, 0);
+			struct termios options;
+			tcgetattr(fd, &options);
+			cfsetispeed(&options, B115200);
+			cfsetospeed(&options, B115200);
+			options.c_cflag |= (CLOCAL | CREAD);
+			//tcsetattr(fd, TCSANOW, &options);
+			options.c_cflag &= ~CSIZE;
+			options.c_cflag &= ~PARENB;
+			options.c_cflag &= ~CSTOPB;
+			options.c_cflag &= ~CSIZE;
+			options.c_cflag |= CS8;
+		 	tcflush(fd, TCIFLUSH);
+		   	tcflush(fd, TCIOFLUSH);
 
-  if(tcsetattr(fd, TCSANOW, &options) != 0){
+		  if(tcsetattr(fd, TCSANOW, &options) != 0){
 
-	cout << "Error " << errno << " from tcsetattr" << endl;
-   }		
+			cout << "Error " << errno << " from tcsetattr" << endl;
+		   }		
 
-     SensorData gatherData;
-	getData->movement = 0;
-initialize_pin_reading();
-    int lastTime = 0; 
-   while (getModuleState() == ModuleState::RUNNING) {
+		   SensorData gatherData;
+		   getData->movement = 0;
+		   initialize_pin_reading();
+		   pthread_t t1;
+                   pthread_create(&t1, NULL, sensorGathering, NULL);
+		   int lastTime = 0; 
+		   while (getModuleState() == ModuleState::RUNNING) {
+			
+			int val = getData->movement + get_movement_data();
+			cout << "Hall effect: " << val << endl;
+		    	getData->movement = val;
+			getData->firstInfraredDistance = sensors.firstInfraredDistance;
+			getData->secondInfraredDistance = sensors.secondInfraredDistance;
+			getData->thirdInfraredDistance = sensors.thirdInfraredDistance;
+			getData->fourthInfraredDistance = sensors.fourthInfraredDistance;
+			getData->firstUltrasonicDistance = sensors.firstUltrasonicDistance;
+			getData->secondUltrasonicDistance = sensors.secondUltrasonicDistance;
+	                tcflush(fd, TCIOFLUSH);
+			///////////////////////READ FROM PORT//////////////////////////////////
+			Container contSensor(Container::USER_DATA_3, gatherData);
+			// Send containers.
+			getConference().send(contSensor);
+		        //  } //If statement controlled by Time count
+			//cout << "Inside" << endl;
+			//cout << "Time: " << timeCount << endl;
 
-    
-    tcflush(fd, TCIOFLUSH);
-///////////////////////READ FROM PORT//////////////////////////////////
 
+		  } //End of ModuleState::RUNNING
 
- 
-        Container contSensor(Container::USER_DATA_3, gatherData);
-        // Send containers.
-        getConference().send(contSensor);
-      //  } //If statement controlled by Time count
-//cout << "Inside" << endl;
-//cout << "Time: " << timeCount << endl;
-
-
-  } //End of ModuleState::RUNNING
-
-    	return ModuleState::OKAY;
+    		return ModuleState::OKAY;
     }
 
 
@@ -338,7 +342,7 @@ void* loop_retrieving(void *arg)
       pins[0] = pinsNew[0];
       pins[1] = pinsNew[1];
       pins[2] = pinsNew[2];
-      printf("(%d, %d, %d )\n", pins[0], pins[1], pins[2]); 
+      //printf("(%d, %d, %d )\n", pins[0], pins[1], pins[2]); 
     }
 
     usleep(100);
@@ -399,15 +403,15 @@ int calculate_movement(int before, int after)
  if (before >= after)
     return 0;
  else
-    return (after - before)*33;
+    return (after - before);
  //else if (after < before)     
     //return after - before + 6;
 }  /////End of  calculate_movement;
 
-void *function2(void *argument){
+void *sensorGathering(void *argument){
     cout << "\nShowing Frame 2 From Thread 2"  << endl;
-
-//  sleep(0.005);
+   while(1) {
+      sleep(0.08);
 
   //timeCount++;
 //////////////////////Hall Effect/////////////////////////////////////////////////
@@ -472,19 +476,19 @@ int n = read(fd, infra, 12);
    	//if(firstInfra[0] == '0'){
 	firstInfraDist = converter(firstInfra, 2);
 	cout<<"Found First: "<<firstInfraDist<<endl;
-	getData->firstInfraredDistance = firstInfraDist;
+	sensors.firstInfraredDistance = firstInfraDist;
 
 	secondInfraDist = converter(secondInfra, 2);	
 	cout<<"Found Second: "<<secondInfraDist<<endl;
-   	getData->secondInfraredDistance = secondInfraDist;
+   	sensors.secondInfraredDistance = secondInfraDist;
 
 	thirdInfraDist = converter(thirdInfra, 2);	
 	cout<<"Found Third: "<<thirdInfraDist<<endl;
-   	getData->thirdInfraredDistance = thirdInfraDist;
+   	sensors.thirdInfraredDistance = thirdInfraDist;
 
 	fourthInfraDist = converter(fourthInfra, 2);
 	cout<<"Found Fourth: "<<fourthInfraDist<<endl;
-   	getData->fourthInfraredDistance = fourthInfraDist;
+   	sensors.fourthInfraredDistance = fourthInfraDist;
 
     }  //End of main if
 
@@ -496,7 +500,7 @@ int n = read(fd, infra, 12);
 
     int n = read(fd, ultra, 8);
 
-cout<<ultra<<endl;
+//cout<<ultra<<endl;
 
 	char firstUltra[3];
 	firstUltra[0] = ultra[0];
@@ -521,17 +525,18 @@ cout<<ultra<<endl;
 
 	
 	firstUltraDist = converter(firstUltra, 3);
-	getData->firstUltrasonicDistance = firstUltraDist;
+	sensors.firstUltrasonicDistance = firstUltraDist;
 	cout<<"Found First Ultra: "<<firstUltraDist<<endl;
 
 	secondUltraDist = converter(secondUltra, 3);
-	getData->secondUltrasonicDistance = secondUltraDist;
+	sensors.secondUltrasonicDistance = secondUltraDist;
 	cout<<"Found Second Ultra: "<<secondUltraDist<<endl;
 
     }
 
 
       }   //end of if statement when start byte is found
+	} // end while
 
     return 0;
 }
