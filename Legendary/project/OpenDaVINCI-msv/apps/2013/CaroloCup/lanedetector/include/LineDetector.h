@@ -3,9 +3,9 @@
 
 
 #define MIN_ANGLE 15
-#define ROAD_SIZE 715//770
+#define ROAD_SIZE 670//770
 #define ROAD_GOAL 0.5
-#define ROAD_ANGLE 90
+#define ROAD_ANGLE 87
 #define MID_DASH_ANGLE -46
 
 #include <queue>

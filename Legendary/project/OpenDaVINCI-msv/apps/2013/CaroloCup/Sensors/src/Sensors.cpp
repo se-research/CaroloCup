@@ -68,19 +68,6 @@ int *results;
 int resultSaved[3] = {0, 0, 0}; 
 ////////////////////////////////////////Hall Effect
 
-
- typedef struct{
-
-   int firstInfraredDistance;
-   int secondInfraredDistance;
-   int thirdInfraredDistance;
-   int fourthInfraredDistance;
-
-   int firstUltrasonicDistance;
-   int secondUltrasonicDistance;
-
- }allSensors;
-
 //////////////////Shared Memory//////////////
     int shmid;
     key_t key = 5678;
@@ -94,6 +81,17 @@ namespace carolocup {
     using namespace std;
     using namespace core::base;
     using namespace core::data;
+
+        void initialize_pin_reading();    //Hall Effect
+	int get_movement_data();          //Hall Effect
+	int map_pins();			  //Hall Effect
+	void setup_gpiopin(int channel, int bit, int value, int pullval); //Hall Effect
+	int read_gpio_pin(int channel, int bit );	//Hall Effect
+	void* loop_retrieving(void *arg);	//Hall Effect
+	int is_movement();		//Hall Effect
+	int *get_gpio_data();		//Hall Effect
+	int pins_state(int pin_data[]);		//Hall Effect
+	int calculate_movement(int before, int after);
 
 
    Sensors::Sensors(const int32_t &argc, char **argv) :
@@ -157,7 +155,9 @@ namespace carolocup {
    }		
 
      SensorData gatherData;
-     
+	getData->movement = 0;
+initialize_pin_reading();
+    int lastTime = 0; 
    while (getModuleState() == ModuleState::RUNNING) {
 
     
@@ -166,21 +166,28 @@ namespace carolocup {
 
   while(1){
 
-//  sleep(0.005);
-
+  sleep(0.005);
   //timeCount++;
 //////////////////////Hall Effect/////////////////////////////////////////////////
-/*results = get_gpio_data(); 
+results = get_gpio_data(); 
  
       if(results[0] != resultSaved[0] || results[1] != resultSaved[1] ||results[2]!=resultSaved[2]){ 
         //printf("OldReadings: (%d, %d, %d)\n", resultSaved[0], resultSaved[1],resultSaved[2]); 
         //printf("NewReadings: (%d, %d, %d)\n", results[0], results[1], results[2]); 
+        TimeStamp now;
+	int currentTime = now.toMicroseconds();
         resultSaved[0] = results[0]; 
         resultSaved[1] = results[1]; 
         resultSaved[2] = results[2]; 
         //printf("(%d, %d, %d)\n", resultSaved[0], resultSaved[1],resultSaved[2]); 
-        //printf("movement: %d\n", get_movement_data()); 
-      }*/
+	int mov = get_movement_data();
+        printf("movement: %d\n", mov); 
+	getData->movement += mov;
+	if(lastTime != 0) {
+		cout << "Speed: " << mov / ((currentTime - lastTime)/1000.0);
+	}
+	lastTime = now.toMicroseconds();
+      }
 ////////////////////////Hall Effect/////////////////////////////////////////////////////
 
 
@@ -310,7 +317,7 @@ int n = read(fd, infra, 12);
 
     int n = read(fd, ultra, 8);
 
-cout<<ultra<<endl;
+//cout<<ultra<<endl;
 
 	char firstUltra[3];
 	firstUltra[0] = ultra[0];
@@ -402,7 +409,7 @@ int Sensors::converter(char* arrayInput, int lenght){
 /* Initializes the the pins and opens a thread for continual reading. To be
  * called by Erlang 
 */
-/*void initialize_pin_reading()
+void initialize_pin_reading()
 {
 
   map_pins();
@@ -443,18 +450,18 @@ int map_pins()
         return 1;
   }   
 
-}*/	//End of Map_Pins
+}	//End of Map_Pins
 
 /* Sets up a specific pin for reading 
 */
 
 
-/*void setup_gpiopin(int channel, int bit, int value, int pullval) {
+void setup_gpiopin(int channel, int bit, int value, int pullval) {
 	div_t div_res;
 	unsigned char val, tmp, hld;
 	unsigned char * base;
                                
-	base = (map_base + channel) - GPIO_GPCONREG;
+	base = (unsigned char *)(map_base + channel) - GPIO_GPCONREG;
 	div_res = div (bit, 2);		// 2 nibbles per byte so divide by 2
 	base += div_res.quot;
 	val  = *(unsigned char *) base;
@@ -474,7 +481,7 @@ int map_pins()
 		}
 	}				
 	*(unsigned char *) base = val;	
-	base = (map_base + channel) + GPIO_UPDOWN;
+	base = (unsigned char *)(map_base + channel) + GPIO_UPDOWN;
 	if      (pullval == PULLUP) {
 		tmp = 0b00000010;		// pullup enabled
 	}
@@ -494,13 +501,13 @@ int map_pins()
 	val = *(unsigned char *) base;
 
 	val |= hld;
-} */    //////End of setup_gpiopin
+}    //////End of setup_gpiopin
 
 /* Reads a specific pin e.g. pin 27, pin29, pin31 etc
 */
 
 
-/*int read_gpio_pin(int channel, int bit )
+int read_gpio_pin(int channel, int bit )
 { 
   int input;
   input = *(unsigned char *) (map_base + channel);
@@ -509,14 +516,14 @@ int map_pins()
 	} else {
     return 0;
 	}
-}*/ ////End of read_gpio_pin
+} ////End of read_gpio_pin
 
 /* Thread that runs as a loop, continually reading pinws 27, 29 and 31 and
  * saving their data
 */
 
 
-/*void* loop_retrieving(void *arg)
+void* loop_retrieving(void *arg)
 {
 
   while(1)
@@ -526,29 +533,29 @@ int map_pins()
     pinsNew[1] = read_gpio_pin(PIN31Channel, PIN31Bit);
     pinsNew[2] = read_gpio_pin(PIN29Channel, PIN29Bit);
 
-
+//cout<<"Pin 0:  "<<pinsNew[0] <<endl;
     if(is_movement())
     {
-      movement += calculate_movement(pins_state(pins), pins_state(pinsNew));
+      movement += calculate_movement(pinsNew[0], pins[0]);
       //printf("pinstate: %d, pinstateNew: %d", pins_state(pins),pins_state(pinsNew));
       //if(pins[0] != pinsNew[0] || pins[1] != pinsNew[1] || pins[2] != pins[2])
       //  printf("(%d, %d, %d)\n", pins[0], pins[1], pins[2]);
       pins[0] = pinsNew[0];
       pins[1] = pinsNew[1];
       pins[2] = pinsNew[2];
-      //printf("(%d, %d, %d )\n", pins[0], pins[1], pins[2]); 
+      printf("(%d, %d, %d )\n", pins[0], pins[1], pins[2]); 
     }
 
     usleep(100);
 
   }
  
-}*/      /////End of loop_retrieving
+}     /////End of loop_retrieving
 
 /* Checks if a pin's value has changed, indicating movement
 */
 
-/*int is_movement()
+int is_movement()
 {
     if(pins[0] != pinsNew[0])
       return 1;
@@ -558,11 +565,11 @@ int map_pins()
       return 1;
     else
       return 0;
-}*/   //////End of is_movement
+}   //////End of is_movement
 
 
 
-/*int *get_gpio_data()
+int *get_gpio_data()
 { 
   return pins;
 }
@@ -584,23 +591,23 @@ int pins_state(int pin_data[])
 
   return 0;
 
-}*/   ///End of *get_gpio_data
+}   ///End of *get_gpio_data
 
 
 
 
 /* Calculates distance that the car has moved
 */
-/*int calculate_movement(int before, int after)
+int calculate_movement(int before, int after)
 {
 
- if (before == after)
+ if (before >= after)
     return 0;
- else if (after > before)
-    return after - before;
- else if (after < before)     
-    return after - before + 6;
-}*/  /////End of  calculate_movement;
+ else
+    return (after - before)*33;
+ //else if (after < before)     
+    //return after - before + 6;
+}  /////End of  calculate_movement;
 
 
 } // carolocup

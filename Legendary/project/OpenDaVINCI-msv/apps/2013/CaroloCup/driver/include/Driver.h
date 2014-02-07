@@ -43,6 +43,10 @@ namespace carolocup {
        */
       Driver& operator=(const Driver &/*obj*/);
 
+      bool laneFollowing(LaneDetectionData* data);
+      bool parking();
+      bool doReverse();
+
       /**
        * The control algorithm
        * @param lateralError The current lateral error

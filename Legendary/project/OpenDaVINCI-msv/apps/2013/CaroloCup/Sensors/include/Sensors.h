@@ -11,7 +11,19 @@
 #include "core/base/FIFOQueue.h"
 #include "core/data/Container.h"
 
+ typedef struct{
 
+   int firstInfraredDistance;
+   int secondInfraredDistance;
+   int thirdInfraredDistance;
+   int fourthInfraredDistance;
+
+   int firstUltrasonicDistance;
+   int secondUltrasonicDistance;
+
+   int movement;
+
+ }allSensors;
 
 namespace carolocup {
 
@@ -66,6 +78,7 @@ namespace carolocup {
 
       int firstUltrasonicDistance;
       int secondUltrasonicDistance;
+
     };
 
 } // carolocup

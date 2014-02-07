@@ -10,6 +10,7 @@ PROJECT (2013-CaroloCup-driver)
 INCLUDE_DIRECTORIES (${libopendavinci_SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES (../cc-data/include)
 INCLUDE_DIRECTORIES (include)
+INCLUDE_DIRECTORIES (../Sensors/include)
 
 set(CMAKE_BUILD_TYPE Debug)
 
