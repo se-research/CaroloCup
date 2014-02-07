@@ -24,8 +24,8 @@ global.showGrid = 0
 #
 # CONFIGURATION FOR LANEDETECTOR
 #
-lanedetector.camera_id = 2 # select here the proper camera
-lanedetector.debug = 1     # set to 0 to disable any windows and further output
+lanedetector.camera_id = 2  # select here the proper camera
+lanedetector.debug = 0      # set to 0 to disable any windows and further output
 
 #
 # CONFIGURATION FOR DRIVER

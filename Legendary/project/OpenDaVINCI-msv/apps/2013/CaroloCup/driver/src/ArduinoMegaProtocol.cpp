@@ -37,6 +37,30 @@ namespace carolocup {
 		int error_code = m_SerialProtocol.writeToSerial(&ss);
 	}
 
+	void ArduinoMegaProtocol::setIndicatorsLeft() {
+		stringstream ss;
+		ss << "il" << '/';
+		int error_code = m_SerialProtocol.writeToSerial(&ss);
+	}
+
+	void ArduinoMegaProtocol::setIndicatorsRight() {
+		stringstream ss;
+		ss << "ir" << '/';
+		int error_code = m_SerialProtocol.writeToSerial(&ss);
+	}
+
+	void ArduinoMegaProtocol::setIndicatorsAll() {
+		stringstream ss;
+		ss << "ia" << '/';
+		int error_code = m_SerialProtocol.writeToSerial(&ss);
+	}
+
+	void ArduinoMegaProtocol::setIndicatorsStop() {
+		stringstream ss;
+		ss << "is" << '/';
+		int error_code = m_SerialProtocol.writeToSerial(&ss);
+	}
+
 	ArduinoMegaProtocol::~ArduinoMegaProtocol() {
 	}
 }

@@ -15,6 +15,10 @@ namespace carolocup {
 		void setSteeringAngle(int angle);
 		void setCamAngle(int angle);
 		void setBrakeForce(char brakeFrc);
+		void setIndicatorsLeft();
+		void setIndicatorsRight();
+		void setIndicatorsAll();
+		void setIndicatorsStop();
 	private:
 		SerialProtocolSample m_SerialProtocol;
 	};

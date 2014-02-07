@@ -25,8 +25,8 @@
 #include <pthread.h>
 #include "Driver.h"
 
-#define PARK_SPEED 1563
-#define REVERSE_SPEED 1230
+#define PARK_SPEED 1562
+#define REVERSE_SPEED 1239
 
 
 pthread_t t1;
@@ -67,7 +67,8 @@ int distanceTR = 0;
 int pstate = 0; // 0 - searching; 1 - parking started; 3 - man1; 4 - man2; 5 - man3; 6 - finish
 int reverseCnt = 0;
 bool reverseDone = false;
-
+int indicators = -1;
+bool indicatorsOn = false;
 
 
 namespace carolocup
@@ -104,7 +105,7 @@ Driver::Driver(const int32_t &argc, char **argv) :
     m_derGain(0.23) ,
     m_length(0.3) ,
     m_wheelRadius(0.27),
-    m_protocol("/dev/ttyACM0", 6),
+    m_protocol("/dev/ttyACM1", 6),
     ANGLE_TO_CURVATURE(2.5) ,
     SCALE_FACTOR (752/0.41) ,
     m_timestamp(0) ,
@@ -161,7 +162,7 @@ int16_t oldSteeringVal=0, oldSpeedVal=0;
 int speedCnt = 0, steerCnt = 0;
 int16_t steeringVal=0;
 bool debug = false;
-bool isParking = true;
+bool isParking = false;
 int increaseSpeed = 0;
 
 // This method will do the main data processing job.
@@ -188,6 +189,9 @@ ModuleState::MODULE_EXITCODE Driver::body()
         cerr<<"Couldn't Attach to Memory"<<endl;
     }
 
+    // Get configuration data.
+    KeyValueConfiguration kv = getKeyValueConfiguration();
+    isParking = kv.getValue<int32_t> ("driver.mode") == 2 ;
 
 /*
 typedef struct {
@@ -395,12 +399,36 @@ int i = 0;
 		speedCnt = 0;
 	}
 
-	msleep(1);
+	msleep(3);
+
+	switch(indicators) {
+		case -1: {
+			if(indicatorsOn) {
+				m_protocol.setIndicatorsStop();
+				indicatorsOn = false;
+			}
+		} break;
+		case 0: {
+			m_protocol.setIndicatorsAll();
+			indicatorsOn = true;
+		} break;
+		case 1: {
+			m_protocol.setIndicatorsRight();
+			indicatorsOn = true;
+		} break;
+		case 2: {
+			m_protocol.setIndicatorsLeft();
+			indicatorsOn = true;
+		} break;
+		default: {}
+	}
     }
-    msleep(5);
+    msleep(20);
     m_protocol.setSpeed(1520);
-    msleep(5);
+    msleep(20);
     m_protocol.setSteeringAngle(0);
+    msleep(20);
+    m_protocol.setIndicatorsStop();
     return ModuleState::OKAY;
 }
 
@@ -573,7 +601,7 @@ bool Driver::parking() {
 			cout << "In space " << sensorData[6] << endl;
 			distanceTR = sensorData[6];
 			inPSpot = true;
-		} else if(sensorData[3] > 3 && sensorData[3] < 27 && (sensorData[2] == 1 || sensorData[2] > 25) && inPSpot) {
+		} else if(sensorData[3] > 3 && sensorData[3] < 27 && (sensorData[2] == 1 || sensorData[2] > 27) && inPSpot) {
 			cout << "Out space " << sensorData[6] << endl;
 			distanceTR = sensorData[6] - distanceTR;
 			cout << "Real distance: " <<  distanceTR;
@@ -583,9 +611,10 @@ bool Driver::parking() {
 			inPSpot = false;
 		/*} else if( ((sensorData[3] > 3 && sensorData[3] <= 27) && inPSpot) {
 			cout << "Space taken" << endl;*/
-		} else if ((sensorData[3] > 3 && sensorData[3] <= 27) && (sensorData[2] > 3 && sensorData[2] < 25) && !inPSpot) {
+		} else if ((sensorData[3] > 3 && sensorData[3] <= 27) && (sensorData[2] > 3 && sensorData[2] <= 27) && !inPSpot) {
 			cout << "Obstacle" << endl;
-		} else if( (sensorData[3] < 3 || sensorData[3] > 27) && (sensorData[2] < 3 || sensorData[2] > 25) ) {
+			inPSpot = false;
+		} else if( (sensorData[3] < 3 || sensorData[3] > 27) && (sensorData[2] < 3 || sensorData[2] > 27) ) {
 			cout << "Free" << endl;
 		}
 	}; break;
@@ -593,6 +622,7 @@ bool Driver::parking() {
 		//Parking started
 		cout << "Parking Started" << endl;
 		m_desiredSteeringWheelAngle = 2*M_PI/180;
+		indicators = 1;
 		if(!reverseDone) {
 			reverseDone = doReverse();
 		} else {
@@ -607,16 +637,17 @@ bool Driver::parking() {
 				distanceTR = sensorData[6];
 			}
 			cout << "acc: " << accDistance << endl;
-			if(accDistance > 7) {
+			if(accDistance > 3) { //3
 				accDistance = 0;
 				pstate = 2;
+				m_speed = PARK_SPEED;
 				reverseDone = false;
+				indicators = -1;
 			}
 		}
 	}; break;
 	case 2: {
 		cout << "Forward Left" << endl;
-		m_desiredSteeringWheelAngle = (-42)*M_PI/180;
 		m_speed = PARK_SPEED;
 		if(accDistance == 0) {
 			distanceTR = sensorData[6];
@@ -626,10 +657,13 @@ bool Driver::parking() {
 			int diff = sensorData[6] - distanceTR;
 			cout << "dist: " << distanceTR << endl;
 			accDistance = accDistance + diff;
-			distanceTR = sensorData[6];
+			distanceTR = sensorData[6];	
+			if(accDistance > 1) {
+				m_desiredSteeringWheelAngle = (-42)*M_PI/180;
+			}
 		}
 		cout << "acc: " << accDistance << endl;
-		if(accDistance > 7) {
+		if(accDistance > 10) {
 			accDistance = 0;
 			pstate = 3;
 		}
@@ -652,7 +686,7 @@ bool Driver::parking() {
 				distanceTR = sensorData[6];
 			}
 			cout << "acc: " << accDistance << endl;
-			if(accDistance > 14) {
+			if(accDistance > 11) { //11
 				accDistance = 0;
 				pstate = 4;
 				reverseDone = false;
@@ -663,7 +697,7 @@ bool Driver::parking() {
 		cout << "Backward Left" << endl;
 		m_desiredSteeringWheelAngle = (-42)*M_PI/180;
 		m_speed = REVERSE_SPEED + 5;
-		if(sensorData[5] < 12 || (sensorData[0] > 3 && sensorData[0] < 11) || (sensorData[1] > 3 && sensorData[1] < 11) ) {
+		if(sensorData[5] < 10 || (sensorData[0] > 3 && sensorData[0] < 10) || (sensorData[1] > 3 && sensorData[1] < 10) ) {
 			pstate = 5;
 			m_speed = 1520;
 		}
@@ -682,13 +716,13 @@ bool Driver::parking() {
 		m_speed = PARK_SPEED - 8;
 		m_desiredSteeringWheelAngle = 42*M_PI/180;
 		//cout << sensorData[0] << "," << sensorData[1] << endl;
-		if( (sensorData[1] - sensorData[2]) == 0 || sensorData[4] < 12) {
+		if( abs(sensorData[1] - sensorData[2]) < 2 || sensorData[4] < 12) {
 			pstate = 6;
 		}
 	}break;
 	case 6: {
 		//cout << sensorData[4] << ", " << sensorData[5] << endl;
-		if(sensorData[4] < 12) {
+		if(sensorData[4] < 10) {
 			pstate=7;
 		/*} else if (sensorData[5] < 10 || (sensorData[0] > 3 && sensorData[0] < 11) || (sensorData[1] > 3 && sensorData[1] < 11)) {
 			pstate=5;*/
@@ -696,6 +730,7 @@ bool Driver::parking() {
 			m_speed = 1520;
 			m_desiredSteeringWheelAngle = 0*M_PI/180;
 			cout << "FINISH" << endl;
+			indicators = 0;
 			pstate = 8;
 		}
 	} break;
@@ -718,7 +753,7 @@ bool Driver::parking() {
 			cout << "acc: " << accDistance << endl;
 			if(accDistance > 2) {
 				accDistance = 0;
-				pstate = 5;
+				pstate = 6;
 				reverseDone = false;
 			}
 		}
