@@ -162,9 +162,55 @@ namespace carolocup {
  // while(1){
    
   //sleep(0.00001);
- int n = 0;
+ int n = -1;
       if(n < 0){
         fputs("read failed!\n", stderr);
+cout<<"bbbbbbbbbbbbbbbbbbbbbbbbb"<<endl;
+follow++;
+      //if(follow < 500 || follow > 1000 || follow < 1500 && follow > 2000){
+      if(follow < 180){
+      
+getLidarData->readingIndex = 10;
+        getLidarData->firstDegree = 20;
+        getLidarData->firstDistance = 30;
+        getLidarData->secondDegree = 40;
+	getLidarData->secondDistance = 50;
+	getLidarData->thirdDegree = 60;
+	getLidarData->thirdDistance = 70;
+	getLidarData->fourthDegree = 80;
+	getLidarData->fourthDistance = 90;
+
+
+}
+      //if(follow > 500 && follow < 1000 || follow > 1500 && follow < 2000){
+      if(follow > 180 && follow < 360){
+getLidarData->readingIndex = 1;
+        getLidarData->firstDegree = 2;
+        getLidarData->firstDistance = 3;
+        getLidarData->secondDegree = 4;
+	getLidarData->secondDistance = 5;
+	getLidarData->thirdDegree = 6;
+	getLidarData->thirdDistance = 7;
+	getLidarData->fourthDegree = 8;
+	getLidarData->fourthDistance = 9;
+
+}
+cout<<getLidarData->readingIndex<<endl;
+cout<<getLidarData->firstDegree<<endl;
+cout<<getLidarData->firstDistance<<endl;
+cout<<getLidarData->secondDegree<<endl;
+cout<<getLidarData->secondDistance<<endl;
+cout<<getLidarData->thirdDegree<<endl;
+cout<<getLidarData->thirdDistance<<endl;
+cout<<getLidarData->fourthDegree<<endl;
+cout<<getLidarData->fourthDistance<<endl;
+
+cout<<"Follow:   "<<follow<<endl;
+
+        //Create container for sending the Lidar data
+        Container contData(Container::USER_DATA_2, sendData);
+        // Send containers.
+        getConference().send(contData);
 
         }
 if(*init_level == 0){

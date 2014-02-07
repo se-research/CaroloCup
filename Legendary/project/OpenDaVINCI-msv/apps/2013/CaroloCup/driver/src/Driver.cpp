@@ -8,6 +8,8 @@
 #include <math.h>
 #include <sstream>
 
+#include <pthread.h>
+
 #include "core/io/ContainerConference.h"
 #include "core/data/Container.h"
 #include "core/data/Constants.h"
@@ -23,8 +25,10 @@
 #include <pthread.h>
 #include "Driver.h"
 
-pthread_t t1, t2;
+
+pthread_t t1;
 pthread_mutex_t lock;
+  
 
 typedef struct {
 
@@ -39,8 +43,10 @@ typedef struct {
   unsigned int fourthDistance;
 } lidarForward;
 
+
     int lidarLookUp[360];
     lidarForward *getLidarData;
+
 
 //////////////////Shared Memory//////////////
     int shmid;
@@ -64,7 +70,9 @@ bool reverseDone = false;
 namespace carolocup
 {
 
+
 void *function1(void *argument);
+
 
 using namespace std;
 using namespace core::base;
@@ -142,6 +150,7 @@ int msleep(unsigned long milisec)
     req.tv_sec=sec;
     req.tv_nsec=milisec*1000000L;
     __nsleep(&req,&rem);
+
     return 1;
 }
 
@@ -194,9 +203,14 @@ typedef struct {
 Lidar data is stored in a struct above and getting data from it
 is done by "getData.getDistance().readingIndex" for the reading index e.t.c
 */
+
     if(isParking) {
 	m_speed = 1562;
     }
+
+
+int i = 0;
+//int const ll = lidarLookUp[0][1];
 
 
     while (getModuleState() == ModuleState::RUNNING)
@@ -216,6 +230,7 @@ is done by "getData.getDistance().readingIndex" for the reading index e.t.c
                 m_hasReceivedLaneDetectionData = true;
                 break;
             }
+
 
 	   if(isParking) {
            	   /*Getting the LidarData from the container with the ID USER_DATA_2*/
@@ -278,6 +293,59 @@ is done by "getData.getDistance().readingIndex" for the reading index e.t.c
 			//lifo.clear();
 		    }
 	    }
+
+           /*Getting the LidarData from the container with the ID USER_DATA_2*/
+	   if (con.getDataType() == Container::USER_DATA_2)
+            {
+                // We have found our expected container.
+                getData = con.getData<LidarData> ();
+                /*cout<<"GOT LIDAR DATA FROM THE CONTAINER"<<endl;
+
+
+        cout<<"Reading Index:  "<<getLidarData->readingIndex<<endl;
+        cout<<"firstDegree:  "<<getLidarData->firstDegree<<endl;
+        cout<<"firstDistance:  "<<getLidarData->firstDistance<<endl;
+        cout<<"secondDegree:  "<<getLidarData->secondDegree<<endl;
+	cout<<"secondDistance:  "<<getLidarData->secondDistance<<endl;
+	cout<<"thirdDegree:  "<<getLidarData->thirdDegree<<endl;
+	cout<<"thirdDistance:  "<<getLidarData->thirdDistance<<endl;
+	cout<<"fourthDegree:  "<<getLidarData->fourthDegree<<endl;
+	cout<<"fourthDistance:  "<<getLidarData->fourthDistance<<endl;*/
+
+//if(ll == lidarLookUp[getLidarData->firstDegree][1]){
+       lidarLookUp[getLidarData->firstDegree]= getLidarData->firstDistance;
+       lidarLookUp[getLidarData->secondDegree]= getLidarData->secondDistance;
+       lidarLookUp[getLidarData->thirdDegree]= getLidarData->thirdDistance;
+       lidarLookUp[getLidarData->fourthDegree]= getLidarData->fourthDistance;
+
+	pthread_mutex_lock(&lock);
+    	pthread_create(&t1, NULL, function1,NULL);
+	pthread_mutex_unlock(&lock);
+     //  }
+         //i++;  
+break;
+            }
+
+	   if (con.getDataType() == Container::USER_DATA_3)
+            {
+                // We have found our expected container.
+                gatherData = con.getData<SensorData> ();
+     
+             
+        /*cout<<"First:   "<<getSensorData->firstInfraredDistance<<endl;
+   	cout<<"Second:   "<<getSensorData->secondInfraredDistance<<endl;
+   	cout<<"Third:   "<<getSensorData->thirdInfraredDistance<<endl;
+   	cout<<"Fourth:   "<<getSensorData->fourthInfraredDistance<<endl;
+
+   	cout<<"Fifth:   "<<getSensorData->firstUltrasonicDistance<<endl;
+   	cout<<"Sixth:   "<<getSensorData->secondUltrasonicDistance<<endl;*/
+
+                break;
+
+            }
+
+
+
 	    cout << "WAIT..." << endl;
         }
         lifo.clear();
@@ -293,6 +361,7 @@ is done by "getData.getDistance().readingIndex" for the reading index e.t.c
         m_intGain = 2;//1.0;//8.39; //8.39;
         m_derGain = 0.2;//0.23;
 
+
 	if(!isParking) {
 		bool res = laneFollowing(&ldd);	
 		if(!res) continue;
@@ -301,6 +370,16 @@ is done by "getData.getDistance().readingIndex" for the reading index e.t.c
 		pstate = 0;
 		bool res = parking();
 	}
+
+	/*cout<<"First:  "<<lidarLookUp[getLidarData->firstDegree]<<endl;
+	cout<<"Second:  "<<lidarLookUp[getLidarData->secondDegree]<<endl;
+	cout<<"Third:  "<<lidarLookUp[getLidarData->thirdDegree]<<endl;
+	cout<<"Fourth:  "<<lidarLookUp[getLidarData->fourthDegree]<<endl;*/
+
+for(int i = 0; i < 360; i++){
+cout<<lidarLookUp[i]<<endl;
+}
+
 
         stringstream speedStream, steeringAngleStream;
 	float desSteering = m_desiredSteeringWheelAngle*180/M_PI;
@@ -631,11 +710,22 @@ float Driver::feedbackLinearizationController2()
 void *function1(void *argument){
 
 
+
 	lidarLookUp[getLidarData->firstDegree] = getLidarData->firstDistance;
 	lidarLookUp[getLidarData->secondDegree] = getLidarData->secondDistance;
 	lidarLookUp[getLidarData->thirdDegree] = getLidarData->thirdDistance;
 	lidarLookUp[getLidarData->fourthDegree] = getLidarData->fourthDistance;
        return 0;
+
+    cout << "\nShowing Frame 1 From Thread 1" << endl;
+              lidarLookUp[getLidarData->firstDegree]= getLidarData->firstDistance;
+       lidarLookUp[getLidarData->secondDegree]= getLidarData->secondDistance;
+       lidarLookUp[getLidarData->thirdDegree]= getLidarData->thirdDistance;
+       lidarLookUp[getLidarData->fourthDegree]= getLidarData->fourthDistance;
+    return 0;
+
 }
 
 } // msv
+
+

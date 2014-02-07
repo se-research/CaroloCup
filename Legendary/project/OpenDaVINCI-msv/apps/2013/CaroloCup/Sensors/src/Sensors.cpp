@@ -44,8 +44,9 @@
 
 using namespace std;
 
+pthread_t t2;
+pthread_mutex_t lock;
 
-pthread_t t1, t2;
 
 unsigned char starter[1];
 unsigned char infra[13];
@@ -74,9 +75,12 @@ int resultSaved[3] = {0, 0, 0};
     allSensors *getData;
      int follow = 0;
 
+     int converter(char* arrayInput, int lenght);
 
 
 namespace carolocup {
+
+    void  *function2(void *argument);
 
     using namespace std;
     using namespace core::base;
@@ -164,224 +168,15 @@ initialize_pin_reading();
     tcflush(fd, TCIOFLUSH);
 ///////////////////////READ FROM PORT//////////////////////////////////
 
-  while(1){
 
-  sleep(0.005);
-  //timeCount++;
-//////////////////////Hall Effect/////////////////////////////////////////////////
-results = get_gpio_data(); 
  
-      if(results[0] != resultSaved[0] || results[1] != resultSaved[1] ||results[2]!=resultSaved[2]){ 
-        //printf("OldReadings: (%d, %d, %d)\n", resultSaved[0], resultSaved[1],resultSaved[2]); 
-        //printf("NewReadings: (%d, %d, %d)\n", results[0], results[1], results[2]); 
-        TimeStamp now;
-	int currentTime = now.toMicroseconds();
-        resultSaved[0] = results[0]; 
-        resultSaved[1] = results[1]; 
-        resultSaved[2] = results[2]; 
-        //printf("(%d, %d, %d)\n", resultSaved[0], resultSaved[1],resultSaved[2]); 
-	int mov = get_movement_data();
-        printf("movement: %d\n", mov); 
-	getData->movement += mov;
-	if(lastTime != 0) {
-		cout << "Speed: " << mov / ((currentTime - lastTime)/1000.0);
-	}
-	lastTime = now.toMicroseconds();
-      }
-////////////////////////Hall Effect/////////////////////////////////////////////////////
-
-
-    //if(timeCount > 20){
-    //   timeCount = 0;
-       int n = read(fd, starter, 1);
-
-///////////////////////////////////////////////////gatherData.setUltrasonicDistance(1,  10);
-///////////////////////////////////////////////////gatherData.setUltrasonicDistance(2,  20);
-
-//gatherData.setUltrasonicDistance(1,  10);
-//gatherData.setUltrasonicDistance(2,  20);
-
-//}
-
-        if(n < 0){
-        fputs("read failed!\n", stderr);
-
-        /*getData->firstInfraredDistance = 5;
-   	getData->secondInfraredDistance = 10;
-   	getData->thirdInfraredDistance = 15;
-   	getData->fourthInfraredDistance = 20;
-
-   	getData->firstUltrasonicDistance = 25;
-   	getData->secondUltrasonicDistance = 30;
-//////////////////////////////////////////////////cout<<"\nGOT ULTRASONIC BACK  "<<gatherData.getUltrasonicDistance(2)<<endl;
-cout<<"\nGOT ULTRASONIC BACK  "<<gatherData.getUltrasonicDistance(2)<<endl;
-
-Container contSensor(Container::USER_DATA_3, gatherData);
-        // Send containers.
-        getConference().send(contSensor);*/
-        }
-
-	//cout << infra << " " << n << endl;
-    if(starter[0] == 'i'){
-
-//cout<<"IIIIIIIIIIIIIIIIIII"<<endl;
-int n = read(fd, infra, 12);
-	char firstInfra[2]; 
-	firstInfra[0] = infra[0];
-	firstInfra[1] = infra[1];
-
-        char secondInfra[2];
-	secondInfra[0] = infra[3];
-	secondInfra[1] = infra[4];
-
- 	char thirdInfra[2];
-	thirdInfra[0] = infra[6];
-	thirdInfra[1] = infra[7];
-
- 	char fourthInfra[2];
-	fourthInfra[0] = infra[9];
-	fourthInfra[1] = infra[10];
-	char three = infra[2];     //the ',' symbol
-	char six = infra[5];      //the ',' symbol
-	char nine = infra[8];		//the ',' symbol
-	char twelve = infra[11];  //the '.' symbol
-    
-	int firstInfraDist;
-	int secondInfraDist;
-	int thirdInfraDist;
-	int fourthInfraDist;
-
-   if(three == ',' && six == ',' && nine == ',' && twelve == '.'){
-
-  	int one = 1;
-	int two = 2;
-	int threes = 3;
-	int four = 4;
-   	//if(firstInfra[0] == '0'){
-	firstInfraDist = converter(firstInfra, 2);
-	cout<<"Found First: "<<firstInfraDist<<endl;
-	getData->firstInfraredDistance = firstInfraDist;
- 	//}
-
-	//else if(firstInfra[0] != '0'){
-
-	//firstInfraDist = atoi(firstInfra);
-        //cout<<"More than Ten First: "<<firstInfraDist<<endl;
-	//getData->firstInfraredDistance = firstInfraDist;
-         //}
-
-        //if(secondInfra[0] == '0'){
-	secondInfraDist = converter(secondInfra, 2);	
-	cout<<"Found Second: "<<secondInfraDist<<endl;
-   	getData->secondInfraredDistance = secondInfraDist;
- 	//}
-
-	//else if(secondInfra[0] != '0'){
-	//secondInfraDist = atoi(secondInfra);
-        //cout<<"More than Ten Second: "<<secondInfraDist<<endl;
-   	//getData->secondInfraredDistance = secondInfraDist;
-        // }
-
-       // if(thirdInfra[0] == '0'){
-	thirdInfraDist = converter(thirdInfra, 2);	
-	cout<<"Found Third: "<<thirdInfraDist<<endl;
-   	getData->thirdInfraredDistance = thirdInfraDist;
- 	//}
-
-	//else if(thirdInfra[0] != '0'){
-	//thirdInfraDist = atoi(thirdInfra);
-        //cout<<"More than Ten Third: "<<thirdInfraDist<<endl;
-   	//getData->thirdInfraredDistance = thirdInfraDist;
-        // }
-
-       // if(fourthInfra[0] == '0'){
-	fourthInfraDist = converter(fourthInfra, 2);
-	cout<<"Found Fourth: "<<fourthInfraDist<<endl;
-   	getData->fourthInfraredDistance = fourthInfraDist;
- 	//}
-
-	//else if(fourthInfra[0] != '0'){
-	//fourthInfraDist = atoi(fourthInfra);
-        //cout<<"More than Ten Fourth: "<<fourthInfraDist<<endl;
-   	//getData->fourthInfraredDistance = fourthInfraDist;
-        // }
-    }  //End of main if
-
-      }   //end of if statement when start byte is found
-   
-  
-    if(starter[0] == 'u'){
-
-
-//cout<<"UUUUUUUUUUUUUUUUUUUUUUUUUU"<<endl;
-
-    int n = read(fd, ultra, 8);
-
-//cout<<ultra<<endl;
-
-	char firstUltra[3];
-	firstUltra[0] = ultra[0];
-	firstUltra[1] = ultra[1];
-	firstUltra[2] = ultra[2];
-
-        char secondUltra[3];
-	secondUltra[0] = ultra[4];
-	secondUltra[1] = ultra[5];
-	secondUltra[2] = ultra[6];
-
-        char three = ultra[3];        //The ',' symbol
-	char six = ultra[7];          //The '.' symbol
-
-	int firstUltraDist;
-	int secondUltraDist;
-   
-   if(three == ',' && six == '.'){
-
-	int one = 1;
-	int two = 2;
-
-	
-	firstUltraDist = converter(firstUltra, 3);
-	getData->firstUltrasonicDistance = firstUltraDist;
-	cout<<"Found First Ultra: "<<firstUltraDist<<endl;
-
-	secondUltraDist = converter(secondUltra, 3);
-	getData->secondUltrasonicDistance = secondUltraDist;
-	cout<<"Found Second Ultra: "<<secondUltraDist<<endl;
-
-   	/*if(firstUltra[0] == '0'){
-	cout<<"Found First Ultra: "<<firstUltra[1]<<endl;
-	firstUltraDist = firstUltra[1];
-   	getData->firstUltrasonicDistance = firstUltraDist;
- 	}
-        else if(firstUltra[0] != '0'){
-	firstUltraDist = atoi(firstUltra);
-        cout<<"More than Ten First Ultra: "<<firstUltraDist<<endl;
-   	getData->firstUltrasonicDistance = firstUltraDist;
-         }
-        if(secondUltra[0] == '0'){
-	cout<<"Found Second Ultra: "<<secondUltra[1]<<endl;
-	secondUltraDist = secondUltra[1];
-   	getData->secondUltrasonicDistance = secondUltraDist;
- 	}
-        else if(secondUltra[0] != '0'){
-	secondUltraDist = atoi(secondUltra);
-        cout<<"More than Ten Second Ultra: "<<secondUltraDist<<endl;
-   	getData->secondUltrasonicDistance = secondUltraDist;
-         }*/
-
-    }
-
-
-      }   //end of if statement when start byte is found
-
         Container contSensor(Container::USER_DATA_3, gatherData);
         // Send containers.
         getConference().send(contSensor);
       //  } //If statement controlled by Time count
 //cout << "Inside" << endl;
-   } //End of infinite while loop
 //cout << "Time: " << timeCount << endl;
+
 
   } //End of ModuleState::RUNNING
 
@@ -389,7 +184,7 @@ int n = read(fd, infra, 12);
     }
 
 
-int Sensors::converter(char* arrayInput, int lenght){
+int converter(char* arrayInput, int lenght){
      	int num = 0;
 
 	for(int i = 0;i < lenght; i++){
@@ -609,6 +404,137 @@ int calculate_movement(int before, int after)
     //return after - before + 6;
 }  /////End of  calculate_movement;
 
+void *function2(void *argument){
+    cout << "\nShowing Frame 2 From Thread 2"  << endl;
+
+//  sleep(0.005);
+
+  //timeCount++;
+//////////////////////Hall Effect/////////////////////////////////////////////////
+/*results = get_gpio_data(); 
+ 
+      if(results[0] != resultSaved[0] || results[1] != resultSaved[1] ||results[2]!=resultSaved[2]){ 
+        //printf("OldReadings: (%d, %d, %d)\n", resultSaved[0], resultSaved[1],resultSaved[2]); 
+        //printf("NewReadings: (%d, %d, %d)\n", results[0], results[1], results[2]); 
+        resultSaved[0] = results[0]; 
+        resultSaved[1] = results[1]; 
+        resultSaved[2] = results[2]; 
+        //printf("(%d, %d, %d)\n", resultSaved[0], resultSaved[1],resultSaved[2]); 
+        //printf("movement: %d\n", get_movement_data()); 
+      }*/
+////////////////////////Hall Effect/////////////////////////////////////////////////////
+
+
+    //if(timeCount > 20){
+    //   timeCount = 0;
+       int n = read(fd, starter, 1);
+
+        if(n < 0){
+        fputs("read failed!\n", stderr);
+
+        }
+
+
+    if(starter[0] == 'i'){
+
+int n = read(fd, infra, 12);
+	char firstInfra[2]; 
+	firstInfra[0] = infra[0];
+	firstInfra[1] = infra[1];
+
+        char secondInfra[2];
+	secondInfra[0] = infra[3];
+	secondInfra[1] = infra[4];
+
+ 	char thirdInfra[2];
+	thirdInfra[0] = infra[6];
+	thirdInfra[1] = infra[7];
+
+ 	char fourthInfra[2];
+	fourthInfra[0] = infra[9];
+	fourthInfra[1] = infra[10];
+	char three = infra[2];     //the ',' symbol
+	char six = infra[5];      //the ',' symbol
+	char nine = infra[8];		//the ',' symbol
+	char twelve = infra[11];  //the '.' symbol
+    
+	int firstInfraDist;
+	int secondInfraDist;
+	int thirdInfraDist;
+	int fourthInfraDist;
+
+   if(three == ',' && six == ',' && nine == ',' && twelve == '.'){
+
+  	int one = 1;
+	int two = 2;
+	int threes = 3;
+	int four = 4;
+   	//if(firstInfra[0] == '0'){
+	firstInfraDist = converter(firstInfra, 2);
+	cout<<"Found First: "<<firstInfraDist<<endl;
+	getData->firstInfraredDistance = firstInfraDist;
+
+	secondInfraDist = converter(secondInfra, 2);	
+	cout<<"Found Second: "<<secondInfraDist<<endl;
+   	getData->secondInfraredDistance = secondInfraDist;
+
+	thirdInfraDist = converter(thirdInfra, 2);	
+	cout<<"Found Third: "<<thirdInfraDist<<endl;
+   	getData->thirdInfraredDistance = thirdInfraDist;
+
+	fourthInfraDist = converter(fourthInfra, 2);
+	cout<<"Found Fourth: "<<fourthInfraDist<<endl;
+   	getData->fourthInfraredDistance = fourthInfraDist;
+
+    }  //End of main if
+
+      }   //end of if statement when start byte is found
+   
+  
+    if(starter[0] == 'u'){
+
+
+    int n = read(fd, ultra, 8);
+
+cout<<ultra<<endl;
+
+	char firstUltra[3];
+	firstUltra[0] = ultra[0];
+	firstUltra[1] = ultra[1];
+	firstUltra[2] = ultra[2];
+
+        char secondUltra[3];
+	secondUltra[0] = ultra[4];
+	secondUltra[1] = ultra[5];
+	secondUltra[2] = ultra[6];
+
+        char three = ultra[3];        //The ',' symbol
+	char six = ultra[7];          //The '.' symbol
+
+	int firstUltraDist;
+	int secondUltraDist;
+   
+   if(three == ',' && six == '.'){
+
+	int one = 1;
+	int two = 2;
+
+	
+	firstUltraDist = converter(firstUltra, 3);
+	getData->firstUltrasonicDistance = firstUltraDist;
+	cout<<"Found First Ultra: "<<firstUltraDist<<endl;
+
+	secondUltraDist = converter(secondUltra, 3);
+	getData->secondUltrasonicDistance = secondUltraDist;
+	cout<<"Found Second Ultra: "<<secondUltraDist<<endl;
+
+    }
+
+
+      }   //end of if statement when start byte is found
+
+    return 0;
+}
 
 } // carolocup
 
