@@ -278,7 +278,6 @@ is done by "getData.getDistance().readingIndex" for the reading index e.t.c
 			//lifo.clear();
 		    }
 	    }
-
 	    cout << "WAIT..." << endl;
         }
         lifo.clear();

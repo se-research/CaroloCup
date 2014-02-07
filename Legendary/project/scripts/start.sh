@@ -3,17 +3,21 @@
 bin=/opt/Legendary/bin/
 caroloCup=$bin/2013/CaroloCup/
 pidfile=${0}.pid
-serialPort=/dev/ttyS2
+serialPort=/dev/ttyACM0
+state="idle"
 
 while read -r line < $serialPort; do
-  if [[ $line == "RED" ]]; then
+  if grep "RED" <<< "$line" > /dev/null && [[ $state == "started" ]]; then
 
     # Stop and kill the processes
     for pid in $(cat $pidfile); do
       kill $pid
     done
 
-  elif [[ $line == "YELLOW" ]]; then
+    echo "Switching to Idle state"
+    state="idle"
+
+  elif grep "YELLOW" <<< "$line" > /dev/null && [[ $state == "idle" ]]; then
 
     # Start the proceses
     ${bin}/supercomponent --cid=111 --freq=20
@@ -25,7 +29,14 @@ while read -r line < $serialPort; do
     ${caroloCup}/2013-CaroloCup-driver --cid=111 --freq=40
     echo "$!" >> $pidfile
 
+    echo "Switching to Started state"
+    state="started"
+
   else
-    print "Bad input from serial port:'$lien'"
+    echo "Bad input from serial port: '$line'"
+    echo "Current State: '$state'"
   fi
+
+  # Wait until somebody pushes a button
+  read -p "Press any key to read from serial bus." -n1 -s; echo ""
 done
