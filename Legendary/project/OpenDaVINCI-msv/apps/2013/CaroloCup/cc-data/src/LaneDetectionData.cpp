@@ -49,6 +49,7 @@ namespace carolocup {
 
     // Attila 2 Fredrik: what is this 'getSteeringData'? Dont we need some object or something here?
 		//s << "Example data: " << getSteeringData().rightLine[0];
+		s << "LaneDetectionData";
 
 		return s.str();
 	}

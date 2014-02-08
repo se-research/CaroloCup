@@ -21,31 +21,61 @@ namespace carolocup {
 
 	SensorData::SensorData(const SensorData &obj) :
 	  SerializableData(),          
-	   firstInfraredDistance(0),
-  	   secondInfraredDistance(0),
- 	   thirdInfraredDistance(0),
- 	   fourthInfraredDistance(0),
-           firstUltrasonicDistance(0),
-           secondUltrasonicDistance(0){}
+	  firstInfraredDistance(0),
+  	  secondInfraredDistance(0),
+ 	  thirdInfraredDistance(0),
+ 	  fourthInfraredDistance(0),
+      firstUltrasonicDistance(0),
+      secondUltrasonicDistance(0){}
 
 
-        SensorData::~SensorData() {}
+      SensorData::~SensorData() {}
 	SensorData& SensorData::operator=(const SensorData &obj) {
 
 		return (*this);
 	}
 
 	const string SensorData::toString() const {
-				 
-		return NULL;
+		stringstream s;
+		s << "SensorData";
+		return s.str();
 	}
 
 	ostream& SensorData::operator<<(ostream &out) const {
+		SerializationFactory sf;
+		Serializer &s = sf.getSerializer(out);
+		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL3('i', 'r', '1') >::RESULT,
+				firstInfraredDistance);
+		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL3('i', 'r', '2') >::RESULT,
+				secondInfraredDistance);
+		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL3('i', 'r', '3') >::RESULT,
+				thirdInfraredDistance);
+		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL3('i', 'r', '4') >::RESULT,
+				fourthInfraredDistance);
+		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL3('u', 's', '1') >::RESULT,
+				firstUltrasonicDistance);
+		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL3('u', 's', '2') >::RESULT,
+				secondUltrasonicDistance);
 
 		return out;
 	}
 
 	istream& SensorData::operator>>(istream &in) {
+		SerializationFactory sf;
+		Deserializer &d = sf.getDeserializer(in);
+
+		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL3('i', 'r', '1') >::RESULT,
+				firstInfraredDistance);
+		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL3('i', 'r', '2') >::RESULT,
+				secondInfraredDistance);
+		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL3('i', 'r', '3') >::RESULT,
+				thirdInfraredDistance);
+		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL3('i', 'r', '4') >::RESULT,
+				fourthInfraredDistance);
+		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL3('u', 's', '1') >::RESULT,
+				firstUltrasonicDistance);
+		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL3('u', 's', '2') >::RESULT,
+				secondUltrasonicDistance);
 
 		return in;
 	}

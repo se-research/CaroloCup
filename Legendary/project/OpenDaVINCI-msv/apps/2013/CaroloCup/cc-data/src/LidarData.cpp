@@ -22,14 +22,14 @@ namespace carolocup {
 	LidarData::LidarData(const LidarData &obj) :
 	  SerializableData(),
            index(0),
-  	   firstDeg(0),
-  	   firstDist(0),
-  	   secondDeg(0),
-  	   secondDist(0),
-  	   thirdDeg(0),
- 	   thirdDist(0),
-  	   fourthDeg(0),
- 	   fourthDist(0){}
+  	       firstDeg(0),
+  	       firstDist(0),
+  	       secondDeg(0),
+  	       secondDist(0),
+  	       thirdDeg(0),
+ 	       thirdDist(0),
+  	       fourthDeg(0),
+ 	       fourthDist(0){}
 
 
         LidarData::~LidarData() {}
@@ -56,16 +56,54 @@ namespace carolocup {
   }
 
 	const string LidarData::toString() const {
-				 
-		return NULL;
+		stringstream s;
+		s << "LidarData: " << firstDeg << ", " << firstDist;
+		return s.str();
 	}
 
 	ostream& LidarData::operator<<(ostream &out) const {
+		SerializationFactory sf;
+		Serializer &s = sf.getSerializer(out);
+		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL4('d', 'e', 'g', '1') >::RESULT,
+				firstDeg);
+		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL5('d', 'i', 's', 't', '1') >::RESULT,
+				firstDist);
+		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL4('d', 'e', 'g', '2') >::RESULT,
+				secondDeg);
+		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL5('d', 'i', 's', 't', '2') >::RESULT,
+				secondDist);
+		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL4('d', 'e', 'g', '3') >::RESULT,
+				thirdDeg);
+		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL5('d', 'i', 's', 't', '3') >::RESULT,
+				thirdDist);
+		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL4('d', 'e', 'g', '4') >::RESULT,
+				fourthDeg);
+		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL5('d', 'i', 's', 't', '4') >::RESULT,
+				fourthDist);
 
 		return out;
 	}
 
 	istream& LidarData::operator>>(istream &in) {
+		SerializationFactory sf;
+		Deserializer &d = sf.getDeserializer(in);
+
+		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL4('d', 'e', 'g', '1') >::RESULT,
+				firstDeg);
+		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL5('d', 'i', 's', 't', '1') >::RESULT,
+				firstDist);
+		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL4('d', 'e', 'g', '2') >::RESULT,
+				secondDeg);
+		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL5('d', 'i', 's', 't', '2') >::RESULT,
+				secondDist);
+		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL4('d', 'e', 'g', '3') >::RESULT,
+				thirdDeg);
+		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL5('d', 'i', 's', 't', '3') >::RESULT,
+				thirdDist);
+		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL4('d', 'e', 'g', '4') >::RESULT,
+				fourthDeg);
+		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL5('d', 'i', 's', 't', '4') >::RESULT,
+				fourthDist);
 
 		return in;
 	}

@@ -224,9 +224,36 @@ int i = 0;
     {
         m_hasReceivedLaneDetectionData = false;
         LaneDetectionData ldd;
-	SensorData gatherData;
+	    SensorData gatherData;
         LidarData getData;
-        while (!lifo.isEmpty())
+		
+		Container conUserData1 = getKeyValueDataStore().get(Container::USER_DATA_1);
+		ldd = conUserData1.getData<LaneDetectionData>();
+		if ((conUserData1.getReceivedTimeStamp().getSeconds() + conUserData1.getReceivedTimeStamp().getFractionalSeconds()) > 0) {
+			cout << "Received LaneDetectionData: " << ldd.toString() << endl;
+		}
+		else {
+			cout << "Still waiting for LaneDetectionData" << endl;
+		}
+
+		Container conUserData2 = getKeyValueDataStore().get(Container::USER_DATA_2);
+		getData = conUserData2.getData<LidarData>();
+		if ((conUserData2.getReceivedTimeStamp().getSeconds() + conUserData2.getReceivedTimeStamp().getFractionalSeconds()) > 0) {
+			cout << "Received LidarData: " << getData.toString() << endl;
+		}
+		else {
+			cout << "Still waiting for LidarData" << endl;
+		}
+
+		Container conUserData3 = getKeyValueDataStore().get(Container::USER_DATA_3);
+		gatherData = conUserData3.getData<SensorData>();
+		if ((conUserData3.getReceivedTimeStamp().getSeconds() + conUserData3.getReceivedTimeStamp().getFractionalSeconds()) > 0) {
+			cout << "Received SensorData: " << gatherData.toString() << endl;
+		}
+		else {
+			cout << "Still waiting for SensorData" << endl;
+		}
+/*        while (!lifo.isEmpty())
         {
             // Read the recently received container.
             Container con = lifo.pop();
@@ -240,7 +267,7 @@ int i = 0;
 
 
 	   if(isParking) {
-           	   /*Getting the LidarData from the container with the ID USER_DATA_2*/
+           	   //Getting the LidarData from the container with the ID USER_DATA_2
 		   if (con.getDataType() == Container::USER_DATA_2)
 		    {
 		        // We have found our expected container.
@@ -248,30 +275,30 @@ int i = 0;
 		        //cout<<"GOT LIDAR DATA FROM THE CONTAINER"<<endl;
 
 
-			/*cout<<"Reading Index:  "<<getLidarData->readingIndex<<endl;
-			cout<<"firstDegree:  "<<getLidarData->firstDegree<<endl;
-			cout<<"firstDistance:  "<<getLidarData->firstDistance<<endl;
-			cout<<"secondDegree:  "<<getLidarData->secondDegree<<endl;
-			cout<<"secondDistance:  "<<getLidarData->secondDistance<<endl;
-			cout<<"thirdDegree:  "<<getLidarData->thirdDegree<<endl;
-			cout<<"thirdDistance:  "<<getLidarData->thirdDistance<<endl;
-			cout<<"fourthDegree:  "<<getLidarData->fourthDegree<<endl;
-			cout<<"fourthDistance:  "<<getLidarData->fourthDistance<<endl;*/
+			// out<<"Reading Index:  "<<getLidarData->readingIndex<<endl;
+			// cout<<"firstDegree:  "<<getLidarData->firstDegree<<endl;
+			// cout<<"firstDistance:  "<<getLidarData->firstDistance<<endl;
+			// cout<<"secondDegree:  "<<getLidarData->secondDegree<<endl;
+			// cout<<"secondDistance:  "<<getLidarData->secondDistance<<endl;
+			// cout<<"thirdDegree:  "<<getLidarData->thirdDegree<<endl;
+			// cout<<"thirdDistance:  "<<getLidarData->thirdDistance<<endl;
+			// cout<<"fourthDegree:  "<<getLidarData->fourthDegree<<endl;
+			// cout<<"fourthDistance:  "<<getLidarData->fourthDistance<<endl;
 
-			/*lidarLookUp[getLidarData->firstDegree] = getLidarData->firstDistance;
-			lidarLookUp[getLidarData->secondDegree] = getLidarData->secondDistance;
-			lidarLookUp[getLidarData->thirdDegree] = getLidarData->thirdDistance;
-			lidarLookUp[getLidarData->fourthDegree] = getLidarData->fourthDistance;
-			pthread_mutex_t lock(lock);
-                        pthread_create(&t1, NULL, function1, NULL);
-			pthread_mutex_t unlock(lock);*/
+			//lidarLookUp[getLidarData->firstDegree] = getLidarData->firstDistance;
+			//lidarLookUp[getLidarData->secondDegree] = getLidarData->secondDistance;
+			//lidarLookUp[getLidarData->thirdDegree] = getLidarData->thirdDistance;
+			//lidarLookUp[getLidarData->fourthDegree] = getLidarData->fourthDistance;
+			//pthread_mutex_t lock(lock);
+			//pthread_create(&t1, NULL, function1, NULL);
+			//pthread_mutex_t unlock(lock);
 
-			/*cout<<"First:  "<<lidarLookUp[getLidarData->firstDegree]<<endl;
-			cout<<"Second:  "<<lidarLookUp[getLidarData->secondDegree]<<endl;
-			cout<<"Third:  "<<lidarLookUp[getLidarData->thirdDegree]<<endl;
-			cout<<"Fourth:  "<<lidarLookUp[getLidarData->fourthDegree]<<endl;*/
+			//cout<<"First:  "<<lidarLookUp[getLidarData->firstDegree]<<endl;
+			//cout<<"Second:  "<<lidarLookUp[getLidarData->secondDegree]<<endl;
+			//cout<<"Third:  "<<lidarLookUp[getLidarData->thirdDegree]<<endl;
+			//cout<<"Fourth:  "<<lidarLookUp[getLidarData->fourthDegree]<<endl;
 
-                    break;
+             //       break;
 			//cout << "Angle: " << lidarLookUp[269] << endl;
                }
 
@@ -281,13 +308,13 @@ int i = 0;
 		        gatherData = con.getData<SensorData> ();
 	     
 		     
-			/*cout<<"First:   "<<getSensorData->firstInfraredDistance<<endl;
-		   	cout<<"Second:   "<<getSensorData->secondInfraredDistance<<endl;
-		   	cout<<"Third:   "<<getSensorData->thirdInfraredDistance<<endl;
-		   	cout<<"Fourth:   "<<getSensorData->fourthInfraredDistance<<endl;
+			// cout<<"First:   "<<getSensorData->firstInfraredDistance<<endl;
+		   	// cout<<"Second:   "<<getSensorData->secondInfraredDistance<<endl;
+		   	// cout<<"Third:   "<<getSensorData->thirdInfraredDistance<<endl;
+		   	// cout<<"Fourth:   "<<getSensorData->fourthInfraredDistance<<endl;
 
-		   	cout<<"Fifth:   "<<getSensorData->firstUltrasonicDistance<<endl;
-		   	cout<<"Sixth:   "<<getSensorData->secondUltrasonicDistance<<endl;*/
+		   	// cout<<"Fifth:   "<<getSensorData->firstUltrasonicDistance<<endl;
+		   	// cout<<"Sixth:   "<<getSensorData->secondUltrasonicDistance<<endl;
 			sensorData[0] = getSensorData->firstInfraredDistance;
 			sensorData[1] = getSensorData->secondInfraredDistance;
 			sensorData[2] = getSensorData->thirdInfraredDistance;
@@ -303,7 +330,7 @@ int i = 0;
 
 	    cout << "WAIT..." << endl;
         }
-        lifo.clear();
+        lifo.clear();*/
 
       /*for(int i = 300; i<330; i++){
 	 if(lidarLookUp[i]<250) {
@@ -335,7 +362,7 @@ int i = 0;
 	}*/
 
 
-        stringstream speedStream, steeringAngleStream;
+    stringstream speedStream, steeringAngleStream;
 	float desSteering = m_desiredSteeringWheelAngle*180/M_PI;
 	//cout << "Desired steering: " << desSteering <<endl;
 
