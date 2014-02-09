@@ -2,13 +2,15 @@
 #include <stdio.h>
 #define ADDRESSBACK 115
 #define ADDRESSFRONT 112
-#define ADDRESSMIDDLE 114
+//#define ADDRESSMIDDLE 114
 
 int irpin1 = 0;                 // analog pin used to connect the sharp sensor
 int irpin2 = 1;                 // analog pin used to connect the sharp sensor
 int irpin3 = 2;                 // analog pin used to connect the sharp sensor
 int irpin4 = 3;                 // analog pin used to connect the sharp sensor
 int infraCount = 0;
+int uf = -1;
+int ub = -1;
 
 int val = 0,cm = 0;                 // variable to store the values from sensor(initially zero)
  // A normal distribution
@@ -54,7 +56,7 @@ int getDistance(int val)
 
 void loop()
 {
-  if(infraCount >= 6){
+  if(infraCount >= 2){
   int ir1, ir2, ir3, ir4;
   ir1 = getDistance(analogRead(irpin1));
   ir2 = getDistance(analogRead(irpin2));
@@ -74,19 +76,19 @@ void loop()
   Serial.println(irStr);
   infraCount = 0;
   }
-  //instruct sensor to read echoes
+  //instrumt sensor to read echoes
  Wire.beginTransmission(ADDRESSFRONT); // transmit to front sensor #112 (0x70)(It is actually 0xE0)
                                // the address specified in the datasheet is 224 (0xE0)
                                // but i2c adressing uses the high 7 bits so it's 112
   Wire.write(byte(0x00));      // sets register pointer to the command register (0x00)  
   Wire.write(byte(0x51));      // command sensor to measure in "inches" (0x50) // use 0x51 for centimeters // use 0x52 for ping microseconds
   Wire.write(byte(0x02));      // Write in location 2(Change Range)
-  Wire.write(byte(0x00));      // Write the minimum value
+  Wire.write(byte(0x18));      // Write the minimum value
   Wire.write(byte(0x01));      // write in location one (change gain)
-  Wire.write(byte(0x00));      // Write the minimum value 
+  Wire.write(byte(0x05));      // Write the minimum value 
   Wire.endTransmission();      // stop transmitting
   
-  Wire.beginTransmission(ADDRESSMIDDLE); // transmit to front sensor #112 (0x70)(It is actually 0xE0)
+  /*Wire.beginTransmission(ADDRESSMIDDLE); // transmit to front sensor #112 (0x70)(It is actually 0xE0)
   Wire.write(byte(0x00));      // sets register pointer to the command register (0x00)  
   Wire.write(byte(0x51));      // command sensor to measure in "inches" (0x50) // use 0x51 for centimeters // use 0x52 for ping microseconds
   Wire.write(byte(0x02));      // Write in location 2(Change Range)
@@ -94,29 +96,29 @@ void loop()
   Wire.write(byte(0x01));      // write in location one (change gain)
   Wire.write(byte(0x00));      // Write the minimum value                       
   Wire.endTransmission();      // stop transmitting
-  
+  */
   Wire.beginTransmission(ADDRESSBACK); // transmit to Back sensor #115 (0x73) (It is actually 0xE6)
   Wire.write(byte(0x00));      // sets register pointer to the command register (0x00)  
   Wire.write(byte(0x51));      // command sensor to measure in "inches" (0x50)   // use 0x51 for centimeters  // use 0x52 for ping microseconds
   Wire.write(byte(0x02));      // Write in location 2(Change Range)
-  Wire.write(byte(0x00));      // Write the minimum value
+  Wire.write(byte(0x18));      // Write the minimum value
   Wire.write(byte(0x01));      // write in location one (change gain)
-  Wire.write(byte(0x00));      // Write the minimum value 
+  Wire.write(byte(0x05));      // Write the minimum value 
   Wire.endTransmission();      // stop transmitting
   // wait for readings to happen
-  delay(7);   // datasheet suggests at least 65 milliseconds
+  delay(8);   // datasheet suggests at least 65 milliseconds
   
   infraCount++;
 
 ////////////////////////////////
- // instruct sensor to return a particular echo reading
+ // instrumt sensor to return a particular echo reading
   Wire.beginTransmission(ADDRESSFRONT); // transmit to device #112
   Wire.write(byte(0x02));      // sets register pointer to echo #1 register (0x02)
   Wire.endTransmission(); // stop transmitting
-   Wire.beginTransmission(ADDRESSMIDDLE); // transmit to device #114
+   /*Wire.beginTransmission(ADDRESSMIDDLE); // transmit to device #114
   Wire.write(byte(0x02));      // sets register pointer to echo #1 register (0x02)
   Wire.endTransmission();      // stop transmitting
- 
+ */
   Wire.beginTransmission(ADDRESSBACK); // transmit to device #115
   Wire.write(byte(0x02));      // sets register pointer to echo #1 register (0x02)
   Wire.endTransmission();      // stop transmitting
@@ -124,18 +126,20 @@ void loop()
   // request reading from sensor
   Wire.requestFrom(ADDRESSFRONT, 2);    // request 2 bytes from slave device #112
   // step 5: receive reading from sensor
-  int uf = -1;
+
   if(2<= Wire.available())    // if two bytes were received
   {
     reading = Wire.read();  // receive high byte (overwrites previous reading)
     reading = reading << 8;    // shift high byte to be high 8 bits
     reading |= Wire.read(); // receive low byte as lower 8 bits
+    if(reading < 1000){
     uf = reading;
+    }
   }
   
-      Wire.requestFrom(ADDRESSMIDDLE, 2);    // request 2 bytes from slave device #114
+ /*     Wire.requestFrom(ADDRESSMIDDLE, 2);    // request 2 bytes from slave device #114
   // step 5: receive reading from sensor
-    int uc = -1;
+    int um = -1;
   
   if(2<= Wire.available())    // if two bytes were received
   {
@@ -144,24 +148,30 @@ void loop()
     reading |= Wire.read(); // receive low byte as lower 8 bits
     //Serial.print("MIDDLE=");
     //Serial.println(reading);   // print the reading
-     uc = reading;
-  }
- 
+    if(reading < 1000){
+    um = reading;
+    }
+  }*/
   
    Wire.requestFrom(ADDRESSBACK, 2);    // request 2 bytes from slave device #112
   // step 5: receive reading from sensor
-  int ub = -1;
+
   if(2<= Wire.available())    // if two bytes were received
   {
     reading = Wire.read();  // receive high byte (overwrites previous reading)
     reading = reading << 8;    // shift high byte to be high 8 bits
     reading |= Wire.read(); // receive low byte as lower 8 bits
+    //if(reading < 1000 && reading != -1){
+    if(reading < 1000){
+
     ub = reading;
+    }
   }
 
   char uStr[13];
 
-  sprintf(uStr, "u%3d,%3d,%3d.", uf,uc,ub);
+  //sprintf(uStr, "u%3d,%3d,%3d.", uf,um,ub);
+    sprintf(uStr, "u%3d,%3d.", uf,ub);
   /*Serial.print("u");
   Serial.print(uff);
   Serial.print(",");
