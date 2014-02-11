@@ -1,5 +1,6 @@
 #!/bin/bash
 
+home=/home/user/2014-CaroloCup/Legendary/project/scripts
 bin=/opt/Legendary/bin/
 caroloCup=$bin/2013/CaroloCup/
 pidfile=${0}.pid
@@ -7,9 +8,13 @@ serialPort=/dev/ttyACM0
 started=0
 
 # Port setting
-stty -F $serialPort raw speed 115200
+stty -F $serialPort raw speed 9600
+
+ifconfig lo multicast
+route add -net 224.0.0.0 netmask 240.0.0.0 dev lo
 
 #Loop
+cd $home
 while read -n10 line
 do
    echo $line
@@ -19,6 +24,7 @@ do
 	    # Stop and kill the processes
 	    for pid in $(tac $pidfile); do
 	      kill -SIGINT $pid
+	      sleep 1
 	    done
 	    started=0
     fi
@@ -26,6 +32,7 @@ do
     if [[ $started == 0 ]]; then
 	    echo "START LANEFOLLOWING"
 	    cp configuration1 configuration
+	    killall supercomponent
 	    # Start the proceses
 	    nohup ${bin}/supercomponent --cid=111 --freq=20 &
 	    echo "$!" > $pidfile
@@ -41,6 +48,7 @@ do
     if [[ $started == 0 ]]; then
 	    echo "START PARKING"
 	    cp configuration2 configuration
+	    killall supercomponent
 	    # Start the proceses
 	    nohup ${bin}/supercomponent --cid=111 --freq=20 &
 	    echo "$!" > $pidfile

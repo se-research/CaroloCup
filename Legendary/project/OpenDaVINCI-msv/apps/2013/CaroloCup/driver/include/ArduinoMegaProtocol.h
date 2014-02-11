@@ -11,7 +11,7 @@ namespace carolocup {
 		ArduinoMegaProtocol(const char *port, int bufSize);
 		~ArduinoMegaProtocol();
 		void setSpeed(int speed);
-		void setWheelFrequency(int freq);
+		void setWheelFrequency(int freq, bool reverse);
 		void setSteeringAngle(int angle);
 		void setCamAngle(int angle);
 		void setBrakeForce(char brakeFrc);
@@ -20,6 +20,9 @@ namespace carolocup {
 		void setIndicatorsAll();
 		void setIndicatorsStop();
 	private:
+    int chkSum(int v);
+    int chkSum(const char* p);
+    int chkSum(char c);
 		SerialProtocolSample m_SerialProtocol;
 	};
 }

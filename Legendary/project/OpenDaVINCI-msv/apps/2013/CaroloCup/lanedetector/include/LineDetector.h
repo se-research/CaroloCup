@@ -3,10 +3,10 @@
 
 
 #define MIN_ANGLE 15
-#define ROAD_SIZE 670//770
+#define ROAD_SIZE 660//770
 #define ROAD_GOAL 0.5
 #define ROAD_ANGLE 87
-#define MID_DASH_ANGLE -46
+#define MID_DASH_ANGLE -47
 
 #include <queue>
 #include "opencv2/opencv.hpp"

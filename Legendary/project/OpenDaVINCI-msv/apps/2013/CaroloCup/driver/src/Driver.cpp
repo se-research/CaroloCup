@@ -25,40 +25,12 @@
 #include <pthread.h>
 #include "Driver.h"
 
-#define PARK_SPEED 1562
-#define REVERSE_SPEED 1239
+#define PARK_SPEED 1555
+#define REVERSE_SPEED 1240
 
 
-pthread_t t1;
-pthread_mutex_t lock;
-  
+int lidarLookUp[360];
 
-typedef struct {
-
-  unsigned int readingIndex;
-  unsigned int firstDegree;
-  unsigned int firstDistance;
-  unsigned int secondDegree;
-  unsigned int secondDistance;
-  unsigned int thirdDegree;
-  unsigned int thirdDistance;
-  unsigned int fourthDegree;
-  unsigned int fourthDistance;
-} lidarForward;
-
-
-    int lidarLookUp[360];
-    lidarForward *getLidarData;
-
-
-//////////////////Shared Memory//////////////
-    int shmid;
-    key_t key = 5678;
-    allSensors *getSensorData;
-     int follow = 0;
-
-    int Lidarshmid;
-    key_t Lidarkey = 5555;
     
 int sensorData[7];
 bool inPSpot = false;
@@ -70,13 +42,11 @@ bool reverseDone = false;
 int indicators = -1;
 bool indicatorsOn = false;
 
+bool useRealSpeed = false;
+
 
 namespace carolocup
 {
-
-
-void *function1(void *argument);
-
 
 using namespace std;
 using namespace core::base;
@@ -105,7 +75,7 @@ Driver::Driver(const int32_t &argc, char **argv) :
     m_derGain(0.23) ,
     m_length(0.3) ,
     m_wheelRadius(0.27),
-    m_protocol("/dev/ttyACM1", 6),
+    m_protocol("/dev/ttyACM1", 10),
     ANGLE_TO_CURVATURE(2.5) ,
     SCALE_FACTOR (752/0.41) ,
     m_timestamp(0) ,
@@ -164,6 +134,7 @@ int16_t steeringVal=0;
 bool debug = false;
 bool isParking = false;
 int increaseSpeed = 0;
+bool isSpeedSent = false, isAngleSent = false, isIndicatorSent = false;
 
 // This method will do the main data processing job.
 ModuleState::MODULE_EXITCODE Driver::body()
@@ -171,27 +142,11 @@ ModuleState::MODULE_EXITCODE Driver::body()
     core::base::LIFOQueue lifo;
     addDataStoreFor(lifo);
 
-    //cout << "Ready to go!" << endl; 
-
-    if ((shmid = shmget(key,  sizeof(allSensors), IPC_CREAT | 0666)) < 0) {
-        cerr<<"Couldn't Create Memory"<<endl;
-    }
-    
-   if ((getSensorData = (allSensors *)shmat(shmid, 0, 0)) == (allSensors *) -1) {
-        cerr<<"Couldn't attach to memory"<<endl;
-    }
-
-    if ((Lidarshmid = shmget(Lidarkey, sizeof(lidarForward), IPC_CREAT | 0666)) < 0) {
-        cerr<<"Couldn't Create Shared Memory"<<endl;
-    }
-
-    if ((getLidarData = (lidarForward *)shmat(Lidarshmid, (void *)0, 0)) == (lidarForward *) -1) {
-        cerr<<"Couldn't Attach to Memory"<<endl;
-    }
-
     // Get configuration data.
     KeyValueConfiguration kv = getKeyValueConfiguration();
     isParking = kv.getValue<int32_t> ("driver.mode") == 2 ;
+    debug = kv.getValue<int32_t> ("driver.debug") == 1;
+    isParking = true;
 
 /*
 typedef struct {
@@ -224,35 +179,54 @@ int i = 0;
     {
         m_hasReceivedLaneDetectionData = false;
         LaneDetectionData ldd;
-	    SensorData gatherData;
+	SensorData gatherData;
         LidarData getData;
-		
+	
+	if(!isParking) {
 		Container conUserData1 = getKeyValueDataStore().get(Container::USER_DATA_1);
+		if((conUserData1.getReceivedTimeStamp().getSeconds() + conUserData1.getReceivedTimeStamp().getFractionalMicroseconds()) < 1) {
+			//conUserData1 = getKeyValueDataStore().get(Container::USER_DATA_1);
+			cout << "Waiting..." << endl;
+				
+		}	
 		ldd = conUserData1.getData<LaneDetectionData>();
-		if ((conUserData1.getReceivedTimeStamp().getSeconds() + conUserData1.getReceivedTimeStamp().getFractionalSeconds()) > 0) {
-			cout << "Received LaneDetectionData: " << ldd.toString() << endl;
+		/*if ((conUserData1.getReceivedTimeStamp().getSeconds() + conUserData1.getReceivedTimeStamp().getFractionalMicroseconds()) > 0) {
+			//cout << "Received LaneDetectionData: " << ldd.toString() << endl;
 		}
 		else {
 			cout << "Still waiting for LaneDetectionData" << endl;
-		}
+		}*/
+	} else {
 
-		Container conUserData2 = getKeyValueDataStore().get(Container::USER_DATA_2);
+		/*Container conUserData2 = getKeyValueDataStore().get(Container::USER_DATA_2);
 		getData = conUserData2.getData<LidarData>();
-		if ((conUserData2.getReceivedTimeStamp().getSeconds() + conUserData2.getReceivedTimeStamp().getFractionalSeconds()) > 0) {
-			cout << "Received LidarData: " << getData.toString() << endl;
+		if ((conUserData2.getReceivedTimeStamp().getSeconds() + conUserData2.getReceivedTimeStamp().getFractionalMicroseconds()) > 0) {
+			//cout << "Received LidarData: " << getData.toString() << endl;
+			for(int i = 0; i < 360; i ++) {
+				cout << getData.data[i] << ",";
+			}
+			cout << endl;
 		}
 		else {
 			cout << "Still waiting for LidarData" << endl;
-		}
+		}*/
 
 		Container conUserData3 = getKeyValueDataStore().get(Container::USER_DATA_3);
 		gatherData = conUserData3.getData<SensorData>();
-		if ((conUserData3.getReceivedTimeStamp().getSeconds() + conUserData3.getReceivedTimeStamp().getFractionalSeconds()) > 0) {
-			cout << "Received SensorData: " << gatherData.toString() << endl;
+		if ((conUserData3.getReceivedTimeStamp().getSeconds() + conUserData3.getReceivedTimeStamp().getFractionalMicroseconds()) > 0) {
+			//cout << "Received SensorData: " << gatherData.toString() << endl;
+			sensorData[0] = gatherData.getInfraredDistance(1);
+			sensorData[1] = gatherData.getInfraredDistance(2);
+			sensorData[2] = gatherData.getInfraredDistance(3);
+			sensorData[3] = gatherData.getInfraredDistance(4);
+			sensorData[4] = gatherData.getUltrasonicDistance(1);
+			sensorData[5] = gatherData.getUltrasonicDistance(2);
+			sensorData[6] = gatherData.getMovement();
 		}
 		else {
 			cout << "Still waiting for SensorData" << endl;
 		}
+	}
 /*        while (!lifo.isEmpty())
         {
             // Read the recently received container.
@@ -346,9 +320,12 @@ int i = 0;
 
 	if(!isParking) {
 		bool res = laneFollowing(&ldd);	
-		if(!res) continue;
+		if(!res) {
+			cout << "Waiting..." << endl;
+			continue;
+		}
 	} else {
-		//cout << "Parking..." << endl;
+		//cout << "Parking..." << 		
 		bool res = parking();
 	}
 
@@ -362,7 +339,7 @@ int i = 0;
 	}*/
 
 
-    stringstream speedStream, steeringAngleStream;
+        stringstream speedStream, steeringAngleStream;
 	float desSteering = m_desiredSteeringWheelAngle*180/M_PI;
 	//cout << "Desired steering: " << desSteering <<endl;
 
@@ -377,19 +354,22 @@ int i = 0;
 	if(steeringVal != oldSteeringVal) {
 		//cout << "Send angle: " << steeringVal << endl;
         	m_protocol.setSteeringAngle(steeringVal);
+		isAngleSent = true;		
 		oldSteeringVal = steeringVal;
 		steerCnt ++;
 	} else {
+		isAngleSent = false;
 		steerCnt++;
 	}
-	if(steerCnt > 3) {
+	if(steerCnt > 20) {
 		oldSteeringVal = -90;
 		steerCnt = 0;
 	}
 	msleep(3);
 	uint16_t speedVal;
 	if(!isParking) {
-		speedVal = 1567;
+		int runSpeed = 1565;
+		speedVal = runSpeed;
 		if(abs(desSteering) < 3) {
 			increaseSpeed++;
 		} else {
@@ -397,11 +377,11 @@ int i = 0;
 		}
 	
 		if(increaseSpeed = 3) {
-			speedVal = 1568;
+			speedVal = runSpeed+3;
 		} else if (increaseSpeed > 3 && increaseSpeed < 8) {
-			speedVal = 1568 + (increaseSpeed - 3)*2.5;
+			speedVal = runSpeed+3 + (increaseSpeed - 3)*2.5;
 		} else if (increaseSpeed > 7) {
-			speedVal = 1578;
+			speedVal = runSpeed+15;
 		}
 	} else {
 		speedVal = m_speed;
@@ -409,53 +389,74 @@ int i = 0;
 	/*else if(abs(desSteering) < 7) {
 		speedVal = 1569;
 	}*/
-
 	if(speedVal != oldSpeedVal) {
-		m_protocol.setSpeed(speedVal);
+		if(isAngleSent) {
+			msleep(10);
+		}
+		if(useRealSpeed) {
+			cout << "Send wheel speed: " << speedVal << endl;
+			m_protocol.setWheelFrequency(speedVal, false);
+		} else {
+			cout << "Send speed: " << speedVal << endl;
+			m_protocol.setSpeed(speedVal);
+		}
+		isSpeedSent = true;
 		//cout << "Send wheel speed: " << speedVal << endl;
-        //	m_protocol.setWheelFrequency(wheelFreqVal);
-	//        cout << "Send wheel frequency: " << wheelFreqVal << endl;
-	//        oldSpeedVal = wheelFreqVal;
+		//	m_protocol.setWheelFrequency(wheelFreqVal);
+		//        cout << "Send wheel frequency: " << wheelFreqVal << endl;
+		//        oldSpeedVal = wheelFreqVal;
 		oldSpeedVal = speedVal;
 		speedCnt++;
 	} else {
 		speedCnt++;
+		isSpeedSent = false;
 	}
-	if(speedCnt > 30) {
+	if(speedCnt > 120) {
 		oldSpeedVal = -1;
 		speedCnt = 0;
 	}
 
 	msleep(3);
-
+	isIndicatorSent = false;
 	switch(indicators) {
 		case -1: {
 			if(indicatorsOn) {
 				m_protocol.setIndicatorsStop();
 				indicatorsOn = false;
+				isIndicatorSent = true;
 			}
 		} break;
 		case 0: {
 			m_protocol.setIndicatorsAll();
 			indicatorsOn = true;
+			isIndicatorSent = true;
 		} break;
 		case 1: {
 			m_protocol.setIndicatorsRight();
 			indicatorsOn = true;
+			isIndicatorSent = true;
 		} break;
 		case 2: {
 			m_protocol.setIndicatorsLeft();
 			indicatorsOn = true;
+			isIndicatorSent = true;
 		} break;
 		default: {}
 	}
+	//cout << isIndicatorSent << "," << isAngleSent << "," << isSpeedSent << endl;
     }
-    msleep(20);
+    if(useRealSpeed) {
+	    msleep(20);
+	    m_protocol.setWheelFrequency(0, false);
+    }
+    msleep(100);
     m_protocol.setSpeed(1520);
-    msleep(20);
+    msleep(100);
     m_protocol.setSteeringAngle(0);
-    msleep(20);
-    m_protocol.setIndicatorsStop();
+    msleep(100);
+    if(indicatorsOn) {
+    	m_protocol.setIndicatorsStop();
+    }
     return ModuleState::OKAY;
 }
 
@@ -578,51 +579,15 @@ bool Driver::laneFollowing(LaneDetectionData* data) {
 
 int prevIRVal = 0;
 int accDistance = 0;
+int revNeeded = 0;
+int realDistance = 0;
 
 bool Driver::parking() {
-	int prevVal = 0, prevAngle = 0;
-	int direction = 1;
-	int edge[360][3];
-	int edgeCnt = 0;
-	/*for(int i = 195; i<330; i++) {
-		//cout << "[" << i << "," << lidarLookUp[i] << "] ";
-		int val = lidarLookUp[i];
-		if(val > 0 && val < 250) {
-			if(abs(val - prevVal) > 10) {
-				if(prevVal != 0 || prevAngle != 0) {
-					cout << "Third edge: " << prevAngle << " " << prevVal << ";";
-					edge[edgeCnt][0] = prevAngle; 
-					edge[edgeCnt][1] = prevVal; 
-					edge[edgeCnt][2] = 3; 
-					if(edgeCnt > 0 && edge[edgeCnt-1][2] == 2) {
-						int b = edge[edgeCnt-1][1];
-						int c = val;
-						int angle = abs(edge[edgeCnt-1][0] - i);
-						cout << "Distance: " << b*b + c*c - 2*b*c*cos(angle*M_PI/180);
-					}
-					edgeCnt++;
-				}
-				cout << "First edge: " << i << " " << val << ";";
-				//edge[edgeCnt] = 1; 
-				//edgeCnt++;
-				direction = -1;
-			} else if (val > prevVal && direction == -1 && abs(i - prevAngle) < 4) {
-				cout << "Second edge" << prevAngle << " " << prevVal << ";";
-				edge[edgeCnt][0] = prevAngle; 
-				edge[edgeCnt][1] = prevVal; 
-				edge[edgeCnt][2] = 2;  
-				edgeCnt++;
-				direction = 1;
-			}
-			//cout << "[" << i << "," << lidarLookUp[i] << "] ";
-			prevVal = val;
-			prevAngle = i;
-		}
-	}*/
-	//cout << sensorData[3] << "," << sensorData[2];
 	switch(pstate) {
 	case 0: {
 		// Searching
+		m_speed = PARK_SPEED;
+		//useRealSpeed = true;
 		m_desiredSteeringWheelAngle = 0*M_PI/180;
 		if(sensorData[3]==1 && sensorData[2] < 25 && !inPSpot) {
 			cout << "In space " << sensorData[6] << endl;
@@ -630,10 +595,12 @@ bool Driver::parking() {
 			inPSpot = true;
 		} else if(sensorData[3] > 3 && sensorData[3] < 27 && (sensorData[2] == 1 || sensorData[2] > 27) && inPSpot) {
 			cout << "Out space " << sensorData[6] << endl;
-			distanceTR = sensorData[6] - distanceTR;
-			cout << "Real distance: " <<  distanceTR;
-			if(distanceTR >= 12) {
+			realDistance = sensorData[6] - distanceTR;
+			distanceTR = sensorData[6];
+			cout << "Real distance: " <<  realDistance << endl;
+			if(realDistance >= 12) {
 				pstate = 1;
+				m_speed = 0;
 			}
 			inPSpot = false;
 		/*} else if( ((sensorData[3] > 3 && sensorData[3] <= 27) && inPSpot) {
@@ -649,11 +616,14 @@ bool Driver::parking() {
 		//Parking started
 		cout << "Parking Started" << endl;
 		m_desiredSteeringWheelAngle = 2*M_PI/180;
+		//useRealSpeed = false;
 		indicators = 1;
 		if(!reverseDone) {
 			reverseDone = doReverse();
 		} else {
 			if(accDistance == 0) {
+				revNeeded = sensorData[6] - distanceTR;
+				cout << "Needed reverse: " << revNeeded << endl;
 				distanceTR = sensorData[6];
 				cout << "dist: " << distanceTR << endl;
 				accDistance = 1;
@@ -664,12 +634,12 @@ bool Driver::parking() {
 				distanceTR = sensorData[6];
 			}
 			cout << "acc: " << accDistance << endl;
-			if(accDistance > 3) { //3
+			if(accDistance > revNeeded + 8) { //3
 				accDistance = 0;
 				pstate = 2;
 				m_speed = PARK_SPEED;
 				reverseDone = false;
-				indicators = -1;
+				indicators = 3;
 			}
 		}
 	}; break;
@@ -686,11 +656,11 @@ bool Driver::parking() {
 			accDistance = accDistance + diff;
 			distanceTR = sensorData[6];	
 			if(accDistance > 1) {
-				m_desiredSteeringWheelAngle = (-42)*M_PI/180;
+				m_desiredSteeringWheelAngle = (-35)*M_PI/180;
 			}
 		}
 		cout << "acc: " << accDistance << endl;
-		if(accDistance > 10) {
+		if(accDistance > 9) {
 			accDistance = 0;
 			pstate = 3;
 		}
@@ -713,7 +683,7 @@ bool Driver::parking() {
 				distanceTR = sensorData[6];
 			}
 			cout << "acc: " << accDistance << endl;
-			if(accDistance > 11) { //11
+			if(accDistance > 8) { //11
 				accDistance = 0;
 				pstate = 4;
 				reverseDone = false;
@@ -722,29 +692,21 @@ bool Driver::parking() {
 	} break;
 	case 4: {
 		cout << "Backward Left" << endl;
-		m_desiredSteeringWheelAngle = (-42)*M_PI/180;
+		m_desiredSteeringWheelAngle = (-35)*M_PI/180;
 		m_speed = REVERSE_SPEED + 5;
-		if(sensorData[5] < 10 || (sensorData[0] > 3 && sensorData[0] < 10) || (sensorData[1] > 3 && sensorData[1] < 10) ) {
+		if(sensorData[5] < 5 || (sensorData[0] > 3 && sensorData[0] < 6) || (sensorData[1] > 3 && sensorData[1] < 8) ) {
 			pstate = 5;
 			m_speed = 1520;
 		}
-		/*			if(sensorData[2] > 3 && sensorData[2] <= 27) {
-				if(prevIRVal != 0) {
-					if(sensorData[3] > prevIRVal) {
-						pstate = 3;
-						m_speed = 1520;
-					}
-				}
-				prevIRVal = sensorData[3];
-			}*/
 	} break;
 	case 5: {
 		cout << "Forward correction" << endl;
 		m_speed = PARK_SPEED - 8;
-		m_desiredSteeringWheelAngle = 42*M_PI/180;
+		m_desiredSteeringWheelAngle = 20*M_PI/180;
 		//cout << sensorData[0] << "," << sensorData[1] << endl;
-		if( abs(sensorData[1] - sensorData[2]) < 2 || sensorData[4] < 12) {
+		if( (sensorData[1] > 3 && sensorData[0] > 3 && abs(sensorData[1] - sensorData[0]) < 2) || sensorData[4] < 10) {
 			pstate = 6;
+			indicators = -1;
 		}
 	}break;
 	case 6: {
@@ -809,54 +771,6 @@ bool Driver::doReverse() {
 		}
 		reverseCnt++;
 		return false;
-}
-
-float Driver::feedbackLinearizationController()
-{
-    float nominator = pow(cos(m_angularError), 3)*m_length*m_curvatureDifferential/pow((1-m_lateralError*m_curvature), 3);
-    nominator = nominator + m_lateralError*sin(m_angularError)*pow(cos(m_angularError), 2)*m_curvatureDifferential*m_curvature/
-                pow((1-m_lateralError*m_curvature), 2);
-    nominator = nominator + sin(m_angularError)*pow(tan(m_steeringWheelAngle), 3)/m_length;
-    nominator = nominator - sin(m_angularError)*cos(m_angularError)*tan(m_steeringWheelAngle)/(1-m_lateralError*m_curvature);
-    nominator = nominator - m_curvature*sin(2*m_angularError)*tan(m_steeringWheelAngle)/(1-m_lateralError*m_curvature);
-    nominator = nominator - sin(2*m_angularError)*cos(m_angularError)*pow(m_curvature, 2)/pow((1-m_lateralError*m_curvature), 2);
-    nominator = nominator - m_controlGains[0]*m_lateralError;
-    nominator = nominator - m_controlGains[1]*sin(m_angularError)*m_speed;
-    nominator = nominator - m_controlGains[2]*pow(m_speed, 2)*cos(m_angularError)*(tan(m_steeringWheelAngle)/m_length)
-                - m_curvature*cos(m_angularError)/(1-m_lateralError*m_curvature);
-    float denominator = cos(m_angularError)*(1+pow(tan(m_steeringWheelAngle), 2));
-    return nominator/denominator;
-}
-
-float Driver::feedbackLinearizationController2()
-{
-    float nominator = sin(m_angularError)*pow(tan(m_steeringWheelAngle), 3)/m_length;
-    nominator -= sin(m_angularError)*cos(m_angularError)*tan(m_steeringWheelAngle);
-    nominator -= m_controlGains[0]*m_lateralError;
-    nominator -= m_controlGains[1]*sin(m_angularError)*m_speed;
-    nominator -= m_controlGains[2]*pow(m_speed, 2)*cos(m_angularError)*(tan(m_steeringWheelAngle)/m_length)
-                 - m_curvature*cos(m_angularError);
-    float denominator = cos(m_angularError)*(1+pow(tan(m_steeringWheelAngle), 2));
-    return nominator/denominator;
-}
-
-void *function1(void *argument){
-
-
-
-	lidarLookUp[getLidarData->firstDegree] = getLidarData->firstDistance;
-	lidarLookUp[getLidarData->secondDegree] = getLidarData->secondDistance;
-	lidarLookUp[getLidarData->thirdDegree] = getLidarData->thirdDistance;
-	lidarLookUp[getLidarData->fourthDegree] = getLidarData->fourthDistance;
-       return 0;
-
-    cout << "\nShowing Frame 1 From Thread 1" << endl;
-              lidarLookUp[getLidarData->firstDegree]= getLidarData->firstDistance;
-       lidarLookUp[getLidarData->secondDegree]= getLidarData->secondDistance;
-       lidarLookUp[getLidarData->thirdDegree]= getLidarData->thirdDistance;
-       lidarLookUp[getLidarData->fourthDegree]= getLidarData->fourthDistance;
-    return 0;
-
 }
 
 } // msv

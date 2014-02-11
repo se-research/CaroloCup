@@ -11,8 +11,15 @@
 #include "core/base/FIFOQueue.h"
 #include "core/data/Container.h"
 
+typedef struct{
+
+  unsigned int readingIndex;
+  unsigned int degree;
+  unsigned int distance;
+}reading;
 
 namespace carolocup {
+
 
     using namespace std;
 

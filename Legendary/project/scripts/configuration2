@@ -31,7 +31,7 @@ lanedetector.debug = 0      # set to 0 to disable any windows and further output
 # CONFIGURATION FOR DRIVER
 #
 driver.mode = 2  # select driver mode - 1 lane; 2 park; 3 overtaking
-
+driver.debug = 0
 
 #
 # CONFIGURATION FOR VCR

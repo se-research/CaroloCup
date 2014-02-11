@@ -30,10 +30,12 @@ namespace carolocup {
 			 */
 			SensorData& operator=(const SensorData &obj);
 
-            int getInfraredDistance( int id);
-	    void setInfraredDistance( int id,  int newInfrared);
-	    int getUltrasonicDistance( int id);
-	    void setUltrasonicDistance( int id,  int newUltrasonic);
+            int32_t getInfraredDistance( int id) const;
+	    void setInfraredDistance( int id,  int32_t newInfrared) ;
+	    int32_t getUltrasonicDistance( int id) const;
+	    void setUltrasonicDistance( int id,  int32_t newUltrasonic);
+	    int32_t getMovement() const;
+	    void setMovement(int newMovement);
 
 			/**
 			 * Assignment operator.
@@ -49,13 +51,14 @@ namespace carolocup {
 			virtual const string toString() const;
 
 		private:
-      int firstInfraredDistance;
-      int secondInfraredDistance;
-      int thirdInfraredDistance;
-      int fourthInfraredDistance;
+      int32_t firstInfraredDistance;
+      int32_t secondInfraredDistance;
+      int32_t thirdInfraredDistance;
+      int32_t fourthInfraredDistance;
 
-      int firstUltrasonicDistance;
-      int secondUltrasonicDistance;
+      int32_t firstUltrasonicDistance;
+      int32_t secondUltrasonicDistance;
+      int32_t movement;
 		
 		
 

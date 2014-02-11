@@ -48,7 +48,7 @@ namespace carolocup {
 	     void setFirstDist(unsigned int newFirstDist);
 	     void setSecondDeg(unsigned int newSecondDeg);
 	     void setSecondDist(unsigned int newSecondDist);
-   	     void setThirDeg(unsigned int newThirdDeg);
+   	     void setThirdDeg(unsigned int newThirdDeg);
 	     void setThirdDist(unsigned int newThirdDist);
    	     void setFourthDeg(unsigned int newFourthDeg);
 	     void setFourthDist(unsigned int newFourthDist);
@@ -64,6 +64,7 @@ namespace carolocup {
  	     unsigned int thirdDist;
   	     unsigned int fourthDeg;
  	     unsigned int fourthDist;
+	     int32_t data[360];
 
 			/**
 			 * Assignment operator.
