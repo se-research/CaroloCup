@@ -9,7 +9,7 @@ namespace carolocup {
 
 	void ArduinoMegaProtocol::setSpeed(int speed) {
 		stringstream ss;
-		ss << 'm' << speed << '/' << chkSum(speed) + chkSum('m') << ';';
+		ss << 'm' << speed << '/';
 		cout << ss.str() << endl;
 		int errorCode = m_SerialProtocol.writeToSerial(&ss);
 	}
@@ -17,7 +17,7 @@ namespace carolocup {
 	void ArduinoMegaProtocol::setWheelFrequency(int freq, bool reverse) {
 		stringstream ss;
 		if(freq == 0) {
-			ss << "f-" << '/' << chkSum("f-") << ';';
+			ss << "f-" << '/';
 		} else {
 			int prepsum;
 			if(reverse){
@@ -27,7 +27,7 @@ namespace carolocup {
 				ss << "ff";
 				prepsum = chkSum("ff");
 			}
-			ss << freq << '/' << chkSum(freq) + prepsum<< ';';
+			ss << freq << '/';
 		}
 		int errorCode = m_SerialProtocol.writeToSerial(&ss);
  	}
@@ -43,44 +43,44 @@ namespace carolocup {
 		}
 		sum += chkSum(angle) + chkSum('s');
 		
-		ss << angle << '/' << sum << ';';
-		cout << "Angle message ========================= " << ss.str() << endl;
+		ss << angle << '/';
+		//cout << "Angle message ========================= " << ss.str() << endl;
 		int error_code = m_SerialProtocol.writeToSerial(&ss);
 	}
 
 	void ArduinoMegaProtocol::setCamAngle(int angle) {
 		stringstream ss;
-		ss << 'c' << angle << '/' << chkSum(angle) + chkSum('c') << ';';
+		ss << 'c' << angle << '/';
 		int error_code = m_SerialProtocol.writeToSerial(&ss);
 	}
 
 	void ArduinoMegaProtocol::setBrakeForce(char brakeFrc) {
 		stringstream ss;
-		ss << 'b' << brakeFrc << '/' << chkSum(brakeFrc) + chkSum('b') << ';';
+		ss << 'b' << brakeFrc << '/';
 		int error_code = m_SerialProtocol.writeToSerial(&ss);
 	}
 
 	void ArduinoMegaProtocol::setIndicatorsLeft() {
 		stringstream ss;
-		ss << "il" << '/' << chkSum("il") << ';';
+		ss << "il" << '/';
 		int error_code = m_SerialProtocol.writeToSerial(&ss);
 	}
 
 	void ArduinoMegaProtocol::setIndicatorsRight() {
 		stringstream ss;
-		ss << "ir" << '/' << chkSum("ir") << ';';
+		ss << "ir" << '/';
 		int error_code = m_SerialProtocol.writeToSerial(&ss);
 	}
 
 	void ArduinoMegaProtocol::setIndicatorsAll() {
 		stringstream ss;
-		ss << "ia" << '/' << chkSum("ia") << ';';
+		ss << "ia" << '/';
 		int error_code = m_SerialProtocol.writeToSerial(&ss);
 	}
 
 	void ArduinoMegaProtocol::setIndicatorsStop() {
 		stringstream ss;
-		ss << "is" << '/' << chkSum("is") << ';';
+		ss << "is" << '/';
 		int error_code = m_SerialProtocol.writeToSerial(&ss);
 	}
 

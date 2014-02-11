@@ -25,9 +25,8 @@
 #include <pthread.h>
 #include "Driver.h"
 
-#define PARK_SPEED 1555
-#define REVERSE_SPEED 1240
-
+#define PARK_SPEED 0.6
+#define REVERSE_SPEED 0.6
 
 int lidarLookUp[360];
 
@@ -42,7 +41,7 @@ bool reverseDone = false;
 int indicators = -1;
 bool indicatorsOn = false;
 
-bool useRealSpeed = false;
+bool useRealSpeed = true;
 
 
 namespace carolocup
@@ -94,7 +93,7 @@ Driver::~Driver() {}
 void Driver::setUp()
 {
     // This method will be call automatically _before_ running body().
-    m_speed = 0.5;
+    m_speed = 0.4;
     m_oldCurvature = 0;
     m_controlGains[0] = 10;
     m_controlGains[1] = 20;
@@ -146,7 +145,6 @@ ModuleState::MODULE_EXITCODE Driver::body()
     KeyValueConfiguration kv = getKeyValueConfiguration();
     isParking = kv.getValue<int32_t> ("driver.mode") == 2 ;
     debug = kv.getValue<int32_t> ("driver.debug") == 1;
-    isParking = true;
 
 /*
 typedef struct {
@@ -366,10 +364,10 @@ int i = 0;
 		steerCnt = 0;
 	}
 	msleep(3);
-	uint16_t speedVal;
+	float speedVal;
 	if(!isParking) {
-		int runSpeed = 1565;
-		speedVal = runSpeed;
+		//int runSpeed = 1565;
+		speedVal = m_speed;
 		if(abs(desSteering) < 3) {
 			increaseSpeed++;
 		} else {
@@ -377,11 +375,11 @@ int i = 0;
 		}
 	
 		if(increaseSpeed = 3) {
-			speedVal = runSpeed+3;
+			speedVal = m_speed + 0.1;
 		} else if (increaseSpeed > 3 && increaseSpeed < 8) {
-			speedVal = runSpeed+3 + (increaseSpeed - 3)*2.5;
+			speedVal = m_speed + (increaseSpeed - 3)*0.2;
 		} else if (increaseSpeed > 7) {
-			speedVal = runSpeed+15;
+			speedVal = m_speed + 1;
 		}
 	} else {
 		speedVal = m_speed;
@@ -395,7 +393,7 @@ int i = 0;
 		}
 		if(useRealSpeed) {
 			cout << "Send wheel speed: " << speedVal << endl;
-			m_protocol.setWheelFrequency(speedVal, false);
+			m_protocol.setWheelFrequency((int)(speedVal*10), false);
 		} else {
 			cout << "Send speed: " << speedVal << endl;
 			m_protocol.setSpeed(speedVal);
@@ -450,8 +448,8 @@ int i = 0;
 	    m_protocol.setWheelFrequency(0, false);
     }
     msleep(100);
-    m_protocol.setSpeed(1520);
-    msleep(100);
+    //m_protocol.setSpeed(1520);
+    //msleep(100);
     m_protocol.setSteeringAngle(0);
     msleep(100);
     if(indicatorsOn) {
