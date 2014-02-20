@@ -17,7 +17,7 @@
 #include <sys/ioctl.h>
 #include <pthread.h>
 #include <iostream>
-
+#include <sstream>
 
 #include <stdio.h> 
 #include <stdlib.h> 
@@ -51,6 +51,7 @@ unsigned char ultra[9];
 
 int fd;
 int timeCount = 0;
+allSensors sensors;
 
 
 ///////////////////////////////////////Hall Effect
@@ -65,14 +66,8 @@ int *results;
 int resultSaved[3] = {0, 0, 0}; 
 ////////////////////////////////////////Hall Effect
 
-//////////////////Shared Memory//////////////
-int shmid;
-key_t key = 5678;
-allSensors *getData;
-allSensors sensors;
-int follow = 0;
-
 int converter(char* arrayInput, int lenght);
+unsigned long accMovement = 0;
 
 
 namespace carolocup {
@@ -119,15 +114,7 @@ namespace carolocup {
     // This method will do the main data processing job.
     ModuleState::MODULE_EXITCODE Sensors::body() {
 
-		    if ((shmid = shmget(key, sizeof(allSensors), IPC_CREAT | 0666)) < 0) {
-			cerr<<"Couldn't Create Shared Memory"<<endl;
-		    }
-
-		    if ((getData = (allSensors *)shmat(shmid, (void *)0, 0)) == (allSensors *) -1) {
-			cerr<<"Couldn't Attach to Memory"<<endl;
-		    }
-
-			fd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NDELAY);
+		   fd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NDELAY);
 		   //fd = open("/dev/ttyACM0", O_RDWR | O_NOCTTY | O_NDELAY);
 
 		    if (fd == -1){
@@ -156,23 +143,38 @@ namespace carolocup {
 		   }		
 
 		   SensorData gatherData;
-		   getData->movement = 0;
+
 		   initialize_pin_reading();
+
 		   pthread_t t1;
                    pthread_create(&t1, NULL, sensorGathering, NULL);
+
 		   int lastTime = 0; 
 		   while (getModuleState() == ModuleState::RUNNING) {
 			
-			int val = getData->movement + get_movement_data();
-			cout << "Hall effect: " << val << endl;
-		    	getData->movement = val;
-			getData->firstInfraredDistance = sensors.firstInfraredDistance;
-			getData->secondInfraredDistance = sensors.secondInfraredDistance;
-			getData->thirdInfraredDistance = sensors.thirdInfraredDistance;
-			getData->fourthInfraredDistance = sensors.fourthInfraredDistance;
-			getData->firstUltrasonicDistance = sensors.firstUltrasonicDistance;
-			getData->secondUltrasonicDistance = sensors.secondUltrasonicDistance;
-	                tcflush(fd, TCIOFLUSH);
+			accMovement = accMovement + get_movement_data();
+			//cout << "Hall effect: " << accMovement << endl;
+		    	gatherData.setMovement(accMovement);
+			gatherData.setInfraredDistance(1, sensors.firstInfraredDistance);
+			gatherData.setInfraredDistance(2, sensors.secondInfraredDistance);
+			gatherData.setInfraredDistance(3, sensors.thirdInfraredDistance);
+			gatherData.setInfraredDistance(4, sensors.fourthInfraredDistance);
+
+			gatherData.setUltrasonicDistance(1, sensors.firstUltrasonicDistance);
+			//cout << "FC Ultra: " << sensors.firstUltrasonicDistance; 
+			gatherData.setUltrasonicDistance(2, sensors.secondUltrasonicDistance);
+
+			cout << "gatherData: " << gatherData.toString() << endl;
+/*
+			stringstream buffer;
+			buffer << gatherData;
+
+			SensorData data2;
+			buffer >> data2;
+
+			cout << "data2: " << data2.toString() << endl;
+*/
+	                //tcflush(fd, TCIOFLUSH);
 			///////////////////////READ FROM PORT//////////////////////////////////
 			Container contSensor(Container::USER_DATA_3, gatherData);
 			// Send containers.
@@ -411,7 +413,7 @@ int calculate_movement(int before, int after)
 void *sensorGathering(void *argument){
     cout << "\nShowing Frame 2 From Thread 2"  << endl;
    while(1) {
-      sleep(0.08);
+      sleep(0.01);
 
   //timeCount++;
 //////////////////////Hall Effect/////////////////////////////////////////////////
@@ -441,7 +443,7 @@ void *sensorGathering(void *argument){
 
     if(starter[0] == 'i'){
 
-int n = read(fd, infra, 12);
+        int n = read(fd, infra, 12);
 	char firstInfra[2]; 
 	firstInfra[0] = infra[0];
 	firstInfra[1] = infra[1];
@@ -475,19 +477,19 @@ int n = read(fd, infra, 12);
 	int four = 4;
    	//if(firstInfra[0] == '0'){
 	firstInfraDist = converter(firstInfra, 2);
-	cout<<"Found First: "<<firstInfraDist<<endl;
+//	cout<<"Found First: "<<firstInfraDist<<endl;
 	sensors.firstInfraredDistance = firstInfraDist;
 
 	secondInfraDist = converter(secondInfra, 2);	
-	cout<<"Found Second: "<<secondInfraDist<<endl;
+//	cout<<"Found Second: "<<secondInfraDist<<endl;
    	sensors.secondInfraredDistance = secondInfraDist;
 
 	thirdInfraDist = converter(thirdInfra, 2);	
-	cout<<"Found Third: "<<thirdInfraDist<<endl;
+//	cout<<"Found Third: "<<thirdInfraDist<<endl;
    	sensors.thirdInfraredDistance = thirdInfraDist;
 
 	fourthInfraDist = converter(fourthInfra, 2);
-	cout<<"Found Fourth: "<<fourthInfraDist<<endl;
+//	cout<<"Found Fourth: "<<fourthInfraDist<<endl;
    	sensors.fourthInfraredDistance = fourthInfraDist;
 
     }  //End of main if
@@ -498,9 +500,9 @@ int n = read(fd, infra, 12);
     if(starter[0] == 'u'){
 
 
-    int n = read(fd, ultra, 8);
+        int n = read(fd, ultra, 8);
 
-//cout<<ultra<<endl;
+        //cout<<ultra<<endl;
 
 	char firstUltra[3];
 	firstUltra[0] = ultra[0];
@@ -526,11 +528,11 @@ int n = read(fd, infra, 12);
 	
 	firstUltraDist = converter(firstUltra, 3);
 	sensors.firstUltrasonicDistance = firstUltraDist;
-	cout<<"Found First Ultra: "<<firstUltraDist<<endl;
+//	cout<<"Found First Ultra: "<<firstUltraDist<<endl;
 
 	secondUltraDist = converter(secondUltra, 3);
 	sensors.secondUltrasonicDistance = secondUltraDist;
-	cout<<"Found Second Ultra: "<<secondUltraDist<<endl;
+//	cout<<"Found Second Ultra: "<<secondUltraDist<<endl;
 
     }
 

@@ -4,13 +4,18 @@
 #define MAX_STEERING_ANGLE_L -43
 #define MIN_MOTOR_SPEED 800
 #define MAX_MOTOR_SPEED 1623
-#define BRAKE_SPEED_MAX 1530
-#define BRAKE_SPEED_MIN 1300
-#define INIT_MOTOR_SPEED 1520 
+#define BRAKE_SPEED_MAX 1541
+#define BRAKE_SPEED_MIN 1299
+#define INIT_MOTOR_SPEED 1520
 
 // This is our motor.
 Servo myMotor;
 Servo mySteering;
+
+int speeds[] = {INIT_MOTOR_SPEED,1550,1555,1560,1563,1565,1567,1570,1573,1580};
+int nofSpeed = 10;
+int reverseSpeeds[] = {INIT_MOTOR_SPEED,1300,1270,1250,1240,1230,1200}; 
+int nofReverse = 7;
 
 int motorPin = 6;
 int steeringPin = 9;
@@ -42,6 +47,7 @@ boolean brake = false;
 boolean applybrake = false;
 boolean cruiseCtrl = false;
 boolean applyCruiseCtrl = false;
+int reverse = 1;
 int multiplier = 1;
 boolean takeOver = false;
 boolean indicators = false;
@@ -57,6 +63,10 @@ boolean blinkingLeft = false;
 boolean blinkingRight = false;
 boolean stopBlinking = true;
 
+int takenOverSpeed = 1520;
+int revertBackSpeed = false;
+boolean fullMsgRecv = false;
+
 void setup()
 {
   // Setup the servos
@@ -66,7 +76,7 @@ void setup()
   // Set a startup speed
   myMotor.writeMicroseconds(975);
   mySteering.write(90);
-  
+
   time = 0;
 
   attachInterrupt(3, countRotations, FALLING);
@@ -80,7 +90,7 @@ void setup()
   pinMode(stopLed1, OUTPUT);
   pinMode(stopLed2, OUTPUT);
   pinMode(stopLed3, OUTPUT);
-  
+
   pinMode(rearLeftLed, OUTPUT);
   pinMode(frontLeftLed, OUTPUT);
   pinMode(rearRightLed, OUTPUT);
@@ -108,41 +118,92 @@ void loop()
       while(read > 0) {
         readbyte = Serial.read();
         //Serial.println(readbyte);
-        if(readbyte == 47) {
+
+        if (readbyte == '/') {
+          fullMsgRecv = true;
           break;
         }
-
+        
+        //Motor command
         if (!first && motor) {
-          speed = speed * 10 + (readbyte - 48);
+          speed = speed * 10 + (readbyte - '0');
         }
+        if (first && readbyte == 'm') {
+          motor = true;
+          first = false;
+          speed = 0;
+        }
+        
+        //Steering command
         if (!first && steering){
           if(readbyte < 48) {
             multiplier = -1;
-          } 
+          }
           else {
-            angle = angle * 10 + (readbyte - 48);
+            angle = angle * 10 + (readbyte - '0');
           }
         }
+        if(first && readbyte == 's') {
+          steering = true;
+          first = false;
+          angle = 0;
+          multiplier = 1;
+        }
+        
+        //Brake commands
         if(!first && brake) {
-          if(readbyte == 43) {
+          if(readbyte == '+') {
             applybrake = true;
-          } 
+          }
           else {
             applybrake = false;
           }
         }
+        if(first && readbyte == 'b') {
+          brake = true;
+          first = false;
+        }
+        
+        //Cruise control
         if (!first && cruiseCtrl) {
-          if (readbyte == 43) {
+          if (readbyte == 'r' && !applyCruiseCtrl && reverse == -1) {
             applyCruiseCtrl = true;
-          } else if (readbyte == 45) {
+            reverse = -1;
+            speed = 1240;
+            Serial.println("Reverse");
+          } else if (readbyte == 'f' && !applyCruiseCtrl && reverse == 1) {
+            applyCruiseCtrl = true;
+            reverse = 1;
+            speed = 1520;
+            Serial.println("Forward");
+          } else if (readbyte == '-') {
             applyCruiseCtrl = false;
-            speed = 950;
-            controlMotor();
-          } else {
-            applyCruiseCtrl = true;
-            setFreq = setFreq * 10 + (readbyte - 48);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+            if(reverse == 1) {
+              speed = 1100;
+              controlMotor();
+              delay(10);
+              speed = 1520;
+              controlMotor();
+            } else {
+              speed = 1900;
+              controlMotor();
+              delay(10);
+              speed = 1520;
+              controlMotor();
+            }
+          } else if(readbyte >= '0' && readbyte <= '9') {
+            //applyCruiseCtrl = true;
+            setFreq = setFreq * 10 + (readbyte - '0');
+            Serial.println(setFreq);
           }
         }
+        if (first && readbyte == 'f') {
+          cruiseCtrl = true;
+          first = false;
+          setFreq = 0;
+        }
+        
+        //Indicators
         if(!first && indicators) {
           if(readbyte == 108) {
             blinkingLeft = true;
@@ -158,63 +219,51 @@ void loop()
             stopBlinking = false;
           }
         }
-        if (first && readbyte == 109) {
-          motor = true;
-          first = false;
-          speed = 0;
-        }
-        if(first && readbyte == 115) {
-          steering = true;
-          first = false;
-          angle = 0;
-          multiplier = 1;
-        }
-        if(first && readbyte == 98) {
-          brake = true;
-          first = false;
-        }
-        if (first && readbyte == 102) {
-          cruiseCtrl = true;
-          first = false;
-          setFreq = 0;
-        }
-        if (first && readbyte == 105) {
+        if (first && readbyte == 'i') {
           indicators = true;
           first = false;
         }
+
         read = read - 1;
       }
-      //Process data
-      if(motor) {
-        //Serial.println(speed);
-        if(speed > MIN_MOTOR_SPEED && speed < MAX_MOTOR_SPEED) {
-          controlMotor();
+      if(fullMsgRecv) {
+        //Process data
+        if(motor) {
+          Serial.println(speed);
+          revertBackSpeed = true;
+          if(speed >= 0 && speed < nofSpeed) {
+            speed = speeds[speed];
+            if(speed > MIN_MOTOR_SPEED && speed < MAX_MOTOR_SPEED) {
+                controlMotor();
+            }
+          }
         }
-      }
-      if(steering) {
-        //Serial.println(angle);
-        if(angle > MAX_STEERING_ANGLE_L && angle < MAX_STEERING_ANGLE_R) {
-          controlSteering();
+        if(steering) {
+          //Serial.println(angle);
+          if(angle > MAX_STEERING_ANGLE_L && angle < MAX_STEERING_ANGLE_R) {
+            controlSteering();
+          }
         }
-      }
 
-      if(brake) {
-        if(applybrake) {
-          brakeLeds(true);
-        } 
-        else {
-          brakeLeds(false);
+        if(brake) {
+          if(applybrake) {
+            brakeLeds(true);
+          }
+          else {
+            brakeLeds(false);
+          }
         }
       }
-
       first = true;
       motor = false;
       steering = false;
       brake = false;
       cruiseCtrl = false;
+      indicators = false;
       multiplier = 1;
+      fullMsgRecv = false;
     }
-  } 
+  }
   else {
     multiplier = 1;
     Serial.println(angle);
@@ -222,45 +271,66 @@ void loop()
     controlMotor();
     controlSteering();
   }
-  ms = ms + 1;
+  //ms = ms + 1;
   //Calculate car speed
-  if(ms > 3) {
-    unsigned long curr = millis();
-    //Serial.println((curr - time));
-    int diff = cnt * 1000 / (curr - time);
-    float newSpeed = diff * 0.03;
-    if(newSpeed != carSpeed) {
-      Serial.print("Car speed:");
-      Serial.println(newSpeed);
-      carSpeed = newSpeed;
-    }
-    freq = int(diff*1.2);
-    if (applyCruiseCtrl) {
-      //Serial.println("Enter cruise control");
-      //Serial.print("Frequency: ");
-      //Serial.println(freq);
-      int error = setFreq - freq;
-      Serial.print("Error: ");
-      Serial.println(error);
-      int errorSign = error < 0 ? -1 : +1;
-      if (abs(error) > 12) {
+  //unsigned long curr = millis();
+  //Serial.println((curr - time));
+  //int diff = cnt * 1000 / (curr - time);
+  //float newSpeed = diff * 0.03;
+  //if(newSpeed != carSpeed) {
+  //Serial.print("Car speed:");
+  //Serial.println(carSpeed);
+  //carSpeed = newSpeed;
+  //}
+  //freq = int(diff*1.2);
+  if (applyCruiseCtrl) {
+    //Serial.println("Enter cruise control");
+    //Serial.print("Frequency: ");
+    //Serial.println(freq);
+    int goalSpeed = setFreq;
+    int error = goalSpeed - 10*carSpeed;
+    Serial.print("Error: ");
+    Serial.println(error);
+    if(abs(error) < 35) {
+      //int errorSign = error < 0 ? -1 : +1;
+      /*if (abs(error) > 12) {
         speed += 5*errorSign;
-      }
-      else if (abs(error) > 6) {
+        }
+        else if (abs(error) > 6) {
         speed += 3*errorSign;
-      } else if (abs(error) > 3) {
-        speed += errorSign;
+        } else*/
+      /*int step = 0;
+      if(error <= 0)  {
+        step = error / 10;
+      } else {
+        step = error / 20;
+      }*/
+      if (abs(error) > 0 && ms > 10) {
+        speed += reverse * error;
+        ms=0;
+      } else if(abs(error) > 0){
+        ms++;
+      } else if(abs(error) <= 0){
+        ms=0;
       }
-      speed = constrain(speed, 1547, 1623);
-      //Serial.print("Speed :");
-      //Serial.println(speed);
-      controlMotor();
+  
+      if(reverse == 1) {
+        speed = constrain(speed, 1547, 1580);
+      } else {
+        speed = constrain(speed, 1200, 1270);
+      }
     }
-    //cntOld = cnt;
-    cnt = 0;
-    ms = 0;
-    time = curr;
+    //Serial.print("Speed :");
+    //Serial.println(speed);
+    controlMotor();
   }
+  //cntOld = cnt;
+  //cnt = 0;
+  //ms = 0;
+  //time = curr;
+  //}
+  //Serial.print("Car speed:");
+  //Serial.println(carSpeed);
   delay(10);
   //Serial.println((millis()-time));
 }
@@ -271,7 +341,7 @@ void controlMotor() {
   myMotor.writeMicroseconds(speed);
   if(speed < BRAKE_SPEED_MAX && speed > BRAKE_SPEED_MIN) {
     brakeLeds(true);
-  } 
+  }
   else {
     brakeLeds(false);
   }
@@ -296,8 +366,10 @@ void evaluateReceiver()
      receiverSteer = pulseIn(3, HIGH, 100000);
   }
   receiverSpeed = map(receiverSpeed, 1400,2500,1000,2000);
-  if(receiverSpeed > 1572) {
-    receiverSpeed = 1572;
+  if(receiverSpeed > 1600) {
+    receiverSpeed = 1600;
+  } else if(receiverSpeed < 1200) {
+    receiverSpeed = 1200;
   }
   //receiverSteer = map(receiverSteer, 1600,2300,819,2219);
   //Serial.println(receiverSpeed);
@@ -306,6 +378,10 @@ void evaluateReceiver()
   if(receiverSteer > 2100) {
     if((takeOverTokens--) == 0) {
       takeOver = true;
+      if(revertBackSpeed) {
+        takenOverSpeed = speed;
+      }
+      revertBackSpeed = false;
       digitalWrite(blueLed, LOW);
       lastTimeStamp = millis();
     }
@@ -325,6 +401,8 @@ void evaluateReceiver()
     digitalWrite(blueLed, LOW);
     angle = 0;
     controlSteering();
+    speed = takenOverSpeed;
+    controlMotor();
     takeOver = false;
   }
 }
@@ -379,5 +457,8 @@ void brakeLeds(bool on) {
 }
 
 void countRotations() {
-  cnt++;
+  unsigned int curr=millis();
+  carSpeed = 32.5/(curr - time);
+  //cnt++;
+  time = curr;
 }

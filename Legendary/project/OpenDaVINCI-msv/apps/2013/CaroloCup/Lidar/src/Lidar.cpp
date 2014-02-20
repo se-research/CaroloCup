@@ -18,6 +18,7 @@
 #include <sys/ioctl.h>
 #include "LidarData.h"
 #include "Lidar.h"
+#include <algorithm>
 
 
 #include <bitset>
@@ -53,14 +54,6 @@ bool portState = false;
 
 int fow = 0;
 
-
-typedef struct{
-
-  unsigned int readingIndex;
-  unsigned int degree;
-  unsigned int distance;
-}reading;
-
 reading Distance1;			//The first distance info from the packet 
 reading *Pointer1 = &Distance1;	//Pointer to the first distance
 
@@ -73,27 +66,12 @@ reading *Pointer3 = &Distance3;	//Pointer to the third distance
 reading Distance4;			//The fourth distance info from the packet 
 reading *Pointer4 = &Distance4;	//Pointer to the fourth distance
 
-typedef struct {
-
-  unsigned int readingIndex;
-  unsigned int firstDegree;
-  unsigned int firstDistance;
-  unsigned int secondDegree;
-  unsigned int secondDistance;
-  unsigned int thirdDegree;
-  unsigned int thirdDistance;
-  unsigned int fourthDegree;
-  unsigned int fourthDistance;
-} lidarForward;
-
-//////////////////Shared Memory//////////////
-    int Lidarshmid;
-    key_t Lidarkey = 5555;
-    lidarForward *getLidarData;
-     int follow = 0;
+int32_t ldArray[360];
 
 
 namespace carolocup {
+
+    void  *lidarData(void *argument);
 
     using namespace std;
     using namespace core::base;
@@ -118,16 +96,7 @@ namespace carolocup {
     // This method will do the main data processing job.
     ModuleState::MODULE_EXITCODE Lidar::body() {
 
-   if ((Lidarshmid = shmget(Lidarkey, sizeof(lidarForward), IPC_CREAT | 0666)) < 0) {
-        cerr<<"Couldn't Create Shared Memory"<<endl;
-    }
-
-    if ((getLidarData = (lidarForward *)shmat(Lidarshmid, (void *)0, 0)) == (lidarForward *) -1) {
-        cerr<<"Couldn't Attach to Memory"<<endl;
-    }
- 
-
-   fd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY | O_NDELAY);
+   fd = open("/dev/ttyUSB2", O_RDWR | O_NOCTTY | O_NDELAY);
 
     if (fd == -1){
 	perror("cannot open");
@@ -152,9 +121,14 @@ namespace carolocup {
   if(tcsetattr(fd, TCSANOW, &options) != 0){
 
 	cout << "Error " << errno << " from tcsetattr" << endl;
-   }		
+   }	
+  
+  int follow = 0;	
 
-    	while (getModuleState() == ModuleState::RUNNING) {
+  pthread_t t1;
+  pthread_create(&t1, NULL, lidarData, NULL);
+
+  while (getModuleState() == ModuleState::RUNNING) {
 
    LidarData sendData;
 
@@ -162,172 +136,33 @@ namespace carolocup {
  // while(1){
    
   //sleep(0.00001);
- int n = -1;
-      if(n < 0){
-        fputs("read failed!\n", stderr);
-cout<<"bbbbbbbbbbbbbbbbbbbbbbbbb"<<endl;
-follow++;
-      //if(follow < 500 || follow > 1000 || follow < 1500 && follow > 2000){
-      if(follow < 180){
-      
-getLidarData->readingIndex = 10;
-        getLidarData->firstDegree = 20;
-        getLidarData->firstDistance = 30;
-        getLidarData->secondDegree = 40;
-	getLidarData->secondDistance = 50;
-	getLidarData->thirdDegree = 60;
-	getLidarData->thirdDistance = 70;
-	getLidarData->fourthDegree = 80;
-	getLidarData->fourthDistance = 90;
 
+		/*sendData.setIndex(Pointer1->readingIndex);
+		sendData.setFirstDeg(Pointer1->degree);
+		sendData.setFirstDist(Pointer1->distance);
+		sendData.setSecondDeg(Pointer2->degree);
+		sendData.setSecondDist(Pointer2->distance);
+		sendData.setThirdDeg(Pointer3->degree);
+		sendData.setThirdDist(Pointer3->distance);
+		sendData.setFourthDeg(Pointer4->degree);
+		sendData.setFourthDist(Pointer4->distance);*/
 
-}
-      //if(follow > 500 && follow < 1000 || follow > 1500 && follow < 2000){
-      if(follow > 180 && follow < 360){
-getLidarData->readingIndex = 1;
-        getLidarData->firstDegree = 2;
-        getLidarData->firstDistance = 3;
-        getLidarData->secondDegree = 4;
-	getLidarData->secondDistance = 5;
-	getLidarData->thirdDegree = 6;
-	getLidarData->thirdDistance = 7;
-	getLidarData->fourthDegree = 8;
-	getLidarData->fourthDistance = 9;
+		//Create container for sending the Lidar data
+		memcpy(sendData.data, ldArray, 360*sizeof(int32_t));
+		for(int i = 0; i < 360; i ++) {
+			cout << sendData.data[i] << ",";
+		}
+		cout << endl;
+		//cout << sendData.data[330] << endl;
+		Container contData(Container::USER_DATA_2, sendData);
+		// Send containers.
+		getConference().send(contData);
 
-}
-cout<<getLidarData->readingIndex<<endl;
-cout<<getLidarData->firstDegree<<endl;
-cout<<getLidarData->firstDistance<<endl;
-cout<<getLidarData->secondDegree<<endl;
-cout<<getLidarData->secondDistance<<endl;
-cout<<getLidarData->thirdDegree<<endl;
-cout<<getLidarData->thirdDistance<<endl;
-cout<<getLidarData->fourthDegree<<endl;
-cout<<getLidarData->fourthDistance<<endl;
+	////////////////////////////////////////////////////
 
-cout<<"Follow:   "<<follow<<endl;
+	      //}   //end of if statement when start byte is found
 
-        //Create container for sending the Lidar data
-        Container contData(Container::USER_DATA_2, sendData);
-        // Send containers.
-        getConference().send(contData);
-
-        }
-if(*init_level == 0){
-       n = read(fd, starter, 1);
-}
-    if(starter[0] == 0xFA){
-*init_level = 1;
-byte1 = starter[0];
-
-}
-else{
-  *init_level = 0;
-continue;
-}
-
-if(*init_level == 1){
-
-unsigned char start[1];
-       n = read(fd, start, 1);
-
-   if(start[0] >= 0xA0 && start[0] <= 0xF9){
-   byte2 = start[0];
-   byte1 = 0xFA;
-
-*init_level = 2;
-    }  
-
-else if(start[0] != 0xFA){
-      *init_level = 0;
-continue;
-}
-}
-if(*init_level == 2){
-         int p; 
-  unsigned char star[1];
-	p = read(fd, star, 1);
-	byte3 = star[0];
-       	p = read(fd, starter, 1); 
-	byte4 = starter[0];
-       	p = read(fd, starter, 1); 
-	byte5 = starter[0];
-       	p = read(fd, starter, 1); 
-	byte6 = starter[0];
-       	p = read(fd, starter, 1); 
-	byte7 = starter[0];
-       	p = read(fd, starter, 1); 
-	byte8 = starter[0];
-       	p = read(fd, starter, 1); 
-	byte9 = starter[0];
-       	p = read(fd, starter, 1); 
-	byte10 = starter[0];
-       	p = read(fd, starter, 1); 
-	byte11 = starter[0];
-       	p = read(fd, starter, 1); 
-	byte12 = starter[0];
-       	p = read(fd, starter, 1); 
-	byte13 = starter[0];
-       	p = read(fd, starter, 1); 
-	byte14 = starter[0];
-       	p = read(fd, starter, 1); 
-	byte15 = starter[0];
-       	p = read(fd, starter, 1); 
-	byte16 = starter[0];
-       	p = read(fd, starter, 1); 
-    	byte17 = starter[0];
-       	p = read(fd, starter, 1); 
-	byte18 = starter[0];
-       	p = read(fd, starter, 1); 
-	byte19 = starter[0];
-       	p = read(fd, starter, 1); 
-	byte20 = starter[0];
-       	p = read(fd, starter, 1); 
-	byte21 = starter[0];
-       	p = read(fd, starter, 1); 
-	byte22 = starter[0];
-
-
-	if(validate_buffer() == true){
-	sid = byte2;
-	sra1 = byte5; sra2 = byte6;
-	srb1 = byte9; srb2 = byte10;
-	src1 = byte13; src2 = byte14;
-	srd1 = byte17; srd2 = byte18;
-
-	getDistances(sid, sra1, sra2, srb1, srb2, src1, src2, srd1, srd2);
-	}
-
-	else{
-	//cout<<"NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO"<<endl;
-	}
-
-
-	printf("Index: %d   Degree: %d   Distance: %d\n", Pointer1->readingIndex, Pointer1->degree, Pointer1->distance);
-	printf("Index: %d   Degree: %d   Distance: %d\n", Pointer2->readingIndex, Pointer2->degree, Pointer2->distance);
-	printf("Index: %d   Degree: %d   Distance: %d\n", Pointer3->readingIndex, Pointer3->degree, Pointer3->distance);
-	printf("Index: %d   Degree: %d   Distance: %d\n\n\n", Pointer4->readingIndex, Pointer4->degree, Pointer4->distance);
-
-        getLidarData->readingIndex = Pointer1->readingIndex;
-        getLidarData->firstDegree = Pointer1->degree;
-        getLidarData->firstDistance = Pointer1->distance;
-        getLidarData->secondDegree = Pointer2->degree;
-	getLidarData->secondDistance = Pointer2->distance;
-	getLidarData->thirdDegree = Pointer3->degree;
-	getLidarData->thirdDistance = Pointer3->distance;
-	getLidarData->fourthDegree = Pointer4->degree;
-	getLidarData->fourthDistance = Pointer4->distance;
-
-        //Create container for sending the Lidar data
-        Container contData(Container::USER_DATA_2, sendData);
-        // Send containers.
-        getConference().send(contData);
-
-////////////////////////////////////////////////////
-
-      }   //end of if statement when start byte is found
-
-   // } //End of infinite while loop
+	   // } //End of infinite while loop
 
 
   } //End of ModuleState::RUNNING
@@ -335,7 +170,7 @@ if(*init_level == 2){
     	return ModuleState::OKAY;
     }
 
-bool Lidar::validate_buffer(void){
+bool validate_buffer(void){
     
     int incomming_checksum = (buffing[XV11_CHECKSUM_INDEX + 1] << 8) + buffing[XV11_CHECKSUM_INDEX];    
     
@@ -349,7 +184,7 @@ bool Lidar::validate_buffer(void){
     return (checksum == incomming_checksum);
 } //End of validate_buffer function
 
-void Lidar::getDistances(unsigned int id, unsigned int ra1, unsigned int ra2, unsigned int rb1, unsigned int rb2, unsigned int rc1, unsigned int rc2, unsigned int rd1, unsigned int rd2){
+void getDistances(unsigned int id, unsigned int ra1, unsigned int ra2, unsigned int rb1, unsigned int rb2, unsigned int rc1, unsigned int rc2, unsigned int rd1, unsigned int rd2){
 
   if(id < 160 || id > 249){
         return;
@@ -431,6 +266,120 @@ void Lidar::getDistances(unsigned int id, unsigned int ra1, unsigned int ra2, un
              } //Good reading
 
      }//End of get distance function
+     
+     void *lidarData(void *argument){
+
+     while(1) {
+	sleep(0.01);
+
+
+      int n = -1;
+      if(*init_level == 0){
+           n = read(fd, starter, 1);
+      }
+      if(n < 0 && *init_level == 0){
+		cout << "Failed to read" << endl;
+
+        }
+
+	if(starter[0] == 0xFA){
+	*init_level = 1;
+	byte1 = starter[0];
+
+	}
+	else{
+	  *init_level = 0;
+	continue;
+	}
+
+	if(*init_level == 1){
+
+	unsigned char start[1];
+	       n = read(fd, start, 1);
+
+	   if(start[0] >= 0xA0 && start[0] <= 0xF9){
+	   byte2 = start[0];
+	   byte1 = 0xFA;
+
+	*init_level = 2;
+	    }  
+
+	else if(start[0] != 0xFA){
+	      *init_level = 0;
+	continue;
+	}
+	}
+	if(*init_level == 2){
+		 int p; 
+	  	unsigned char star[1];
+		p = read(fd, star, 1);
+		byte3 = star[0];
+	       	p = read(fd, starter, 1); 
+		byte4 = starter[0];
+	       	p = read(fd, starter, 1); 
+		byte5 = starter[0];
+	       	p = read(fd, starter, 1); 
+		byte6 = starter[0];
+	       	p = read(fd, starter, 1); 
+		byte7 = starter[0];
+	       	p = read(fd, starter, 1); 
+		byte8 = starter[0];
+	       	p = read(fd, starter, 1); 
+		byte9 = starter[0];
+	       	p = read(fd, starter, 1); 
+		byte10 = starter[0];
+	       	p = read(fd, starter, 1); 
+		byte11 = starter[0];
+	       	p = read(fd, starter, 1); 
+		byte12 = starter[0];
+	       	p = read(fd, starter, 1); 
+		byte13 = starter[0];
+	       	p = read(fd, starter, 1); 
+		byte14 = starter[0];
+	       	p = read(fd, starter, 1); 
+		byte15 = starter[0];
+	       	p = read(fd, starter, 1); 
+		byte16 = starter[0];
+	       	p = read(fd, starter, 1); 
+	    	byte17 = starter[0];
+	       	p = read(fd, starter, 1); 
+		byte18 = starter[0];
+	       	p = read(fd, starter, 1); 
+		byte19 = starter[0];
+	       	p = read(fd, starter, 1); 
+		byte20 = starter[0];
+	       	p = read(fd, starter, 1); 
+		byte21 = starter[0];
+	       	p = read(fd, starter, 1); 
+		byte22 = starter[0];
+
+
+		if(validate_buffer() == true){
+		sid = byte2;
+		sra1 = byte5; sra2 = byte6;
+		srb1 = byte9; srb2 = byte10;
+		src1 = byte13; src2 = byte14;
+		srd1 = byte17; srd2 = byte18;
+
+		getDistances(sid, sra1, sra2, srb1, srb2, src1, src2, srd1, srd2);
+
+		/*printf("Index: %d   Degree: %d   Distance: %d\n", Pointer1->readingIndex, Pointer1->degree, Pointer1->distance);
+		printf("Index: %d   Degree: %d   Distance: %d\n", Pointer2->readingIndex, Pointer2->degree, Pointer2->distance);
+		printf("Index: %d   Degree: %d   Distance: %d\n", Pointer3->readingIndex, Pointer3->degree, Pointer3->distance);
+		printf("Index: %d   Degree: %d   Distance: %d\n\n\n", Pointer4->readingIndex, Pointer4->degree, Pointer4->distance);*/
+
+		ldArray[Pointer1->degree] = Pointer1->distance;
+		ldArray[Pointer2->degree] = Pointer2->distance;
+		ldArray[Pointer3->degree] = Pointer3->distance;
+		ldArray[Pointer4->degree] = Pointer4->distance;
+		}
+
+		else{
+		//cout<<"NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO"<<endl;
+		}
+	}
+	}
+}
 
 } // carolocup
 

@@ -23,7 +23,7 @@ while read -r line < $serialPort; do
     ${bin}/supercomponent --cid=111 --freq=20
     echo "$!" > $pidfile
 
-    ${caroloCup}/2013-CaroloCup-lanedetector --cid=111 --freq=30
+    ${caroloCup}/2013-CaroloCup-lanedetector --cid=111 --freq=50
     echo "$!" >> $pidfile
 
     ${caroloCup}/2013-CaroloCup-driver --cid=111 --freq=40

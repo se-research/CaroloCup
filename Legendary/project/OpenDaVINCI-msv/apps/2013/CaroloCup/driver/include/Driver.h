@@ -47,21 +47,6 @@ namespace carolocup {
       bool parking();
       bool doReverse();
 
-      /**
-       * The control algorithm
-       * @param lateralError The current lateral error
-       * @param angularError The current angular error
-       * @param curvature The current curvature
-       * @param curvatureDifferential Approximate derivative of the curvature w.r.t. path coordinate s
-       * @param steeringWheelAngle
-       * @param The current steering wheel angle
-       * @param speed The current set speed
-       * @param controlGains Pointer to vector of control gains
-       * @return The new desired steeringWheelAngle
-       */
-      float feedbackLinearizationController();
-			float feedbackLinearizationController2();
-
     public:
       /**
        * Constructor.

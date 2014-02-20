@@ -20,24 +20,37 @@ namespace carolocup {
         SensorData::SensorData(){}
 
 	SensorData::SensorData(const SensorData &obj) :
-	  SerializableData(),          
-	  firstInfraredDistance(0),
-  	  secondInfraredDistance(0),
- 	  thirdInfraredDistance(0),
- 	  fourthInfraredDistance(0),
-      firstUltrasonicDistance(0),
-      secondUltrasonicDistance(0){}
+	SerializableData(),          
+	firstInfraredDistance(0),
+  	secondInfraredDistance(0),
+ 	thirdInfraredDistance(0),
+ 	fourthInfraredDistance(0),
+        firstUltrasonicDistance(0),
+        secondUltrasonicDistance(0),
+	movement(0){}
 
 
       SensorData::~SensorData() {}
 	SensorData& SensorData::operator=(const SensorData &obj) {
-
+		firstInfraredDistance = obj.getInfraredDistance(1);
+  		secondInfraredDistance = obj.getInfraredDistance(2);
+	 	thirdInfraredDistance = obj.getInfraredDistance(3);
+ 		fourthInfraredDistance = obj.getInfraredDistance(4);
+	        firstUltrasonicDistance = obj.getUltrasonicDistance(1);
+        	secondUltrasonicDistance = obj.getUltrasonicDistance(2);
+		movement = obj.getMovement();
 		return (*this);
 	}
 
 	const string SensorData::toString() const {
 		stringstream s;
-		s << "SensorData";
+		s << "SensorData: " << getInfraredDistance(1) << ", " 
+				    << getInfraredDistance(2) << ", " 
+				    << getInfraredDistance(3) << ", " 
+				    << getInfraredDistance(4) << ", " 
+				    << getUltrasonicDistance(1) << ", " 
+				    << getUltrasonicDistance(2) << ", " 
+				    << getMovement();
 		return s.str();
 	}
 
@@ -56,6 +69,8 @@ namespace carolocup {
 				firstUltrasonicDistance);
 		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL3('u', 's', '2') >::RESULT,
 				secondUltrasonicDistance);
+		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL4('h', 'a', 'l', 'l') >::RESULT,
+				movement);
 
 		return out;
 	}
@@ -76,13 +91,19 @@ namespace carolocup {
 				firstUltrasonicDistance);
 		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL3('u', 's', '2') >::RESULT,
 				secondUltrasonicDistance);
+		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL4('h', 'a', 'l', 'l') >::RESULT,
+				movement);
 
 		return in;
 	}
 
-   int SensorData::getInfraredDistance( int id){
+   int32_t SensorData::getMovement() const {
+	return movement;
+   }
+
+   int32_t SensorData::getInfraredDistance( int id) const{
     
-      int returnInfraredDistance = 0;
+      int32_t returnInfraredDistance = 0;
           if(id == 1){
 
            returnInfraredDistance = firstInfraredDistance;
@@ -100,7 +121,7 @@ namespace carolocup {
         return returnInfraredDistance;
   }
 
-   void SensorData::setInfraredDistance( int id,  int newInfrared){
+   void SensorData::setInfraredDistance( int id,  int32_t newInfrared){
     
           if(id == 1){
 
@@ -117,8 +138,8 @@ namespace carolocup {
           }
 
   }
-   int SensorData::getUltrasonicDistance( int id){
-      int returnUltrasonicDistance = 0;
+   int32_t SensorData::getUltrasonicDistance( int id) const {
+      int32_t returnUltrasonicDistance = 0;
 	 if(id == 1){
 
            returnUltrasonicDistance = firstUltrasonicDistance;
@@ -130,7 +151,7 @@ namespace carolocup {
              return returnUltrasonicDistance;
   }
 
-   void SensorData::setUltrasonicDistance( int id,  int newUltrasonic){
+   void SensorData::setUltrasonicDistance( int id,  int32_t newUltrasonic){
 
 	 if(id == 1){
 
@@ -140,6 +161,10 @@ namespace carolocup {
 	    secondUltrasonicDistance = newUltrasonic;
           }
   }
+
+  void SensorData::setMovement(int32_t newMovement) {
+	movement = newMovement;
+	}
 
 
 } // carolocup
