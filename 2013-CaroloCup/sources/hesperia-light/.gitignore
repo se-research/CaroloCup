@@ -1,0 +1,5 @@
+binaries
+build
+.sconf_temp
+.sconsign.dblite
+*.pyc

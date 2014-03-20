@@ -1,0 +1,40 @@
+Import('globalEnv')
+
+# Name of the module
+MODULE_NAME='monitor'
+
+# Create a clone of the global environment to add the module's include directory
+# without affecting other modules.
+env = globalEnv.Clone( )
+env.Append(CPPPATH = 'include/')
+
+# Compile and link module
+SOURCE_FILES = env.RecursiveGlob('src', '*.cpp')
+SOURCE_FILES += env.Qrc(env.File('monitor.qrc'))
+module = env.Program(MODULE_NAME, SOURCE_FILES,
+                     QT4_MOCCPPPATH = [
+                                       './include','./include/plugins',
+                                       './include/plugins/configurationviewer',
+                                       './include/plugins/environmentviewer',
+                                       './include/plugins/modulestatisticsviewer',
+                                       './include/plugins/objxviewer',
+                                       './include/plugins/packetlogviewer',
+                                       './include/plugins/scnxviewer',
+                                       './include/plugins/sharedimageviewer',
+                                       './include/plugins/surroundingsviewer',
+                                       './include/plugins/timeControl'])
+
+translation = env.Qm(env.File('monitor_de_DE.ts'))
+env.Depends(module, translation)
+
+# Deploy to install_dir specified by the commandline.
+installModule = globalEnv.Install(globalEnv['install_dir'] + '/bin', MODULE_NAME)
+installTranslation = globalEnv.Install(globalEnv['install_dir'] + '/bin', translation)
+
+globalEnv.Alias('install-' + MODULE_NAME, [installModule, installTranslation])
+globalEnv.Alias('install-all', 'install-' + MODULE_NAME)
+
+# Add dependencies to the shared libraries
+globalEnv.Depends('install-' + MODULE_NAME, 'install-libs')
+
+Return ('module')

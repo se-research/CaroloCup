@@ -1,0 +1,84 @@
+import os
+import os.path
+from hesperia_version import getVersionString
+
+# Import environment for build
+Import('ENVIRONMENT')
+# Name of the library was exported in SConstruct.
+Import('LIBRARY_NAME')
+# Define install targets? TODO: Find a better way to
+# avoid the warnings 
+Import('INSTALL')
+# Does the user want to select the testsuites to run
+Import('SELECTOR')
+
+env = ENVIRONMENT.Clone()
+
+# Name of the shared lib with and without hesperia version.
+versionedLibraryName =  LIBRARY_NAME + '-' + getVersionString()
+
+# Collect source files (*.cpp) from all directories
+# in ./src.
+sourceFiles = env.RecursiveGlob('src', '*.cpp')
+
+# Compile library  
+library = env.SharedLibrary( versionedLibraryName, sourceFiles)
+# Create symlink from LIBRARY_NAME_VERSION to LIBRARY_NAME in the build directory.
+symLink = env.SymLink(LIBRARY_NAME +'.so', library)
+
+#HACK: Problem: Appending the library to the environment at
+#      parse time of the SConscript file causes a build error:
+#      While the library is linked, it is linked against itself.
+#      Stupid...i know 
+#HACK: Replace this...
+def Dummy(target, source, env):
+    env.Append(LIBS = library)
+    
+env.AddPostAction( library, Action(Dummy, cmdstr="Preparing environment...") )
+#HACK: ...with something like this. 
+#env.Append(LIBS = library)
+
+# Collect application files.
+applicationFiles = env.Glob('apps/*.cpp')    
+# Create applications using the static library.
+binaries = []
+for application in applicationFiles:
+    filename, extension = os.path.splitext(application.abspath)
+    binary = env.Program(filename, application)
+    binaries.extend(binary) 
+
+# TestSuites
+generatedTestPrograms = []
+executedTests = []
+generatedReports = []
+
+allSuites = env.Glob('testsuites/*.h')
+if (allSuites == []):
+    print "Keine Testfaelle vorhanden: " + LIBRARY_NAME
+else:
+    if (SELECTOR):
+        testsuites = env.selectTestSuites(allSuites)
+    else:
+        testsuites = allSuites
+                
+    generatedTestPrograms, executedTests, generatedReports = env.Test(LIBRARY_NAME, sourceFiles, testsuites, "report-coverage.txt", "report-valgrind.txt")
+
+# Install Targets
+if (INSTALL): 
+    # Deploy to install_dir specified by the commandline.
+    headerInstallDir = os.path.join(env['install_dir'], 'include', versionedLibraryName)
+    libraryInstallDir = os.path.join(env['install_dir'], 'lib')
+    
+    # Install headers, library and create symlink from LIBRARY_NAME_VERSION to LIBRARY_NAME in the
+    # install directory.
+    installHeaders = env.InstallDirectory( headerInstallDir, 'include', '*.h')
+    installLibrary = env.Install( libraryInstallDir, library)
+    installLibrarySymLink = env.SymLink( libraryInstallDir + '/' + LIBRARY_NAME + '.so', 
+                                                               libraryInstallDir + '/' + versionedLibraryName + '.so')
+    
+    # Aliases for easier installation
+    env.Alias('install-' + LIBRARY_NAME, [installHeaders, installLibrary, installLibrarySymLink])
+    env.Alias('install-libs', [installHeaders, installLibrary, installLibrarySymLink])
+    env.Alias('install-all', [installHeaders, installLibrary, installLibrarySymLink])
+
+Return ("library", "binaries", "generatedTestPrograms", "executedTests", "generatedReports")
