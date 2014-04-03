@@ -66,6 +66,7 @@ boolean stopBlinking = true;
 int takenOverSpeed = 1520;
 int revertBackSpeed = false;
 boolean fullMsgRecv = false;
+boolean isDirSet = false;
 
 void setup()
 {
@@ -176,6 +177,20 @@ void loop()
             reverse = 1;
             speed = 1520;
             Serial.println("Forward");
+          } else if (readbyte == 'f' || readbyte == 'r') {
+            isDirSet = true;
+            if(!applyCruiseCtrl) {
+               applyCruiseCtrl = true;
+            }
+            if(readbyte == 'r') {
+              reverse = -1;
+              speed = 1240;
+              Serial.println("Reverse");
+            } else if(readbyte == 'f') {
+              reverse = 1;
+              speed = 1520;
+              Serial.println("Forward");
+            }
           } else if (readbyte == '-') {
             applyCruiseCtrl = false;
             if(reverse == 1) {
@@ -191,7 +206,7 @@ void loop()
               speed = 1520;
               controlMotor();
             }
-          } else if(readbyte >= '0' && readbyte <= '9') {
+          } else if(readbyte >= '0' && readbyte <= '9' && isDirSet) {
             //applyCruiseCtrl = true;
             setFreq = setFreq * 10 + (readbyte - '0');
             Serial.println(setFreq);
@@ -366,8 +381,11 @@ void evaluateReceiver()
      receiverSteer = pulseIn(3, HIGH, 100000);
   }
   receiverSpeed = map(receiverSpeed, 1400,2500,1000,2000);
-  if(receiverSpeed > 1600) {
-    receiverSpeed = 1600;
+  //set a constant speed here
+  //1520 zero 
+  //1400 zero reverse
+  if(receiverSpeed > 1580) {
+    receiverSpeed = 1580;
   } else if(receiverSpeed < 1200) {
     receiverSpeed = 1200;
   }

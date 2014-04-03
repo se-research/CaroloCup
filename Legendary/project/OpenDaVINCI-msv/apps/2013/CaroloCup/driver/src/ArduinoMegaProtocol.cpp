@@ -18,6 +18,7 @@ namespace carolocup {
 		stringstream ss;
 		if(freq == 0) {
 			ss << "f-" << '/';
+			cout << "============Stop cmd!================" << endl;
 		} else {
 			int prepsum;
 			if(reverse){

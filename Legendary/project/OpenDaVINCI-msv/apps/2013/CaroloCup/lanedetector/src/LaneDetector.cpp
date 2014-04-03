@@ -62,12 +62,12 @@ LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
     m_config(),
     m_frame()
 {
-    m_config.th1 = 107;//83;
+    m_config.th1 = 150;//83;
     m_config.th2 = 230;
     m_config.hlTh = THRESH_BINARY;
     m_config.XTimesYMin = 0;
     m_config.XTimesYMax = 30;
-    m_config.maxY = 210;//195;
+    m_config.maxY = 205;//195;
     m_config.maxArea = 4;
 }
 
@@ -156,12 +156,6 @@ void drawLines(carolocup::Lines* lines, Mat* dst, int offset) {
     line( *dst, Point(solidLeft[0], solidLeft[1]+offset), Point(solidLeft[2], solidLeft[3]+offset), Scalar(0,0,255), 3, CV_AA);
     line( *dst, lines->goalLine.p1, lines->goalLine.p2, 255, 3, CV_AA);
     line( *dst, lines->currentLine.p1, lines->currentLine.p2, 0, 3, CV_AA);
-    /*if(lines->stopLineHeight != -1) {
-        line( *dst, Point(0, lines->stopLineHeight), Point(640, lines->stopLineHeight), Scalar(0,255,0), 3, CV_AA);
-    }
-    if(lines->startLineHeight != -1) {
-        line( *dst, Point(0, lines->startLineHeight), Point(640, lines->startLineHeight), Scalar(255,0,0), 3, CV_AA);
-    }*/
 }
 
 int __nsleep(const struct timespec *req, struct timespec *rem)
@@ -188,12 +182,7 @@ void LaneDetector::processImage()
 {
 
     TimeStamp currentTime_strt1;
-    //Mat dst;
-    //cout<<"Showing Input Frame............"<<endl;
 
-    //dst = m_frame.clone();
-
-    //cout<<"Cloning............"<<endl;
     debug = m_debug;
     cout << "Debug: " << debug << endl;
     cfg = m_config;
@@ -204,16 +193,11 @@ void LaneDetector::processImage()
     if(&lines != NULL) cout << "We have lines!" << endl;
     LaneDetectionData data;
     data.setLaneDetectionData(lines);
-    // Create a container from your data structure so that it can be transferred.
-    // _remember_ the assigned ID (here 101): It must be used by the receiver to read the data successfully.
-    // The ID must by from within this range: 0-127.
     Container con(Container::USER_DATA_1, data);
 
     // Send the data:
     //cout << "Send..." << endl;
     getConference().send(con);
-
-    // Create an instance of data structure for parking and set some values.
 
     TimeStamp currentTime_strt7;
     double timeStep_total = (currentTime_strt7.toMicroseconds() - currentTime_strt1.toMicroseconds()) / 1000.0;
@@ -280,6 +264,7 @@ ModuleState::MODULE_EXITCODE LaneDetector::body()
                 img->imageData = (char*) newPointer;
                 Mat rawImg(img, false);
                 m_frame = rawImg.clone();
+//Comment here and plug the recorder
                 processImage();
             }
         }

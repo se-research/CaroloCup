@@ -49,34 +49,12 @@ LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug, co
     //imshow("m_frame",m_frame);
     w = m_frame.size().width;
     h = m_frame.size().height;
-    offset = 3*h/16 - 1;
+    offset = 2*h/16 - 1;
     /// Detect edges using Threshold
     threshold( m_frame, m_frame, cfg.th1, 255, CV_THRESH_BINARY);
 
     //Find dash and solid lines
     findLines(outputImg);
-
-    /*Point2i pm;
-    pm.x = 752/2;
-    pm.y = 480;
-    Point2f wpm = getWorldPoint(pm);
-    cout << "World mid point: " << wpm.x << "," << wpm.y << endl;
-    pm.x = 0;
-    pm.y = 480;
-    wpm = getWorldPoint(pm);
-    cout << "World mid point: " << wpm.x << "," << wpm.y << endl;
-    pm.x = 752;
-    pm.y = 480;
-    wpm = getWorldPoint(pm);
-    cout << "World mid point: " << wpm.x << "," << wpm.y << endl;
-    pm.x = 0;
-    pm.y = 0;
-    wpm = getWorldPoint(pm);
-    cout << "World mid point: " << wpm.x << "," << wpm.y << endl;
-    pm.x = 752/2;
-    pm.y = 480/2;
-    wpm = getWorldPoint(pm);
-    cout << "World mid point: " << wpm.x << "," << wpm.y << endl;*/
 
 
     // View
@@ -107,15 +85,7 @@ Lines LineDetector::getLines()
 		supDashLine.p1.y = 0;
 		supDashLine.p2.y = 0;
         	std::sort(dashLines.begin(), dashLines.begin() + cntDash);
-		//bool isInvertedD = false;
-		//bool discardInverts = false;
 		for(int i = 0; i < cntDash; i++) {
-		    //if(dashLines[i].slope < supDashLine.slope) {
-		    /*if(!discardInverts && dashLines[i].slope < 0) {
-                        discardInverts = true;
-			i = 0;
-			cout << "No inverts" << endl;
-		    }*/
 		    //cout << "Dash y: " << max(dashLines[i].p1.y,dashLines[i].p2.y) << endl;
 		    //cout << "Dash max: " << max(dashLines[i+1].p1.y,dashLines[i+1].p2.y) << " Dash min: " <<  min(dashLines[i].p1.y,dashLines[i].p2.y) << endl;
 		    if(i != cntDash - 1 && max(dashLines[i+1].p1.y,dashLines[i+1].p2.y) > min(dashLines[i].p1.y,dashLines[i].p2.y)) {
@@ -145,17 +115,6 @@ Lines LineDetector::getLines()
 				    cout << "Remove dash becuase of intersection! (" << YI << ") " << endl;
 			    }
 		    }
-		    //if(max(dashLines[i].p1.y,dashLines[i].p2.y) > max(supDashLine.p1.y, supDashLine.p2.y)) {
-			//supDashLine = dashLines[i];
-			/*if(dashLines[i].slope > 0 && !discardInverts) {
-			    isInvertedD = true;
-			    supDashLine = dashLines[i];
-			    cout << "Found invert" << endl;
-			} else if(dashLines[i].slope < 0 ) {
-			    supDashLine = dashLines[i];
-			    cout << "Found" << endl;
-			}*/
-		    //}
 		}
 		if(cntDash > 0) {
 			supDashLine = dashLines[0];
@@ -164,11 +123,6 @@ Lines LineDetector::getLines()
 			if(m_debug) {
 				cout << "Dash line slope: " << supDashLine.slope << endl;
 			}
-		        /*Point2f dwpm1 = getWorldPoint(Point2i(supDashLine.p1.x, supDashLine.p1.y + offset));
-			cout << "World dash point1: " << dwpm1.x << "," << dwpm1.y << endl;
-		        Point2f dwpm2 = getWorldPoint(Point2i(supDashLine.p2.x, supDashLine.p2.y + offset));
-			cout << "World dash point2: " << dwpm2.x << "," << dwpm2.y << endl;
-			cout << "World dash size: " << getDist(dwpm1, dwpm2)<< endl;*/
 			//cout << "Dash diff: " << abs(dashSupPosX - oldDashGoalX) << endl;
 			if(abs(dashSupPosX - oldDashGoalX) < calcRoadSize * 0.8 || oldDashGoalX == 0) {
 				/*if(max(supDashLine.p1.x, supDashLine.p2.x) < w/10) {
@@ -179,26 +133,14 @@ Lines LineDetector::getLines()
 			}
 		}
 	}
-	//bool isInvertedR = false;
 	if(cntSolid > 0 && !intersectionOn) {
 		supRightLine.p1.x = w;
 		supRightLine.p2.x = w;
 		for(int i = 0; i < cntSolid; i++) {
-	     	    /*float a = tan(M_PI * solidLines[i].slope / 180);
-	     	    float b = solidLines[i].p1.y - solidLines[i].p1.x * a;
-	     	    float positionX = solidLines[i].p1.x;
-		    if(abs(a) > 0.001) {
-			positionX = (h - b) / a;
-	     	    }*/
-		    //if(solidLines[i].slope < 90 && solidLines[i].slope > supRightLine.slope) {
-		    if(solidLines[i].slope < 90 && solidLines[i].slope > 0 && min(solidLines[i].p1.x, solidLines[i].p2.x) < min(supRightLine.p1.x, supRightLine.p2.x)){ // && max(solidLines[i].p1.x, solidLines[i].p2.x) > w/2) {
+		    if(solidLines[i].slope < 90 && solidLines[i].slope > 0 && min(solidLines[i].p1.x, solidLines[i].p2.x) < min(supRightLine.p1.x, supRightLine.p2.x)){
 			supRightLine = solidLines[i];
 			foundR = true;
-		    } /*else if(!foundR && min(solidLines[i].p1.x, solidLines[i].p2.x) < min(supRightLine.p1.x, supRightLine.p2.x) && positionX > w/2) {
-			supRightLine = solidLines[i];
-			foundR = true;
-			isInvertedR = true;
-		    }*/
+		    }
 		}
 		if(foundR) {
 			int rSupPosX = getIntersectionWithBottom(supRightLine);
@@ -217,8 +159,7 @@ Lines LineDetector::getLines()
 		supLeftLine.p2.x = 0;
 		for(int i = 0; i < cntSolid; i++) {
 		    int centerSolidLineX = (solidLines[i].p1.x + solidLines[i].p2.x)/2;
-		    //if(solidLines[i].slope > -90 && solidLines[i].slope < supLeftLine.slope) {
-		    if(solidLines[i].slope > -90 && solidLines[i].slope < 0 && min(solidLines[i].p1.x, solidLines[i].p2.x) > min(supLeftLine.p1.x, supLeftLine.p2.x)){ // && min(solidLines[i].p1.x, solidLines[i].p2.x) < w/2) {
+		    if(solidLines[i].slope > -90 && solidLines[i].slope < 0 && min(solidLines[i].p1.x, solidLines[i].p2.x) > min(supLeftLine.p1.x, supLeftLine.p2.x)){ 
 			supLeftLine = solidLines[i];
 			foundL = true;
 		    }
@@ -433,13 +374,6 @@ Lines LineDetector::getLines()
 		goal.p1 = vp;
 		goal.p2 = goalP;
 		goal.slope = getLineSlope(vp, goalP); 
-		/*if(goal.slope > 90) {
-			goal.p1.x = goal.p1.x + 60;
-			goal.p2.x = goal.p2.x + 60;
-		} else {
-			goal.p1.x = goal.p1.x - 60;
-			goal.p2.x = goal.p2.x - 60;
-		}*/
 		m_lines->setGoalLine(goal);
 	} else {
 		cout << "CASE: NONE" << endl;
@@ -549,20 +483,6 @@ void LineDetector::findLines(cv::Mat &outputImg) {
 	if(sizeY > m_config.XTimesYMin*sizeX && sizeY < m_config.XTimesYMax*sizeX && sizeY < m_config.maxY) {
              dashLines[cntDash] = createLineFromRect(&rect, sizeX, sizeY);
              cntDash++;
-             /*CustomLine l = createLineFromRect(&rect, sizeX, sizeY);
-	     float a = tan(M_PI * l.slope / 180);
-	     float b = l.p1.y - l.p1.x * a;
-	     float positionX = l.p1.x;
-	     if(abs(a) > 0.001) {
-		positionX = (h - b) / a;
-	     }
-	     if(l.slope < 0 && positionX > 550) {
-		solidLines[cntSolid] = l;
-	     	cntSolid++;
-	     } else {
-	     	dashLines[cntDash] = createLineFromRect(&rect, sizeX, sizeY);
-	     	cntDash++;
-	     }*/
 	     //cout << "Dash Rect y: " << rectCenter.y << endl;
 	} else if(sizeY > sizeX && sizeY > (m_config.maxY/2) && area < m_config.maxArea * 10000){
 	     solidLines[cntSolid] = createLineFromRect(&rect, sizeX, sizeY);
