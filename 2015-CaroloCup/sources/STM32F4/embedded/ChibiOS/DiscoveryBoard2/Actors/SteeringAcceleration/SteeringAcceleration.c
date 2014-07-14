@@ -34,6 +34,7 @@ static PWMConfig pwmConfiguration = {
         {PWM_OUTPUT_ACTIVE_HIGH, NULL},
         {PWM_OUTPUT_ACTIVE_HIGH, NULL}
     },
+    0,
     0
 };
 
@@ -53,9 +54,9 @@ Thread* getThreadSteering(void) {
 }
 
 void setMotorData(int steering, int speed) {
-    (void)speed;
+    // (void)speed;
     // Map desired steering angle to PWM value.
-   steeringServo = CENTER_STEERING + (steering * 11.75);
+    steeringServo = CENTER_STEERING + (steering * 11.75);
 
     // To do: Identify correct PWM values for acceleration forwards/backwards.
     // desiredSpeed = speed;
@@ -63,24 +64,20 @@ void setMotorData(int steering, int speed) {
     // For now: explicitly NO_ACCELERATION! Do not change until you know what you are doing!
     // Furthermore, make sure the car is put on a stack of books to avoid damages to yourself and others!
     
-        //Step-wose increasing or decreasing the PWM 
-        if (speed > desiredSpeed) {        
-            for (desiredSpeed ; desiredSpeed < speed; desiredSpeed++){
-                 chThdSleepMilliseconds(11);
-            }
+    //Step-wose increasing or decreasing the PWM 
+    if (speed > desiredSpeed) {        
+        for(; desiredSpeed < speed; desiredSpeed++) {
+             chThdSleepMilliseconds(11);
         }
-        if (speed < desiredSpeed) {        
-        
-            for (desiredSpeed ; desiredSpeed > speed; desiredSpeed--){  
-                chThdSleepMilliseconds(11);
-            }
-        }        
-        else { 
-            desiredSpeed = speed;
+    }
+    if (speed < desiredSpeed) {
+        for(; desiredSpeed > speed; desiredSpeed--) {  
+            chThdSleepMilliseconds(11);
         }
-
-
-
+    }        
+    else { 
+        desiredSpeed = speed;
+    }
 }
 
 void commandControlSteeringAccelerationMotors(BaseSequentialStream *chp, int argc, char *argv[]) {

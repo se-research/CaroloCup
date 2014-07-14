@@ -46,7 +46,8 @@ static ICUConfig icuRCReceiverCH0 = {
     icuwidth_CH0,
     icuperiod_CH0,
     NULL,
-    ICU_CHANNEL_1
+    ICU_CHANNEL_1,
+    0
 };
 
 static ICUConfig icuRCReceiverCH1 = {
@@ -55,7 +56,8 @@ static ICUConfig icuRCReceiverCH1 = {
     icuwidth_CH1,
     icuperiod_CH1,
     NULL,
-    ICU_CHANNEL_1
+    ICU_CHANNEL_1,
+    0
 };
 
 #if !USE_ONBOARD_ACCELEROMETER
@@ -65,7 +67,8 @@ static ICUConfig icuRCReceiverCH2 = {
     icuwidth_CH2,
     icuperiod_CH2,
     NULL,
-    ICU_CHANNEL_1
+    ICU_CHANNEL_1,
+    0
 };
 #endif
 

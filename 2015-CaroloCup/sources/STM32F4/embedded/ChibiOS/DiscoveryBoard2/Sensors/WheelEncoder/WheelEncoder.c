@@ -107,7 +107,8 @@ static ICUConfig icuLeftWheelFirstSensor = {
     icuwidth_LeftWheelFirstSensor,
     icuperiod_LeftWheelFirstSensor,
     NULL,
-    ICU_CHANNEL_2
+    ICU_CHANNEL_2,
+    0
 };
 
 static ICUConfig icuLeftWheelSecondSensor = {
@@ -116,7 +117,8 @@ static ICUConfig icuLeftWheelSecondSensor = {
     icuwidth_LeftWheelSecondSensor,
     icuperiod_LeftWheelSecondSensor,
     NULL,
-    ICU_CHANNEL_1
+    ICU_CHANNEL_1,
+    0
 };
 
 static ICUConfig icuRightWheelFirstSensor = {
@@ -125,7 +127,8 @@ static ICUConfig icuRightWheelFirstSensor = {
     icuwidth_RightWheelFirstSensor,
     icuperiod_RightWheelFirstSensor,
     NULL,
-    ICU_CHANNEL_2
+    ICU_CHANNEL_2,
+    0
 };
 
 static ICUConfig icuRightWheelSecondSensor = {
@@ -134,7 +137,8 @@ static ICUConfig icuRightWheelSecondSensor = {
     icuwidth_RightWheelSecondSensor,
     icuperiod_RightWheelSecondSensor,
     NULL,
-    ICU_CHANNEL_1
+    ICU_CHANNEL_1,
+    0
 };
 
 ///////////////////////////////////////////////////////////////////////////////
