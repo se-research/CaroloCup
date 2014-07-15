@@ -12,8 +12,6 @@ IF (NOT "${PANDABOARD}" STREQUAL "YES")
     SET (OpenCV_LIBS opencv_core opencv_imgproc opencv_highgui)
     SET (LIBS ${LIBS} ${OpenCV_LIBS})
 
-    ADD_SUBDIRECTORY (types)
-
     ADD_SUBDIRECTORY (camgen)
     ADD_SUBDIRECTORY (cockpit)
     ADD_SUBDIRECTORY (chasecar)
