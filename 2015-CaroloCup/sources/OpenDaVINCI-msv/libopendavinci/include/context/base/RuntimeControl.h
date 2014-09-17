@@ -41,7 +41,7 @@ namespace context {
                 };
 
                 enum ERRORCODES {
-                    NO_ERROR,
+                    NO_ERROR_OCCURRED,
                     APPLICATIONS_FINISHED,
                     RUNTIME_TIMEOUT,
                     RUNTIMECONTROL_FORCED_TO_QUIT,

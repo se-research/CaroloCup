@@ -11,9 +11,9 @@ namespace core {
     namespace wrapper {
 
         SerialPortSettings::SerialPortSettings() :
-            m_parity(PARITY_NONE),
-            m_dataBits(DATA_8),
-            m_stopBits(STOP_1) {}
+            m_parity(SP_PARITY_NONE),
+            m_dataBits(SP_DATA_8),
+            m_stopBits(SP_STOP_1) {}
 
         SerialPort::SerialPort() :
             m_settings(),

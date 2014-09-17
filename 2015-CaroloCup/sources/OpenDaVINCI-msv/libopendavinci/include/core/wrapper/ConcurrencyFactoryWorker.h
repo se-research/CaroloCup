@@ -24,7 +24,7 @@ namespace core {
          * of the ConcurrencyFactoryWorker template class.
          *
          * @See ConcurrencyFactory, ConcurrencyFactoryWorker, SystemLibraryProducts,
-         *      BoostConcurrencyFactoryWorker, POSIXConcurrencyFactoryWorker
+         *      WIN32ConcurrencyFactoryWorker, POSIXConcurrencyFactoryWorker
          */
         template <SystemLibraryProducts product>
         class OPENDAVINCI_API ConcurrencyFactoryWorker

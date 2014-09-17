@@ -49,6 +49,10 @@ class TimeFactoryTest : public CxxTest::TestSuite {
         }
 
         void testControlledTimeFactoryTestSuite() {
+            // Initialize the TimeFactory for the very first usage.
+            TimeStamp ts0;
+            TS_ASSERT(ts0.getSeconds() > 1000);
+
             // DO NOT Destroy any existing TimeFactory since DisposalService will do that for us. Instead, set singleton to NULL.
             TimeFactoryTestDisableTimeFactory disableTF;
             disableTF.disable();

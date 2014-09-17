@@ -21,6 +21,7 @@ namespace core {
             using namespace core::base;
 
             ForceControl::ForceControl() :
+                    SerializableData(),
                     m_accelerationForce(),
                     m_brakeForce(),
                     m_steeringForce(),
@@ -30,6 +31,7 @@ namespace core {
             {}
 
             ForceControl::ForceControl(const ForceControl &obj) :
+                    SerializableData(obj),
                     m_accelerationForce(obj.getAccelerationForce()),
                     m_brakeForce(obj.getBrakeForce()),
                     m_steeringForce(obj.getSteeringForce()),

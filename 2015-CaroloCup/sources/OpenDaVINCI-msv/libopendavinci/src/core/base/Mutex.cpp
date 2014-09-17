@@ -15,7 +15,11 @@ namespace core {
             m_mutex = SharedPointer<wrapper::Mutex>(wrapper::MutexFactory::createMutex());
         }
 
-        Mutex::~Mutex() {}
+        Mutex::~Mutex() {
+            // Add the following semantic: Mutexes that are destroyed will be unlocked automatically.
+            tryLock();
+            unlock();
+        }
 
         void Mutex::lock() {
             m_mutex->lock();

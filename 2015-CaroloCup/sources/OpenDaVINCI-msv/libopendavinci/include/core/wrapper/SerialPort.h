@@ -23,21 +23,21 @@ namespace core {
         class OPENDAVINCI_API SerialPortSettings {
             public:
                 enum SerialPortParity {
-                    PARITY_NONE = 0, 
-                    PARITY_EVEN, 
-                    PARITY_ODD
+                    SP_PARITY_NONE = 0, 
+                    SP_PARITY_EVEN, 
+                    SP_PARITY_ODD
                 };
 
                 enum SerialPortDataBits {
-                    DATA_5 = 5,
-                    DATA_6,
-                    DATA_7,
-                    DATA_8
+                    SP_DATA_5 = 5,
+                    SP_DATA_6,
+                    SP_DATA_7,
+                    SP_DATA_8
                 };
 
                 enum SerialPortStopBits {
-                    STOP_1 = 1,
-                    STOP_2
+                    SP_STOP_1 = 1,
+                    SP_STOP_2
                 };
 
                 SerialPortSettings();

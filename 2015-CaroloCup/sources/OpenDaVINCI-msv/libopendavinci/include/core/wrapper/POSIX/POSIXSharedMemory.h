@@ -75,6 +75,7 @@ namespace core {
 
                 private:
                     string m_name;
+                    string m_internalName;
                     bool m_releaseSharedMemory;
                     int32_t m_shmID;
                     sem_t* m_mutexSharedMemory;

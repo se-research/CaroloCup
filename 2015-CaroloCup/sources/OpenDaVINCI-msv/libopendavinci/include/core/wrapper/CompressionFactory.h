@@ -28,13 +28,13 @@ namespace core {
          * dd = CompressionFactory::getInstance().getContents(fin);
          * fin.close();
          *
-         * if (cf != NULL) {
-         *     istream &s = cf->getEntryByName("file");
+         * if (dd != NULL) {
+         *     istream &s = dd->getEntryByName("file");
          * }
 
          * ...
-         * if (cf != NULL) {
-         *     delete cf;
+         * if (dd != NULL) {
+         *     delete dd;
          * }
          * @endcode
          *

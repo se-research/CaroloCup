@@ -21,6 +21,7 @@ namespace core {
             using namespace core::base;
 
             VehicleControl::VehicleControl() :
+                    SerializableData(),
                     m_speed(0),
                     m_acceleration(0),
                     m_steeringWheelAngle(0),
@@ -30,6 +31,7 @@ namespace core {
             {}
 
             VehicleControl::VehicleControl(const VehicleControl &obj) :
+                    SerializableData(obj),
                     m_speed(obj.getSpeed()),
                     m_acceleration(obj.getAcceleration()),
                     m_steeringWheelAngle(obj.getSteeringWheelAngle()),

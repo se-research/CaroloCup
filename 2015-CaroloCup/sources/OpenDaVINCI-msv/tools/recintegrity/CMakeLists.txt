@@ -21,8 +21,16 @@ INSTALL(TARGETS recintegrity RUNTIME DESTINATION bin)
 
 # Enable CxxTest for all available testsuites.
 IF(CXXTEST_FOUND)
-    FILE(GLOB_RECURSE recintegrity-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
+    FILE(GLOB recintegrity-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
     
-    CXXTEST_ADD_TEST(recintegrityTestSuite recintegrityTestSuite.cpp ${recintegrity-testsuites})
-    TARGET_LINK_LIBRARIES(recintegrityTestSuite recintegritylib ${OPENDAVINCI_LIBS} ${LIBS})
+    FOREACH(testsuite ${recintegrity-testsuites})
+        STRING(REPLACE "/" ";" testsuite-list ${testsuite})
+
+        LIST(LENGTH testsuite-list len)
+        MATH(EXPR lastItem "${len}-1")
+        LIST(GET testsuite-list "${lastItem}" testsuite-short)
+
+        CXXTEST_ADD_TEST(${testsuite-short}-TestSuite ${testsuite-short}-TestSuite.cpp ${testsuite})
+        TARGET_LINK_LIBRARIES(${testsuite-short}-TestSuite recintegritylib ${OPENDAVINCI_LIBS} ${LIBS})
+    ENDFOREACH()
 ENDIF(CXXTEST_FOUND)

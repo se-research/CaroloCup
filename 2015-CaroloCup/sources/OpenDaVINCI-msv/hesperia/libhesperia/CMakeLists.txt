@@ -25,36 +25,6 @@ INCLUDE_DIRECTORIES (include)
 FILE(GLOB_RECURSE libhesperia-sources "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 
 ###############################################################################
-# Remove POSIX files on WIN32.
-IF(WIN32)
-    # Set flag for exporting symbols.
-    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHESPERIA_EXPORTS")
-    
-    # Exclude POSIX files.
-    FOREACH(item ${libhesperia-sources})
-      IF(${item} MATCHES "POSIX.+.cpp")
-        LIST(REMOVE_ITEM libhesperia-sources ${item})
-      ENDIF(${item} MATCHES "POSIX.+.cpp")
-    ENDFOREACH(item)
-ENDIF(WIN32)
-
-# Remove Boost files on UNIX if not available.
-IF(UNIX)
-    IF(NOT Boost_FOUND)
-        MESSAGE("(libhesperia): Disabling Boost sources.")
-
-        SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHESPERIA_NOBOOST")
-
-        # Exclude POSIX files.
-        FOREACH(item ${libhesperia-sources})
-          IF(${item} MATCHES "Boost.+.cpp")
-            LIST(REMOVE_ITEM libhesperia-sources ${item})
-          ENDIF(${item} MATCHES "Boost.+.cpp")
-        ENDFOREACH(item)
-    ENDIF(NOT Boost_FOUND)
-ENDIF(UNIX)
-
-###############################################################################
 ADD_LIBRARY (hesperia STATIC ${libhesperia-sources})
 TARGET_LINK_LIBRARIES(hesperia ${THIRDPARTY_LIBS})
 
@@ -68,9 +38,17 @@ INSTALL(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/" DESTINATION include PAT
 ###############################################################################
 # Enable CxxTest for all available testsuites.
 IF(CXXTEST_FOUND)
-	FILE(GLOB_RECURSE libhesperia-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
-	
-	CXXTEST_ADD_TEST(HesperiaTestSuite HesperiaTestSuite.cpp ${libhesperia-testsuites})
-	TARGET_LINK_LIBRARIES(HesperiaTestSuite hesperia ${OPENDAVINCI_LIBS} ${LIBS} ${THIRDPARTY_LIBS})
+	FILE(GLOB libhesperia-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
+
+    FOREACH(testsuite ${libhesperia-testsuites})
+        STRING(REPLACE "/" ";" testsuite-list ${testsuite})
+
+        LIST(LENGTH testsuite-list len)
+        MATH(EXPR lastItem "${len}-1")
+        LIST(GET testsuite-list "${lastItem}" testsuite-short)
+
+	    CXXTEST_ADD_TEST(${testsuite-short}-TestSuite ${testsuite-short}-TestSuite.cpp ${testsuite})
+	    TARGET_LINK_LIBRARIES(${testsuite-short}-TestSuite hesperia ${OPENDAVINCI_LIBS} ${LIBS} ${THIRDPARTY_LIBS})
+    ENDFOREACH()
 ENDIF(CXXTEST_FOUND)
 

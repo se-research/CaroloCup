@@ -101,12 +101,22 @@ macro(CXXTEST_ADD_TEST _cxxtest_testname _cxxtest_outfname)
         set(_cxxtest_executable ${CXXTEST_PERL_TESTGEN_EXECUTABLE})
     endif()
 
-    add_custom_command(
-        OUTPUT  ${_cxxtest_real_outfname}
-        DEPENDS ${ARGN}
-        COMMAND ${_cxxtest_executable}
-        --runner=XmlFilePrinter --have-eh -o ${_cxxtest_real_outfname} ${ARGN}
-    )
+    if(CXXTEST_USE_PYTHON)
+        add_custom_command(
+            OUTPUT  ${_cxxtest_real_outfname}
+            DEPENDS ${ARGN}
+            COMMAND ${CXXTEST_PYTHON_INTERPRETER}
+            ${_cxxtest_executable} --runner=XmlFilePrinter --runnerParam="\\"${_cxxtest_real_outfname}-TestSuiteReport.xml\\"" --have-eh -o ${_cxxtest_real_outfname} ${ARGN}
+        )
+    else()
+        add_custom_command(
+            OUTPUT  ${_cxxtest_real_outfname}
+            DEPENDS ${ARGN}
+            COMMAND ${_cxxtest_executable}
+            --runner=XmlFilePrinter --runnerParam="\\"${_cxxtest_real_outfname}-TestSuiteReport.xml\\"" --have-eh -o ${_cxxtest_real_outfname} ${ARGN}
+        )
+    endif()
+
 
     set_source_files_properties(${_cxxtest_real_outfname} PROPERTIES GENERATED true)
     add_executable(${_cxxtest_testname} ${_cxxtest_real_outfname})
@@ -119,6 +129,8 @@ macro(CXXTEST_ADD_TEST _cxxtest_testname _cxxtest_outfname)
         add_test(${_cxxtest_testname} ${CMAKE_CURRENT_BINARY_DIR}/${_cxxtest_testname})
     endif()
 
+    # Set the timeout for the test to 15 min.
+    set_tests_properties(${_cxxtest_testname} PROPERTIES TIMEOUT 900)
 endmacro(CXXTEST_ADD_TEST)
 
 #=============================================================

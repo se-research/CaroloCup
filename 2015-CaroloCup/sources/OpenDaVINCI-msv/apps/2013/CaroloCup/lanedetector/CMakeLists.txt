@@ -36,8 +36,16 @@ INSTALL(TARGETS 2013-CaroloCup-lanedetector RUNTIME DESTINATION bin/2013/CaroloC
 
 # Enable CxxTest for all available testsuites.
 IF(CXXTEST_FOUND)
-    FILE(GLOB_RECURSE lanedetector-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
+    FILE(GLOB lanedetector-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
     
-    CXXTEST_ADD_TEST(2013-CaroloCup-lanedetectorTestSuite lanedetectorTestSuite.cpp ${lanedetector-testsuites})
-    TARGET_LINK_LIBRARIES(2013-CaroloCup-lanedetectorTestSuite 2013-CaroloCup-lanedetectorlib ${CCDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS} ${OpenCV_LIBS})
+    FOREACH(testsuite ${lanedetector-testsuites})
+        STRING(REPLACE "/" ";" testsuite-list ${testsuite})
+
+        LIST(LENGTH testsuite-list len)
+        MATH(EXPR lastItem "${len}-1")
+        LIST(GET testsuite-list "${lastItem}" testsuite-short)
+
+	    CXXTEST_ADD_TEST(2013-CaroloCup-${testsuite-short}-TestSuite ${testsuite-short}-TestSuite.cpp ${testsuite})
+	    TARGET_LINK_LIBRARIES(2013-CaroloCup-${testsuite-short}-TestSuite 2013-CaroloCup-lanedetectorlib ${CCDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS} ${OpenCV_LIBS})
+    ENDFOREACH()
 ENDIF(CXXTEST_FOUND)

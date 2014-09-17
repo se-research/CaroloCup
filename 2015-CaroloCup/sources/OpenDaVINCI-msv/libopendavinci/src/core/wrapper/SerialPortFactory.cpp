@@ -13,11 +13,13 @@
 #include "core/wrapper/SerialPortFactoryWorker.h"
 #include "core/wrapper/SerialPort.h"
 
-#ifdef HAVE_BOOST_LIBRARIES
-    #include "core/wrapper/Boost/BoostSerialPortFactoryWorker.h"
+#ifdef WIN32
+    #include "core/wrapper/WIN32/WIN32SerialPortFactoryWorker.h"
 #endif
 #ifndef WIN32
+  #ifndef __APPLE__
     #include "core/wrapper/POSIX/POSIXSerialPortFactoryWorker.h"
+  #endif
 #endif
 
 namespace core {

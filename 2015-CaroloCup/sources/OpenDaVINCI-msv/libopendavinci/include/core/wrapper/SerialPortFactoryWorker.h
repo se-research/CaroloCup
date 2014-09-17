@@ -23,7 +23,7 @@ namespace core {
          * of the SerialPortFactoryWorker template class.
          *
          * @See SerialPortFactory, SerialPortFactoryWorker,
-         *      SerialPortLibraryProducts, BoostSerialPortFactoryWorker,
+         *      SerialPortLibraryProducts, Win32SerialPortFactoryWorker,
          *      POSIXSerialPortFactoryWorker
          *
          */

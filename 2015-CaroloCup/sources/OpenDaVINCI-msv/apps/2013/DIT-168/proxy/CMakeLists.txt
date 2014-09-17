@@ -43,9 +43,17 @@ INSTALL(TARGETS proxy RUNTIME DESTINATION bin/2013/DIT-168/project-template)
 
 # Enable CxxTest for all available testsuites.
 IF(CXXTEST_FOUND)
-    FILE(GLOB_RECURSE proxy-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
+    FILE(GLOB proxy-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
     
-    CXXTEST_ADD_TEST(proxyTestSuite proxyTestSuite.cpp ${proxy-testsuites})
-    TARGET_LINK_LIBRARIES(proxyTestSuite proxylib ${MSVDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS} ${OpenCV_LIBS} ${UEYE_LIBS})
+    FOREACH(testsuite ${proxy-testsuites})
+        STRING(REPLACE "/" ";" testsuite-list ${testsuite})
+
+        LIST(LENGTH testsuite-list len)
+        MATH(EXPR lastItem "${len}-1")
+        LIST(GET testsuite-list "${lastItem}" testsuite-short)
+
+        CXXTEST_ADD_TEST(${testsuite-short}-TestSuite ${testsuite-short}-TestSuite.cpp ${testsuite})
+        TARGET_LINK_LIBRARIES(${testsuite-short}-TestSuite proxylib ${MSVDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS} ${OpenCV_LIBS} ${UEYE_LIBS})
+    ENDFOREACH()
 ENDIF(CXXTEST_FOUND)
 

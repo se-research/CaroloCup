@@ -19,6 +19,7 @@ namespace core {
             using namespace core::base;
 
             VehicleData::VehicleData() :
+                SerializableData(),
                 m_position(),
                 m_heading(0),
                 m_absTraveledPath(0),
@@ -30,6 +31,7 @@ namespace core {
                 m_temp(0) {}
 
             VehicleData::VehicleData(const VehicleData &obj) :
+                SerializableData(obj),
                 m_position(obj.m_position),
                 m_heading(obj.m_heading),
                 m_absTraveledPath(obj.m_absTraveledPath),

@@ -13,7 +13,7 @@ namespace core {
 
             using namespace std;
 
-            POSIXUDPSender::POSIXUDPSender(const string &address, const uint32_t port) :
+            POSIXUDPSender::POSIXUDPSender(const string &address, const uint32_t &port) :
                     m_address(),
                     m_fd(),
                     m_socketMutex(NULL) {

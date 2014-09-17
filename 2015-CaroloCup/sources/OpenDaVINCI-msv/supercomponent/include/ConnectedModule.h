@@ -14,8 +14,7 @@ namespace supercomponent {
 
     using namespace std;
 
-    class ConnectedModule
-    {
+    class ConnectedModule {
         public:
             ConnectedModule(core::dmcp::connection::ModuleConnection* connection,
                             const core::base::ModuleState::MODULE_STATE& moduleState );

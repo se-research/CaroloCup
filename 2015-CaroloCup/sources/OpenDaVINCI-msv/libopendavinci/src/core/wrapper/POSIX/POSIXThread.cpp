@@ -30,6 +30,8 @@ namespace core {
                     throw;
                 }
 
+                // The pthread_exit sys call terminates this thread to allow a clean join.
+                pthread_exit(NULL);
                 return NULL;
             }
 

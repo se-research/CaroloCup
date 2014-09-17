@@ -28,7 +28,7 @@ using namespace std;
 
     struct UDPTestPOSIX
     {
-        static void test()
+        static void test(mocks::StringListenerMock &mock)
         {
             clog << endl << "UDPTestPOSIX" << endl;
             const string group = "225.0.0.13";
@@ -40,32 +40,58 @@ using namespace std;
             core::SharedPointer<core::wrapper::UDPSender> sender(
                                 core::wrapper::UDPFactoryWorker<core::wrapper::NetworkLibraryPosix>::createUDPSender(group, port));
 
-            executeTest(receiver, sender);
+            receiver->start();
+
+            mock.VALUES_nextString.addItem("Hello UDPMulticast");
+            mock.VALUES_nextString.prepare();
+            receiver->setStringListener(&mock);
+
+            mock.CALLWAITER_nextString.wait();
+
+            sender->send("Hello UDPMulticast");
+
+            mock.CALLWAITER_nextString.wait();
+
+            receiver->setStringListener(NULL);
+            receiver->stop();
         }
     };
 
 #endif
 
-#ifdef HAVE_BOOST_LIBRARIES
-    #include "core/wrapper/Boost/BoostUDPFactoryWorker.h"
-	#include "core/wrapper/Boost/BoostUDPReceiver.h"
-	#include "core/wrapper/Boost/BoostUDPSender.h"
+#ifdef WIN32
+    #include "core/wrapper/WIN32/WIN32UDPFactoryWorker.h"
+	#include "core/wrapper/WIN32/WIN32UDPReceiver.h"
+	#include "core/wrapper/WIN32/WIN32UDPSender.h"
 
-    struct UDPTestBoostAsio
+    struct UDPTestWin32
     {
-        static void test()
+        static void test(mocks::StringListenerMock &mock)
         {
-            clog << endl << "UDPTestBoostAsio" << endl;
+            clog << endl << "UDPTestWin32" << endl;
             const string group = "225.0.0.13";
             const uint32_t port = 4567;
 
             core::SharedPointer<core::wrapper::UDPReceiver> receiver(
-                    core::wrapper::UDPFactoryWorker<core::wrapper::NetworkLibraryBoost>::createUDPReceiver(group, port));
+                    core::wrapper::UDPFactoryWorker<core::wrapper::NetworkLibraryWin32>::createUDPReceiver(group, port));
 
             core::SharedPointer<core::wrapper::UDPSender> sender(
-                                core::wrapper::UDPFactoryWorker<core::wrapper::NetworkLibraryBoost>::createUDPSender(group, port));
+                                core::wrapper::UDPFactoryWorker<core::wrapper::NetworkLibraryWin32>::createUDPSender(group, port));
 
-            executeTest(receiver, sender);
+            receiver->start();
+
+            mock.VALUES_nextString.addItem("Hello UDPMulticast");
+            mock.VALUES_nextString.prepare();
+            receiver->setStringListener(&mock);
+
+            mock.CALLWAITER_nextString.wait();
+
+            sender->send("Hello UDPMulticast");
+
+            mock.CALLWAITER_nextString.wait();
+
+            receiver->setStringListener(NULL);
+            receiver->stop();
         }
     };
 #endif
@@ -74,34 +100,20 @@ using namespace std;
     class UDPTestsuite : public CxxTest::TestSuite
     {
         public:
-            void test()
+            void testDataExchange()
             {
-                #ifndef WIN32
-                UDPTestPOSIX::test();
-                #endif
-
-                #ifdef HAVE_BOOST_LIBRARIES
-                UDPTestBoost::test();
-                #endif
-            }
-
-            void executeTest(core::SharedPointer<core::wrapper::UDPReceiver> receiver,
-                             core::SharedPointer<core::wrapper::UDPSender> sender)
-            {
-                receiver->start();
-
                 mocks::StringListenerMock mock;
-                mock.VALUES_nextString.addItem("Hello UDPMulticast");
-                mock.VALUES_nextString.prepare();
-                receiver->setStringListener(&mock);
 
-                sender->send("Hello UDPMulticast");
+                #ifndef WIN32
+                UDPTestPOSIX::test(mock);
+                #endif
 
-                TS_ASSERT( mock.CALLWAITER_nextString.wait() );
+                #ifdef WIN32
+                UDPTestWin32::test(mock);
+                #endif
+
+                TS_ASSERT( mock.CALLWAITER_nextString.wasCalled() );
                 TS_ASSERT( mock.correctCalled() );
-
-                receiver->setStringListener(NULL);
-                receiver->stop();
             }
     };
 

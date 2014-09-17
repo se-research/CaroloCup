@@ -14,8 +14,8 @@
 #include "core/wrapper/UDPSender.h"
 #include "core/wrapper/UDPReceiver.h"
 
-#ifdef HAVE_BOOST_LIBRARIES
-    #include "core/wrapper/Boost/BoostUDPFactoryWorker.h"
+#ifdef WIN32
+    #include "core/wrapper/WIN32/WIN32UDPFactoryWorker.h"
 #endif
 #ifndef WIN32
     #include "core/wrapper/POSIX/POSIXUDPFactoryWorker.h"

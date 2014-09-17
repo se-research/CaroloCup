@@ -42,7 +42,7 @@ namespace core {
                      * @param address Address of the receiver.
                      * @param port Port of the receiver.
                      */
-                    POSIXUDPSender(const string &address, const uint32_t port);
+                    POSIXUDPSender(const string &address, const uint32_t &port);
 
                 private:
                     /**

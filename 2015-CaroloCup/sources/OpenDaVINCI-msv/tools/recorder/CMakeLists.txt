@@ -21,8 +21,16 @@ INSTALL(TARGETS recorder RUNTIME DESTINATION bin)
 
 # Enable CxxTest for all available testsuites.
 IF(CXXTEST_FOUND)
-    FILE(GLOB_RECURSE recorder-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
+    FILE(GLOB recorder-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
     
-    CXXTEST_ADD_TEST(RecorderTestSuite RecorderTestSuite.cpp ${recorder-testsuites})
-    TARGET_LINK_LIBRARIES(RecorderTestSuite recorderlib ${OPENDAVINCI_LIBS} ${LIBS})
+    FOREACH(testsuite ${recorder-testsuites})
+        STRING(REPLACE "/" ";" testsuite-list ${testsuite})
+
+        LIST(LENGTH testsuite-list len)
+        MATH(EXPR lastItem "${len}-1")
+        LIST(GET testsuite-list "${lastItem}" testsuite-short)
+
+        CXXTEST_ADD_TEST(${testsuite-short}-TestSuite ${testsuite-short}-TestSuite.cpp ${testsuite})
+        TARGET_LINK_LIBRARIES(${testsuite-short}-TestSuite recorderlib ${OPENDAVINCI_LIBS} ${LIBS})
+    ENDFOREACH()
 ENDIF(CXXTEST_FOUND)

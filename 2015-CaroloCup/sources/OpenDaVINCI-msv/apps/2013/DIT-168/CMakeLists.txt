@@ -14,20 +14,26 @@ SET (VEHICLECONTEXT_LIBS vehiclecontext)
 # Library that contains data to be interchanged between OpenDaVINCI and hesperia, and the embedded software on the Discovery board.
 ADD_SUBDIRECTORY (msv-data)
 
-# Application for receiving data from hesperia or a USB camera.
-ADD_SUBDIRECTORY (lanedetector)
-
 # Application for sending driving commands.
 ADD_SUBDIRECTORY (driver)
 
-# Application for connecting to STM32F4 discovery board.
-ADD_SUBDIRECTORY (proxy-STM32F4)
+# Application for connecting to UDP_Server.
+ADD_SUBDIRECTORY (proxy-meili)
 
-# Application for connecting to a serial embedded software/hardware board (STM32F4 Discovery Board or Arduino).
-ADD_SUBDIRECTORY (proxy)
+# Disable QT and OpenCV apps on platforms missing those libraries.
+IF((NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin") AND (NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "FreeBSD") AND (NOT WIN32) AND (NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "NetBSD") AND (NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "OpenBSD"))
+    # Application for connecting to STM32F4 discovery board.
+    ADD_SUBDIRECTORY (proxy-STM32F4) # Requires POSIXSerialPortFactory
 
-# Application to record live streams.
-ADD_SUBDIRECTORY (VCR)
+    # Application for receiving data from hesperia or a USB camera.
+    ADD_SUBDIRECTORY (lanedetector)
+
+    # Application for connecting to a serial embedded software/hardware board (STM32F4 Discovery Board or Arduino).
+    ADD_SUBDIRECTORY (proxy)
+
+    # Application to record live streams.
+    ADD_SUBDIRECTORY (VCR)
+ENDIF()
 
 # Special target to simplify the rsync command.
 IF("${PANDABOARD}" STREQUAL "YES")

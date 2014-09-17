@@ -85,7 +85,8 @@ namespace msv {
         // Start decoding only if we have received enough data.
         while(m_partialData.str().length() > 3) {
             unsigned int lengthOld = m_partialData.str().length();
-            const char *receiveBuffer = m_partialData.str().c_str();
+            const string &s = m_partialData.str();
+            const char *receiveBuffer = s.c_str();
             char *colonSign = NULL;
             unsigned int lengthOfPayload = strtol(receiveBuffer, &colonSign, 10);
             if (lengthOfPayload == 0) {

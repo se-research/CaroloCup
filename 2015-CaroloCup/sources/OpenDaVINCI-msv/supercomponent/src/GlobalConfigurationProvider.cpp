@@ -31,16 +31,14 @@ namespace supercomponent {
         m_configurationMutex()
     {}
 
-    GlobalConfigurationProvider& GlobalConfigurationProvider::operator=(const GlobalConfigurationProvider& configurationProvider)
-    {
+    GlobalConfigurationProvider& GlobalConfigurationProvider::operator=(const GlobalConfigurationProvider& configurationProvider) {
         m_configuration = KeyValueConfiguration(configurationProvider.getGlobalConfiguration());
         return *this;
     }
 
     GlobalConfigurationProvider::~GlobalConfigurationProvider() {}
 
-    KeyValueConfiguration GlobalConfigurationProvider::getConfiguration(const ModuleDescriptor& md)
-    {
+    KeyValueConfiguration GlobalConfigurationProvider::getConfiguration(const ModuleDescriptor& md) {
         Lock l(m_configurationMutex);
 
         if ( (md.getName() == "Monitor") || (md.getName() == "Cockpit") ) {

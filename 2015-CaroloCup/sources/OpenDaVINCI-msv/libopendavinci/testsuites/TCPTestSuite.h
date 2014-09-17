@@ -23,8 +23,8 @@
 #ifndef WIN32
 	#include "core/wrapper/POSIX/POSIXTCPFactoryWorker.h"
 #endif
-#ifdef HAVE_BOOST_LIBRARIES
-	#include "core/wrapper/Boost/BoostTCPFactoryWorker.h"
+#ifdef WIN32
+	#include "core/wrapper/WIN32/WIN32TCPFactoryWorker.h"
 #endif
 
 #include "core/wrapper/TCPAcceptorListener.h"
@@ -111,11 +111,11 @@ class TCPAcceptorTestsuite : public CxxTest::TestSuite
     public:
         void testAccept()
         {
-            #ifdef HAVE_BOOST_LIBRARIES
-                clog << endl << "TCPAcceptorTestsuite::testAccept using NetworkLibraryBoostAsio" << endl;
+            #ifdef WIN32
+                clog << endl << "TCPAcceptorTestsuite::testAccept using NetworkLibraryWin32" << endl;
                 TCPAcceptorTests
                 <
-                     core::wrapper::TCPFactoryWorker<core::wrapper::NetworkLibraryBoostAsio>
+                     core::wrapper::TCPFactoryWorker<core::wrapper::NetworkLibraryWin32>
                 >::acceptTest();
             #endif
 
@@ -130,11 +130,11 @@ class TCPAcceptorTestsuite : public CxxTest::TestSuite
 
         void testMultipleAccept()
         {
-            #ifdef HAVE_BOOST_LIBRARIES
-                clog << endl << "TCPAcceptorTestsuite::testMultipleAccept using NetworkLibraryBoostAsio" << endl;
+            #ifdef WIN32
+                clog << endl << "TCPAcceptorTestsuite::testMultipleAccept using NetworkLibraryWin32" << endl;
                 TCPAcceptorTests
                 <
-                     core::wrapper::TCPFactoryWorker<core::wrapper::NetworkLibraryBoostAsio>
+                     core::wrapper::TCPFactoryWorker<core::wrapper::NetworkLibraryWin32>
                 >::multipleAcceptTest();
             #endif
 
@@ -147,13 +147,13 @@ class TCPAcceptorTestsuite : public CxxTest::TestSuite
             #endif
         }
 
-        void testNoAcceptBoost()
+        void testNoAccept()
         {
-            #ifdef HAVE_BOOST_LIBRARIES
-                clog << endl << "TCPAcceptorTestsuite::testNoAccept using NetworkLibraryBoostAsio" << endl;
+            #ifdef WIN32
+                clog << endl << "TCPAcceptorTestsuite::testNoAccept using NetworkLibraryWin32" << endl;
                 TCPAcceptorTests
                 <
-                     core::wrapper::TCPFactoryWorker<core::wrapper::NetworkLibraryBoostAsio>
+                     core::wrapper::TCPFactoryWorker<core::wrapper::NetworkLibraryWin32>
                 >::noAcceptTest();
             #endif
 
@@ -266,11 +266,11 @@ class TCPConnectionTestSuite  : public CxxTest::TestSuite
     public:
         void testTransfer()
         {
-            #ifdef HAVE_BOOST_LIBRARIES
-                clog << endl << "TCPConnectionTestSuite::testTransfer using NetworkLibraryBoostAsio" << endl;
+            #ifdef WIN32
+                clog << endl << "TCPConnectionTestSuite::testTransfer using NetworkLibraryWin32" << endl;
                 TCPConnectionTests
                 <
-                     core::wrapper::TCPFactoryWorker<core::wrapper::NetworkLibraryBoostAsio>
+                     core::wrapper::TCPFactoryWorker<core::wrapper::NetworkLibraryWin32>
                 >::transferTest();
             #endif
 
@@ -285,11 +285,11 @@ class TCPConnectionTestSuite  : public CxxTest::TestSuite
 
         void testError()
         {
-            #ifdef HAVE_BOOST_LIBRARIES
-                clog << endl << "TCPConnectionTestSuite::testError using NetworkLibraryBoostAsio" << endl;
+            #ifdef WIN32
+                clog << endl << "TCPConnectionTestSuite::testError using NetworkLibraryWin32" << endl;
                 TCPConnectionTests
                 <
-                     core::wrapper::TCPFactoryWorker<core::wrapper::NetworkLibraryBoostAsio>
+                     core::wrapper::TCPFactoryWorker<core::wrapper::NetworkLibraryWin32>
                 >::errorTest();
             #endif
 
@@ -347,8 +347,7 @@ class TCPGathererTestSuite : public CxxTest::TestSuite, public wrapper::TCPConne
             clog << endl << "TCPConnectionTestSuite::testGathering" << endl;
             const string testData = createTestData("The test data");
 
-            // StringListenerMock zur Überprüfung der empfangenen Daten
-            // vorbereiten...
+            // Prepare StringListenerMock
             mocks::StringListenerMock mockListener;
             setStringListener(&mockListener);
             mockListener.VALUES_nextString.addItem("The test data");
@@ -379,8 +378,7 @@ class TCPGathererTestSuite : public CxxTest::TestSuite, public wrapper::TCPConne
             const string testData1 = createTestData(data1);
             const string testData2 = createTestData(data2);
 
-            // StringListenerMock zur Überprüfung der empfangenen Daten
-            // vorbereiten...
+            // Prepare StringListenerMock
             mocks::StringListenerMock mockListener;
             setStringListener(&mockListener);
             mockListener.VALUES_nextString.addItem(data1);
@@ -400,16 +398,16 @@ class TCPGathererTestSuite : public CxxTest::TestSuite, public wrapper::TCPConne
             TS_ASSERT( mockListener.correctCalled() );
         }
 
-		/* The following method does not link correctly under Windows. */
-		__inline unsigned long __htonl(uint32_t n)
-		{
-            unsigned char *s = (unsigned char *)&n;
-            return (unsigned long)(s[0] << 24 | s[1] << 16 | s[2] << 8 | s[3]);
-		}
+
+	    unsigned long my_htonl(uint32_t n)
+	    {
+                unsigned char *s = (unsigned char *)&n;
+                return (unsigned long)(s[0] << 24 | s[1] << 16 | s[2] << 8 | s[3]);
+	    }
 
         string createTestData(const string& data)
         {
-            const uint32_t dataSize = __htonl(data.length());
+            const uint32_t dataSize = my_htonl(data.length());
             stringstream dataStream;
             dataStream.write(reinterpret_cast<const char*>(&dataSize), sizeof(uint32_t));
             dataStream << data;

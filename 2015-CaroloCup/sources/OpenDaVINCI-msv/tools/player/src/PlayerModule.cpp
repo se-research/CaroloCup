@@ -81,7 +81,6 @@ namespace player {
                 delay = player.getDelay() * timeScale;
 
                 // Here, the container is sent while discarding player commands.
-                // TODO: Filter data.
                 if ( (nextContainerToBeSent.getDataType() != Container::UNDEFINEDDATA) &&
                         (nextContainerToBeSent.getDataType() != Container::PLAYER_COMMAND) ) {
 

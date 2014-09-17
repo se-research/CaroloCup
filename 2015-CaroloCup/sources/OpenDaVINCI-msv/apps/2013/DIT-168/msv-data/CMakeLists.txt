@@ -22,9 +22,17 @@ INSTALL(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/" DESTINATION include/201
 
 # Enable CxxTest for all available testsuites.
 IF(CXXTEST_FOUND)
-    FILE(GLOB_RECURSE msv-data-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
+    FILE(GLOB msv-data-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
     
-    CXXTEST_ADD_TEST(msv-dataTestSuite msv-dataTestSuite.cpp ${msv-data-testsuites})
-    TARGET_LINK_LIBRARIES(msv-dataTestSuite msv-data ${OPENDAVINCI_LIBS} ${LIBS})
+    FOREACH(testsuite ${msv-data-testsuites})
+        STRING(REPLACE "/" ";" testsuite-list ${testsuite})
+
+        LIST(LENGTH testsuite-list len)
+        MATH(EXPR lastItem "${len}-1")
+        LIST(GET testsuite-list "${lastItem}" testsuite-short)
+
+	    CXXTEST_ADD_TEST(${testsuite-short}-TestSuite ${testsuite-short}-TestSuite.cpp ${testsuite})
+	    TARGET_LINK_LIBRARIES(${testsuite-short}-TestSuite msv-data ${OPENDAVINCI_LIBS} ${LIBS})
+    ENDFOREACH()
 ENDIF(CXXTEST_FOUND)
 

@@ -24,7 +24,7 @@ namespace core {
          * of the SharedMemoryFactoryWorker template class.
          *
          * @See SharedMemoryFactory, SharedMemoryFactoryWorker,
-         *      SystemLibraryProducts, BoostSharedMemoryFactoryWorker,
+         *      SystemLibraryProducts, WIN32SharedMemoryFactoryWorker,
          *      POSIXSharedMemoryFactoryWorker
          *
          */

@@ -13,7 +13,7 @@ namespace core {
         enum SystemLibraryProducts
         {
                 SystemLibraryPosix,
-                SystemLibraryBoost
+                SystemLibraryWin32
         };
 
     }

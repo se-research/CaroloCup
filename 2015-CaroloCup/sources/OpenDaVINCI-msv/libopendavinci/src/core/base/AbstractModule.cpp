@@ -49,7 +49,7 @@ namespace core {
             if (::signal(SIGINT, &signalHandler) == SIG_ERR) {
                 OPENDAVINCI_CORE_THROW_EXCEPTION(InvalidArgumentException, "Failed to register signal SIGINT.");
             }
-        }
+		}
 
         AbstractModule::~AbstractModule() {
             vector<AbstractModule*>::iterator it = AbstractModule::getListOfModules().begin();

@@ -36,8 +36,16 @@ INSTALL(TARGETS 2013-CaroloCup-VCR RUNTIME DESTINATION bin/2013/CaroloCup RENAME
 
 # Enable CxxTest for all available testsuites.
 IF(CXXTEST_FOUND)
-    FILE(GLOB_RECURSE VCR-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
+    FILE(GLOB VCR-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
     
-    CXXTEST_ADD_TEST(2013-CaroloCup-VCRTestSuite VCRTestSuite.cpp ${VCR-testsuites})
-    TARGET_LINK_LIBRARIES(2013-CaroloCup-VCRTestSuite 2013-CaroloCup-VCRlib ${CCDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS} ${OpenCV_LIBS})
+    FOREACH(testsuite ${VCR-testsuites})
+        STRING(REPLACE "/" ";" testsuite-list ${testsuite})
+
+        LIST(LENGTH testsuite-list len)
+        MATH(EXPR lastItem "${len}-1")
+        LIST(GET testsuite-list "${lastItem}" testsuite-short)
+
+	    CXXTEST_ADD_TEST(2013-CaroloCup-${testsuite-short}-TestSuite ${testsuite-short}-TestSuite.cpp ${testsuite})
+	    TARGET_LINK_LIBRARIES(2013-CaroloCup-${testsuite-short}-TestSuite 2013-CaroloCup-VCRlib ${CCDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS} ${OpenCV_LIBS})
+    ENDFOREACH()
 ENDIF(CXXTEST_FOUND)

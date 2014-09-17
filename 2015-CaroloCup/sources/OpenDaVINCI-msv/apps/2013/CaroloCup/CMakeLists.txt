@@ -16,9 +16,6 @@ ADD_SUBDIRECTORY (cc-data)
 ADD_SUBDIRECTORY (sensorboard)
 ADD_SUBDIRECTORY (testsensorboardsender)
 
-# Application for receiving data from hesperia or a USB camera.
-ADD_SUBDIRECTORY (lanedetector)
-
 # Application for sending driving commands.
 ADD_SUBDIRECTORY (driver)
 
@@ -32,11 +29,16 @@ ADD_SUBDIRECTORY (extradriver)
 # Application for sending parking commands.
 ADD_SUBDIRECTORY (parkingdriver)
 
-# Application for recording the onboard video data.
-ADD_SUBDIRECTORY (VCR)
+# Disable QT and OpenCV apps on platforms missing those libraries.
+IF((NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin") AND (NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "FreeBSD") AND (NOT WIN32) AND (NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "NetBSD") AND (NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "OpenBSD"))
+    ADD_SUBDIRECTORY (UDP_Server)
 
-# Application to wrap the motor controller.
-ADD_SUBDIRECTORY (UDP_Server)
+    # Application for recording the onboard video data.
+    ADD_SUBDIRECTORY (VCR)
+
+    # Application for receiving data from hesperia or a USB camera.
+    ADD_SUBDIRECTORY (lanedetector)
+ENDIF()
 
 # Special target to simplify the rsync command.
 IF("${PANDABOARD}" STREQUAL "YES")
@@ -52,5 +54,4 @@ ADD_CUSTOM_TARGET(push2meili-2-CaroloCup-2013
     DEPENDS cc-data sensorboard lanedetector driver proxy
 )
 ENDIF("${PANDABOARD}" STREQUAL "YES")
-
 

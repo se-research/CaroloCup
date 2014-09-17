@@ -23,32 +23,27 @@ namespace supercomponent {
         deleteAllModules();
     }
 
-    void ConnectedModules::addModule(const ModuleDescriptor& md, ConnectedModule* module)
-    {
+    void ConnectedModules::addModule(const ModuleDescriptor& md, ConnectedModule* module) {
         Lock l(m_modulesMutex);
         m_modules[md] = module;
     }
 
-    ConnectedModule* ConnectedModules::getModule(const ModuleDescriptor& md)
-    {
+    ConnectedModule* ConnectedModules::getModule(const ModuleDescriptor& md) {
         Lock l(m_modulesMutex);
         return m_modules[md];
     }
 
-    void ConnectedModules::removeModule(const ModuleDescriptor& md)
-    {
+    void ConnectedModules::removeModule(const ModuleDescriptor& md) {
         Lock l(m_modulesMutex);
         m_modules.erase(md);
     }
 
-    bool ConnectedModules::hasModule(const ModuleDescriptor& md)
-    {
+    bool ConnectedModules::hasModule(const ModuleDescriptor& md) {
         Lock l(m_modulesMutex);
         return (m_modules.count(md) != 0);
     }
 
-    void ConnectedModules::deleteAllModules()
-    {
+    void ConnectedModules::deleteAllModules() {
         Lock l(m_modulesMutex);
         map< core::data::dmcp::ModuleDescriptor,
              ConnectedModule*,

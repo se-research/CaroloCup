@@ -35,6 +35,8 @@ namespace core {
          * }
          * ...
          * @endcode
+         *
+         * If a mutex gets destroyed it will be unlocked before automatically!
          */
         class OPENDAVINCI_API Mutex {
             private:

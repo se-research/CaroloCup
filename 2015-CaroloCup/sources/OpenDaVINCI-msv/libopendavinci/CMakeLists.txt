@@ -24,10 +24,6 @@ IF("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
     SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_LINUX_RT")
 ENDIF("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
 
-CHECK_INCLUDE_FILE_CXX(boost/algorithm/string.hpp HAVE_BOOST_LIBRARIES "-I${Boost_INCLUDE_DIRS}")
-CHECK_INCLUDE_FILE_CXX(boost/spirit/include/classic_core.hpp HAVE_BOOST_NEWSPIRIT "-I${Boost_INCLUDE_DIRS}")
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/include/core/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/core/config.h)
-
 ###############################################################################
 # Set include directories (config.h is generated to ${CMAKE_CURRENT_BINARY_DIR}/include/core").
 INCLUDE_DIRECTORIES (${CMAKE_CURRENT_BINARY_DIR}/include)
@@ -45,31 +41,28 @@ FILE(GLOB_RECURSE libopendavinci-sources "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
 # Remove POSIX files on WIN32.
 IF(WIN32)
     # Set flag for exporting symbols.
-    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DOPENDAVINCI_EXPORTS")
+    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DOPENDAVINCI_EXPORTS")
     
     # Exclude POSIX files.
     FOREACH(item ${libopendavinci-sources})
       IF(${item} MATCHES "POSIX.+.cpp")
         LIST(REMOVE_ITEM libopendavinci-sources ${item})
-      ENDIF(${item} MATCHES "POSIX.+.cpp")
-    ENDFOREACH(item)
-ENDIF(WIN32)
+      ENDIF()
+    ENDFOREACH()
+ENDIF()
 
-# Remove Boost files on UNIX if not available.
+# Uncomment the following line to compile the WIN32 sources.
+#SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+# Remove WIN32 files on POSIX.
 IF(UNIX)
-    IF(NOT Boost_FOUND)
-        MESSAGE("(libopendavinci): Disabling Boost sources.")
-
-        SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DOPENDAVINCI_NOBOOST")
-
-        # Exclude POSIX files.
-        FOREACH(item ${libopendavinci-sources})
-          IF(${item} MATCHES "Boost.+.cpp")
-            LIST(REMOVE_ITEM libopendavinci-sources ${item})
-          ENDIF(${item} MATCHES "Boost.+.cpp")
-        ENDFOREACH(item)
-    ENDIF(NOT Boost_FOUND)
-ENDIF(UNIX)
+    # Exclude WIN32 files.
+    FOREACH(item ${libopendavinci-sources})
+      IF(${item} MATCHES "WIN32.+.cpp")
+        LIST(REMOVE_ITEM libopendavinci-sources ${item})
+      ENDIF()
+    ENDFOREACH()
+ENDIF()
 
 ###############################################################################
 ADD_LIBRARY (opendavinci STATIC ${libopendavinci-sources})
@@ -85,8 +78,16 @@ INSTALL(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/" DESTINATION include PAT
 ###############################################################################
 # Enable CxxTest for all available testsuites.
 IF(CXXTEST_FOUND)
-	FILE(GLOB_RECURSE libopendavinci-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
-	
-	CXXTEST_ADD_TEST(OpenDaVINCITestSuite OpenDaVINCITestSuite.cpp ${libopendavinci-testsuites})
-	TARGET_LINK_LIBRARIES(OpenDaVINCITestSuite opendavinci ${OPENDAVINCI_LIBS} ${LIBS} ${THIRDPARTY_LIBS})
+	FILE(GLOB libopendavinci-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
+
+    FOREACH(testsuite ${libopendavinci-testsuites})
+        STRING(REPLACE "/" ";" testsuite-list ${testsuite})
+
+        LIST(LENGTH testsuite-list len)
+        MATH(EXPR lastItem "${len}-1")
+        LIST(GET testsuite-list "${lastItem}" testsuite-short)
+
+	    CXXTEST_ADD_TEST(${testsuite-short}-TestSuite ${testsuite-short}-TestSuite.cpp ${testsuite})
+	    TARGET_LINK_LIBRARIES(${testsuite-short}-TestSuite opendavinci ${OPENDAVINCI_LIBS} ${LIBS} ${THIRDPARTY_LIBS})
+    ENDFOREACH()
 ENDIF(CXXTEST_FOUND)

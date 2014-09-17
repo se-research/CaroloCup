@@ -24,7 +24,7 @@ namespace core {
                 initialize();
             }
 
-            POSIXTCPConnection::POSIXTCPConnection(const std::string& ip, const uint32_t port) :
+            POSIXTCPConnection::POSIXTCPConnection(const std::string& ip, const uint32_t &port) :
                     m_thread(),
                     m_socketMutex(),
                     m_fileDescriptor(-1),
@@ -40,9 +40,10 @@ namespace core {
 
                 std::stringstream portString;
                 portString << port;
+                const std::string &sstr = portString.str();
 
                 addrinfo* res;
-                if ( getaddrinfo(ip.c_str(), portString.str().c_str(), &hints, &res) == -1 ) {
+                if ( getaddrinfo(ip.c_str(), sstr.c_str(), &hints, &res) == -1 ) {
                     freeaddrinfo(res);
                     throw std::string("[PosixTCPConnection] Error while getting info");
                 }
@@ -84,7 +85,7 @@ namespace core {
                 bool ready = true;
 
                 while ( isRunning() && ready ) {
-                    timeout.tv_sec = 5;
+                    timeout.tv_sec = 1;
                     timeout.tv_usec = 0;
 
                     FD_ZERO(&rfds);

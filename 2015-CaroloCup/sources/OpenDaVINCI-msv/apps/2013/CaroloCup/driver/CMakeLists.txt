@@ -22,8 +22,16 @@ INSTALL(TARGETS 2013-CaroloCup-driver RUNTIME DESTINATION bin/2013/CaroloCup REN
 
 # Enable CxxTest for all available testsuites.
 IF(CXXTEST_FOUND)
-    FILE(GLOB_RECURSE driver-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
+    FILE(GLOB driver-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
     
-    CXXTEST_ADD_TEST(2013-CaroloCup-driverTestSuite driverTestSuite.cpp ${driver-testsuites})
-    TARGET_LINK_LIBRARIES(2013-CaroloCup-driverTestSuite 2013-CaroloCup-driverlib ${CCDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS})
+    FOREACH(testsuite ${driver-testsuites})
+        STRING(REPLACE "/" ";" testsuite-list ${testsuite})
+
+        LIST(LENGTH testsuite-list len)
+        MATH(EXPR lastItem "${len}-1")
+        LIST(GET testsuite-list "${lastItem}" testsuite-short)
+
+	    CXXTEST_ADD_TEST(2013-CaroloCup-${testsuite-short}-TestSuite ${testsuite-short}-TestSuite.cpp ${testsuite})
+	    TARGET_LINK_LIBRARIES(2013-CaroloCup-${testsuite-short}-TestSuite 2013-CaroloCup-driverlib ${CCDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS})
+    ENDFOREACH()
 ENDIF(CXXTEST_FOUND)

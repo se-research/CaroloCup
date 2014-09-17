@@ -7,14 +7,15 @@
 #ifndef OPENDAVINCI_CORE_BASE_HASH_H_
 #define OPENDAVINCI_CORE_BASE_HASH_H_
 
-#define OPENDAVINCI_CORE_STRINGLITERAL1(a)                      CharList<a, NullType>
-#define OPENDAVINCI_CORE_STRINGLITERAL2(a, b)                   CharList<a, CharList<b, NullType> >
-#define OPENDAVINCI_CORE_STRINGLITERAL3(a, b, c)                CharList<a, CharList<b, CharList<c, NullType> > >
-#define OPENDAVINCI_CORE_STRINGLITERAL4(a, b, c, d)             CharList<a, CharList<b, CharList<c, CharList<d, NullType> > > >
-#define OPENDAVINCI_CORE_STRINGLITERAL5(a, b, c, d, e)          CharList<a, CharList<b, CharList<c, CharList<d, CharList<e, NullType> > > > >
-#define OPENDAVINCI_CORE_STRINGLITERAL6(a, b, c, d, e, f)       CharList<a, CharList<b, CharList<c, CharList<d, CharList<e, CharList<f, NullType> > > > > >
-#define OPENDAVINCI_CORE_STRINGLITERAL7(a, b, c, d, e, f, g)    CharList<a, CharList<b, CharList<c, CharList<d, CharList<e, CharList<f, CharList<g, NullType> > > > > > >
-#define OPENDAVINCI_CORE_STRINGLITERAL8(a, b, c, d, e, f, g, h) CharList<a, CharList<b, CharList<c, CharList<d, CharList<e, CharList<f, CharList<g, CharList<h, NullType> > > > > > > >
+#define OPENDAVINCI_CORE_STRINGLITERAL1(a)                      core::base::CharList<a, core::base::NullType>
+#define OPENDAVINCI_CORE_STRINGLITERAL2(a, b)                   core::base::CharList<a, core::base::CharList<b, core::base::NullType> >
+#define OPENDAVINCI_CORE_STRINGLITERAL3(a, b, c)                core::base::CharList<a, core::base::CharList<b, core::base::CharList<c, core::base::NullType> > >
+#define OPENDAVINCI_CORE_STRINGLITERAL4(a, b, c, d)             core::base::CharList<a, core::base::CharList<b, core::base::CharList<c, core::base::CharList<d, core::base::NullType> > > >
+#define OPENDAVINCI_CORE_STRINGLITERAL5(a, b, c, d, e)          core::base::CharList<a, core::base::CharList<b, core::base::CharList<c, core::base::CharList<d, core::base::CharList<e, core::base::NullType> > > > >
+#define OPENDAVINCI_CORE_STRINGLITERAL6(a, b, c, d, e, f)       core::base::CharList<a, core::base::CharList<b, core::base::CharList<c, core::base::CharList<d, core::base::CharList<e, core::base::CharList<f, core::base::NullType> > > > > >
+#define OPENDAVINCI_CORE_STRINGLITERAL7(a, b, c, d, e, f, g)    core::base::CharList<a, core::base::CharList<b, core::base::CharList<c, core::base::CharList<d, core::base::CharList<e, core::base::CharList<f, core::base::CharList<g, core::base::NullType> > > > > > >
+#define OPENDAVINCI_CORE_STRINGLITERAL8(a, b, c, d, e, f, g, h) core::base::CharList<a, core::base::CharList<b, core::base::CharList<c, core::base::CharList<d, core::base::CharList<e, core::base::CharList<f, core::base::CharList<g, core::base::CharList<h, core::base::NullType> > > > > > > >
+
 
 // core/platform.h must be included to setup platform-dependent header files and configurations.
 #include "core/platform.h"

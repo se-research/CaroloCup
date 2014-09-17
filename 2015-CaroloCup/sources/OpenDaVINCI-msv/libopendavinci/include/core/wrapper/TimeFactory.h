@@ -17,8 +17,8 @@
 
 #include "core/wrapper/TimeFactoryWorker.h"
 
-#ifdef HAVE_BOOST_LIBRARIES
-    #include "core/wrapper/Boost/BoostTimeFactoryWorker.h"
+#ifdef WIN32
+    #include "core/wrapper/WIN32/WIN32TimeFactoryWorker.h"
 #endif
 #ifndef WIN32
     #include "core/wrapper/POSIX/POSIXTimeFactoryWorker.h"
@@ -29,7 +29,7 @@ namespace core {
 
         /**
          * Factory for creating wrapped times (i.e.
-         * time data structures based on Boost, POSIX, ...).
+         * time data structures based on Win32, POSIX, ...).
          *
             * It can be used as follows:
             *
@@ -63,7 +63,7 @@ namespace core {
         class OPENDAVINCI_API SystemTimeFactory
         {
             public:
-                // Product type created by factory
+                // Product type created by factory.
                 typedef SystemLibraryProducts product_type;
 
                 // Configuration for factory.
@@ -72,11 +72,11 @@ namespace core {
                 // Factory method to create a concrete product
                 typedef TimeFactoryWorker<configuration_value::value> worker_type;
 
-                // Wrapper-Funktion, um die bisherige Verwendung der Factory-Klasse zu gewährleisten.
+                // Wrapper to preserve current functionality.
                 static worker_type getInstance() { return instance; }
 
             protected:
-                // Wrapper, um die bisherige Verwendung der Factory-Klasse zu gewährleisten.
+                // Wrapper to preserve current functionality.
                 static worker_type instance;
         };
 

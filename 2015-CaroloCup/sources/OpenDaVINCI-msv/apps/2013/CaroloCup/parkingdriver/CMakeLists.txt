@@ -13,17 +13,25 @@ INCLUDE_DIRECTORIES (include)
 
 # Recipe for building "parkingdriver".
 FILE(GLOB_RECURSE parkingdriver-sources "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
-ADD_LIBRARY (parkingdriverlib STATIC ${parkingdriver-sources})
-ADD_EXECUTABLE (parkingdriver "${CMAKE_CURRENT_SOURCE_DIR}/apps/MainModule.cpp")
-TARGET_LINK_LIBRARIES (parkingdriver parkingdriverlib ${CCDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS}) 
+ADD_LIBRARY (2013-CaroloCup-parkingdriverlib STATIC ${parkingdriver-sources})
+ADD_EXECUTABLE (2013-CaroloCup-parkingdriver "${CMAKE_CURRENT_SOURCE_DIR}/apps/MainModule.cpp")
+TARGET_LINK_LIBRARIES (2013-CaroloCup-parkingdriver 2013-CaroloCup-parkingdriverlib ${CCDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS}) 
 
 # Recipe for installing "parkingdriver".
-INSTALL(TARGETS parkingdriver RUNTIME DESTINATION bin/2013/CaroloCup) 
+INSTALL(TARGETS 2013-CaroloCup-parkingdriver RUNTIME DESTINATION bin/2013/CaroloCup) 
 
 # Enable CxxTest for all available testsuites.
 IF(CXXTEST_FOUND)
-    FILE(GLOB_RECURSE parkingdriver-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
+    FILE(GLOB parkingdriver-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
     
-    CXXTEST_ADD_TEST(parkingdriverTestSuite parkingdriverTestSuite.cpp ${parkingdriver-testsuites})
-    TARGET_LINK_LIBRARIES(parkingdriverTestSuite parkingdriverlib ${CCDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS})
+    FOREACH(testsuite ${parkingdriver-testsuites})
+        STRING(REPLACE "/" ";" testsuite-list ${testsuite})
+
+        LIST(LENGTH testsuite-list len)
+        MATH(EXPR lastItem "${len}-1")
+        LIST(GET testsuite-list "${lastItem}" testsuite-short)
+
+	    CXXTEST_ADD_TEST(2013-CaroloCup-${testsuite-short}-TestSuite ${testsuite-short}-TestSuite.cpp ${testsuite})
+	    TARGET_LINK_LIBRARIES(2013-CaroloCup-${testsuite-short}-TestSuite 2013-CaroloCup-parkingdriverlib ${CCDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS})
+    ENDFOREACH()
 ENDIF(CXXTEST_FOUND)

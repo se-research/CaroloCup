@@ -38,7 +38,7 @@ namespace core {
                 public:
                     POSIXTCPConnection(const int32_t fileDescriptor);
 
-                    POSIXTCPConnection(const std::string& ip, const uint32_t port);
+                    POSIXTCPConnection(const std::string& ip, const uint32_t &port);
 
                     virtual ~POSIXTCPConnection();
 

@@ -13,7 +13,7 @@ namespace core {
         enum SerialPortLibraryProducts
         {
                 SerialPortLibraryPosix,
-                SerialPortLibraryBoost
+                SerialPortLibraryWin32
         };
 
     }

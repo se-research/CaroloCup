@@ -22,8 +22,16 @@ INSTALL(TARGETS driver RUNTIME DESTINATION bin/2013/DIT-168/project-template)
 
 # Enable CxxTest for all available testsuites.
 IF(CXXTEST_FOUND)
-    FILE(GLOB_RECURSE driver-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
+    FILE(GLOB driver-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
     
-    CXXTEST_ADD_TEST(driverTestSuite driverTestSuite.cpp ${driver-testsuites})
-    TARGET_LINK_LIBRARIES(driverTestSuite driverlib ${MSVDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS})
+    FOREACH(testsuite ${driver-testsuites})
+        STRING(REPLACE "/" ";" testsuite-list ${testsuite})
+
+        LIST(LENGTH testsuite-list len)
+        MATH(EXPR lastItem "${len}-1")
+        LIST(GET testsuite-list "${lastItem}" testsuite-short)
+
+	    CXXTEST_ADD_TEST(${testsuite-short}-TestSuite ${testsuite-short}-TestSuite.cpp ${testsuite})
+	    TARGET_LINK_LIBRARIES(${testsuite-short}-TestSuite driverlib ${MSVDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS})
+    ENDFOREACH()
 ENDIF(CXXTEST_FOUND)

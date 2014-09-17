@@ -15,7 +15,7 @@ namespace spy {
     using namespace std;
 
     /**
-     * This class can be used to record data distributed
+     * This class can be used to simply display data distributed
      * using a conference.
      */
     class Spy : public core::base::ConferenceClientModule {

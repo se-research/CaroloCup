@@ -23,7 +23,7 @@ namespace core {
          * of the TimeFactoryWorker template class.
          *
          * @See TimeFactory, TimeFactoryWorker,
-         *      SystemLibraryProducts, BoostTimeFactoryWorker,
+         *      SystemLibraryProducts, WIN32TimeFactoryWorker,
          *      POSIXTimeFactoryWorker
          *
          */

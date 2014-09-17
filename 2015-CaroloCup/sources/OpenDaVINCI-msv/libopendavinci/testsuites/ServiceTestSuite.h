@@ -30,12 +30,9 @@ class ServiceTestSuiteService : public Service {
             int32_t i = 2000;
             serviceReady();
             while (isRunning()) {
-                {
+                if (i-- == 400) {
                     Lock l(m_c);
-
-                    if (i-- == 400) {
-                        m_c.wakeAll();
-                    }
+                    m_c.wakeAll();
                 }
                 // Yield other threads.
                 Thread::usleep(1000);
@@ -65,11 +62,9 @@ class SimpleServiceTestSuiteService : public Service {
             int32_t i = 2000;
             serviceReady();
             while (isRunning()) {
-                {
+                if (i == 500) {
                     Lock l(m_c);
-                    if (i == 500) {
-                        m_c.wakeAll();
-                    }
+                    m_c.wakeAll();
                 }
                 if (i == m_boundary) {
                     m_counter.inc();

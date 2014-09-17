@@ -13,7 +13,7 @@ namespace core {
         enum NetworkLibraryProducts
         {
                 NetworkLibraryPosix,
-                NetworkLibraryBoostAsio
+                NetworkLibraryWin32
         };
 
     }

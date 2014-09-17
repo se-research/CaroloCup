@@ -25,6 +25,9 @@ IF (NOT "${PANDABOARD}" STREQUAL "YES")
     FILE(GLOB SCNX "Scenarios/*.scnx")
     INSTALL(FILES ${SCNX} DESTINATION bin/Scenarios)
 
+    FILE(GLOB OBJX "Scenarios/Evaluation/*.scnx")
+    INSTALL(FILES ${OBJX} DESTINATION bin/Scenarios/Evaluation)
+
     FILE(GLOB OBJX "Scenarios/Models/*.objx")
     INSTALL(FILES ${OBJX} DESTINATION bin/Scenarios/Models)
 ENDIF(NOT "${PANDABOARD}" STREQUAL "YES")

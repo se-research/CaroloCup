@@ -45,7 +45,7 @@
 
 	/* Use regular unlink. */
 	#define UNLINK unlink
-	
+
 #elif WIN32
 
 	/* Prevent error C4003. */
@@ -55,8 +55,7 @@
 	#define UNLINK _unlink
 	
 	#include <Winsock2.h>
-	#include "platform/win/stdint.h"
-
+	#include <ws2tcpip.h>
 #endif
 
 /**************************************************************************************/

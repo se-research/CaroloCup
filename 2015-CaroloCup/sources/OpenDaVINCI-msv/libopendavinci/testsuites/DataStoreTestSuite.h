@@ -268,7 +268,8 @@ class DataStoreTest : public CxxTest::TestSuite {
                 Container undefinedDataContainer(Container::UNDEFINEDDATA, sd);
 
                 for (int32_t i = 0; i < 10240; i++) {
-#ifdef WIN32
+                    Thread::usleep(10); // Allow the service to check for data.
+#if defined(WIN32)
                     if (i < 1024*3) {
                         ds->put(0, timeStampContainer);
                     } else {

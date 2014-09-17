@@ -21,8 +21,16 @@ INSTALL(TARGETS player RUNTIME DESTINATION bin LIBRARY DESTINATION lib)
 
 # Enable CxxTest for all available testsuites.
 IF(CXXTEST_FOUND)
-    FILE(GLOB_RECURSE player-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
+    FILE(GLOB player-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
     
-    CXXTEST_ADD_TEST(PlayerTestSuite PlayerTestSuite.cpp ${player-testsuites})
-    TARGET_LINK_LIBRARIES(PlayerTestSuite playerlib ${OPENDAVINCI_LIBS} ${LIBS})
+    FOREACH(testsuite ${player-testsuites})
+        STRING(REPLACE "/" ";" testsuite-list ${testsuite})
+
+        LIST(LENGTH testsuite-list len)
+        MATH(EXPR lastItem "${len}-1")
+        LIST(GET testsuite-list "${lastItem}" testsuite-short)
+
+        CXXTEST_ADD_TEST(${testsuite-short}-TestSuite ${testsuite-short}-TestSuite.cpp ${testsuite})
+        TARGET_LINK_LIBRARIES(${testsuite-short}-TestSuite playerlib ${OPENDAVINCI_LIBS} ${LIBS})
+    ENDFOREACH()
 ENDIF(CXXTEST_FOUND)

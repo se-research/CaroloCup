@@ -15,10 +15,10 @@
 namespace core {
     namespace wrapper {
 
-        /**
-         * Abstract factory for creating wrapped key/value databases (i.e.
-         * based on BerkeleyDB):
-         *
+           /**
+            * Abstract factory for creating wrapped key/value databases (i.e.
+            * based on BerkeleyDB):
+            *
             * It can be used as follows:
             *
             * @code

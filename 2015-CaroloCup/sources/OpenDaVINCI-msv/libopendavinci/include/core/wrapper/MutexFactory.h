@@ -17,7 +17,7 @@ namespace core {
 
         /**
          * Factory for creating wrapped mutexes (i.e.
-         * mutexes based on Boost, pthread, ...).
+         * mutexes based on WIN32, pthread, ...).
          *
             * It can be used as follows:
             *

@@ -5,6 +5,7 @@ Generate test source file for CxxTest.
   -v, --version          Write CxxTest version
   -o, --output=NAME      Write output to file NAME
   --runner=CLASS         Create a main() function that runs CxxTest::CLASS
+  --runnerParam=VALUE    Pass VALUE as string to runner
   --gui=CLASS            Like --runner, with GUI component
   --error-printer        Same as --runner=ErrorPrinter
   --abort-on-fail        Abort tests on failed asserts (like xUnit)
@@ -33,6 +34,7 @@ inBlock = 0
 
 outputFileName = None
 runner = None
+runnerParam = ""
 gui = None
 root = None
 part = None
@@ -78,7 +80,7 @@ def parseCommandline():
     '''Analyze command line arguments'''
     try:
         options, patterns = getopt.getopt( sys.argv[1:], 'o:r:',
-                                           ['version', 'output=', 'runner=', 'gui=',
+                                           ['version', 'output=', 'runner=', 'runnerParam=', 'gui=',
                                             'error-printer', 'abort-on-fail', 'have-std', 'no-std',
                                             'have-eh', 'no-eh', 'template=', 'include=',
                                             'root', 'part', 'no-static-init', 'factor', 'longlong='] )
@@ -89,7 +91,7 @@ def parseCommandline():
 
 def setOptions( options ):
     '''Set options specified on command line'''
-    global outputFileName, templateFileName, runner, gui, haveStandardLibrary, factor, longlong
+    global outputFileName, templateFileName, runner, runnerParam, gui, haveStandardLibrary, factor, longlong
     global haveExceptionHandling, noExceptionHandling, abortOnFail, headers, root, part, noStaticInit
     for o, a in options:
         if o in ('-v', '--version'):
@@ -100,6 +102,8 @@ def setOptions( options ):
             templateFileName = a
         elif o == '--runner':
             runner = a
+        elif o == '--runnerParam':
+            runnerParam = a
         elif o == '--gui':
             gui = a
         elif o == '--include':
@@ -438,7 +442,8 @@ def writeMain( output ):
         output.write( 'int main() {\n' )
         if noStaticInit:
             output.write( ' CxxTest::initialize();\n' )
-        output.write( ' return CxxTest::%s().run();\n' % runner )
+        else:
+            output.write( ' return CxxTest::%s(%s).run();\n' % (runner, runnerParam) )
         output.write( '}\n' )
 
 wroteWorld = 0

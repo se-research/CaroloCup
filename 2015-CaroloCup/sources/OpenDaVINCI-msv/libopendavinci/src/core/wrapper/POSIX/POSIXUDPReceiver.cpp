@@ -14,7 +14,7 @@ namespace core {
 
             using namespace std;
 
-            POSIXUDPReceiver::POSIXUDPReceiver(const string &address, const uint32_t port, const bool &isMulticast) :
+            POSIXUDPReceiver::POSIXUDPReceiver(const string &address, const uint32_t &port, const bool &isMulticast) :
                     m_isMulticast(isMulticast),
                     m_address(),
                     m_mreq(),
@@ -97,11 +97,22 @@ namespace core {
             }
 
             void POSIXUDPReceiver::run() {
+                fd_set rfds;
+                struct timeval timeout;
                 int32_t nbytes = 0;
 
                 struct sockaddr_storage remote;
 
                 while (isRunning()) {
+                    timeout.tv_sec = 1;
+                    timeout.tv_usec = 0;
+
+                    FD_ZERO(&rfds);
+                    FD_SET(m_fd, &rfds);
+
+                    select(m_fd + 1, &rfds, NULL, NULL, &timeout);
+
+                    if (FD_ISSET(m_fd, &rfds)) {
                     // Get data and sender address.
                     size_t addrLength = sizeof(remote);
                     nbytes = recvfrom(m_fd, m_buffer, BUFFER_SIZE, 0, (struct sockaddr *)&remote, (socklen_t*)&addrLength);
@@ -114,6 +125,7 @@ namespace core {
 
                         // ------------------------v (remote address)-----v (data)
                         nextPacket(Packet(string(remoteAddr), string(m_buffer, nbytes)));
+                    }
                     }
                 }
             }

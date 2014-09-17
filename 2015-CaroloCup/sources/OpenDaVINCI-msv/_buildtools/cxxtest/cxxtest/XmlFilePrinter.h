@@ -9,14 +9,15 @@
 
 #include <cxxtest/XmlFormatter.h>
 #include <stdio.h>
+#include <string>
 
 namespace CxxTest 
 {
     class XmlFilePrinter : public XmlFormatter
     {
     public:
-        XmlFilePrinter() :
-            XmlFormatter( new Adapter( fopen( "TestSuiteReport.xml", "w" ) ) ) {}
+        XmlFilePrinter(std::string s) :
+            XmlFormatter( new Adapter( fopen( (s.length() > 0 ? s.c_str() : "TestSuiteReport.xml"), "w" ) ) ) {}
         virtual ~XmlFilePrinter() { delete outputStream(); }
 
     private:

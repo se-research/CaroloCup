@@ -10,9 +10,10 @@
 
 #include "core/base/Lock.h"
 #include "core/base/Thread.h"
+#include "core/base/ConferenceClientModule.h"
+#include "core/data/TimeStamp.h"
 #include "core/exceptions/Exceptions.h"
 #include "core/io/ContainerConferenceFactory.h"
-#include "core/base/ConferenceClientModule.h"
 #include "context/base/Clock.h"
 #include "context/base/RunModuleBreakpoint.h"
 #include "context/base/RuntimeControl.h"
@@ -25,7 +26,6 @@ namespace context {
         using namespace core;
         using namespace core::base;
         using namespace core::io;
-        using namespace core::base;
 
         RuntimeControl::RuntimeControl(const RuntimeControlInterface &sci) :
             m_controlMutex(),
@@ -34,7 +34,11 @@ namespace context {
             m_runtimeControlInterface(sci),
             m_superComponent(NULL),
             m_controlledContainerConferenceFactory(NULL),
-            m_controlledTimeFactory(NULL) {}
+            m_controlledTimeFactory(NULL) {
+            // Initialize TimeFactory to avoid SEGFAULT.
+            core::data::TimeStamp ts;
+            if (ts.getSeconds() > 0) {};
+        }
 
         RuntimeControl::~RuntimeControl() {
             if (!m_tearDownCalled) {
@@ -113,7 +117,7 @@ namespace context {
 
         enum RuntimeControl::ERRORCODES RuntimeControl::runStandalone() {
         	// This method MUST be overriden in subclasses (cf. StandaloneRuntimeControl).
-        	return RuntimeControl::NO_ERROR;
+        	return RuntimeControl::NO_ERROR_OCCURRED;
         }
 
         void RuntimeControl::registerSystemContextComponentsAddControlledContainerConferenceFactory(RuntimeEnvironment &rte) {
@@ -237,7 +241,7 @@ namespace context {
         }
 
         enum RuntimeControl::ERRORCODES RuntimeControl::run(RuntimeEnvironment &rte, const uint32_t &maxRunningTimeInSeconds) {
-            enum ERRORCODES retVal = RuntimeControl::NO_ERROR;
+            enum ERRORCODES retVal = RuntimeControl::NO_ERROR_OCCURRED;
 
             // Check if the user called setup(...) properly.
             enum RUNTIMECONTROL control = RuntimeControl::UNSPECIFIED;

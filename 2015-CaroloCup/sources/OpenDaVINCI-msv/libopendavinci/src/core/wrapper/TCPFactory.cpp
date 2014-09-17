@@ -10,8 +10,8 @@
 #include "core/wrapper/ConfigurationTraits.h"
 #include "core/wrapper/TCPFactoryWorker.h"
 
-#ifdef HAVE_BOOST_LIBRARIES
-    #include "core/wrapper/Boost/BoostTCPFactoryWorker.h"
+#ifdef WIN32
+    #include "core/wrapper/WIN32/WIN32TCPFactoryWorker.h"
 #endif
 
 #ifndef WIN32

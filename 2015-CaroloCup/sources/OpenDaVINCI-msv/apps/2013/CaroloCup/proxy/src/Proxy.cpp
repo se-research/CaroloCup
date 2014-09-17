@@ -253,8 +253,8 @@ namespace carolocup {
 
     string Proxy::createPacket(const string &s) const {
         // Create packet for UDP_Server with crc16 checksum.
-        uint16_t len = s.size();
-        unsigned char buffer[len + 5];
+        const uint16_t len = s.size();
+        unsigned char *buffer = new unsigned char[len + 5];
         buffer[0] = 2;
         buffer[1] = len;
 
@@ -267,6 +267,7 @@ namespace carolocup {
 
         // Send to UDP_Server.
         string retVal((const char*)buffer, len+5);
+        OPENDAVINCI_CORE_DELETE_ARRAY(buffer);
         return retVal;
     }
 

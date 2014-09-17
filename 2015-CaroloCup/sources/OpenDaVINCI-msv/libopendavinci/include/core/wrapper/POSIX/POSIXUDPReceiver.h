@@ -39,7 +39,7 @@ namespace core {
                         * @param port Port.
                         * @param isMulticast true, if this receiver is part of the UDP multicast group specified by address:port.
                         */
-                    POSIXUDPReceiver(const string &address, const uint32_t port, const bool &isMulticast);
+                    POSIXUDPReceiver(const string &address, const uint32_t &port, const bool &isMulticast);
 
                 private:
                     enum {

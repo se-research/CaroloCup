@@ -11,8 +11,8 @@
 #include "core/wrapper/SystemLibraryProducts.h"
 #include "core/wrapper/MutexFactoryWorker.h"
 
-#ifdef HAVE_BOOST_LIBRARIES
-    #include "core/wrapper/Boost/BoostMutexFactoryWorker.h"
+#ifdef WIN32
+    #include "core/wrapper/WIN32/WIN32MutexFactoryWorker.h"
 #endif
 #ifndef WIN32
     #include "core/wrapper/POSIX/POSIXMutexFactoryWorker.h"

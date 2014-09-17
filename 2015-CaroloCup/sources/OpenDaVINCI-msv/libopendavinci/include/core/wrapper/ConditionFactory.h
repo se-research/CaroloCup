@@ -17,7 +17,7 @@ namespace core {
 
         /**
          * Factory for creating conditions using different
-         * implementations (i.e. Boost or POSIX).
+         * implementations (i.e. WIN32 or POSIX).
          *
          * It can be used as follows:
          *

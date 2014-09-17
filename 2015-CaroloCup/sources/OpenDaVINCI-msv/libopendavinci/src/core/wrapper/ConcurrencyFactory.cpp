@@ -12,8 +12,8 @@
 #include "core/wrapper/SystemLibraryProducts.h"
 #include "core/wrapper/ConcurrencyFactoryWorker.h"
 
-#ifdef HAVE_BOOST_LIBRARIES
-  #include "core/wrapper/Boost/BoostConcurrencyFactoryWorker.h"
+#ifdef WIN32
+  #include "core/wrapper/WIN32/WIN32ConcurrencyFactoryWorker.h"
 #endif
 #ifndef WIN32
   #include "core/wrapper/POSIX/POSIXConcurrencyFactoryWorker.h"

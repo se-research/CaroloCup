@@ -18,6 +18,7 @@ namespace tools {
     using namespace core::data;
 
     MemorySegment::MemorySegment() :
+        SerializableData(),
         m_header(),
         m_size(0),
         m_consumedSize(0),
@@ -25,6 +26,7 @@ namespace tools {
     {}
 
     MemorySegment::MemorySegment(const MemorySegment &obj) : 
+        SerializableData(obj),
         m_header(obj.m_header),
         m_size(obj.m_size),
         m_consumedSize(obj.m_consumedSize),

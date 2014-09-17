@@ -18,8 +18,7 @@ namespace supercomponent {
 
     using namespace std;
 
-    class ConnectedModules
-    {
+    class ConnectedModules {
         public:
             ConnectedModules();
             virtual ~ConnectedModules();

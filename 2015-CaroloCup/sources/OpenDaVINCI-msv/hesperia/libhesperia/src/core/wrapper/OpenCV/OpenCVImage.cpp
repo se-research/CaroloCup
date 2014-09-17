@@ -5,7 +5,12 @@
  */
 
 #include <cstdio>
+#include <cstdlib>
 #include <fstream>
+
+#ifndef WIN32
+  #include <unistd.h>
+#endif
 
 #include <opencv/highgui.h>
 
@@ -63,7 +68,9 @@ namespace core {
 #ifdef WIN32
                 tempFileName = _tempnam("test", NULL);
 #else
-                tempFileName = tempnam("test", NULL);
+		tempFileName = (char*)calloc(50, sizeof(tempFileName));
+		strncpy(tempFileName,"/tmp/OpenCVImage-XXXXXX", 23);
+		mkstemp(tempFileName);
 #endif
                 fstream fout(tempFileName, ios::binary | ios::out);
                 char c = 0;

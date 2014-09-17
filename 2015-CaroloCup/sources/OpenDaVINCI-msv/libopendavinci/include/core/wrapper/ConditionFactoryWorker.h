@@ -19,7 +19,7 @@ namespace core {
          * of the ConditionFactoryWorker template class.
          *
          * @See ConditionFactory, ConditionFactoryWorker, SystemLibraryProducts,
-         *      BoostConditionFactoryWorker, POSIXConditionFactoryWorker
+         *      WIN32ConditionFactoryWorker, POSIXConditionFactoryWorker
          */
         template <SystemLibraryProducts product>
         class OPENDAVINCI_API ConditionFactoryWorker

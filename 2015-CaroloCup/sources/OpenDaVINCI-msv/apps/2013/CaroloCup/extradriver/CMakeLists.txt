@@ -22,8 +22,16 @@ INSTALL(TARGETS extradriver RUNTIME DESTINATION bin/2013/CaroloCup)
 
 # Enable CxxTest for all available testsuites.
 IF(CXXTEST_FOUND)
-    FILE(GLOB_RECURSE extradriver-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
-    
-    CXXTEST_ADD_TEST(extradriverTestSuite extradriverTestSuite.cpp ${extradriver-testsuites})
-    TARGET_LINK_LIBRARIES(extradriverTestSuite extradriverlib ${CCDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS})
+    FILE(GLOB extradriver-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
+
+    FOREACH(testsuite ${extradriver-testsuites})
+        STRING(REPLACE "/" ";" testsuite-list ${testsuite})
+
+        LIST(LENGTH testsuite-list len)
+        MATH(EXPR lastItem "${len}-1")
+        LIST(GET testsuite-list "${lastItem}" testsuite-short)
+
+	    CXXTEST_ADD_TEST(${testsuite-short}-TestSuite ${testsuite-short}-TestSuite.cpp ${testsuite})
+	    TARGET_LINK_LIBRARIES(${testsuite-short}-TestSuite extradriverlib ${CCDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS})
+    ENDFOREACH()
 ENDIF(CXXTEST_FOUND)

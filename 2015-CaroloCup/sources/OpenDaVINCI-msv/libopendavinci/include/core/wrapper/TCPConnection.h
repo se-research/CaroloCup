@@ -7,9 +7,10 @@
 #ifndef OPENDAVINCI_CORE_WRAPPER_TCPCONNECTION_H_
 #define OPENDAVINCI_CORE_WRAPPER_TCPCONNECTION_H_
 
+#include <sstream>
+
 // core/platform.h must be included to setup platform-dependent header files and configurations.
 #include "core/platform.h"
-#include <sstream>
 
 #include "core/wrapper/Mutex.h"
 #include "core/wrapper/StringObserver.h"

@@ -19,7 +19,7 @@ namespace core {
 
         /**
          * Abstract factory for creating shared memory between independent
-         * processes using different implementations (i.e. Boost or POSIX).
+         * processes using different implementations (i.e. WIN32 or POSIX).
          */
         struct OPENDAVINCI_API SharedMemoryFactory
         {

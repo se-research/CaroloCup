@@ -4,6 +4,9 @@
  * This software is open source. Please see COPYING and AUTHORS for further information.
  */
 
+#include <algorithm>
+#include <climits>
+
 #include "core/wrapper/POSIX/POSIXSharedMemory.h"
 
 namespace core {
@@ -14,6 +17,7 @@ namespace core {
 
             POSIXSharedMemory::POSIXSharedMemory(const string &name, const uint32_t &size) :
                     m_name(name),
+                    m_internalName(name),
                     m_releaseSharedMemory(true),
                     m_shmID(0),
                     m_mutexSharedMemory(NULL),
@@ -21,18 +25,31 @@ namespace core {
                     m_size(size) {
 
                 if (m_name.size() > 0) {
-                    m_mutexSharedMemory = sem_open(m_name.c_str(), O_CREAT, S_IRUSR | S_IWUSR, 1);
+                    // FreeBSD requires that the semaphore must start with / and does not contain any furhter /'s.
+                    replace(m_internalName.begin(), m_internalName.end(), '/', '_'); // Replace all / by _
+                    m_internalName.insert(0, "/");
+
+                    #ifdef _POSIX_NAME_MAX
+                        const uint32_t MAX_NAME_LENGTH = _POSIX_NAME_MAX;
+                    #else
+                        const uint32_t MAX_NAME_LENGTH = 12;
+                    #endif
+                    if (m_internalName.length() > MAX_NAME_LENGTH) {
+                        m_internalName.resize(MAX_NAME_LENGTH);
+                    }
+
+                    m_mutexSharedMemory = sem_open(m_internalName.c_str(), O_CREAT, S_IRUSR | S_IWUSR, 1);
                     if (m_mutexSharedMemory == SEM_FAILED) {
-                        clog << "Semaphore could not be created." << endl;
-                        sem_unlink(m_name.c_str());
+                        clog << "Semaphore could not be created, errno: " << errno << endl;
+                        sem_unlink(m_internalName.c_str());
                         m_mutexSharedMemory = NULL;
                     } else {
                         // Create the shared memory segment with this name.
-                        const uint32_t hash = getCRC32(name);
+                        const uint32_t hash = getCRC32(m_internalName);
                         m_shmID = shmget(hash, size + sizeof(uint32_t), IPC_CREAT | S_IRUSR | S_IWUSR);
                         if (m_shmID < 0) {
                             clog << "Shared memory could not be requested." << endl;
-                            sem_unlink(m_name.c_str());
+                            sem_unlink(m_internalName.c_str());
                             m_mutexSharedMemory = NULL;
                         } else {
                             // Attach to virtual memory and store its size to the beginning of the shared memory.
@@ -45,6 +62,7 @@ namespace core {
 
             POSIXSharedMemory::POSIXSharedMemory(const string &name) :
                     m_name(name),
+                    m_internalName(name),
                     m_releaseSharedMemory(false),
                     m_shmID(0),
                     m_mutexSharedMemory(NULL),
@@ -52,14 +70,27 @@ namespace core {
                     m_size(0) {
 
                 if (m_name.size() > 0) {
-                    m_mutexSharedMemory = sem_open(m_name.c_str(), 0, S_IRUSR | S_IWUSR, 0);
+                    // FreeBSD requires that the semaphore must start with / and does not contain any furhter /'s.
+                    replace(m_internalName.begin(), m_internalName.end(), '/', '_'); // Replace all / by _
+                    m_internalName.insert(0, "/");
+
+                    #ifdef _POSIX_NAME_MAX
+                        const uint32_t MAX_NAME_LENGTH = _POSIX_NAME_MAX;
+                    #else
+                        const uint32_t MAX_NAME_LENGTH = 12;
+                    #endif
+                    if (m_internalName.length() > MAX_NAME_LENGTH) {
+                        m_internalName.resize(MAX_NAME_LENGTH);
+                    }
+
+                    m_mutexSharedMemory = sem_open(m_internalName.c_str(), 0, S_IRUSR | S_IWUSR, 0);
                     if (m_mutexSharedMemory == SEM_FAILED) {
-                        clog << "Shared memory could not be created." << endl;
+                        clog << "Semaphore could not be created, errno: " << errno << endl;
                         sem_close(m_mutexSharedMemory);
                         m_mutexSharedMemory = NULL;
                     } else {
                         // Create the shared memory segment with this key.
-                        const uint32_t hash = getCRC32(name);
+                        const uint32_t hash = getCRC32(m_internalName);
                         m_shmID = shmget(hash, sizeof(uint32_t), S_IRUSR | S_IWUSR);
                         if (m_shmID < 0) {
                             clog << "Intermediate shared memory could not be requested." << endl;
@@ -92,8 +123,9 @@ namespace core {
                     if (m_mutexSharedMemory != NULL) {
                         sem_close(m_mutexSharedMemory);
                     }
+
                     // Remove semaphore.
-                    sem_unlink(m_name.c_str());
+                    sem_unlink(m_internalName.c_str());
 
                     // Detach shared memory.
                     shmdt(m_sharedMemory);

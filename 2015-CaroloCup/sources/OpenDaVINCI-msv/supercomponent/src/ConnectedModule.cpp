@@ -18,28 +18,23 @@ namespace supercomponent {
         m_hasExitCode(false)
     {}
 
-    ConnectedModule::~ConnectedModule()
-    {
+    ConnectedModule::~ConnectedModule() {
         delete m_connection;
     }
 
-    ModuleState::MODULE_STATE ConnectedModule::getState() const
-    {
+    ModuleState::MODULE_STATE ConnectedModule::getState() const {
         return m_state;
     }
 
-    void ConnectedModule::setExitCode()
-    {
+    void ConnectedModule::setExitCode() {
         m_hasExitCode = true;
     }
 
-    bool ConnectedModule::hasExitCode() const
-    {
+    bool ConnectedModule::hasExitCode() const {
         return m_hasExitCode;
     }
 
-    ModuleConnection& ConnectedModule::getConnection()
-    {
+    ModuleConnection& ConnectedModule::getConnection() {
         return *m_connection;
     }
 

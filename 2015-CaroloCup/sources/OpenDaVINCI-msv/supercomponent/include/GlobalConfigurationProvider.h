@@ -18,8 +18,7 @@ namespace supercomponent {
 
     using namespace std;
 
-    class GlobalConfigurationProvider : public core::dmcp::ModuleConfigurationProvider
-    {
+    class GlobalConfigurationProvider : public core::dmcp::ModuleConfigurationProvider {
         public:
             GlobalConfigurationProvider();
             GlobalConfigurationProvider(const core::base::KeyValueConfiguration& configurations);

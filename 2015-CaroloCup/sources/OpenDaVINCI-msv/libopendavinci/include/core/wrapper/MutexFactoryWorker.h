@@ -23,7 +23,7 @@ namespace core {
          *
          * @See MutexFactory, MutexFactoryWorker,
          *      SystemLibraryProducts,
-         *      BerkeleyDBKeyValueDatabaseFactory, SimpleDBKeyValueDatabaseFactory
+         *      POSIXMutexFactory, WIN32MutexFactory
          */
 
         template <SystemLibraryProducts product>

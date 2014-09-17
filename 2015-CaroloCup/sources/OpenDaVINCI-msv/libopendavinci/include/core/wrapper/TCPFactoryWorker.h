@@ -24,7 +24,7 @@ namespace core {
          * of the TimeFactoryWorker template class.
          *
          * @See TCPFactory, TCPFactoryWorker,
-         *      NetworkLibraryProducts, BoostTCPFactoryWorker,
+         *      NetworkLibraryProducts, WIN32TCPFactoryWorker,
          *      POSIXTCPFactoryWorker
          *
          */

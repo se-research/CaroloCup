@@ -31,8 +31,16 @@ INSTALL(TARGETS STM32F4WrapperApp RUNTIME DESTINATION bin/2013/DIT-168/project-t
 
 # Enable CxxTest for all available testsuites.
 IF(CXXTEST_FOUND)
-    FILE(GLOB_RECURSE proxy-STM32F4-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
-    
-    CXXTEST_ADD_TEST(proxy-STM32F4TestSuite proxy-STM32F4TestSuite.cpp ${proxy-STM32F4-testsuites})
-    TARGET_LINK_LIBRARIES(proxy-STM32F4TestSuite proxy-STM32F4lib ${MSVDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS})
+    FILE(GLOB proxy-STM32F4-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
+       
+    FOREACH(testsuite ${proxy-STM32F4-testsuites})
+        STRING(REPLACE "/" ";" testsuite-list ${testsuite})
+
+        LIST(LENGTH testsuite-list len)
+        MATH(EXPR lastItem "${len}-1")
+        LIST(GET testsuite-list "${lastItem}" testsuite-short)
+
+	    CXXTEST_ADD_TEST(${testsuite-short}-TestSuite ${testsuite-short}-TestSuite.cpp ${testsuite})
+	    TARGET_LINK_LIBRARIES(${testsuite-short}-TestSuite proxy-STM32F4lib ${MSVDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS})
+    ENDFOREACH()
 ENDIF(CXXTEST_FOUND)

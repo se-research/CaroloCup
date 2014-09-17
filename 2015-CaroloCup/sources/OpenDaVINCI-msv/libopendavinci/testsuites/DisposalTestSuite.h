@@ -40,15 +40,19 @@ class DisposalTest : public CxxTest::TestSuite {
             {
                 core::wrapper::DisposalService::getInstance().addDisposableForRegularRemoval((core::wrapper::Disposable**)&trash1regular);
                 core::wrapper::DisposalService::getInstance().addDisposableForFinalRemoval((core::wrapper::Disposable**)&trash2final);
+                core::base::Thread::usleep(5 * 1000 * 1000);
 
                 core::wrapper::DisposalService &ds1 = core::wrapper::DisposalService::getInstance();
                 core::wrapper::DisposalService *ds2 = &ds1;
                 delete ds2;
             }
+
+            // Allow for some thread yielding so that the DisposalService can release the memory.
+            core::base::Thread::usleep(5 * 1000 * 1000);
+
             // DisposableService must contain a list of pointer to pointers!
             TS_ASSERT(trash1regular == NULL);
             TS_ASSERT(trash2final == NULL);
-
         }
 };
 

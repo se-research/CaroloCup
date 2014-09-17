@@ -9,11 +9,6 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 
-
-#ifdef HAVE_UEYE
-#include <ueye.h>
-#endif
-
 #include "core/wrapper/SharedMemoryFactory.h"
 
 #include "Camera.h"

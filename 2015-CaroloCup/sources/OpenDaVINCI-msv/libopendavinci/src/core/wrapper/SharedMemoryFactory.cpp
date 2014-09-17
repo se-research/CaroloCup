@@ -12,8 +12,8 @@
 #include "core/wrapper/SharedMemoryFactoryWorker.h"
 #include "core/wrapper/SystemLibraryProducts.h"
 
-#ifdef HAVE_BOOST_LIBRARIES
-    #include "core/wrapper/Boost/BoostSharedMemoryFactoryWorker.h"
+#ifdef WIN32
+    #include "core/wrapper/WIN32/WIN32SharedMemoryFactoryWorker.h"
 #endif
 #ifndef WIN32
     #include "core/wrapper/POSIX/POSIXSharedMemoryFactoryWorker.h"

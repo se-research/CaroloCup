@@ -671,6 +671,7 @@ class PlayerModuleTest : public CxxTest::TestSuite,
         }
 
         void testRealtimeReplayNoRewindRemoteControl() {
+#if !defined(__FreeBSD__) && !defined(__NetBSD__)
             // Prepare record file.
             fstream fout("PlayerModuleTest.rec", ios::out | ios::binary | ios::trunc);
 
@@ -914,6 +915,7 @@ class PlayerModuleTest : public CxxTest::TestSuite,
             ContainerConferenceFactory &ccf = ContainerConferenceFactory::getInstance();
             ContainerConferenceFactory *ccf2 = &ccf;
             OPENDAVINCI_CORE_DELETE_POINTER(ccf2);
+#endif /* !FreeBSD and !NetBSD */
         }
 };
 

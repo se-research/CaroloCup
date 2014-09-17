@@ -143,7 +143,7 @@ namespace context {
 				tearDownSystemContextComponents(m_rte);
 			}
 
-			return RuntimeControl::NO_ERROR;
+			return RuntimeControl::NO_ERROR_OCCURRED;
 		}
 	}
 } // context::base

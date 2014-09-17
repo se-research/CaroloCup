@@ -24,7 +24,7 @@ namespace core {
          * of the UDPFactoryWorker template class.
          *
          * @See UDPFactory, UDPFactoryWorker,
-         *      NetworkLibraryProducts, BoostUDPFactoryWorker,
+         *      NetworkLibraryProducts, Win32UDPFactoryWorker,
          *      POSIXUDPFactoryWorker
          *
          */

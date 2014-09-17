@@ -37,8 +37,7 @@ namespace supercomponent {
     class SuperComponent : public core::base::MasterModule,
                            protected core::dmcp::connection::ConnectionHandler,
                            protected core::dmcp::ModuleStateListener,
-                           protected core::io::ContainerListener
-   {
+                           protected core::io::ContainerListener {
         private:
             /**
              * "Forbidden" copy constructor. Goal: The compiler should warn
