@@ -3,6 +3,11 @@
 *.lo
 *.o
 
+# Eclipse CDT files 
+*.cproject
+*.project
+*.settings/
+
 # Compiled Dynamic libraries
 *.so
 
