@@ -33,7 +33,7 @@ ENDIF("${PANDABOARD}" STREQUAL "YES")
 # Include directories from core.
 INCLUDE_DIRECTORIES (${libopendavinci_SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES (${libhesperia_SOURCE_DIR}/include)
-INCLUDE_DIRECTORIES (${CMAKE_CURRENT_SOURCE_DIR}/../../apps/2013/DIT-168/msv-data/include)
+INCLUDE_DIRECTORIES (${CMAKE_CURRENT_SOURCE_DIR}/../../apps/2015/msv-data/include)
 INCLUDE_DIRECTORIES (include)
 
 # Recipe for generating MOC files.
@@ -41,7 +41,7 @@ FILE(GLOB_RECURSE cockpit-headers "${CMAKE_CURRENT_SOURCE_DIR}/include" *.h)
 QT4_WRAP_CPP(cockpit-headers-moc ${cockpit-headers})
 
 # Recipe for building "cockpit".
-FILE(GLOB_RECURSE MSVDATA "${CMAKE_CURRENT_SOURCE_DIR}/../../apps/2013/DIT-168/msv-data/src/*.cpp")
+FILE(GLOB_RECURSE MSVDATA "${CMAKE_CURRENT_SOURCE_DIR}/../../apps/2015/msv-data/src/*.cpp")
 
 FILE(GLOB_RECURSE cockpit-sources "${CMAKE_CURRENT_SOURCE_DIR}/src" *.cpp)
 

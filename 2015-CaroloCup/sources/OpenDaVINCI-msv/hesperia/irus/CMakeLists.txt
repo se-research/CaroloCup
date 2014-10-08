@@ -10,10 +10,10 @@ PROJECT (irus)
 INCLUDE_DIRECTORIES (${libopendavinci_SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES (${libhesperia_SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES (include)
-INCLUDE_DIRECTORIES (${CMAKE_CURRENT_SOURCE_DIR}/../../apps/2013/DIT-168/msv-data/include)
+INCLUDE_DIRECTORIES (${CMAKE_CURRENT_SOURCE_DIR}/../../apps/2015/msv-data/include)
 
 # Recipe for building "irus".
-FILE(GLOB_RECURSE MSVDATA "${CMAKE_CURRENT_SOURCE_DIR}/../../apps/2013/DIT-168/msv-data/src/*.cpp")
+FILE(GLOB_RECURSE MSVDATA "${CMAKE_CURRENT_SOURCE_DIR}/../../apps/2015/msv-data/src/*.cpp")
 
 FILE(GLOB_RECURSE irus-sources "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 ADD_LIBRARY (iruslib STATIC ${MSVDATA} ${irus-sources})

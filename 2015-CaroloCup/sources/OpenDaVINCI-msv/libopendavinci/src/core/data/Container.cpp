@@ -182,6 +182,8 @@ namespace core {
                     return "Draw line";
                 case VEHICLECONTROL:
                     return "VehicleControl";
+                case STRINGDATA:
+                    return "StringData";
                 case USER_BUTTON:
                     return "User Button";
                 case USER_DATA_0:
