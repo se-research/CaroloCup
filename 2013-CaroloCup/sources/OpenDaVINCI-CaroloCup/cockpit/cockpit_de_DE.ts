@@ -2,7 +2,7 @@
 <!DOCTYPE TS>
 <TS version="2.0" language="de_DE">
 <context>
-    <name>CockpitWindow</name>
+    <name>cockpit::CockpitWindow</name>
     <message>
         <location filename="src/CockpitWindow.cpp" line="49"/>
         <source>&amp;File</source>
@@ -131,100 +131,7 @@
     </message>
 </context>
 <context>
-    <name>ControllerWidget</name>
-    <message>
-        <location filename="src/plugins/controller/ControllerWidget.cpp" line="49"/>
-        <source>Runtime frequency</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/controller/ControllerWidget.cpp" line="51"/>
-        <source>Runtime frequency [Hz]: </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/controller/ControllerWidget.cpp" line="64"/>
-        <source>Vehicle&apos;s LEDs</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/controller/ControllerWidget.cpp" line="66"/>
-        <source>Brake LEDs</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/controller/ControllerWidget.cpp" line="67"/>
-        <source>Left flashing LEDs</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/controller/ControllerWidget.cpp" line="68"/>
-        <source>Right flashing LEDs</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/controller/ControllerWidget.cpp" line="82"/>
-        <source>Vehicle control (you must click in this area to control by keyboard!)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/controller/ControllerWidget.cpp" line="85"/>
-        <source>w=increase brake, d=decrease brake, up=accel., down=decel., left, right</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>CutterWidget</name>
-    <message>
-        <location filename="src/plugins/cutter/CutterWidget.cpp" line="69"/>
-        <source>Open previous recording file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/cutter/CutterWidget.cpp" line="69"/>
-        <location filename="src/plugins/cutter/CutterWidget.cpp" line="133"/>
-        <source>Recording files (*.rec)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/cutter/CutterWidget.cpp" line="133"/>
-        <source>Save selected types of containers to file</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>IrUsChartsWidget</name>
-    <message>
-        <location filename="src/plugins/iruscharts/IrUsChartsWidget.cpp" line="157"/>
-        <source>Save received containers as .rec file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/iruscharts/IrUsChartsWidget.cpp" line="157"/>
-        <source>Recording files (*.rec)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/iruscharts/IrUsChartsWidget.cpp" line="185"/>
-        <source>Save received containers as .csv file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/iruscharts/IrUsChartsWidget.cpp" line="185"/>
-        <source>CSV files (*.csv)</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>IrUsMapWidgetControl</name>
-    <message>
-        <location filename="src/plugins/irusmap/IrUsMapWidgetControl.cpp" line="42"/>
-        <source>Scale: </source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>PlugInProvider</name>
+    <name>cockpit::plugins::PlugInProvider</name>
     <message>
         <location filename="src/plugins/PlugInProvider.cpp" line="59"/>
         <source>This plugin displays the current configuration.</source>
@@ -267,7 +174,100 @@
     </message>
 </context>
 <context>
-    <name>SpyWidget</name>
+    <name>cockpit::plugins::controller::ControllerWidget</name>
+    <message>
+        <location filename="src/plugins/controller/ControllerWidget.cpp" line="49"/>
+        <source>Runtime frequency</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/controller/ControllerWidget.cpp" line="51"/>
+        <source>Runtime frequency [Hz]: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/controller/ControllerWidget.cpp" line="64"/>
+        <source>Vehicle&apos;s LEDs</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/controller/ControllerWidget.cpp" line="66"/>
+        <source>Brake LEDs</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/controller/ControllerWidget.cpp" line="67"/>
+        <source>Left flashing LEDs</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/controller/ControllerWidget.cpp" line="68"/>
+        <source>Right flashing LEDs</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/controller/ControllerWidget.cpp" line="82"/>
+        <source>Vehicle control (you must click in this area to control by keyboard!)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/controller/ControllerWidget.cpp" line="85"/>
+        <source>w=increase brake, d=decrease brake, up=accel., down=decel., left, right</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cockpit::plugins::cutter::CutterWidget</name>
+    <message>
+        <location filename="src/plugins/cutter/CutterWidget.cpp" line="69"/>
+        <source>Open previous recording file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/cutter/CutterWidget.cpp" line="69"/>
+        <location filename="src/plugins/cutter/CutterWidget.cpp" line="133"/>
+        <source>Recording files (*.rec)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/cutter/CutterWidget.cpp" line="133"/>
+        <source>Save selected types of containers to file</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cockpit::plugins::iruscharts::IrUsChartsWidget</name>
+    <message>
+        <location filename="src/plugins/iruscharts/IrUsChartsWidget.cpp" line="157"/>
+        <source>Save received containers as .rec file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/iruscharts/IrUsChartsWidget.cpp" line="157"/>
+        <source>Recording files (*.rec)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/iruscharts/IrUsChartsWidget.cpp" line="185"/>
+        <source>Save received containers as .csv file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/iruscharts/IrUsChartsWidget.cpp" line="185"/>
+        <source>CSV files (*.csv)</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cockpit::plugins::irusmap::IrUsMapWidgetControl</name>
+    <message>
+        <location filename="src/plugins/irusmap/IrUsMapWidgetControl.cpp" line="42"/>
+        <source>Scale: </source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cockpit::plugins::spy::SpyWidget</name>
     <message>
         <location filename="src/plugins/spy/SpyWidget.cpp" line="54"/>
         <source>Datatype</source>

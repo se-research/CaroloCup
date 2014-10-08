@@ -33,11 +33,6 @@ namespace msv {
     using namespace tools::player;
     using namespace cv;
 
-    //Parameters for finding lanes/////
-    IplImage *m_image_gray;
-    IplImage *dst, *detected_edges;
-    //////////////////////////////////
-
     LaneDetector::LaneDetector(const int32_t &argc, char **argv) : ConferenceClientModule(argc, argv, "lanedetector"),
         m_hasAttachedToSharedImageMemory(false),
         m_sharedImageMemory(),
@@ -126,12 +121,16 @@ namespace msv {
 
 
         // 1. Do something with the image m_image here, for example: find lane marking features, optimize quality, ...
+    	IplImage *m_image_gray;
+    	IplImage *dst; //*detected_edges;
+    	Mat detected_edges;
+
         dst = cvCreateImage(cvSize(m_image->width,m_image->height),IPL_DEPTH_8U,1);
         m_image_gray = cvCreateImage(cvSize(m_image->width,m_image->height),IPL_DEPTH_8U,1);
         cvCvtColor(m_image,m_image_gray,CV_RGB2GRAY);
         Mat mat_m_image_gray(m_image_gray);
-        Mat mat_detected_edges(detected_edges);
-        blur(mat_m_image_gray,mat_detected_edges,Size(3,3));
+        //Mat mat_detected_edges(detected_edges);
+        blur(mat_m_image_gray,detected_edges,Size(3,3));
         Mat mat_dst(dst);
         Canny(mat_dst,mat_dst,0,0,3);
         cvShowImage("---WindowShowImage---",dst);
