@@ -25,6 +25,8 @@
 #include "core/wrapper/SharedMemoryFactory.h"
 #include "LaneDetectionData.h"
 
+#include "tools/player/Player.h"
+
 #include "LaneDetector.h"
 #include <stdio.h>
 #include <math.h>
@@ -40,6 +42,7 @@ using namespace core::base;
 using namespace core::data;
 using namespace core::data::image;
 using namespace cv;
+using namespace tools::player;
 
 bool debug;
 Config cfg;
@@ -143,6 +146,7 @@ bool LaneDetector::readSharedImage(Container &c)
             retVal = true;
         }
     }
+    return retVal;
 
 }
 
@@ -268,8 +272,34 @@ ModuleState::MODULE_EXITCODE LaneDetector::body()
                 processImage();
             }
         }
+
+        deinit_camera();
+    }else{
+    	while (getModuleState() == ModuleState::RUNNING) {
+    	bool has_next_frame = false;
+    	Container c;
+    	Player *player = NULL;
+			if (player != NULL) {
+				// Read the next container from file.
+				c = player->getNextContainerToBeSent();
+			} else {
+				// Get the most recent available container for a SHARED_IMAGE.
+				c = getKeyValueDataStore().get(Container::SHARED_IMAGE);
+			}
+
+			if (c.getDataType() == Container::SHARED_IMAGE) {
+				// Example for processing the received container.
+				has_next_frame = readSharedImage(c);
+			}
+
+			 if (true == has_next_frame) {
+				processImage();
+			 }
+
+		}
+
     }
-    deinit_camera();
+
     waitKey(20);
     return ModuleState::OKAY;
 
