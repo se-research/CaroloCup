@@ -91,6 +91,9 @@ namespace cockpit {
                     QSpinBox *m_timeScale;
                     QCheckBox *m_autoRewind;
                     QLabel *m_desc;
+                    QLabel *m_containerCounterDesc;
+                    int32_t m_containerCounter;
+                    int32_t m_containerCounterTotal;
                     double m_timeScaleFactor;
 
                     tools::player::Player *m_player;

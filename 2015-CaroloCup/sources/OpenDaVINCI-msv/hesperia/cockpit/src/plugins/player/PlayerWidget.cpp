@@ -41,6 +41,9 @@ namespace cockpit {
                 m_timeScale(NULL),
                 m_autoRewind(NULL),
                 m_desc(NULL),
+                m_containerCounterDesc(NULL),
+                m_containerCounter(0),
+                m_containerCounterTotal(0),
                 m_timeScaleFactor(1),
                 m_player(NULL) {
                 // Set size.
@@ -54,6 +57,7 @@ namespace cockpit {
                 fileOperations->addWidget(loadFileBtn);
 
                 m_desc = new QLabel("No file loaded.");
+                m_containerCounterDesc = new QLabel("0/0 container(s) replayed.");
 
                 // Play/pause control.
                 m_playBtn = new QPushButton("Play", this);
@@ -100,6 +104,7 @@ namespace cockpit {
                 QVBoxLayout *mainLayout = new QVBoxLayout(this);
                 mainLayout->addLayout(fileOperations);
                 mainLayout->addWidget(m_desc);
+                mainLayout->addWidget(m_containerCounterDesc);
                 mainLayout->addLayout(operations);
 
                 setLayout(mainLayout);
@@ -128,11 +133,16 @@ namespace cockpit {
             void PlayerWidget::rewind() {
                 if (m_player != NULL) {
                     m_player->rewind();
+                    m_containerCounter = 0;
                 }
                 m_playBtn->setEnabled(true);
                 m_pauseBtn->setEnabled(false);
                 m_stepBtn->setEnabled(true);
                 m_rewindBtn->setEnabled(false);
+
+                stringstream sstr;
+                sstr << m_containerCounter << "/" << m_containerCounterTotal << " container(s) replayed.";
+                m_containerCounterDesc->setText(sstr.str().c_str());
             }
 
             void PlayerWidget::step() {
@@ -149,10 +159,21 @@ namespace cockpit {
                 if (m_player != NULL) {
                     if (!m_player->hasMoreData() && m_autoRewind->isChecked()) {
                         m_player->rewind();
+                        m_containerCounter = 0;
                     }
 
                     // Get container to be sent.
                     Container nextContainerToBeSent = m_player->getNextContainerToBeSent();
+
+                    // Increment the counters.
+                    m_containerCounter++;
+                    if (!(m_containerCounter < m_containerCounterTotal)) {
+                        m_containerCounterTotal = m_containerCounter;
+                    }
+
+                    stringstream sstr;
+                    sstr << m_containerCounter << "/" << m_containerCounterTotal << " container(s) replayed.";
+                    m_containerCounterDesc->setText(sstr.str().c_str());
 
                     // Get delay to wait _after_ sending the container.
                     uint32_t delay = m_player->getDelay() / 1000;
