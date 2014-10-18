@@ -2,36 +2,7 @@
 <!DOCTYPE TS>
 <TS version="2.0" language="de_DE">
 <context>
-    <name>BirdsEyeMapWidget</name>
-    <message>
-        <location filename="src/plugins/birdseyemap/BirdsEyeMapWidget.cpp" line="46"/>
-        <source>SceneGraph</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/birdseyemap/BirdsEyeMapWidget.cpp" line="53"/>
-        <source>Camera:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/birdseyemap/BirdsEyeMapWidget.cpp" line="55"/>
-        <location filename="src/plugins/birdseyemap/BirdsEyeMapWidget.cpp" line="109"/>
-        <source>Free Camera</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/birdseyemap/BirdsEyeMapWidget.cpp" line="60"/>
-        <source>Zoom level:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/birdseyemap/BirdsEyeMapWidget.cpp" line="69"/>
-        <source>Reset ego trace</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>CockpitWindow</name>
+    <name>cockpit::CockpitWindow</name>
     <message>
         <location filename="src/CockpitWindow.cpp" line="49"/>
         <source>&amp;File</source>
@@ -160,196 +131,7 @@
     </message>
 </context>
 <context>
-    <name>ControllerWidget</name>
-    <message>
-        <location filename="src/plugins/controller/ControllerWidget.cpp" line="58"/>
-        <source>Runtime frequency</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/controller/ControllerWidget.cpp" line="60"/>
-        <source>Runtime frequency [Hz]: </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/controller/ControllerWidget.cpp" line="73"/>
-        <source>Vehicle&apos;s LEDs</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/controller/ControllerWidget.cpp" line="75"/>
-        <source>Brake LEDs</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/controller/ControllerWidget.cpp" line="76"/>
-        <source>Left flashing LEDs</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/controller/ControllerWidget.cpp" line="77"/>
-        <source>Right flashing LEDs</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/controller/ControllerWidget.cpp" line="79"/>
-        <source>UserButton</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/controller/ControllerWidget.cpp" line="85"/>
-        <location filename="src/plugins/controller/ControllerWidget.cpp" line="171"/>
-        <source>NOT sending control</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/controller/ControllerWidget.cpp" line="102"/>
-        <source>Vehicle control (you must click in this area to control by keyboard!)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/controller/ControllerWidget.cpp" line="105"/>
-        <source>w=accel., s=decel., up=inc speed, down=dec speed, left, right</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/controller/ControllerWidget.cpp" line="168"/>
-        <source>sending control</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>CutterWidget</name>
-    <message>
-        <location filename="src/plugins/cutter/CutterWidget.cpp" line="69"/>
-        <source>Open previous recording file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/cutter/CutterWidget.cpp" line="69"/>
-        <location filename="src/plugins/cutter/CutterWidget.cpp" line="133"/>
-        <source>Recording files (*.rec)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/cutter/CutterWidget.cpp" line="133"/>
-        <source>Save selected types of containers to file</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>ECUWidget</name>
-    <message>
-        <location filename="src/plugins/ecuviewer/ECUWidget.cpp" line="56"/>
-        <location filename="src/plugins/ecuviewer/ECUWidget.cpp" line="57"/>
-        <location filename="src/plugins/ecuviewer/ECUWidget.cpp" line="58"/>
-        <source>0</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>EnvironmentViewerWidget</name>
-    <message>
-        <location filename="src/plugins/environmentviewer/EnvironmentViewerWidget.cpp" line="51"/>
-        <source>SceneGraph</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/environmentviewer/EnvironmentViewerWidget.cpp" line="58"/>
-        <source>Camera:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/environmentviewer/EnvironmentViewerWidget.cpp" line="60"/>
-        <location filename="src/plugins/environmentviewer/EnvironmentViewerWidget.cpp" line="105"/>
-        <source>Free Camera</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/environmentviewer/EnvironmentViewerWidget.cpp" line="65"/>
-        <source>Background:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/environmentviewer/EnvironmentViewerWidget.cpp" line="67"/>
-        <source>black</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/environmentviewer/EnvironmentViewerWidget.cpp" line="68"/>
-        <source>white</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>IrUsChartsWidget</name>
-    <message>
-        <location filename="src/plugins/iruscharts/IrUsChartsWidget.cpp" line="157"/>
-        <source>Save received containers as .rec file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/iruscharts/IrUsChartsWidget.cpp" line="157"/>
-        <source>Recording files (*.rec)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/iruscharts/IrUsChartsWidget.cpp" line="185"/>
-        <source>Save received containers as .csv file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/iruscharts/IrUsChartsWidget.cpp" line="185"/>
-        <source>CSV files (*.csv)</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>IrUsMapWidgetControl</name>
-    <message>
-        <location filename="src/plugins/irusmap/IrUsMapWidgetControl.cpp" line="42"/>
-        <source>Scale: </source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>OBJXViewerWidget</name>
-    <message>
-        <location filename="src/plugins/objxviewer/OBJXViewerWidget.cpp" line="29"/>
-        <source>op&amp;en .objx..</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/objxviewer/OBJXViewerWidget.cpp" line="30"/>
-        <source>Ctrl+O</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/objxviewer/OBJXViewerWidget.cpp" line="55"/>
-        <source>Open .objx...</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>PlayerWidget</name>
-    <message>
-        <location filename="src/plugins/player/PlayerWidget.cpp" line="80"/>
-        <source>Time scale:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/player/PlayerWidget.cpp" line="195"/>
-        <source>Open previous recording file</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/plugins/player/PlayerWidget.cpp" line="195"/>
-        <source>Recording files (*.rec)</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>PlugInProvider</name>
+    <name>cockpit::plugins::PlugInProvider</name>
     <message>
         <location filename="src/plugins/PlugInProvider.cpp" line="73"/>
         <source>This plugin displays the current configuration.</source>
@@ -427,7 +209,225 @@
     </message>
 </context>
 <context>
-    <name>SCNXViewerWidget</name>
+    <name>cockpit::plugins::birdseyemap::BirdsEyeMapWidget</name>
+    <message>
+        <location filename="src/plugins/birdseyemap/BirdsEyeMapWidget.cpp" line="46"/>
+        <source>SceneGraph</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/birdseyemap/BirdsEyeMapWidget.cpp" line="53"/>
+        <source>Camera:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/birdseyemap/BirdsEyeMapWidget.cpp" line="55"/>
+        <location filename="src/plugins/birdseyemap/BirdsEyeMapWidget.cpp" line="109"/>
+        <source>Free Camera</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/birdseyemap/BirdsEyeMapWidget.cpp" line="60"/>
+        <source>Zoom level:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/birdseyemap/BirdsEyeMapWidget.cpp" line="69"/>
+        <source>Reset ego trace</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cockpit::plugins::controller::ControllerWidget</name>
+    <message>
+        <location filename="src/plugins/controller/ControllerWidget.cpp" line="58"/>
+        <source>Runtime frequency</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/controller/ControllerWidget.cpp" line="60"/>
+        <source>Runtime frequency [Hz]: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/controller/ControllerWidget.cpp" line="73"/>
+        <source>Vehicle&apos;s LEDs</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/controller/ControllerWidget.cpp" line="75"/>
+        <source>Brake LEDs</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/controller/ControllerWidget.cpp" line="76"/>
+        <source>Left flashing LEDs</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/controller/ControllerWidget.cpp" line="77"/>
+        <source>Right flashing LEDs</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/controller/ControllerWidget.cpp" line="79"/>
+        <source>UserButton</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/controller/ControllerWidget.cpp" line="85"/>
+        <location filename="src/plugins/controller/ControllerWidget.cpp" line="171"/>
+        <source>NOT sending control</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/controller/ControllerWidget.cpp" line="102"/>
+        <source>Vehicle control (you must click in this area to control by keyboard!)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/controller/ControllerWidget.cpp" line="105"/>
+        <source>w=accel., s=decel., up=inc speed, down=dec speed, left, right</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/controller/ControllerWidget.cpp" line="168"/>
+        <source>sending control</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cockpit::plugins::cutter::CutterWidget</name>
+    <message>
+        <location filename="src/plugins/cutter/CutterWidget.cpp" line="69"/>
+        <source>Open previous recording file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/cutter/CutterWidget.cpp" line="69"/>
+        <location filename="src/plugins/cutter/CutterWidget.cpp" line="133"/>
+        <source>Recording files (*.rec)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/cutter/CutterWidget.cpp" line="133"/>
+        <source>Save selected types of containers to file</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cockpit::plugins::ecuviewer::ECUWidget</name>
+    <message>
+        <location filename="src/plugins/ecuviewer/ECUWidget.cpp" line="56"/>
+        <location filename="src/plugins/ecuviewer/ECUWidget.cpp" line="57"/>
+        <location filename="src/plugins/ecuviewer/ECUWidget.cpp" line="58"/>
+        <source>0</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cockpit::plugins::environmentviewer::EnvironmentViewerWidget</name>
+    <message>
+        <location filename="src/plugins/environmentviewer/EnvironmentViewerWidget.cpp" line="51"/>
+        <source>SceneGraph</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/environmentviewer/EnvironmentViewerWidget.cpp" line="58"/>
+        <source>Camera:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/environmentviewer/EnvironmentViewerWidget.cpp" line="60"/>
+        <location filename="src/plugins/environmentviewer/EnvironmentViewerWidget.cpp" line="105"/>
+        <source>Free Camera</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/environmentviewer/EnvironmentViewerWidget.cpp" line="65"/>
+        <source>Background:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/environmentviewer/EnvironmentViewerWidget.cpp" line="67"/>
+        <source>black</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/environmentviewer/EnvironmentViewerWidget.cpp" line="68"/>
+        <source>white</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cockpit::plugins::iruscharts::IrUsChartsWidget</name>
+    <message>
+        <location filename="src/plugins/iruscharts/IrUsChartsWidget.cpp" line="157"/>
+        <source>Save received containers as .rec file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/iruscharts/IrUsChartsWidget.cpp" line="157"/>
+        <source>Recording files (*.rec)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/iruscharts/IrUsChartsWidget.cpp" line="185"/>
+        <source>Save received containers as .csv file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/iruscharts/IrUsChartsWidget.cpp" line="185"/>
+        <source>CSV files (*.csv)</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cockpit::plugins::irusmap::IrUsMapWidgetControl</name>
+    <message>
+        <location filename="src/plugins/irusmap/IrUsMapWidgetControl.cpp" line="42"/>
+        <source>Scale: </source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cockpit::plugins::objxviewer::OBJXViewerWidget</name>
+    <message>
+        <location filename="src/plugins/objxviewer/OBJXViewerWidget.cpp" line="29"/>
+        <source>op&amp;en .objx..</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/objxviewer/OBJXViewerWidget.cpp" line="30"/>
+        <source>Ctrl+O</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/objxviewer/OBJXViewerWidget.cpp" line="55"/>
+        <source>Open .objx...</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cockpit::plugins::player::PlayerWidget</name>
+    <message>
+        <location filename="src/plugins/player/PlayerWidget.cpp" line="80"/>
+        <source>Time scale:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/player/PlayerWidget.cpp" line="195"/>
+        <source>Open previous recording file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/player/PlayerWidget.cpp" line="195"/>
+        <source>Recording files (*.rec)</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>cockpit::plugins::scnxviewer::SCNXViewerWidget</name>
     <message>
         <location filename="src/plugins/scnxviewer/SCNXViewerWidget.cpp" line="29"/>
         <source>op&amp;en .scnx..</source>
@@ -445,7 +445,7 @@
     </message>
 </context>
 <context>
-    <name>SpyWidget</name>
+    <name>cockpit::plugins::spy::SpyWidget</name>
     <message>
         <location filename="src/plugins/spy/SpyWidget.cpp" line="55"/>
         <source>Datatype</source>
