@@ -76,6 +76,7 @@ namespace cockpit {
                     core::data::image::SharedImage m_sharedImage;
                     core::SharedPointer<core::wrapper::SharedMemory> m_sharedImageMemory;
                     QImage *m_drawableImage;
+                    QVector<QRgb> m_grayscale;
 
                     QListWidget *m_list;
                     vector<string> m_listOfAvailableSharedImages;

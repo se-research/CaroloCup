@@ -6,6 +6,7 @@
 
 #include <iostream>
 
+#include "opencv2/opencv.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 
@@ -43,7 +44,19 @@ namespace msv {
         bool retVal = false;
         if (m_capture != NULL) {
             if (cvGrabFrame(m_capture)) {
-                m_image = cvRetrieveFrame(m_capture);
+                if (getBPP() == 1) {
+                    IplImage *tmpFrame = cvRetrieveFrame(m_capture);
+
+                    if (m_image == NULL) {
+                        m_image = cvCreateImage(cvGetSize(tmpFrame), IPL_DEPTH_8U, 1);                    
+                    }
+
+                    cvCvtColor(tmpFrame, m_image, CV_BGR2GRAY);
+                }
+                else {
+                    m_image = cvRetrieveFrame(m_capture);
+                }
+
                 retVal = true;
             }
         }

@@ -36,12 +36,16 @@ namespace cockpit {
                     m_sharedImage(),
                     m_sharedImageMemory(),
                     m_drawableImage(NULL),
+                    m_grayscale(),
                     m_list(NULL),
 				    m_listOfAvailableSharedImages(),
 				    m_mapOfAvailableSharedImages() {
 
                 // Set size.
                 setMinimumSize(640, 480);
+
+                // Create grayscale table.
+                for(int i = 0; i < 256; i++) m_grayscale.push_back(qRgb(i,i,i));
 
                 QGridLayout *gridLayout = new QGridLayout(this);
 
@@ -111,9 +115,16 @@ namespace cockpit {
                     m_sharedImageMemory->lock();
 
                     OPENDAVINCI_CORE_DELETE_POINTER(m_drawableImage);
-                    m_drawableImage = new QImage((uchar*)(static_cast<char*>(m_sharedImageMemory->getSharedMemory())), m_sharedImage.getWidth(), m_sharedImage.getHeight(), m_sharedImage.getBytesPerPixel() * m_sharedImage.getWidth(), QImage::Format_RGB888);
-                    if (m_drawableImage != NULL) {
+                    if (m_sharedImage.getBytesPerPixel() == 3) {
+                        m_drawableImage = new QImage((uchar*)(static_cast<char*>(m_sharedImageMemory->getSharedMemory())), m_sharedImage.getWidth(), m_sharedImage.getHeight(), m_sharedImage.getBytesPerPixel() * m_sharedImage.getWidth(), QImage::Format_RGB888);
                         *m_drawableImage = m_drawableImage->rgbSwapped();
+                    }
+                    else if (m_sharedImage.getBytesPerPixel() == 1) {
+                        m_drawableImage = new QImage((uchar*)(static_cast<char*>(m_sharedImageMemory->getSharedMemory())), m_sharedImage.getWidth(), m_sharedImage.getHeight(), m_sharedImage.getBytesPerPixel() * m_sharedImage.getWidth(), QImage::Format_Indexed8);
+                        m_drawableImage->setColorTable(m_grayscale);
+                    }
+
+                    if (m_drawableImage != NULL) {
                         QPainter widgetPainter(this);
                         widgetPainter.drawImage(0, 0, *m_drawableImage);
                     }
