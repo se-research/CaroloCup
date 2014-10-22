@@ -37,6 +37,30 @@ namespace msv {
 
     Camera::~Camera() {}
 
+    const string Camera::getName() const {
+        return m_name;
+    }
+
+    uint32_t Camera::getID() const {
+        return m_id;
+    }
+
+    uint32_t Camera::getWidth() const {
+        return m_width;
+    }
+
+    uint32_t Camera::getHeight() const {
+        return m_height;
+    }
+
+    uint32_t Camera::getBPP() const {
+        return m_bpp;
+    }
+
+    uint32_t Camera::getSize() const {
+        return m_size;
+    }
+
     core::data::image::SharedImage Camera::capture() {
         if (isValid()) {
             if (captureFrame()) {

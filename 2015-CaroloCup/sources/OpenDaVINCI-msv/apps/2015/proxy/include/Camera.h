@@ -77,6 +77,18 @@ namespace msv {
 
             virtual bool isValid() const = 0;
 
+            const string getName() const;
+
+            uint32_t getID() const;
+
+            uint32_t getWidth() const;
+
+            uint32_t getHeight() const;
+
+            uint32_t getBPP() const;
+
+            uint32_t getSize() const;
+
         private:
             core::data::image::SharedImage m_sharedImage;
             core::SharedPointer<core::wrapper::SharedMemory> m_sharedMemory;
