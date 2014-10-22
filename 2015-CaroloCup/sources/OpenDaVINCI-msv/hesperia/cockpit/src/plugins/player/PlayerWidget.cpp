@@ -166,9 +166,11 @@ namespace cockpit {
                     Container nextContainerToBeSent = m_player->getNextContainerToBeSent();
 
                     // Increment the counters.
-                    m_containerCounter++;
-                    if (!(m_containerCounter < m_containerCounterTotal)) {
-                        m_containerCounterTotal = m_containerCounter;
+                    if (m_player->hasMoreData()) {
+                        m_containerCounter++;
+                        if (!(m_containerCounter < m_containerCounterTotal)) {
+                            m_containerCounterTotal = m_containerCounter;
+                        }
                     }
 
                     stringstream sstr;
@@ -187,6 +189,11 @@ namespace cockpit {
                     // Continously playing if "pause" button is enabled.
                     if (m_pauseBtn->isEnabled()) {
                         QTimer::singleShot(delay * m_timeScaleFactor, this, SLOT(sendNextContainer()));
+                    }
+
+                    // If end of file has been reached, stop playback.
+                    if (!m_player->hasMoreData() && !m_autoRewind->isChecked()) {
+                        pause();
                     }
                 }
             }
@@ -216,6 +223,13 @@ namespace cockpit {
                     m_pauseBtn->setEnabled(false);
                     m_stepBtn->setEnabled(true);
                     m_rewindBtn->setEnabled(false);
+
+                    m_containerCounter = 0;
+                    m_containerCounterTotal = 0;
+
+                    stringstream sstr;
+                    sstr << m_containerCounter << "/" << m_containerCounterTotal << " container(s) replayed.";
+                    m_containerCounterDesc->setText(sstr.str().c_str());
                 }
             }
 

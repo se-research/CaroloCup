@@ -338,12 +338,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/plugins/player/PlayerWidget.cpp" line="197"/>
+        <location filename="src/plugins/player/PlayerWidget.cpp" line="202"/>
         <source>Open previous recording file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/plugins/player/PlayerWidget.cpp" line="197"/>
+        <location filename="src/plugins/player/PlayerWidget.cpp" line="202"/>
         <source>Recording files (*.rec)</source>
         <translation type="unfinished"></translation>
     </message>
