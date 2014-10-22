@@ -11,8 +11,8 @@ PROJECT (OPENDAVINCI)
 # Set compile flags.
 IF(UNIX)
     SET (CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-fPIC")
-    #SET (CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-Wno-deprecated -Wall -Werror -Wextra -Wfloat-equal -Wshadow -Wpointer-arith -Wwrite-strings -Wpacked -pipe")
-    SET (CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-Wfloat-equal -Wpointer-arith -Wwrite-strings -Wpacked -Wmissing-format-attribute -ansi -pipe")
+    SET (CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-Wno-deprecated -Wall -Werror -Wextra -Wfloat-equal -Wshadow -Wpointer-arith -Wwrite-strings -Wpacked -pipe")
+
     # Remove "-ansi" flag for clang on Darwin.
     IF((NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin") AND (NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "FreeBSD") AND (NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "NetBSD"))
         SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ansi")

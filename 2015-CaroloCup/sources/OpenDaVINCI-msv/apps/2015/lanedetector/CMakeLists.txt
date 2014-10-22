@@ -14,6 +14,9 @@ INCLUDE_DIRECTORIES (${libopendavinci_SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES (../msv-data/include)
 INCLUDE_DIRECTORIES (include)
 
+# TODO: Remove this line and fix the coding problems in the Legendary code
+SET (CMAKE_CXX_FLAGS "-Wfloat-equal -Wpointer-arith -Wwrite-strings -Wpacked -Wmissing-format-attribute -ansi -pipe")
+
 IF("${PANDABOARD}" STREQUAL "YES")
     SET (CMAKE_C_FLAGS "-pipe -ansi -D PANDABOARD=1")
     SET (CMAKE_CXX_FLAGS "-pipe -ansi -D PANDABOARD=1")
