@@ -38,12 +38,12 @@ namespace msv {
     // Global variables for camera functions
     int  avg_time = 0, num_msmnt;
     double width = 752, height = 480;
+    Mat img;
 
     LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
     	ConferenceClientModule(argc, argv, "lanedetector"),
         m_hasAttachedToSharedImageMemory(false),
         m_sharedImageMemory(),
-        m_image(NULL),
         m_cameraId(-1),
         m_debug(false),
 		m_config(),
@@ -71,17 +71,19 @@ namespace msv {
 
     void LaneDetector::tearDown() {
 	    // This method will be call automatically _after_ return from body().
-	    if (m_image != NULL) {
-		    cvReleaseImage(&m_image);
-	    }
-
 	    if (m_debug) {
 		    cvDestroyWindow("WindowShowImage");
+		    cvDestroyWindow("config");
+	    }
+
+	    if (m_hasAttachedToSharedImageMemory) {
+	    	m_sharedImageMemory.release();
 	    }
     }
 
     bool LaneDetector::readSharedImage(Container &c) {
 	    bool retVal = false;
+	    IplImage* image(NULL);
 
 	    if (c.getDataType() == Container::SHARED_IMAGE) {
 		    SharedImage si = c.getData<SharedImage> ();
@@ -98,23 +100,31 @@ namespace msv {
 			    // Lock the memory region to gain exclusive access. REMEMBER!!! DO NOT FAIL WITHIN lock() / unlock(), otherwise, the image producing process would fail.
 			    m_sharedImageMemory->lock();
 			    {
-				    const uint32_t numberOfChannels = 3;
+				    const uint32_t numberOfChannels = si.getBytesPerPixel();
+				    width =si.getWidth();
+				    height = si.getHeight();
+
 				    // For example, simply show the image.
-				    if (m_image == NULL) {
-					    m_image = cvCreateImage(cvSize(si.getWidth(), si.getHeight()), IPL_DEPTH_8U, numberOfChannels);
+				    if (image == NULL) {
+				    	image = cvCreateImageHeader(cvSize(width, height),IPL_DEPTH_8U,numberOfChannels);
+					    //m_image = cvCreateImage(cvSize(width, height), IPL_DEPTH_8U, numberOfChannels);
 				    }
 
 				    // Copying the image data is very expensive...
-				    if (m_image != NULL) {
-					    memcpy(m_image->imageData,
-							   m_sharedImageMemory->getSharedMemory(),
-							   si.getWidth() * si.getHeight() * numberOfChannels);
+				    if (image != NULL) {
+				    	image->imageData = (char *)m_sharedImageMemory->getSharedMemory();
+				    	Mat rawImg(image, true);
+				    	m_frame = rawImg;
+				    		//memcpy(m_image->imageData,
+							//   (char *)m_sharedImageMemory->getSharedMemory(),
+							 //  width * height * numberOfChannels);
+				    	cvReleaseImage(&image);
 				    }
 			    }
 
 			    // Release the memory region so that the image produce (i.e. the camera for example) can provide the next raw image data.
 			    m_sharedImageMemory->unlock();
-
+			    cout << "Memory unlock" << endl;
 			    // Mirror the image.
 			    //cvFlip(m_image, 0, -1);
 
@@ -146,12 +156,7 @@ namespace msv {
 		cout << "Debug: " << debug << endl;
 		cfg = m_config;
 
-		//Mat neededPart = m_frame(
-		//		cv::Rect(1, 2 * height / 16 - 1, width - 1, 10 * height / 16 - 1));
-
-		IplImage *dst = cvCreateImage(cvGetSize(m_image), 8, 1);
-		cvCvtColor(m_image, dst, CV_BGR2GRAY);
-		Mat neededPart = cv::cvarrToMat(dst); // Fixed bug that prevented to use the shared image
+		Mat neededPart = m_frame(cv::Rect(1, 2*height/16-1, width-1, 10*height/16-1));
 
 		LineDetector road(neededPart, cfg, debug, 1);
 		msv::Lines lines = road.getLines();
@@ -201,6 +206,8 @@ namespace msv {
 			imshow("Result", neededPart);
 		}
 
+		neededPart.release();
+		m_frame.release();
 		waitKey(20);
 
     }
@@ -208,8 +215,10 @@ namespace msv {
     // This method will do the main data processing job.
     // Therefore, it tries to open the real camera first. If that fails, the virtual camera images from camgen are used.
     ModuleState::MODULE_EXITCODE LaneDetector::body() {
+
 	    // Get configuration data.
 	    KeyValueConfiguration kv = getKeyValueConfiguration();
+
 	    m_cameraId = kv.getValue<int32_t> ("lanedetector.camera_id");
 	    m_debug = kv.getValue<int32_t> ("lanedetector.debug") == 1;
 
@@ -252,6 +261,7 @@ namespace msv {
 			if (player != NULL) {  // Read the next container from file.
 				c = player->getNextContainerToBeSent();
 			} else { // Get the most recent available container for a SHARED_IMAGE.
+
 				c = getKeyValueDataStore().get(Container::SHARED_IMAGE);
 			}
 
@@ -266,7 +276,6 @@ namespace msv {
 		    }
 
 	    }
-
 
         OPENDAVINCI_CORE_DELETE_POINTER(player);
 

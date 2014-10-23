@@ -12,8 +12,6 @@
 #include "opencv2/opencv.hpp"
 #include "LineDetectorTypes.h"
 #include "LaneDetectionData.h"
-#include "DBSCAN.h"
-#include "MSAC.h"
 #include <numeric>
 
 using namespace cv;
