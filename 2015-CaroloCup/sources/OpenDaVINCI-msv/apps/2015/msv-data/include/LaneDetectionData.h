@@ -131,10 +131,15 @@ namespace msv {
        */
       void setLaneDetectionData(const Lines &e);
 
+      uint32_t getFrameCount();
+      void setFrameCount(uint32_t count);
+
       virtual ostream& operator<<(ostream &out) const;
       virtual istream& operator>>(istream &in);
       virtual const string toString() const;
+
     private:
+      uint32_t m_frame_count;
       Lines m_lines;
   };
 

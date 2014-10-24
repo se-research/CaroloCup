@@ -20,6 +20,9 @@ ADD_SUBDIRECTORY (driver)
 # Application for connecting to UDP_Server.
 ADD_SUBDIRECTORY (proxy-meili)
 
+# Application for generating csv files of lane detection.
+ADD_SUBDIRECTORY (csvexporter)
+
 # Disable QT and OpenCV apps on platforms missing those libraries.
 IF((NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin") AND (NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "FreeBSD") AND (NOT WIN32) AND (NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "NetBSD") AND (NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "OpenBSD"))
     # Application for connecting to STM32F4 discovery board.

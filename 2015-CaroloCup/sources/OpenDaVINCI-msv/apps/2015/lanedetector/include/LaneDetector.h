@@ -72,6 +72,7 @@ namespace msv {
             bool m_debug;
             Config m_config;
             Mat m_frame;
+            uint32_t m_frame_count;
 
 	        virtual void setUp();
 

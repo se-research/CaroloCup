@@ -47,7 +47,8 @@ namespace msv {
         m_cameraId(-1),
         m_debug(false),
 		m_config(),
-		m_frame()
+		m_frame(),
+		m_frame_count(0)
 	{
 		m_config.th1 = 150;//83;
 		m_config.th2 = 230;
@@ -156,9 +157,10 @@ namespace msv {
 		LineDetector road(neededPart, cfg, debug, 1);
 		msv::Lines lines = road.getLines();
 		if (&lines != NULL)
-			cout << "We have lines!" << endl;
+			cout << "We have lines for frame " <<m_frame_count << endl;
 		LaneDetectionData data;
 		data.setLaneDetectionData(lines);
+		data.setFrameCount(m_frame_count);
 		Container con(Container::USER_DATA_1, data);
 
 		// Send the data:
@@ -262,6 +264,7 @@ namespace msv {
 
 		    // Process the read image.
 		    if (true == has_next_frame) {
+		    	++m_frame_count;
 			    processImage();
 		    }
 
