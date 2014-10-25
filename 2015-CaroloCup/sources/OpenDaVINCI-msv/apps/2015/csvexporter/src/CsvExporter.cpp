@@ -56,29 +56,37 @@ namespace msv{
 
 			    	laneData = c.getData<LaneDetectionData> ();
 			    	lines=laneData.getLaneDetectionData();
-			    	cout<< " I received something yeah!! \n";
+
 
 			    	if (m_out != NULL) {
+			    		cout<< " writing data for frame: " <<laneData.getFrameCount() << "\n";
 
 			    		/*------------------------------------DATA FORMAT(per line)----------------------------------------------------------------------
 			    		 * -------------------------------------------------------------------------------------------------------------------
-			    		 * frame-counter ; leftLine.x ; leftLine.y ; leftLine.z ; leftLine.w ; rightLine.x ; rightLine.y ; rightLine.z ; rightLine.w ; dashedLine.x ; dashedLine.y ; dashedLine.z ; dashedLine.w ; goalLine.p1 ; goalLine.p2 ; goalLine.slope ; currentLine.p1 ; currentLine.p2 ; currentLine.slope ; pGain ; intGain ; derGain ; speed ; width ; height ; startLineHeight ; stopLineHeight
+			    		 * frame-counter ; leftLine.x ; leftLine.y ; leftLine.z ; leftLine.w ; rightLine.x ; rightLine.y ; rightLine.z ; rightLine.w ; dashedLine.x ; dashedLine.y ; dashedLine.z ; dashedLine.w ; goalLine.p1.x ; goalLine.p1.y ; goalLine.p2.x ; goalLine.p2.y ; goalLine.slope ; currentLine.p1.x ; currentLine.p1.y ; currentLine.p2.x ; currentLine.p2.y ; currentLine.slope ; pGain ; intGain ; derGain ; speed ; width ; height ; startLineHeight ; stopLineHeight
 			    		 */
 			    		//frame-counter
 			    		(*m_out) << laneData.getFrameCount()<<";";
+
 			    		//leftLine.x ; leftLine.y ; leftLine.z ; leftLine.w
 			    		(*m_out) << lines.leftLine[0]<<";" << lines.leftLine[1]<<";"<< lines.leftLine[2]<<";"<< lines.leftLine[3]<<";";
+
 			    		//rightLine.x ; rightLine.y ; rightLine.z ; rightLine.w
 			    		(*m_out) << lines.rightLine[0]<<";" << lines.rightLine[1]<<";"<< lines.rightLine[2]<<";"<< lines.rightLine[3]<<";";
+
 			    		//dashedLine.x ; dashedLine.y ; dashedLine.z ; dashedLine.w
 			    		(*m_out) << lines.dashedLine[0]<<";" << lines.dashedLine[1]<<";"<< lines.dashedLine[2]<<";"<< lines.dashedLine[3]<<";";
-			    		// goalLine.p1 ; goalLine.p2 ; goalLine.slope
-			    		(*m_out) << lines.goalLine.p1<<";" << lines.goalLine.p2<<";"<< lines.goalLine.slope<<";";
-			    		//currentLine.p1 ; currentLine.p2 ; currentLine.slope
-			    		(*m_out) << lines.currentLine.p1<<";" << lines.currentLine.p2<<";"<< lines.currentLine.slope<<";";
 
+			    		// goalLine.p1.x ; goalLine.p1.y ; goalLine.p2.x ; goalLine.p2.y ; goalLine.slope
+			    		(*m_out) << lines.goalLine.p1.x<<";"<<lines.goalLine.p1.y<<";" << lines.goalLine.p2.x<<";"<< lines.goalLine.p2.y<<";"<< lines.goalLine.slope<<";";
+
+			    		//currentLine.p1.x ; currentLine.p1.y ; currentLine.p2.x ; currentLine.p2.y ; currentLine.slope
+			    		(*m_out) << lines.currentLine.p1.x<<";"<<lines.currentLine.p1.y<<";" << lines.currentLine.p2.x<<";"<< lines.currentLine.p2.y<<";"<< lines.currentLine.slope<<";";
+
+			    		// pGain ; intGain ; derGain ; speed ; width ; height ; startLineHeight ; stopLineHeight
 			    		(*m_out) << lines.pGain<<";" << lines.intGain<<";" << lines.derGain <<";" <<lines.speed <<";" << lines.width<<";" << lines.height <<";";
 
+			    		// startLineHeight ; stopLineHeight
 			    		(*m_out) << lines.startLineHeight<<";" << lines.stopLineHeight;
 
 			    		//go to new line

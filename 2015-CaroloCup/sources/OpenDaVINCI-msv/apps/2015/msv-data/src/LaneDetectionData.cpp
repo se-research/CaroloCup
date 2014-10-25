@@ -26,13 +26,14 @@ namespace msv {
        }
 
 	LaneDetectionData::LaneDetectionData(const LaneDetectionData &obj) :
-			SerializableData(),m_frame_count(0),
+			SerializableData(),m_frame_count(obj.m_frame_count),
 			m_lines(obj.m_lines) {}
 
 	LaneDetectionData::~LaneDetectionData() {}
 
 	LaneDetectionData& LaneDetectionData::operator=(const LaneDetectionData &obj) {
 		m_lines = obj.m_lines;
+		m_frame_count=obj.m_frame_count;
 		return (*this);
 	}
 
@@ -67,6 +68,9 @@ namespace msv {
 		Serializer &s = sf.getSerializer(out);
 		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL7('e', 'x', 'a', 'm', 'p', 'l', 'e') >::RESULT,
 				(void*)&m_lines, sizeof(m_lines));
+
+		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL7('m', 'f', 'r', 'a', 'm', 'e', 'c') >::RESULT,
+						&m_frame_count,sizeof(m_frame_count));
 		return out;
 	}
 
@@ -76,6 +80,9 @@ namespace msv {
 
 		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL7('e', 'x', 'a', 'm', 'p', 'l', 'e') >::RESULT,
 				(void*)&m_lines, sizeof(m_lines));
+
+		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL7('m', 'f', 'r', 'a', 'm', 'e', 'c') >::RESULT,
+						&m_frame_count,sizeof(m_frame_count));
 
 		return in;
 	}
