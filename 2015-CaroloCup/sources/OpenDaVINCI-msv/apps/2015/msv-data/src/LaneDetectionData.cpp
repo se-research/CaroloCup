@@ -70,7 +70,7 @@ namespace msv {
 				(void*)&m_lines, sizeof(m_lines));
 
 		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL7('m', 'f', 'r', 'a', 'm', 'e', 'c') >::RESULT,
-						&m_frame_count,sizeof(m_frame_count));
+						m_frame_count);
 		return out;
 	}
 
@@ -82,7 +82,7 @@ namespace msv {
 				(void*)&m_lines, sizeof(m_lines));
 
 		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL7('m', 'f', 'r', 'a', 'm', 'e', 'c') >::RESULT,
-						&m_frame_count,sizeof(m_frame_count));
+						m_frame_count);
 
 		return in;
 	}
