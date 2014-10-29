@@ -22,18 +22,19 @@ namespace msv {
 	using namespace cv;
 
 	LaneDetectionData::LaneDetectionData() :
-		m_frame_count(0),m_lines(Vec4i(0,0,0,0),Vec4i(0,0,0,0),Vec4i(0,0,0,0)) {
+		m_frame_count(0),m_lines(Vec4i(0,0,0,0),Vec4i(0,0,0,0),Vec4i(0,0,0,0)),classification() {
        }
 
 	LaneDetectionData::LaneDetectionData(const LaneDetectionData &obj) :
 			SerializableData(),m_frame_count(obj.m_frame_count),
-			m_lines(obj.m_lines) {}
+			m_lines(obj.m_lines),classification() {}
 
 	LaneDetectionData::~LaneDetectionData() {}
 
 	LaneDetectionData& LaneDetectionData::operator=(const LaneDetectionData &obj) {
 		m_lines = obj.m_lines;
 		m_frame_count=obj.m_frame_count;
+		classification=obj.classification;
 		return (*this);
 	}
 
@@ -53,6 +54,14 @@ namespace msv {
 		m_frame_count=count;
 	}
 
+	string LaneDetectionData::getClassification(){
+		return classification;
+	}
+
+	void LaneDetectionData::setClassification(string classfi){
+			classification= classfi;
+		}
+
 	const string LaneDetectionData::toString() const {
 		stringstream s;
 
@@ -71,6 +80,10 @@ namespace msv {
 
 		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL7('m', 'f', 'r', 'a', 'm', 'e', 'c') >::RESULT,
 						m_frame_count);
+
+		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL7('c', 'l', 'a', 's', 's', 'i', 'f') >::RESULT,
+						(void*)&classification, sizeof(classification));
+
 		return out;
 	}
 
@@ -83,6 +96,9 @@ namespace msv {
 
 		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL7('m', 'f', 'r', 'a', 'm', 'e', 'c') >::RESULT,
 						m_frame_count);
+
+		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL7('c', 'l', 'a', 's', 's', 'i', 'f') >::RESULT,
+						(void*)&classification, sizeof(classification));
 
 		return in;
 	}

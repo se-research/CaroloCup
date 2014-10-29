@@ -134,6 +134,10 @@ namespace msv {
       uint32_t getFrameCount();
       void setFrameCount(uint32_t count);
 
+      string getClassification();
+
+      void setClassification(string classfi);
+
       virtual ostream& operator<<(ostream &out) const;
       virtual istream& operator>>(istream &in);
       virtual const string toString() const;
@@ -141,6 +145,7 @@ namespace msv {
     private:
       uint32_t m_frame_count;
       Lines m_lines;
+      string classification;// Inspection classification
   };
 
 } // msv
