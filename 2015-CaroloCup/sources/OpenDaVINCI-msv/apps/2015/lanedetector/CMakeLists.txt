@@ -38,9 +38,16 @@ TARGET_LINK_LIBRARIES (lanedetector lanedetectorlib ${MSVDATA_LIBS} ${OPENDAVINC
 ADD_EXECUTABLE (lanedetector2csvextractor "${CMAKE_CURRENT_SOURCE_DIR}/apps/LaneDetectorToCSVExtractor.cpp")
 TARGET_LINK_LIBRARIES (lanedetector2csvextractor lanedetectorlib ${MSVDATA_LIBS} ${VEHICLECONTEXT_LIBS} ${HESPERIA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS} ${OpenCV_LIBS}) 
 
+#manual inspection
+ADD_EXECUTABLE (lanedetector-inspection "${CMAKE_CURRENT_SOURCE_DIR}/apps/InspectionModule.cpp")
+TARGET_LINK_LIBRARIES (lanedetector-inspection lanedetectorlib ${MSVDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS} ${OpenCV_LIBS}) 
+
 # Recipe for installing "lanedetector".
 INSTALL(TARGETS lanedetector RUNTIME DESTINATION bin/2013/DIT-168/project-template)
 INSTALL(TARGETS lanedetector2csvextractor RUNTIME DESTINATION bin/2013/DIT-168/project-template)
+#manual inspection
+INSTALL(TARGETS lanedetector-inspection RUNTIME DESTINATION bin/2013/DIT-168/project-template)
+
 
 # Enable CxxTest for all available testsuites.
 IF(CXXTEST_FOUND)
