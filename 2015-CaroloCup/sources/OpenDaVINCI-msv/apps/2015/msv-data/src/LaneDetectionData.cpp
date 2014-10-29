@@ -22,19 +22,19 @@ namespace msv {
 	using namespace cv;
 
 	LaneDetectionData::LaneDetectionData() :
-		m_frame_count(0),m_lines(Vec4i(0,0,0,0),Vec4i(0,0,0,0),Vec4i(0,0,0,0)),classification() {
+		m_frame_count(0),m_lines(Vec4i(0,0,0,0),Vec4i(0,0,0,0),Vec4i(0,0,0,0)),m_classification() {
        }
 
 	LaneDetectionData::LaneDetectionData(const LaneDetectionData &obj) :
 			SerializableData(),m_frame_count(obj.m_frame_count),
-			m_lines(obj.m_lines),classification() {}
+			m_lines(obj.m_lines),m_classification(obj.m_classification) {}
 
 	LaneDetectionData::~LaneDetectionData() {}
 
 	LaneDetectionData& LaneDetectionData::operator=(const LaneDetectionData &obj) {
 		m_lines = obj.m_lines;
 		m_frame_count=obj.m_frame_count;
-		classification=obj.classification;
+		m_classification=obj.m_classification;
 		return (*this);
 	}
 
@@ -46,20 +46,20 @@ namespace msv {
 		m_lines = lines;
 	}
 
-	uint32_t LaneDetectionData::getFrameCount(){
+	uint32_t LaneDetectionData::getFrameCount() const {
 		return	m_frame_count;
 	}
 
-	void LaneDetectionData::setFrameCount(uint32_t count){
+	void LaneDetectionData::setFrameCount(const uint32_t &count) {
 		m_frame_count=count;
 	}
 
-	string LaneDetectionData::getClassification(){
-		return classification;
+	const string LaneDetectionData::getClassification() const {
+		return m_classification;
 	}
 
-	void LaneDetectionData::setClassification(string classfi){
-			classification= classfi;
+	void LaneDetectionData::setClassification(const string &classfi) {
+			m_classification= classfi;
 		}
 
 	const string LaneDetectionData::toString() const {
@@ -82,7 +82,7 @@ namespace msv {
 						m_frame_count);
 
 		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL7('c', 'l', 'a', 's', 's', 'i', 'f') >::RESULT,
-						(void*)&classification, sizeof(classification));
+						m_classification);
 
 		return out;
 	}
@@ -98,7 +98,7 @@ namespace msv {
 						m_frame_count);
 
 		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL7('c', 'l', 'a', 's', 's', 'i', 'f') >::RESULT,
-						(void*)&classification, sizeof(classification));
+						m_classification);
 
 		return in;
 	}
