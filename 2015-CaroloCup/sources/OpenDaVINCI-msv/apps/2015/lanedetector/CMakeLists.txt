@@ -13,6 +13,7 @@ SET (OpenCV_LIBS opencv_core opencv_imgproc opencv_highgui)
 INCLUDE_DIRECTORIES (${libopendavinci_SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES (../msv-data/include)
 INCLUDE_DIRECTORIES (include)
+INCLUDE_DIRECTORIES (${libvehiclecontext_SOURCE_DIR}/include)
 
 # TODO: Remove this line and fix the coding problems in the Legendary code
 SET (CMAKE_CXX_FLAGS "-Wfloat-equal -Wpointer-arith -Wwrite-strings -Wpacked -Wmissing-format-attribute -ansi -pipe")
@@ -49,6 +50,6 @@ IF(CXXTEST_FOUND)
         LIST(GET testsuite-list "${lastItem}" testsuite-short)
 
         CXXTEST_ADD_TEST(${testsuite-short}-TestSuite ${testsuite-short}-TestSuite.cpp ${testsuite})
-        TARGET_LINK_LIBRARIES(${testsuite-short}-TestSuite lanedetectorlib ${MSVDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS} ${OpenCV_LIBS})
+        TARGET_LINK_LIBRARIES(${testsuite-short}-TestSuite lanedetectorlib ${MSVDATA_LIBS} ${VEHICLECONTEXT_LIBS} ${HESPERIA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS} ${OpenCV_LIBS})
     ENDFOREACH()
 ENDIF(CXXTEST_FOUND)
