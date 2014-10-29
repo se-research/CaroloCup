@@ -261,7 +261,11 @@ namespace msv {
 		    // Use the shared memory image.
 			Container c;
 			if (player != NULL) {  // Read the next container from file.
-				c = player->getNextContainerToBeSent();
+                if (player->hasMoreData()) {
+    				c = player->getNextContainerToBeSent();
+                }
+                else
+                    break;
 			} else { // Get the most recent available container for a SHARED_IMAGE.
 
 				c = getKeyValueDataStore().get(Container::SHARED_IMAGE);
