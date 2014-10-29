@@ -11,6 +11,12 @@
 
 #include <sstream>
 #include <string>
+#include <iostream>
+
+#include "core/data/Container.h"
+#include "core/io/URL.h"
+#include "core/io/StreamFactory.h"
+#include "core/data/TimeStamp.h"
 
 #include "context/base/DirectInterface.h"
 #include "context/base/RecordingContainer.h"
@@ -19,14 +25,55 @@
 #include "context/base/PlaybackContainer.h"
 #include "vehiclecontext/VehicleRuntimeControl.h"
 
+#include "LaneDetectionData.h"
+
 #include "../include/LaneDetector.h"
 
 using namespace std;
+using namespace core::base;
+using namespace core::data;
+using namespace core::io;
 using namespace context::base;
 using namespace vehiclecontext;
-using namespace core::data;
-using namespace core::data::image;
 using namespace msv;
+
+class CSVExport : public SystemReportingComponent {
+    private:
+        ostream *m_out;
+        string m_url;
+
+    public:
+        CSVExport(const string &url) : m_out(NULL), m_url(url) {}
+
+        void setup() {
+		    URL _url(m_url);
+		    m_out = &(StreamFactory::getInstance().getOutputStream(_url));
+        }
+
+        void tearDown() {
+		    if (m_out != NULL) {
+		        m_out->flush();
+		    }
+        }
+
+        void report(const core::wrapper::Time &/*t*/) {
+            const uint32_t SIZE = getFIFO().getSize();
+            for (uint32_t i = 0; i < SIZE; i++) {
+                Container c = getFIFO().leave();
+                if (c.getDataType() == Container::USER_DATA_1) {
+            		LaneDetectionData data = c.getData<LaneDetectionData>();
+
+                    cerr << "(CSVExporter) Extracting '" << data.toString() << "'." << endl;
+
+                    (*m_out) << data.toString() << endl;
+
+    		        m_out->flush();
+                }
+            }
+			getFIFO().clear();
+        }
+
+};
 
 class LaneDetectorReplayTestSuite : public CxxTest::TestSuite {
     public:
@@ -77,13 +124,18 @@ class LaneDetectorReplayTestSuite : public CxxTest::TestSuite {
             // 4. Instantiate replay.
             PlaybackContainer pbc(FREQ, "file://recorder.rec", MEMORYSEGMENT_SIZE, NUMBER_OF_MEMORYSEGMENTS);
 
+            // 5. CSV Reporter.
+            CSVExport csvReporter("file://lanedetector.csv");
+
             // 5. Compose simulation of system's context.
             RuntimeEnvironment rte;
             rte.add(myLaneDetector);
             rte.add(pbc);
+            rte.add(csvReporter);
 
             // 6. Run application under supervision of RuntimeControl for maximum 100s.
-            TS_ASSERT(vrc.run(rte, 370) == RuntimeControl::APPLICATIONS_FINISHED);
+            // TODO: Remove the following comments to activate this embedded test case.
+//            TS_ASSERT(vrc.run(rte, 370) == RuntimeControl::APPLICATIONS_FINISHED);
 
             // 7. And finally clean up.
             vrc.tearDown();
