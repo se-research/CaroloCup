@@ -131,8 +131,12 @@ namespace msv {
        */
       void setLaneDetectionData(const Lines &e);
 
-      uint32_t getFrameCount();
-      void setFrameCount(uint32_t count);
+      uint32_t getFrameCount() const;
+      void setFrameCount(const uint32_t &count);
+
+      const string getClassification() const;
+
+      void setClassification(const string &classfi);
 
       virtual ostream& operator<<(ostream &out) const;
       virtual istream& operator>>(istream &in);
@@ -141,6 +145,7 @@ namespace msv {
     private:
       uint32_t m_frame_count;
       Lines m_lines;
+      string m_classification;// Inspection classification
   };
 
 } // msv

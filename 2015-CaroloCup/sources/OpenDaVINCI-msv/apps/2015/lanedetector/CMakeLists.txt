@@ -13,6 +13,7 @@ SET (OpenCV_LIBS opencv_core opencv_imgproc opencv_highgui)
 INCLUDE_DIRECTORIES (${libopendavinci_SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES (../msv-data/include)
 INCLUDE_DIRECTORIES (include)
+INCLUDE_DIRECTORIES (${libvehiclecontext_SOURCE_DIR}/include)
 
 # TODO: Remove this line and fix the coding problems in the Legendary code
 SET (CMAKE_CXX_FLAGS "-Wfloat-equal -Wpointer-arith -Wwrite-strings -Wpacked -Wmissing-format-attribute -ansi -pipe")
@@ -34,8 +35,19 @@ ADD_LIBRARY (lanedetectorlib STATIC ${lanedetector-sources})
 ADD_EXECUTABLE (lanedetector "${CMAKE_CURRENT_SOURCE_DIR}/apps/MainModule.cpp")
 TARGET_LINK_LIBRARIES (lanedetector lanedetectorlib ${MSVDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS} ${OpenCV_LIBS}) 
 
+ADD_EXECUTABLE (lanedetector2csvextractor "${CMAKE_CURRENT_SOURCE_DIR}/apps/LaneDetectorToCSVExtractor.cpp")
+TARGET_LINK_LIBRARIES (lanedetector2csvextractor lanedetectorlib ${MSVDATA_LIBS} ${VEHICLECONTEXT_LIBS} ${HESPERIA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS} ${OpenCV_LIBS}) 
+
+#manual inspection
+ADD_EXECUTABLE (lanedetector-inspection "${CMAKE_CURRENT_SOURCE_DIR}/apps/InspectionModule.cpp")
+TARGET_LINK_LIBRARIES (lanedetector-inspection lanedetectorlib ${MSVDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS} ${OpenCV_LIBS}) 
+
 # Recipe for installing "lanedetector".
 INSTALL(TARGETS lanedetector RUNTIME DESTINATION bin/2013/DIT-168/project-template)
+INSTALL(TARGETS lanedetector2csvextractor RUNTIME DESTINATION bin/2013/DIT-168/project-template)
+#manual inspection
+INSTALL(TARGETS lanedetector-inspection RUNTIME DESTINATION bin/2013/DIT-168/project-template)
+
 
 # Enable CxxTest for all available testsuites.
 IF(CXXTEST_FOUND)
@@ -49,6 +61,6 @@ IF(CXXTEST_FOUND)
         LIST(GET testsuite-list "${lastItem}" testsuite-short)
 
         CXXTEST_ADD_TEST(${testsuite-short}-TestSuite ${testsuite-short}-TestSuite.cpp ${testsuite})
-        TARGET_LINK_LIBRARIES(${testsuite-short}-TestSuite lanedetectorlib ${MSVDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS} ${OpenCV_LIBS})
+        TARGET_LINK_LIBRARIES(${testsuite-short}-TestSuite lanedetectorlib ${MSVDATA_LIBS} ${VEHICLECONTEXT_LIBS} ${HESPERIA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS} ${OpenCV_LIBS})
     ENDFOREACH()
 ENDIF(CXXTEST_FOUND)

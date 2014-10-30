@@ -22,7 +22,7 @@
 // Data structures from msv-data library:
 #include "SteeringData.h"
 
-#include "LaneDetector.h"
+#include "LaneDetector_inspection.h"
 
 namespace msv {
 
@@ -39,8 +39,8 @@ namespace msv {
     int  avg_time = 0, num_msmnt;
     double width = 752, height = 480;
     Mat img;
-
-    LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
+    int key;
+    LaneDetector_inspection::LaneDetector_inspection(const int32_t &argc, char **argv) :
     	ConferenceClientModule(argc, argv, "lanedetector"),
         m_hasAttachedToSharedImageMemory(false),
         m_sharedImageMemory(),
@@ -59,9 +59,9 @@ namespace msv {
 		m_config.maxArea = 4;
 	}
 
-    LaneDetector::~LaneDetector() {}
+    LaneDetector_inspection::~LaneDetector_inspection() {}
 
-    void LaneDetector::setUp() {
+    void LaneDetector_inspection::setUp() {
 	    // This method will be call automatically _before_ running body().
 	    if (m_debug) {
 		    // Create an OpenCV-window.
@@ -70,7 +70,7 @@ namespace msv {
 	    }
     }
 
-    void LaneDetector::tearDown() {
+    void LaneDetector_inspection::tearDown() {
 	    // This method will be call automatically _after_ return from body().
 	    if (m_debug) {
 		    cvDestroyWindow("WindowShowImage");
@@ -82,7 +82,7 @@ namespace msv {
 	    }
     }
 
-    bool LaneDetector::readSharedImage(Container &c) {
+    bool LaneDetector_inspection::readSharedImage(Container &c) {
 	    bool retVal = false;
 	    IplImage* image(NULL);
 
@@ -142,13 +142,13 @@ namespace msv {
 
         line( *dst, Point(dashed[0], dashed[1]+offset), Point(dashed[2], dashed[3]+offset), Scalar(0,255,0), 3, CV_AA);
         line( *dst, Point(solidRight[0], solidRight[1]+offset), Point(solidRight[2], solidRight[3]+offset), Scalar(255,0,0), 3, CV_AA);
-        line( *dst, Point(solidLeft[0], solidLeft[1]+offset), Point(solidLeft[2], solidLeft[3]+offset), Scalar(0,0,255), 3, CV_AA);
-        line( *dst, lines->goalLine.p1, lines->goalLine.p2, 255, 3, CV_AA);
-        line( *dst, lines->currentLine.p1, lines->currentLine.p2, 0, 3, CV_AA);
+        line( *dst, Point(solidLeft[0], solidLeft[1]+offset), Point(solidLeft[2], solidLeft[3]+offset), Scalar(255,255,255), 3, CV_AA);
+        line( *dst, lines->goalLine.p1, lines->goalLine.p2, Scalar(200,0,0), 3, CV_AA);
+        line( *dst, lines->currentLine.p1, lines->currentLine.p2, Scalar(200,0,0), 3,CV_AA);
     }
 
     // You should start your work in this method.
-    void LaneDetector::processImage()
+    void LaneDetector_inspection::processImage()
     {
 
 		TimeStamp currentTime_strt1;
@@ -166,12 +166,15 @@ namespace msv {
 		LaneDetectionData data;
 		data.setLaneDetectionData(lines);
 		data.setFrameCount(m_frame_count);
-		Container con(Container::USER_DATA_1, data);
-
-		// Send the data:
-		//cout << "Send..." << endl;
-		getConference().send(con);
-
+		
+		//converting current frame count into string
+		string current_frame;
+		ostringstream convert;
+		convert << m_frame_count;
+		current_frame = convert.str();
+		//end of converting --Need find better way for this ---
+		
+		//some more mess 
 		TimeStamp currentTime_strt7;
 		double timeStep_total = (currentTime_strt7.toMicroseconds()
 				- currentTime_strt1.toMicroseconds()) / 1000.0;
@@ -204,9 +207,71 @@ namespace msv {
 					<< lines.goalLine.p2.y << "]" << endl;
 			cout << "Position [x, y] : [" << lines.currentLine.p2.x << ", "
 					<< lines.currentLine.p2.y << "]" << endl;
-
+			//Putting text on the image for the 4 cases and current frame number
+			putText(neededPart, "TP - 1", cvPoint(30,30), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+			putText(neededPart, "TN - 2", cvPoint(30,60), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+			putText(neededPart, "FP - 3", cvPoint(30,90), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+			putText(neededPart, "FN - 4", cvPoint(30,120), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+			putText(neededPart, "Frame", cvPoint(30,150), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+			putText(neededPart,current_frame, cvPoint(100,150), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
 			imshow("Result", neededPart);
+			
 		}
+		
+		//end of the mess
+		
+		//Inspection part. move to function later
+		bool status= true;
+		string classification;
+		cvWaitKey(50);
+		int key = cvWaitKey(0);
+		
+		cout << key << endl;
+		while(status){
+		  switch(key){
+		    cout << key << endl;
+		    case 49:
+		      classification = "TP";
+		      status = false;
+		      break;
+		    case 50:
+		      classification = "TN";
+		      status = false;
+		      break;
+		    case 51:
+		      classification = "FP";
+		      status = false;
+		      break;
+		    case 52:
+		      classification = "FN";
+		      status = false;
+		      break;
+		    default:
+		      status = true;
+		      cvWaitKey(50);
+		      key = cvWaitKey(0);
+		      break;
+		    }
+		
+		}
+		data.setClassification(classification);
+		cout << "classification : " + classification <<endl;
+		// end of inspection part --Need to make in nicer way --
+		
+		//seding all data to csv
+		Container con(Container::USER_DATA_1, data);
+
+		// Send the data:
+		//cout << "Send..." << endl;
+		getConference().send(con);
+
+		
 
 		neededPart.release();
 		m_frame.release();
@@ -216,7 +281,7 @@ namespace msv {
 
     // This method will do the main data processing job.
     // Therefore, it tries to open the real camera first. If that fails, the virtual camera images from camgen are used.
-    ModuleState::MODULE_EXITCODE LaneDetector::body() {
+    ModuleState::MODULE_EXITCODE LaneDetector_inspection::body() {
 
 	    // Get configuration data.
 	    KeyValueConfiguration kv = getKeyValueConfiguration();
@@ -238,10 +303,13 @@ namespace msv {
 		}
 
         Player *player = NULL;
+	//m_inspection = kv.getValue<u_int32_t>("lanedetector.inspection")==1;
 
-/*
+
         // Lane-detector can also directly read the data from file. This might be interesting to inspect the algorithm step-wisely.
-        core::io::URL url("file://recorder.rec");
+	// TO-DO: move url to the configuration file
+        core::io::URL url("file:///opt/msv/bin/2013/DIT-168/project-template/FullTrackUEyeCamera.rec");
+	
 
         // Size of the memory buffer.
         const uint32_t MEMORY_SEGMENT_SIZE = kv.getValue<uint32_t>("global.buffer.memorySegmentSize");
@@ -250,10 +318,10 @@ namespace msv {
         const uint32_t NUMBER_OF_SEGMENTS = kv.getValue<uint32_t>("global.buffer.numberOfMemorySegments");
 
         // If AUTO_REWIND is true, the file will be played endlessly.
-        const bool AUTO_REWIND = true;
+        const bool AUTO_REWIND = false;
 
         player = new Player(url, AUTO_REWIND, MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS);
-*/
+
 
         // "Working horse."
 	    while (getModuleState() == ModuleState::RUNNING) {
@@ -279,8 +347,15 @@ namespace msv {
 		    // Process the read image.
 		    if (true == has_next_frame) {
 		    	++m_frame_count;
-			    processImage();
-		    }
+			  processImage();
+			}
+			
+			
+			
+			  
+			   
+			
+		    
 
 	    }
 

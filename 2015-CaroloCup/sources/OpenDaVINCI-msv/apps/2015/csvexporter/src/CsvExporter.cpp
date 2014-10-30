@@ -63,7 +63,7 @@ namespace msv{
 
 			    		/*------------------------------------DATA FORMAT(per line)----------------------------------------------------------------------
 			    		 * -------------------------------------------------------------------------------------------------------------------
-			    		 * frame-counter ; leftLine.x ; leftLine.y ; leftLine.z ; leftLine.w ; rightLine.x ; rightLine.y ; rightLine.z ; rightLine.w ; dashedLine.x ; dashedLine.y ; dashedLine.z ; dashedLine.w ; goalLine.p1.x ; goalLine.p1.y ; goalLine.p2.x ; goalLine.p2.y ; goalLine.slope ; currentLine.p1.x ; currentLine.p1.y ; currentLine.p2.x ; currentLine.p2.y ; currentLine.slope ; pGain ; intGain ; derGain ; speed ; width ; height ; startLineHeight ; stopLineHeight
+			    		 * frame-counter ; leftLine.x ; leftLine.y ; leftLine.z ; leftLine.w ; rightLine.x ; rightLine.y ; rightLine.z ; rightLine.w ; dashedLine.x ; dashedLine.y ; dashedLine.z ; dashedLine.w ; goalLine.p1.x ; goalLine.p1.y ; goalLine.p2.x ; goalLine.p2.y ; goalLine.slope ; currentLine.p1.x ; currentLine.p1.y ; currentLine.p2.x ; currentLine.p2.y ; currentLine.slope ; pGain ; intGain ; derGain ; speed ; width ; height ; startLineHeight ; stopLineHeight;classification
 			    		 */
 			    		//frame-counter
 			    		(*m_out) << laneData.getFrameCount()<<";";
@@ -87,7 +87,10 @@ namespace msv{
 			    		(*m_out) << lines.pGain<<";" << lines.intGain<<";" << lines.derGain <<";" <<lines.speed <<";" << lines.width<<";" << lines.height <<";";
 
 			    		// startLineHeight ; stopLineHeight
-			    		(*m_out) << lines.startLineHeight<<";" << lines.stopLineHeight;
+			    		(*m_out) << lines.startLineHeight<<";" << lines.stopLineHeight<<";";
+
+			    		//classification
+			    		(*m_out) << laneData.getClassification();
 
 			    		//go to new line
 			    		(*m_out) << "\n";
