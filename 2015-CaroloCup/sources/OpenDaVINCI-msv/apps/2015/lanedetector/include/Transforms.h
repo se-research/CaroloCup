@@ -19,6 +19,18 @@ namespace msv {
         float u0, v0;
         float height, length, alpha, beta, gamma;
         Size size;
+        CameraStruct_()
+        	: focal()
+			, focal2()
+        	, u0()
+        	, v0()
+			, height()
+			, length()
+			, alpha()
+			, beta()
+			, gamma()
+			, size()
+			{  }
     } CameraStruct;
 
     Point2f ipm(Point2i img_pt, CameraStruct cam);

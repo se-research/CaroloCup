@@ -13,11 +13,11 @@ Point2f ipm(Point2i img_pt, CameraStruct cam) {
     float u0 = cam.u0;
     float v0 = cam.v0;
     float alpha = cam.alpha;
-    float gamma = cam.gamma;
+    //float gamma = cam.gamma;
     float h = cam.height;
     float a = cam.length;
     float u = img_pt.x, v = img_pt.y;
-    int m = cam.size.height, n = cam.size.width;
+    //int m = cam.size.height, n = cam.size.width;
     /*
     float u_prim = u + n/2, v_prim = v + m/2;
     float a11 = -u_prim*sin(gamma)*cos(alpha)-f*cos(gamma)*cos(alpha);
@@ -71,8 +71,8 @@ Mat getBirdTransMatrix(CameraStruct cam) {
     double dist = cam.height;
     double a = cam.length;
 
-    double w = cam.size.width;
-    double h = cam.size.height;
+    //double w = cam.size.width;
+    //double h = cam.size.height;
     double u0 = cam.u0;
     double v0 = cam.v0;
 

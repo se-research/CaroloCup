@@ -15,6 +15,8 @@
 #include "rt_nonfinite.h"
 #include "rtGetNaN.h"
 #include "rtGetInf.h"
+#include "math.h"
+#include "cmath"
 
 real_T rtInf;
 real_T rtMinusInf;
@@ -44,8 +46,12 @@ void rt_InitInfAndNaN(size_t realSize)
  * Test if value is infinite
  */
 boolean_T rtIsInf(real_T value)
-{
-  return ((value==rtInf || value==rtMinusInf) ? 1U : 0U);
+{ // Use error margin to avoid "float-equal" warnings
+	if ( fabs(value - rtInf) < 0.00001  || fabs(value - rtMinusInf) < 0.00001 )
+		return 1U;
+	else
+		return 0U;
+  //return ((value==rtInf || value==rtMinusInf) ? 1U : 0U);
 }
 
 /* Function: rtIsInfF =================================================
@@ -54,7 +60,11 @@ boolean_T rtIsInf(real_T value)
  */
 boolean_T rtIsInfF(real32_T value)
 {
-  return(((value)==rtInfF || (value)==rtMinusInfF) ? 1U : 0U);
+	if ( fabs(value - rtInfF) < 0.00001  || fabs(value - rtMinusInfF) < 0.00001 )
+			return 1U;
+		else
+			return 0U;
+  //return(((value)==rtInfF || (value)==rtMinusInfF) ? 1U : 0U);
 }
 
 /* Function: rtIsNaN ==================================================
@@ -66,7 +76,8 @@ boolean_T rtIsNaN(real_T value)
 #if defined(_MSC_VER) && (_MSC_VER <= 1200)
   return _isnan(value)? TRUE:FALSE;
 #else
-  return (value!=value)? 1U:0U;
+  return std::isnan(value) ? 1U:0U;
+  //return (value!=value)? 1U:0U;
 #endif
 }
 
@@ -79,7 +90,9 @@ boolean_T rtIsNaNF(real32_T value)
 #if defined(_MSC_VER) && (_MSC_VER <= 1200)
   return _isnan((real_T)value)? true:false;
 #else
-  return (value!=value)? 1U:0U;
+  // Check if "value" is indeterminate or infinite
+  return (std::isnan(value) || std::isinf(value)) ?  1U:0U;
+  //return (value!=value)? 1U:0U;
 #endif
 }
 

@@ -35,12 +35,12 @@ int calcRoadSize, calcRoadAngle;
 float minXI, minYI, YI; 
 
 LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug, const int id)
-    : m_lines(NULL)
+    : m_frame()
+	, m_frameCanny()
+	, m_lines(NULL)
     , m_debug(debug)
     , m_lastSolidRightTop()
     , detectedLines()
-    , m_frame()
-    , m_frameCanny()
     , m_config(cfg)
 {
     m_frame = f.clone();
@@ -55,7 +55,7 @@ LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug, co
 
     //Find dash and solid lines
     findLines(outputImg);
-
+    cout << "Id:" << id << endl;
 
     // View
     if(m_debug) imshow("Output", outputImg);
@@ -77,7 +77,7 @@ Lines LineDetector::getLines()
 	//mylog.open("test.log", ios::out | ios::app);
 	Vec4i dashLine(0,0,0,0), leftLine(0,0,0,0), rightLine(0,0,0,0);
 
-	bool foundR=false, foundL=false, foundD=false, shrinkSize=false;
+	bool foundR=false, foundL=false, foundD=false; // shrinkSize=false; Avoid unused variable warning
 	CustomLine supDashLine, supRightLine, supLeftLine;
         //Pick the suitable dashLine
 	//cout << "Pick lines!" << endl;
@@ -158,7 +158,8 @@ Lines LineDetector::getLines()
 		supLeftLine.p1.x = 0;
 		supLeftLine.p2.x = 0;
 		for(int i = 0; i < cntSolid; i++) {
-		    int centerSolidLineX = (solidLines[i].p1.x + solidLines[i].p2.x)/2;
+		    // centerSolidLineX commented to avoid unused variable warning!
+			//int centerSolidLineX = (solidLines[i].p1.x + solidLines[i].p2.x)/2;
 		    if(solidLines[i].slope > -90 && solidLines[i].slope < 0 && min(solidLines[i].p1.x, solidLines[i].p2.x) > min(supLeftLine.p1.x, supLeftLine.p2.x)){ 
 			supLeftLine = solidLines[i];
 			foundL = true;
@@ -204,7 +205,8 @@ Lines LineDetector::getLines()
 			float b = supRightLine.p1.y - supRightLine.p1.x * a;
 			//cout << a << "*x + " << b << endl;
 			int rightGoalX = (goalP.y - b)/a;
-			if (da != a) {
+			//if (da != a) { To avoid float-equal warning
+			if( fabs(da - a) > 0.001) {
 				vp.x = (b - db) / (da - a);
 			}
 			vp.y = da*vp.x + db;
@@ -266,7 +268,8 @@ Lines LineDetector::getLines()
 				cout << "Expected right line angle: " << expectedRightLineAngle << endl;
 			}
 			//cout << a << "*x + " << b << endl;
-			if (da != a) {
+			//if (da != a) {
+			if( fabs(da - a) > 0.001) {
 				vp.x = (b - db) / (da - a);
 			}
 			vp.y = da*vp.x + db;
@@ -304,7 +307,8 @@ Lines LineDetector::getLines()
 			float da = tan(expectedDashLineAngle * M_PI / 180);
 			float db = goalP.y - expectedDashLineX * da;
 			//cout << da << "*x + " << db << endl;
-			if (da != a) {
+			//if (da != a) {
+			if( fabs(da - a) > 0.001) {
 				vp.x = (b - db) / (da - a);
 			}
 			vp.y = a*vp.x + b;
@@ -339,7 +343,8 @@ Lines LineDetector::getLines()
 			float da = tan(expectedDashLineAngle * M_PI / 180);
 			float db = goalP.y - expectedDashLineX * da;
 			//cout << da << "*x + " << db << endl;
-			if (da != a) {
+			//if (da != a) {
+			if( fabs(da - a) > 0.001) {
 				vp.x = (b - db) / (da - a);
 			}
 			vp.y = a*vp.x + b;
@@ -387,7 +392,7 @@ CustomLine LineDetector::createLineFromRect(RotatedRect* rect, int sizeX, int si
     CustomLine l;
     Point pt1, pt2;
     //cout << "[centerx, centery] = [" << rect->center.x << "," << rect->center.y << "]" << endl;
-    //cout << "Sizes: " << sizeX << " " << sizeY;
+    cout << "Sizes: " << sizeX << " " << sizeY;
     if(rect->angle < 90 ) {
         float angle = rect->angle * M_PI / 180; 
         float xOffset = cos(angle) * sizeY / 2;
@@ -426,7 +431,7 @@ void LineDetector::findLines(cv::Mat &outputImg) {
     solidLines = vector<CustomLine> (contours.size());
     vector<vector<Point> > contours_poly( contours.size() );
     /// Approximate contours to polygons + get min area rects
-    for( int i = 0; i < contours.size(); i++ )
+    for( unsigned int i = 0; i < contours.size(); i++ )
     {
 	approxPolyDP( Mat(contours[i]), contours_poly[i], 3, true );
 	RotatedRect rect = minAreaRect(contours_poly[i]);
@@ -715,59 +720,59 @@ float LineDetector::getLineSlope(Point &p1, Point &p2)
 
 /** Predicts the road angle considering one detected line */
 int LineDetector::getRoadAngle(int lineDetected, int lineAngle){
-   int roadAngle = ROAD_ANGLE;
-   float c1 = (roadAngle - 29.1)/(180 - abs(MID_DASH_ANGLE) - roadAngle);
-   float c2 = (roadAngle - 65.0)/(MID_DASH_ANGLE + 90);
+   int roadAngleNow = ROAD_ANGLE; // Previous declaration was roadAngleNow. Shadows the global variable
+   float c1 = (roadAngleNow - 29.1)/(180 - abs(MID_DASH_ANGLE) - roadAngleNow);
+   float c2 = (roadAngleNow - 65.0)/(MID_DASH_ANGLE + 90);
    //cout << "Road angle consts: " << c1 << "," << c2 << endl;
    switch(lineDetected) {
        case 1: {
            //founded line is right line
 	   if(lineAngle < 63 && lineAngle >= 25) {
-		roadAngle = 29.1 + c1*lineAngle;//1.44
+		roadAngleNow = 29.1 + c1*lineAngle;//1.44
 	   } else if(lineAngle < 25) {
-		roadAngle = 65;
+		roadAngleNow = 65;
 	   }
        }; break;
        case 2: {
            //founded line is dash line
 	   if(lineAngle < 0) {
-               roadAngle = 65 + (lineAngle + 90) * c2;//0.59;
+               roadAngleNow = 65 + (lineAngle + 90) * c2;//0.59;
            } else {
-               roadAngle = 65 + (lineAngle - 90) * c2;//0.59;
+               roadAngleNow = 65 + (lineAngle - 90) * c2;//0.59;
            }
        }; break;
        case 3: {
            //founded line is left line
 	   if(lineAngle > -63 && lineAngle <= -25) {
-		roadAngle = 29.1 - c1*lineAngle; //1.44
+		roadAngleNow = 29.1 - c1*lineAngle; //1.44
 	   } else if(lineAngle > -25) {
-		roadAngle = 65;
+		roadAngleNow = 65;
 	   }
        }; break;
    }
-   return roadAngle;
+   return roadAngleNow;
 }
 
 /** Predicts the road size considering the roadAngle */
-int LineDetector::getRoadSize(int roadAngle) {
-   int roadSize = ROAD_SIZE;
+int LineDetector::getRoadSize(int roadAngleVal) {
+   int roadSizeNow = ROAD_SIZE; // Previous declaration was roadSizeNow. Shadows the global variable
 
-   if(roadAngle > ROAD_ANGLE && roadAngle < (ROAD_ANGLE + 15)) {
-	roadSize = 5*roadAngle + (ROAD_SIZE - ROAD_ANGLE*5);
-   } else if(roadAngle > (ROAD_ANGLE + 15)) {
+   if(roadAngleVal > ROAD_ANGLE && roadAngleVal < (ROAD_ANGLE + 15)) {
+	roadSizeNow = 5*roadAngleVal + (ROAD_SIZE - ROAD_ANGLE*5);
+   } else if(roadAngleVal > (ROAD_ANGLE + 15)) {
 	float a = (ROAD_SIZE -  5)/5;
 	float b = 3*ROAD_SIZE - (ROAD_ANGLE + 25) * a;
-	roadSize = roadAngle * a + b;
-   } else if(roadAngle > (ROAD_ANGLE - 15) && roadAngle < ROAD_ANGLE) {
-	roadSize = 5*(2*ROAD_ANGLE - roadAngle) + (ROAD_SIZE - ROAD_ANGLE*5);
-   } else if(roadAngle < (ROAD_ANGLE - 15) && roadAngle > (ROAD_ANGLE - 25)) {
+	roadSizeNow = roadAngleVal * a + b;
+   } else if(roadAngleVal > (ROAD_ANGLE - 15) && roadAngleVal < ROAD_ANGLE) {
+	roadSizeNow = 5*(2*ROAD_ANGLE - roadAngleVal) + (ROAD_SIZE - ROAD_ANGLE*5);
+   } else if(roadAngleVal < (ROAD_ANGLE - 15) && roadAngleVal > (ROAD_ANGLE - 25)) {
 	//cout << "SZ S" << endl;
 	float a = (ROAD_SIZE -  5)/5;
 	float b = 3*ROAD_SIZE - (ROAD_ANGLE + 25) * a;
-	roadSize = (2*ROAD_ANGLE - roadAngle) * a + b;
+	roadSizeNow = (2*ROAD_ANGLE - roadAngleVal) * a + b;
    }
 
-   return roadSize;
+   return roadSizeNow;
 }
 
 Point2f LineDetector::getWorldPoint(Point2i p){
@@ -802,17 +807,18 @@ Point2f LineDetector::getWorldPoint(Point2i p){
        cout << endl;
    }*/
 
-   double u, v, w;
+   //
+   double u, v, wi; // wi was called w before. (To avoid variable shadows)
    Point2f res;
-   w = 1 / (camera_matrix.at<double>(2,0) * p.x + camera_matrix.at<double>(2,1)* p.y
+   wi = 1 / (camera_matrix.at<double>(2,0) * p.x + camera_matrix.at<double>(2,1)* p.y
        + camera_matrix.at<double>(2,2));
-   u = w * p.x;
-   v = w * p.y;
+   u = wi * p.x;
+   v = wi * p.y;
 
    res.x = camera_matrix.at<double>(0,0) * u + camera_matrix.at<double>(0,1) * v
-    + camera_matrix.at<double>(0,2) * w;
+    + camera_matrix.at<double>(0,2) * wi;
    res.y = camera_matrix.at<double>(1,0) * u + camera_matrix.at<double>(1,1) * v
-    + camera_matrix.at<double>(1,2) * w;
+    + camera_matrix.at<double>(1,2) * wi;
    
    return res;
 }
