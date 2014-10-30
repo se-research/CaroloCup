@@ -230,7 +230,7 @@ namespace msv {
 		bool status= true;
 		string classification;
 		cvWaitKey(50);
-		int key = cvWaitKey(0);
+		char key = cvWaitKey(0);
 		
 		cout << key << endl;
 		while(status){
