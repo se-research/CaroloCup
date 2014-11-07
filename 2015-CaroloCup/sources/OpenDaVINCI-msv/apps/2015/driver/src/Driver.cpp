@@ -20,18 +20,12 @@
 
 #include "Driver.h"
 
-int carstate = 3;			// What the car is doing at the moment. 3 = parking
-
-int interval = 0;			// Used for timer to define how long time to do something
-
-int parkingState = -1;			// Used for different steps during parking
-
-double speed = 0.0;			// Speed of the car
-double steering = 0.0;			// Angle of the wheels
 
 
-timeval timer;				// General starttimer
-timeval timer2;				// General timer that gets current time
+
+	    timeval timer;				// General starttimer
+	    timeval timer2;				// General timer that gets current time
+
 
 
 namespace msv {
@@ -44,7 +38,13 @@ namespace msv {
 	
 
         Driver::Driver(const int32_t &argc, char **argv) :
-	        ConferenceClientModule(argc, argv, "Driver") {
+	        ConferenceClientModule(argc, argv, "Driver"),
+	        carstate(3),
+	        interval(0),
+	        parkingState(-1),
+	        speed(0.0),
+	        steering(0.0)
+		{
         }
 
         Driver::~Driver() {}
@@ -86,6 +86,7 @@ namespace msv {
 
 
                 // Design your control algorithm here depending on the input data from above.
+
 	if (carstate == 3) {
 	  
 		cerr << "parkingState: '" << parkingState << "'" << endl;

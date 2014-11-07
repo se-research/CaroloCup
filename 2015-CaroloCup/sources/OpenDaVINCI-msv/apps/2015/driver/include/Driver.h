@@ -46,13 +46,20 @@ namespace msv {
              */
             Driver(const int32_t &argc, char **argv);
 
+
             virtual ~Driver();
 
             core::base::ModuleState::MODULE_EXITCODE body();
 
         private:
             virtual void setUp();
-
+	    
+	    int carstate;			// What the car is doing at the moment. 3 = parking
+	    int interval;			// Used for timer to define how long time to do something
+	    int parkingState;			// Used for different steps during parking
+	    double speed;			// Speed of the car
+	    double steering;			// Angle of the wheels
+	    
             virtual void tearDown();
     };
 
