@@ -1,0 +1,19 @@
+Based on your Ubuntu distribution(32bit or 64bit), extract one of the zip file.
+
+1 - copy all the files into a directory on the hard disk
+    (you need write access to decompress). For the following 
+    steps, you need to be root!
+
+2 - go to the directory you copied the files into and
+    run the setup program script by typing (replace the
+    wildcard with the actual version identifier of the 
+    installer file)
+    $> sh ./ueyesdk-setup*.run
+
+3 - if installation succeeded, one may start the uEye daemon by typing
+    '/etc/init.d/ueyeethdrc start' (you need to be root)
+    To stop the uEye daemon, type
+    '/etc/init.d/ueyeethdrc stop' (you need to be root)
+    For USB uEye, replace 'ueyeethdrc' with 'ueyeusbdrc'.
+    Alternatively, if one has a working graphical environment, the daemons may be
+    controlled via the uEye Camera Manager (started as root)
