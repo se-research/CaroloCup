@@ -115,7 +115,16 @@ namespace msv {
 				    if (image != NULL) {
 				    	image->imageData = (char *)m_sharedImageMemory->getSharedMemory();
 				    	Mat rawImg(image, true);
-				    	m_frame = rawImg;
+
+				    	if(numberOfChannels==1){
+				    			m_frame = rawImg;
+				    	}else
+						{//We need to convert this to gray scale
+				    		Mat bwImage;
+				    		cv::cvtColor(rawImg, bwImage, CV_RGB2GRAY);
+				    		m_frame=bwImage;
+						}
+
 				    		//memcpy(m_image->imageData,
 							//   (char *)m_sharedImageMemory->getSharedMemory(),
 							 //  width * height * numberOfChannels);
