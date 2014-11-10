@@ -20,188 +20,316 @@
 
 #include "Driver.h"
 
-
-
-
-	    timeval timer;				// General starttimer
-	    timeval timer2;				// General timer that gets current time
-
-
-
 namespace msv {
 
-        using namespace std;
-        using namespace core::base;
-        using namespace core::data;
-        using namespace core::data::control;
-        using namespace core::data::environment;
-	
+using namespace std;
+using namespace core::base;
+using namespace core::data;
+using namespace core::data::control;
+using namespace core::data::environment;
 
-        Driver::Driver(const int32_t &argc, char **argv) :
-	        ConferenceClientModule(argc, argv, "Driver"),
-	        carstate(3),
-	        interval(0),
-	        parkingState(-1),
-	        speed(0.0),
-	        steering(0.0)
-		{
-        }
+double MinParkingDist = 7;
 
-        Driver::~Driver() {}
+Driver::Driver(const int32_t &argc, char **argv) :
+		ConferenceClientModule(argc, argv, "Driver"), driving_state(DRIVE), parking_state(
+				INIT_PARKING) {
+}
 
-        void Driver::setUp() {
-	        // This method will be call automatically _before_ running body().
-        }
+Driver::~Driver() {
+}
 
-        void Driver::tearDown() {
-	        // This method will be call automatically _after_ return from body().
-        }
+void Driver::setUp() {
+	// This method will be call automatically _before_ running body().
+}
 
-        // This method will do the main data processing job.
-        ModuleState::MODULE_EXITCODE Driver::body() {
+void Driver::tearDown() {
+	// This method will be call automatically _after_ return from body().
+}
 
-	        while (getModuleState() == ModuleState::RUNNING) {
-                // In the following, you find example for the various data sources that are available:
+double start_backing;
+double desiredSteeringWheelAngle;
+// This method will do the main data processing job.
+ModuleState::MODULE_EXITCODE Driver::body() {
 
-		        // 1. Get most recent vehicle data:
-		        Container containerVehicleData = getKeyValueDataStore().get(Container::VEHICLEDATA);
-		        VehicleData vd = containerVehicleData.getData<VehicleData> ();
-		        cerr << "Most recent vehicle data: '" << vd.toString() << "'" << endl;
+	driving_state = DRIVE;
+	parking_state = INIT_PARKING;
+	// Get configuration data.
+	KeyValueConfiguration kv = getKeyValueConfiguration();
+	//const uint32_t m_sensorId = kv.getValue<int32_t> ("irus.sensor2.id");
+	//cout << "***********  Sensor ID: " << m_sensorId << endl;
 
-		        // 2. Get most recent sensor board data:
-		        Container containerSensorBoardData = getKeyValueDataStore().get(Container::USER_DATA_0);
-		        SensorBoardData sbd = containerSensorBoardData.getData<SensorBoardData> ();
-		        cerr << "Most recent sensor board data: '" << sbd.toString() << "'" << endl;
+	VehicleControl vc;
 
-		        // 3. Get most recent user button data:
-		        Container containerUserButtonData = getKeyValueDataStore().get(Container::USER_BUTTON);
-		        UserButtonData ubd = containerUserButtonData.getData<UserButtonData> ();
-		        cerr << "Most recent user button data: '" << ubd.toString() << "'" << endl;
+	TimeStamp start;
+	double start_Timing;
+	;
+	double stop_Timing;
 
-		        // 4. Get most recent steering data as fill from lanedetector for example:
-		        Container containerSteeringData = getKeyValueDataStore().get(Container::USER_DATA_1);
-		        SteeringData sd = containerSteeringData.getData<SteeringData> ();
-		        cerr << "Most recent steering data: '" << sd.toString() << "'" << endl;
+	while (getModuleState() == ModuleState::RUNNING) {
+		// In the following, you find example for the various data sources that are available:
 
+		// 1. Get most recent vehicle data:
+		Container containerVehicleData = getKeyValueDataStore().get(
+				Container::VEHICLEDATA);
+		VehicleData vd = containerVehicleData.getData<VehicleData>();
+		cerr << "Most recent vehicle data: '" << vd.toString() << "'" << endl;
 
+		// 2. Get most recent sensor board data:
+		Container containerSensorBoardData = getKeyValueDataStore().get(
+				Container::USER_DATA_0);
+		SensorBoardData sbd =
+				containerSensorBoardData.getData<SensorBoardData>();
+		cerr << "Most recent sensor board data: '" << sbd.toString() << "'"
+				<< endl;
 
-                // Design your control algorithm here depending on the input data from above.
+		// 3. Get most recent user button data:
+		Container containerUserButtonData = getKeyValueDataStore().get(
+				Container::USER_BUTTON);
+		UserButtonData ubd = containerUserButtonData.getData<UserButtonData>();
+		cerr << "Most recent user button data: '" << ubd.toString() << "'"
+				<< endl;
 
-	if (carstate == 3) {
-	  
-		cerr << "parkingState: '" << parkingState << "'" << endl;
-	  
-		speed = 1.0;
-		
-		// Begin parking sequence once an object is detected
-		if (sbd.getDistance(2) > 0.0 && parkingState == -1) {
-			parkingState = 0;
+		// 4. Get most recent steering data as fill from lanedetector for example:
+		Container containerSteeringData = getKeyValueDataStore().get(
+				Container::USER_DATA_1);
+		SteeringData sd = containerSteeringData.getData<SteeringData>();
+		cerr << "Most recent steering data: '" << sd.toString() << "'" << endl;
+
+		double IRdist = sbd.getDistance(2);
+		cout << " ===== Infrared reading: " << IRdist << endl;
+
+		// Design your control algorithm here depending on the input data from above.
+		switch (driving_state) {
+		case DRIVE: {
+			cout << "In drive mode" << endl;
+			vc.setSpeed(1.0);
+			desiredSteeringWheelAngle = 0;
+
+			if (IRdist > 0)
+				driving_state = START_OBST;
 		}
-			
-	      
-		// start the timer when an empty space is detected
-		if (sbd.getDistance(2) < 0.0 && parkingState == 0) { 
-			parkingState = 1;
-			gettimeofday(&timer, 0);
-		}
-		
-		// start timer2 when object is detected
-		if (sbd.getDistance(2) > 0.0 && parkingState == 1) { 
-			parkingState = 2;
-			gettimeofday(&timer2, 0);
-			interval = 5500;
-		}
-		
-		// checking if the space is large enough for parking
-		
-		if (((timer2.tv_sec - timer.tv_sec) * 1000) + ((timer2.tv_usec - timer.tv_usec) / 1000) * speed > interval && parkingState == 2) { 
-			parkingState = 3;
-			interval = 12500;
-			gettimeofday(&timer, 0);
-		}
-		else if (((timer2.tv_sec - timer.tv_sec) * 1000) + ((timer2.tv_usec - timer.tv_usec) / 1000) * speed <= interval && parkingState == 2) {
-			parkingState = 0;
-		}
-		
-		// Turning right backwords to park
-		if (parkingState == 3) {
-		        gettimeofday(&timer2, 0);
-			speed = -0.5;
-			steering = 25 * Constants::DEG2RAD;
-			if (((timer2.tv_sec - timer.tv_sec) * 1000) + ((timer2.tv_usec - timer.tv_usec) / 1000) <= 900) {
-			  speed = 1.0;
-			}
+			break;
 
-			if (((timer2.tv_sec - timer.tv_sec) * 1000) + ((timer2.tv_usec - timer.tv_usec) / 1000) <= 2000) {
-			  steering = 0 * Constants::DEG2RAD;
-			}
-
-			if (((timer2.tv_sec - timer.tv_sec) * 1000) + ((timer2.tv_usec - timer.tv_usec) / 1000) >= interval) { 
-			    interval = 12000 ;
-			    gettimeofday(&timer, 0);
-			    parkingState = 4;
-			}
-			cerr << "interval3: '" << (((timer2.tv_sec - timer.tv_sec) * 1000) + ((timer2.tv_usec - timer.tv_usec) / 1000)) << "'" << endl;
-		}
-		
-		
-
-		
-		// Straightening the car
-		if (parkingState == 4) {
-		        gettimeofday(&timer2, 0);
-			speed = -0.5;
-			steering = -25 * Constants::DEG2RAD;
-			if (((timer2.tv_sec - timer.tv_sec) * 1000) + ((timer2.tv_usec - timer.tv_usec) / 1000) * speed >= interval || (sbd.getDistance(0) < 0.5 && sbd.getDistance(1) > 0.0) ) { 
-			    speed = 0.0;
-			    parkingState = 5;
-			    
+		case START_OBST: {
+			cout << "Scanning Obstacle" << endl;
+			vc.setSpeed(1.0);
+			desiredSteeringWheelAngle = 0;
+			if (IRdist < 0) {
+				driving_state = POSSIBLE_SPOT;
+				TimeStamp currentTime_strt1;
+				start = currentTime_strt1;
 			}
 		}
-		if (parkingState == 5) {
-			speed = 0.5;
-			steering = 25 * Constants::DEG2RAD;
-			if (abs(sbd.getDistance(0) - sbd.getDistance(1)) < 0.1) {
-			    speed = 0.0;
-			    parkingState = 6;
+			break;
+
+		case POSSIBLE_SPOT: {
+			TimeStamp currentTime;
+			double m_time = (currentTime.toMicroseconds()
+					- start.toMicroseconds()) / 1000000.0;
+
+			double distance = vd.getSpeed() * m_time;
+			cout << "---- DIstance so far: " << distance << endl;
+			vc.setSpeed(1.0);
+			desiredSteeringWheelAngle = 0;
+
+			if (IRdist > 0) {
+				driving_state = START_OBST;
+			} else if (distance > MinParkingDist) {
+
+				vc.setSpeed(0);
+				desiredSteeringWheelAngle = 0;
+				driving_state = STOP_FOR_PARKING;
+				start_Timing = currentTime.toMicroseconds() / 1000000.0;
+
+				cout << "FOund a parking spot" << endl;
+			}
+
+			cout << "Found a possible spot" << endl;
+		}
+			break;
+
+		case STOP_FOR_PARKING: {
+
+			TimeStamp currentTime2;
+			stop_Timing = (currentTime2.toMicroseconds() / 1000000.0)
+					- start_Timing;
+			cout << "++++++++++ Stoping timer: " << stop_Timing << endl;
+
+			if (stop_Timing > 4) {
+
+				driving_state = PARKING;
+				start_backing = currentTime2.toMicroseconds() / 1000000.0;
+
 			}
 		}
-		if (parkingState == 6) {
-			speed = -0.5;
-			steering = 0;
-			if (abs(sbd.getDistance(0)) < 1.0) {
-			    speed = 0.0;
-			}
+			break;
+
+		case PARKING: {
+			parking(vc,vd);
 		}
-		
+			break;
+		default: {
 
+			cout << "Non of these states" << endl;
 
+			vc.setSpeed(0.4);
+			desiredSteeringWheelAngle = 0;
 
-		        // Create vehicle control data.
-		        VehicleControl vc;
+		}
+		}
 
-                // With setSpeed you can set a desired speed for the vehicle in the range of -2.0 (backwards) .. 0 (stop) .. +2.0 (forwards)
-		        vc.setSpeed(speed);
+		// Create vehicle control data.
 
-                // With setSteeringWheelAngle, you can steer in the range of -26 (left) .. 0 (straight) .. +25 (right)
-//                 double desiredSteeringWheelAngle = 0; // 4 degree but SteeringWheelAngle expects the angle in radians!
-		        vc.setSteeringWheelAngle(steering);
+		// With setSpeed you can set a desired speed for the vehicle in the range of -2.0 (backwards) .. 0 (stop) .. +2.0 (forwards)
+		//vc.setSpeed(0.4);
 
-                // You can also turn on or off various lights:
-                vc.setBrakeLights(false);
-                vc.setLeftFlashingLights(false);
-                vc.setRightFlashingLights(true);
+		// With setSteeringWheelAngle, you can steer in the range of -26 (left) .. 0 (straight) .. +25 (right)
+		//double desiredSteeringWheelAngle = 0; // 4 degree but SteeringWheelAngle expects the angle in radians!
+		vc.setSteeringWheelAngle(
+				desiredSteeringWheelAngle * Constants::DEG2RAD);
 
-		        // Create container for finally sending the data.
-		        Container c(Container::VEHICLECONTROL, vc);
-		        // Send container.
-		        getConference().send(c);
-	        }
+		// You can also turn on or off various lights:
+		vc.setBrakeLights(false);
+		vc.setLeftFlashingLights(false);
+		vc.setRightFlashingLights(true);
 
-	       
-        }
-        
-	return ModuleState::OKAY;
+		// Create container for finally sending the data.
+		Container c(Container::VEHICLECONTROL, vc);
+		// Send container.
+		getConference().send(c);
 	}
+
+	return ModuleState::OKAY;
+}
+
+double startTime_Parking;
+double change_backing;
+double stop_changeBacking;
+double start_FParking;
+double stop_FParking;
+double start_BAgain;
+double stop_BAgain;
+
+void Driver::parking(VehicleControl& vc, VehicleData& vd) {
+
+	switch (parking_state) {
+	case INIT_PARKING: {
+
+		TimeStamp currentTime3;
+		double stop_backing = (currentTime3.toMicroseconds() / 1000000.0)
+				- start_backing;
+		double distance = -vd.getSpeed() * stop_backing;
+
+		if (distance > 7) {
+			parking_state = BACK_UP_PARKING;
+			vc.setSpeed(0);
+			desiredSteeringWheelAngle = 0;
+			TimeStamp currentTime4;
+			change_backing = currentTime4.toMicroseconds() / 1000000.0;
+
+		} else {
+			vc.setSpeed(-0.4);
+			desiredSteeringWheelAngle = 55;
+			cout << "%%%%%%  backing distance:  " << distance << endl;
+		}
+
+		cout << "##### Actuall streering wheel angle: "
+				<< (double) vc.getSteeringWheelAngle() << endl;
+
+		cout << "Initiating Parking" << endl;
+	}
+		break;
+	case BACK_UP_PARKING: {
+
+		TimeStamp currentTime5;
+		stop_changeBacking = (currentTime5.toMicroseconds() / 1000000.0)
+				- change_backing;
+		double distance = -vd.getSpeed() * stop_changeBacking;
+
+		if (distance < 3) {
+
+			vc.setSpeed(-0.4);
+			desiredSteeringWheelAngle = -55;
+			cout << "%%%%%%  backing distance:  " << distance << endl;
+
+		} else {
+			vc.setSpeed(0);
+			desiredSteeringWheelAngle = 0;
+			TimeStamp currentTime6;
+			start_FParking = currentTime6.toMicroseconds() / 1000000.0;
+			parking_state = FINAL_PARKING;
+			cout << "%%%%%%  stop the car:  " << endl;
+		}
+	}
+		break;
+
+	case FINAL_PARKING: {
+
+		TimeStamp currentTime7;
+		stop_FParking = (currentTime7.toMicroseconds() / 1000000.0)
+				- start_FParking;
+		double distance = vd.getSpeed() * stop_FParking;
+
+		if (distance < 3.5) {
+
+			vc.setSpeed(0.4);
+			desiredSteeringWheelAngle = 55;
+			cout << "%%%%%%  forward distance:  " << distance << endl;
+		} else {
+			vc.setSpeed(0);
+			desiredSteeringWheelAngle = 0;
+
+			start_BAgain = currentTime7.toMicroseconds() / 1000000.0;
+			parking_state = BACK_AGAIN;
+			cout << "%%%%%%  forward distance:  " << distance << endl;
+		}
+
+	}
+
+		break;
+
+	case BACK_AGAIN: {
+
+		TimeStamp currentTime8;
+		stop_BAgain = (currentTime8.toMicroseconds() / 1000000.0)
+				- start_BAgain;
+		double distance = -vd.getSpeed() * stop_BAgain;
+
+		if (distance < 2) {
+
+			vc.setSpeed(-0.4);
+			desiredSteeringWheelAngle = -15;
+			cout << "%%%%%%  back again distance:  " << distance << endl;
+
+		} else {
+			vc.setSpeed(0);
+			desiredSteeringWheelAngle = 0;
+
+			parking_state = STOP;
+			cout << "%%%%%%  going back stop:  " << distance << endl;
+		}
+
+	}
+
+		break;
+
+	case STOP:
+		vc.setSpeed(0);
+		desiredSteeringWheelAngle = 0;
+
+		cout << "****  stop the car  ****" << endl;
+
+		break;
+	default: {
+
+		cout << "Non of these states" << endl;
+
+		//vc.setSpeed(0.4);
+		//desiredSteeringWheelAngle = 0;
+
+	}
+	}
+}
+
 } // msv
 
