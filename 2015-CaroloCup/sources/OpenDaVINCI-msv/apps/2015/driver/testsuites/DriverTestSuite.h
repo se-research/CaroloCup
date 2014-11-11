@@ -7,10 +7,10 @@
 #ifndef DRIVERTESTSUITE_H_
 #define DRIVERTESTSUITE_H_
 
+#include "../include/Driver.h"
 #include "cxxtest/TestSuite.h"
 
 // Include local header files.
-#include "../include/Driver.h"
 
 using namespace std;
 using namespace core::data;

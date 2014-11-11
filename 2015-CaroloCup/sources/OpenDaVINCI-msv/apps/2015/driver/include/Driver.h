@@ -8,60 +8,77 @@
 #define DRIVER_H_
 
 #include "core/base/ConferenceClientModule.h"
+#include "core/data/control/VehicleControl.h"
+#include "core/data/environment/VehicleData.h"
 
 namespace msv {
 
-    using namespace std;
+using namespace std;
+using namespace core::data::control;
+using namespace core::data::environment;
+enum DRIVING_STATE {
+	DRIVE = 0,
+	START_OBST = 1,
+	POSSIBLE_SPOT = 2,
+	STOP_FOR_PARKING = 3,
+	PARKING = 4
 
-    /**
-     * This class is a skeleton to send driving commands to Hesperia-light's vehicle driving dynamics simulation.
-     */
-    class Driver : public core::base::ConferenceClientModule {
-        private:
-            /**
-             * "Forbidden" copy constructor. Goal: The compiler should warn
-             * already at compile time for unwanted bugs caused by any misuse
-             * of the copy constructor.
-             *
-             * @param obj Reference to an object of this class.
-             */
-            Driver(const Driver &/*obj*/);
+};
 
-            /**
-             * "Forbidden" assignment operator. Goal: The compiler should warn
-             * already at compile time for unwanted bugs caused by any misuse
-             * of the assignment operator.
-             *
-             * @param obj Reference to an object of this class.
-             * @return Reference to this instance.
-             */
-            Driver& operator=(const Driver &/*obj*/);
+enum PARKINGSTATE {
+	INIT_PARKING = 0,
+	BACK_UP_PARKING = 1,
+	FINAL_PARKING = 2,
+	BACK_AGAIN = 3,
+	STOP = 4
+};
 
-        public:
-            /**
-             * Constructor.
-             *
-             * @param argc Number of command line arguments.
-             * @param argv Command line arguments.
-             */
-            Driver(const int32_t &argc, char **argv);
+/**
+ * This class is a skeleton to send driving commands to Hesperia-light's vehicle driving dynamics simulation.
+ */
+class Driver: public core::base::ConferenceClientModule {
+private:
+	/**
+	 * "Forbidden" copy constructor. Goal: The compiler should warn
+	 * already at compile time for unwanted bugs caused by any misuse
+	 * of the copy constructor.
+	 *
+	 * @param obj Reference to an object of this class.
+	 */
+	Driver(const Driver &/*obj*/);
 
+	/**
+	 * "Forbidden" assignment operator. Goal: The compiler should warn
+	 * already at compile time for unwanted bugs caused by any misuse
+	 * of the assignment operator.
+	 *
+	 * @param obj Reference to an object of this class.
+	 * @return Reference to this instance.
+	 */
+	Driver& operator=(const Driver &/*obj*/);
 
-            virtual ~Driver();
+public:
+	/**
+	 * Constructor.
+	 *
+	 * @param argc Number of command line arguments.
+	 * @param argv Command line arguments.
+	 */
+	Driver(const int32_t &argc, char **argv);
 
-            core::base::ModuleState::MODULE_EXITCODE body();
+	virtual ~Driver();
 
-        private:
-            virtual void setUp();
-	    
-	    int carstate;			// What the car is doing at the moment. 3 = parking
-	    int interval;			// Used for timer to define how long time to do something
-	    int parkingState;			// Used for different steps during parking
-	    double speed;			// Speed of the car
-	    double steering;			// Angle of the wheels
-	    
-            virtual void tearDown();
-    };
+	core::base::ModuleState::MODULE_EXITCODE body();
+
+private:
+
+	DRIVING_STATE driving_state;
+	PARKINGSTATE parking_state;
+	virtual void setUp();
+
+	virtual void tearDown();
+	void parking(VehicleControl& vc, VehicleData& vd);
+};
 
 } // msv
 
