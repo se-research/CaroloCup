@@ -22,10 +22,8 @@
 #include "core/data/control/VehicleControl.h"
 
 #include "OpenCVCamera.h"
-
-#include "simple.pb.h"
-#include "pb_encode.h"
-#include "pb_decode.h"
+#include "libsend.pb.h"
+#include "libreceive.pb.h"
 
 #ifdef HAVE_UEYE
 #include "uEyeCamera.h"
@@ -43,6 +41,10 @@ using namespace core::data::control;
 
 bool sendStatus;
 uint8_t sendBuffer[128];
+uint8_t receivePBuffer[128];
+int receiveMessage_length;
+bool receiveStatus;
+arduinoToUdoo rm;
 
 Proxy::Proxy(const int32_t &argc, char **argv) :
 		ConferenceClientModule(argc, argv, "proxy"), m_recorder(NULL), m_camera(
@@ -74,6 +76,24 @@ void Proxy::tearDown() {
 
 void Proxy::nextString(const string &s) {
 	cout << "proxy '" << s << "'" << endl;
+
+	for(int i = 0; i< (int)s.length(); i++){
+		  receivePBuffer[i] = s[i];
+		}
+		    receiveMessage_length = s.length();
+
+		      pb_istream_t stream = pb_istream_from_buffer(receivePBuffer, receiveMessage_length);
+
+		      receiveStatus = pb_decode(&stream, arduinoToUdoo_fields, &rm);
+		      if (receiveStatus){
+//			      us_left = rm.us_left;
+//			      us_center = rm.us_center;
+//			      us_right = rm.us_right;
+//			      ir_left = rm.ir_left;
+//			      ir_right_front = rm.ir_right_front;
+//			      ir_right_back = rm.ir_right_back;
+			    }
+
 }
 
 void Proxy::handleConnectionError() {
@@ -109,6 +129,42 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 
 	 // Start receiving.
 	 serialPort2->start();*/
+
+
+	//initialize sensorBoardData
+	/*for (uint32_t i = 0; i < getKeyValueConfiguration().getValue<uint32_t>("proxy.numberOfSensors"); i++) {
+	            stringstream sensorID;
+	            sensorID << "proxy.sensor" << i << ".id";
+	            uint16_t id(getKeyValueConfiguration().getValue<uint16_t>(sensorID.str()));
+
+	            stringstream sensorName;
+	            sensorName << "proxy.sensor" << i << ".name";
+	            string name(getKeyValueConfiguration().getValue<string>(sensorName.str()));
+
+	            stringstream sensorAddress;
+	            sensorAddress << "proxy.sensor" << i << ".address";
+	            uint16_t address(getKeyValueConfiguration().getValue<uint16_t>(sensorAddress.str()));
+
+	            stringstream sensorClampDistance;
+	            sensorClampDistance << "proxy.sensor" << i << ".clampDistance";
+	            double clampDistance(getKeyValueConfiguration().getValue<double>(sensorClampDistance.str()));
+
+	            PointSensor *ps = new PointSensor(id, name, address, clampDistance);
+
+	            if (ps != NULL) {
+	                // Save for later.
+	                m_mapOfPointSensors[ps->getAddress()] = ps;
+
+	                // Initialize m_sensorBoardData data structure for this sensor.
+	                m_sensorBoardData.update(ps->getID(), -1);
+
+	                if (m_debug) {
+	                    cerr << "Registered point sensor " << ps->getName() << "(" << ps->getID() << ")" << ": " << ps->getAddress() << endl;
+	                }
+	            }
+	        }
+*/
+	/////////end sensorBoardData initialization
 
 	while (getModuleState() == ModuleState::RUNNING) {
 		VehicleControl vc;
