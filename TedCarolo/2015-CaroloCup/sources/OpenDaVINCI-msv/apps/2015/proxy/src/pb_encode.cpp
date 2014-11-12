@@ -366,7 +366,6 @@ bool checkreturn pb_encode(pb_ostream_t *stream, const pb_field_t fields[], cons
             if (!encode_field(stream, field, pData))
                 return false;
         }
-    
         field++;
     }
     

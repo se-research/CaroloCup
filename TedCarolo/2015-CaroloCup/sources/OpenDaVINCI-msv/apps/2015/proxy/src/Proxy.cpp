@@ -48,7 +48,7 @@ arduinoToUdoo rm;
 
 Proxy::Proxy(const int32_t &argc, char **argv) :
 		ConferenceClientModule(argc, argv, "proxy"), m_recorder(NULL), m_camera(
-		NULL) {
+		NULL), m_sensorBoardData() {
 }
 
 Proxy::~Proxy() {
@@ -77,22 +77,27 @@ void Proxy::tearDown() {
 void Proxy::nextString(const string &s) {
 	cout << "proxy '" << s << "'" << endl;
 
-	for(int i = 0; i< (int)s.length(); i++){
-		  receivePBuffer[i] = s[i];
-		}
-		    receiveMessage_length = s.length();
+	for (int i = 0; i < (int) s.length(); i++) {
+		receivePBuffer[i] = s[i];
+	}
+	receiveMessage_length = s.length();
 
-		      pb_istream_t stream = pb_istream_from_buffer(receivePBuffer, receiveMessage_length);
+	pb_istream_t stream = pb_istream_from_buffer(receivePBuffer,
+			receiveMessage_length);
 
-		      receiveStatus = pb_decode(&stream, arduinoToUdoo_fields, &rm);
-		      if (receiveStatus){
+	receiveStatus = pb_decode(&stream, arduinoToUdoo_fields, &rm);
+	if (receiveStatus) {
 //			      us_left = rm.us_left;
 //			      us_center = rm.us_center;
 //			      us_right = rm.us_right;
 //			      ir_left = rm.ir_left;
 //			      ir_right_front = rm.ir_right_front;
 //			      ir_right_back = rm.ir_right_back;
-			    }
+		m_sensorBoardData.update(0, (int16_t) rm.us_left);
+		m_sensorBoardData.update(1, (int16_t) rm.us_left);
+		Container c(Container::USER_DATA_0, m_sensorBoardData);
+		getConference().send(c);
+	}
 
 }
 
@@ -107,7 +112,7 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 	addDataStoreFor(lifo);
 
 	core::wrapper::SerialPort *serialPort1 =
-			core::wrapper::SerialPortFactory::createSerialPort("/dev/ttyACM1",
+			core::wrapper::SerialPortFactory::createSerialPort("/dev/ttyACM0",
 					115200);
 	serialPort1->setConnectionListener(this);
 
@@ -130,67 +135,43 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 	 // Start receiving.
 	 serialPort2->start();*/
 
+	// Initialize m_sensorBoardData data structure for this sensor.
+	m_sensorBoardData.update(0, -1);  //Change values to #define later
+	m_sensorBoardData.update(2, -1);
 
-	//initialize sensorBoardData
-	/*for (uint32_t i = 0; i < getKeyValueConfiguration().getValue<uint32_t>("proxy.numberOfSensors"); i++) {
-	            stringstream sensorID;
-	            sensorID << "proxy.sensor" << i << ".id";
-	            uint16_t id(getKeyValueConfiguration().getValue<uint16_t>(sensorID.str()));
-
-	            stringstream sensorName;
-	            sensorName << "proxy.sensor" << i << ".name";
-	            string name(getKeyValueConfiguration().getValue<string>(sensorName.str()));
-
-	            stringstream sensorAddress;
-	            sensorAddress << "proxy.sensor" << i << ".address";
-	            uint16_t address(getKeyValueConfiguration().getValue<uint16_t>(sensorAddress.str()));
-
-	            stringstream sensorClampDistance;
-	            sensorClampDistance << "proxy.sensor" << i << ".clampDistance";
-	            double clampDistance(getKeyValueConfiguration().getValue<double>(sensorClampDistance.str()));
-
-	            PointSensor *ps = new PointSensor(id, name, address, clampDistance);
-
-	            if (ps != NULL) {
-	                // Save for later.
-	                m_mapOfPointSensors[ps->getAddress()] = ps;
-
-	                // Initialize m_sensorBoardData data structure for this sensor.
-	                m_sensorBoardData.update(ps->getID(), -1);
-
-	                if (m_debug) {
-	                    cerr << "Registered point sensor " << ps->getName() << "(" << ps->getID() << ")" << ": " << ps->getAddress() << endl;
-	                }
-	            }
-	        }
-*/
 	/////////end sensorBoardData initialization
 
 	while (getModuleState() == ModuleState::RUNNING) {
 		VehicleControl vc;
-		// Regular data processing: try to find matching containers.
-		while (!lifo.isEmpty()) {
-			// Read next received container.
-			Container con = lifo.pop();
 
-			if (con.getDataType() == Container::VEHICLECONTROL) {
-				vc = con.getData<VehicleControl>();
-				double speed = vc.getSpeed();
-				double steeringAngle = vc.getSteeringWheelAngle();
-				bool brakeLight = vc.getBrakeLights();
-				bool leftFlash = vc.getLeftFlashingLights();
-				bool rightFlash = vc.getRightFlashingLights();
+		// Regular data processing: try to find matching containers.
+		while (true/*!lifo.isEmpty()*/) {
+			// Read next received container.
+			//	Container con = lifo.pop();
+
+			if (true/*con.getDataType() == Container::VEHICLECONTROL*/) {
+				//	vc = con.getData<VehicleControl>();
+				double speed = 10;			//.getSpeed();
+				double steeringAngle = 10;		//vc.getSteeringWheelAngle();
+				bool brakeLight = true;			//vc.getBrakeLights();
+				bool leftFlash = true;			//vc.getLeftFlashingLights();
+				bool rightFlash = false;		//vc.getRightFlashingLights();
 
 				udooToArduino sm;
 				pb_ostream_t sendStream = pb_ostream_from_buffer(sendBuffer,
 						sizeof(sendBuffer));
+
+
+				cout<<"Buff size:"<<sendStream.max_size<<endl;
 				sm.speed = speed;
 				sm.steering = steeringAngle;
 				sm.leftBlink = leftFlash; //turnLeft;
 				sm.rightBlink = rightFlash; //turnRight;
 				sm.stopLight = brakeLight; //breakLed;
 
+				cout<<"Buff written size:"<<sendStream.bytes_written<<endl;
 				sendStatus = pb_encode(&sendStream, udooToArduino_fields, &sm);
+				cout<<"Buff written size:"<<sendStream.bytes_written<<endl;
 				if (sendStatus) {
 					cout << "BYTES WRITTEN: " << (int) sendStream.bytes_written
 							<< endl;
@@ -201,7 +182,7 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 						cout << (int) sendBuffer[i] << ',';
 					}
 					cout << message.str();
-					 sp1.send(encodeNetstring(message.str()));
+				sp1.send(encodeNetstring(message.str()));
 				}
 			}
 

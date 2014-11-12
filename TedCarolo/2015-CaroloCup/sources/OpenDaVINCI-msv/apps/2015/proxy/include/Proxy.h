@@ -12,7 +12,7 @@
 #include "core/base/ConferenceClientModule.h"
 #include "core/data/Container.h"
 #include "tools/recorder/Recorder.h"
-
+#include "SensorBoardData.h"
 
 
 #include "Camera.h"
@@ -73,6 +73,7 @@ namespace msv {
         private:
             tools::recorder::Recorder *m_recorder;
             Camera *m_camera;
+            SensorBoardData m_sensorBoardData;
     };
 
 } // msv
