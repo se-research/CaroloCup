@@ -74,10 +74,12 @@ private:
 
 	DRIVING_STATE driving_state;
 	PARKINGSTATE parking_state;
+
+
 	virtual void setUp();
 
 	virtual void tearDown();
-	void parking(VehicleControl& vc, VehicleData& vd);
+	void parking(double time, VehicleControl& vc, VehicleData& vd);
 };
 
 } // msv

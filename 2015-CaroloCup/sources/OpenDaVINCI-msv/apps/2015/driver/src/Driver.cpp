@@ -2,6 +2,8 @@
  * Mini-Smart-Vehicles.
  *
  * This software is open source. Please see COPYING and AUTHORS for further information.
+ *
+ *
  */
 
 #include <stdio.h>
@@ -46,8 +48,13 @@ void Driver::tearDown() {
 	// This method will be call automatically _after_ return from body().
 }
 
-double start_backing;
-double desiredSteeringWheelAngle;
+
+double start_timer;
+double time_taken;
+
+double driving_speed;			// Speed of the car
+double desiredSteeringWheelAngle;// Angle of the wheels
+
 // This method will do the main data processing job.
 ModuleState::MODULE_EXITCODE Driver::body() {
 
@@ -61,9 +68,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 	VehicleControl vc;
 
 	TimeStamp start;
-	double start_Timing;
-	;
-	double stop_Timing;
+
 
 	while (getModuleState() == ModuleState::RUNNING) {
 		// In the following, you find example for the various data sources that are available:
@@ -102,7 +107,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 		switch (driving_state) {
 		case DRIVE: {
 			cout << "In drive mode" << endl;
-			vc.setSpeed(1.0);
+			driving_speed = 1.0;
 			desiredSteeringWheelAngle = 0;
 
 			if (IRdist > 0)
@@ -112,7 +117,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 
 		case START_OBST: {
 			cout << "Scanning Obstacle" << endl;
-			vc.setSpeed(1.0);
+			driving_speed = 1.0;
 			desiredSteeringWheelAngle = 0;
 			if (IRdist < 0) {
 				driving_state = POSSIBLE_SPOT;
@@ -129,17 +134,17 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 
 			double distance = vd.getSpeed() * m_time;
 			cout << "---- DIstance so far: " << distance << endl;
-			vc.setSpeed(1.0);
+			driving_speed = 1.0;
 			desiredSteeringWheelAngle = 0;
 
 			if (IRdist > 0) {
 				driving_state = START_OBST;
 			} else if (distance > MinParkingDist) {
 
-				vc.setSpeed(0);
+				driving_speed = 0;
 				desiredSteeringWheelAngle = 0;
 				driving_state = STOP_FOR_PARKING;
-				start_Timing = currentTime.toMicroseconds() / 1000000.0;
+				start_timer = currentTime.toMicroseconds() / 1000000.0;
 
 				cout << "FOund a parking spot" << endl;
 			}
@@ -151,28 +156,28 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 		case STOP_FOR_PARKING: {
 
 			TimeStamp currentTime2;
-			stop_Timing = (currentTime2.toMicroseconds() / 1000000.0)
-					- start_Timing;
-			cout << "++++++++++ Stoping timer: " << stop_Timing << endl;
+			time_taken = (currentTime2.toMicroseconds() / 1000000.0)
+					- start_timer;
+			cout << "++++++++++ Stoping timer: " << time_taken << endl;
 
-			if (stop_Timing > 4) {
+			if (time_taken > 4) {
 
 				driving_state = PARKING;
-				start_backing = currentTime2.toMicroseconds() / 1000000.0;
+				start_timer = currentTime2.toMicroseconds() / 1000000.0;
 
 			}
 		}
 			break;
 
 		case PARKING: {
-			parking(vc,vd);
+			parking(start_timer, vc, vd);
 		}
 			break;
 		default: {
 
 			cout << "Non of these states" << endl;
 
-			vc.setSpeed(0.4);
+			driving_speed = 4;
 			desiredSteeringWheelAngle = 0;
 
 		}
@@ -181,7 +186,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 		// Create vehicle control data.
 
 		// With setSpeed you can set a desired speed for the vehicle in the range of -2.0 (backwards) .. 0 (stop) .. +2.0 (forwards)
-		//vc.setSpeed(0.4);
+		vc.setSpeed(driving_speed);
 
 		// With setSteeringWheelAngle, you can steer in the range of -26 (left) .. 0 (straight) .. +25 (right)
 		//double desiredSteeringWheelAngle = 0; // 4 degree but SteeringWheelAngle expects the angle in radians!
@@ -202,33 +207,26 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 	return ModuleState::OKAY;
 }
 
-double startTime_Parking;
-double change_backing;
-double stop_changeBacking;
-double start_FParking;
-double stop_FParking;
-double start_BAgain;
-double stop_BAgain;
 
-void Driver::parking(VehicleControl& vc, VehicleData& vd) {
+void Driver::parking(double time, VehicleControl& vc, VehicleData& vd) {
 
 	switch (parking_state) {
 	case INIT_PARKING: {
 
 		TimeStamp currentTime3;
-		double stop_backing = (currentTime3.toMicroseconds() / 1000000.0)
-				- start_backing;
-		double distance = -vd.getSpeed() * stop_backing;
+		time_taken = (currentTime3.toMicroseconds() / 1000000.0)
+				- time;
+		double distance = -vd.getSpeed() * time_taken;
 
 		if (distance > 7) {
 			parking_state = BACK_UP_PARKING;
-			vc.setSpeed(0);
+			driving_speed = 0;
 			desiredSteeringWheelAngle = 0;
 			TimeStamp currentTime4;
-			change_backing = currentTime4.toMicroseconds() / 1000000.0;
+			start_timer = currentTime4.toMicroseconds() / 1000000.0;
 
 		} else {
-			vc.setSpeed(-0.4);
+			driving_speed = -0.4;
 			desiredSteeringWheelAngle = 55;
 			cout << "%%%%%%  backing distance:  " << distance << endl;
 		}
@@ -242,21 +240,20 @@ void Driver::parking(VehicleControl& vc, VehicleData& vd) {
 	case BACK_UP_PARKING: {
 
 		TimeStamp currentTime5;
-		stop_changeBacking = (currentTime5.toMicroseconds() / 1000000.0)
-				- change_backing;
-		double distance = -vd.getSpeed() * stop_changeBacking;
+		time_taken = (currentTime5.toMicroseconds() / 1000000.0) - start_timer;
+		double distance = -vd.getSpeed() * time_taken;
 
 		if (distance < 3) {
 
-			vc.setSpeed(-0.4);
+			driving_speed = -0.4;
 			desiredSteeringWheelAngle = -55;
 			cout << "%%%%%%  backing distance:  " << distance << endl;
 
 		} else {
-			vc.setSpeed(0);
+			driving_speed = 0;
 			desiredSteeringWheelAngle = 0;
 			TimeStamp currentTime6;
-			start_FParking = currentTime6.toMicroseconds() / 1000000.0;
+			start_timer = currentTime6.toMicroseconds() / 1000000.0;
 			parking_state = FINAL_PARKING;
 			cout << "%%%%%%  stop the car:  " << endl;
 		}
@@ -266,20 +263,19 @@ void Driver::parking(VehicleControl& vc, VehicleData& vd) {
 	case FINAL_PARKING: {
 
 		TimeStamp currentTime7;
-		stop_FParking = (currentTime7.toMicroseconds() / 1000000.0)
-				- start_FParking;
-		double distance = vd.getSpeed() * stop_FParking;
+		time_taken = (currentTime7.toMicroseconds() / 1000000.0) - start_timer;
+		double distance = vd.getSpeed() * time_taken;
 
 		if (distance < 3.5) {
 
-			vc.setSpeed(0.4);
+			driving_speed = 0.4;
 			desiredSteeringWheelAngle = 55;
 			cout << "%%%%%%  forward distance:  " << distance << endl;
 		} else {
-			vc.setSpeed(0);
+			driving_speed = 0;
 			desiredSteeringWheelAngle = 0;
 
-			start_BAgain = currentTime7.toMicroseconds() / 1000000.0;
+			start_timer = currentTime7.toMicroseconds() / 1000000.0;
 			parking_state = BACK_AGAIN;
 			cout << "%%%%%%  forward distance:  " << distance << endl;
 		}
@@ -291,18 +287,17 @@ void Driver::parking(VehicleControl& vc, VehicleData& vd) {
 	case BACK_AGAIN: {
 
 		TimeStamp currentTime8;
-		stop_BAgain = (currentTime8.toMicroseconds() / 1000000.0)
-				- start_BAgain;
-		double distance = -vd.getSpeed() * stop_BAgain;
+		time_taken = (currentTime8.toMicroseconds() / 1000000.0) - start_timer;
+		double distance = -vd.getSpeed() * time_taken;
 
 		if (distance < 2) {
 
-			vc.setSpeed(-0.4);
+			driving_speed = -0.4;
 			desiredSteeringWheelAngle = -15;
 			cout << "%%%%%%  back again distance:  " << distance << endl;
 
 		} else {
-			vc.setSpeed(0);
+			driving_speed = 0;
 			desiredSteeringWheelAngle = 0;
 
 			parking_state = STOP;
@@ -314,7 +309,7 @@ void Driver::parking(VehicleControl& vc, VehicleData& vd) {
 		break;
 
 	case STOP:
-		vc.setSpeed(0);
+		driving_speed = 0;
 		desiredSteeringWheelAngle = 0;
 
 		cout << "****  stop the car  ****" << endl;
@@ -324,7 +319,7 @@ void Driver::parking(VehicleControl& vc, VehicleData& vd) {
 
 		cout << "Non of these states" << endl;
 
-		//vc.setSpeed(0.4);
+		//driving_speed = 4;
 		//desiredSteeringWheelAngle = 0;
 
 	}
