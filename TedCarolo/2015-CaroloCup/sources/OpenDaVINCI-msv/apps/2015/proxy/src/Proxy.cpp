@@ -39,12 +39,12 @@ using namespace core::data;
 using namespace tools::recorder;
 using namespace core::data::control;
 
-bool sendStatus;
-uint8_t sendBuffer[128];
 uint8_t receivePBuffer[128];
 int receiveMessage_length;
 bool receiveStatus;
 arduinoToUdoo rm;
+bool sendStatus;
+uint8_t sendBuffer[128];
 
 Proxy::Proxy(const int32_t &argc, char **argv) :
 		ConferenceClientModule(argc, argv, "proxy"), m_recorder(NULL), m_camera(
@@ -145,54 +145,55 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 		VehicleControl vc;
 
 		// Regular data processing: try to find matching containers.
-		while (true/*!lifo.isEmpty()*/) {
+		while (!lifo.isEmpty()) {
 			// Read next received container.
-			//	Container con = lifo.pop();
+			Container con = lifo.pop();
 
-			if (true/*con.getDataType() == Container::VEHICLECONTROL*/) {
-				//	vc = con.getData<VehicleControl>();
-				double speed = 10;			//.getSpeed();
-				double steeringAngle = 10;		//vc.getSteeringWheelAngle();
-				bool brakeLight = true;			//vc.getBrakeLights();
-				bool leftFlash = true;			//vc.getLeftFlashingLights();
-				bool rightFlash = false;		//vc.getRightFlashingLights();
+			if (con.getDataType() == Container::VEHICLECONTROL) {
+				vc = con.getData<VehicleControl>();
+				double speed = vc.getSpeed();
+				double steeringAngle = vc.getSteeringWheelAngle();
+				bool brakeLight = vc.getBrakeLights();
+				bool leftFlash = vc.getLeftFlashingLights();
+				bool rightFlash = vc.getRightFlashingLights();
 
 				udooToArduino sm;
+
 				pb_ostream_t sendStream = pb_ostream_from_buffer(sendBuffer,
 						sizeof(sendBuffer));
 
-
-				cout<<"Buff size:"<<sendStream.max_size<<endl;
 				sm.speed = speed;
 				sm.steering = steeringAngle;
 				sm.leftBlink = leftFlash; //turnLeft;
 				sm.rightBlink = rightFlash; //turnRight;
 				sm.stopLight = brakeLight; //breakLed;
 
-				cout<<"Buff written size:"<<sendStream.bytes_written<<endl;
 				sendStatus = pb_encode(&sendStream, udooToArduino_fields, &sm);
-				cout<<"Buff written size:"<<sendStream.bytes_written<<endl;
+				stringstream message;
 				if (sendStatus) {
+
 					cout << "BYTES WRITTEN: " << (int) sendStream.bytes_written
 							<< endl;
 					cout << "MY MESSAGE: ";
-					ostringstream message;
-					for (int i = 0; i < (int) sendStream.bytes_written; i++) {
-						message << sendBuffer[i];
-						cout << (int) sendBuffer[i] << ',';
-					}
-					cout << message.str();
-				sp1.send(encodeNetstring(message.str()));
+				for (int i = 0; i < (int) sendStream.bytes_written; i++) {
+					message << sendBuffer[i];
+					cout << (int) sendBuffer[i] << ',';
+				}
+				serialPort1->send(encodeNetstring(message.str()));
+					//cout << message.str();
+//				sp1.send(encodeNetstring(message.str()));
 				}
 			}
 
 		}
 
-		// Destroy connections to UDP_Server.
-		OPENDAVINCI_CORE_DELETE_POINTER(serialPort1);
-		// OPENDAVINCI_CORE_DELETE_POINTER(serialPort2);
-
 	}
+	serialPort1->stop();
+
+	// Destroy connections to UDP_Server.
+	OPENDAVINCI_CORE_DELETE_POINTER(serialPort1);
+	// OPENDAVINCI_CORE_DELETE_POINTER(serialPort2);
+
 	return ModuleState::OKAY;
 }
 string Proxy::encodeNetstring(const string &d) {
