@@ -321,7 +321,6 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 			cout << "brakeLight" << currentValues.brakeLight << endl;
 		}
 
-		//TODO: Convert to protocol understandable values
 		if (previousValues.speed != currentValues.speed) {
 			m_protocol.setSpeed(currentValues.speed);
 			previousValues.speed=(int)currentValues.speed;
