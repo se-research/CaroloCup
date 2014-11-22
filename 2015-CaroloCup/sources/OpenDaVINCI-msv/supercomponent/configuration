@@ -169,7 +169,7 @@ proxy.camera.width = 640
 proxy.camera.height = 480
 proxy.camera.bpp = 3
 
-proxy.Actuator.SerialPort=/dev/ttyACM0
+proxy.Actuator.SerialPort=/dev/ttyACM1
 
 proxy.Sensor.SerialPort=/dev/ttyACM0
 proxy.Sensor.SerialSpeed=115200
