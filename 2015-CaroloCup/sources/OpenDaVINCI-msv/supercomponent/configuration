@@ -159,8 +159,8 @@ recintegrity.input = file:///dev/stdin
 #
 # CONFIGURATION FOR PROXY
 #
-proxy.debug = 0
-proxy.useRecorder = 1 # 1 = record all captured data directly, 0 otherwise. 
+proxy.debug = 1
+proxy.useRecorder = 0 # 1 = record all captured data directly, 0 otherwise. 
 proxy.recorder.output = file://recs/
 proxy.camera.name = WebCam
 proxy.camera.type = OpenCV # OpenCV or UEYE
@@ -168,6 +168,20 @@ proxy.camera.id = 0 # Select here the proper ID for OpenCV
 proxy.camera.width = 640
 proxy.camera.height = 480
 proxy.camera.bpp = 3
+
+proxy.Actuator.SerialPort=/dev/ttyACM0
+
+proxy.Sensor.SerialPort=/dev/ttyACM0
+proxy.Sensor.SerialSpeed=115200
+
+proxy.numberOfSensors=6
+
+proxy.sensor0.id=0 #first infra
+proxy.sensor1.id=1 #second infra
+proxy.sensor2.id=2 #third infra
+proxy.sensor3.id=3 #fourth infra
+proxy.sensor4.id=4 #first ultrasonic
+proxy.sensor5.id=5 #second ultrasonic
 
 
 

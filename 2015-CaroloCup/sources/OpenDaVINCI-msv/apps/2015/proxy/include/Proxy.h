@@ -12,6 +12,8 @@
 #include "core/base/ConferenceClientModule.h"
 #include "core/data/Container.h"
 #include "tools/recorder/Recorder.h"
+#include "ArduinoMegaProtocol.h"
+#include "SensorBoardData.h"
 
 #include "Camera.h"
 
@@ -22,7 +24,7 @@ namespace msv {
     /**
      * This class wraps the software/hardware interface board.
      */
-    class Proxy : public core::base::ConferenceClientModule {
+    class Proxy : public core::base::ConferenceClientModule,public core::wrapper::StringListener{
         private:
             /**
              * "Forbidden" copy constructor. Goal: The compiler should warn
@@ -56,6 +58,8 @@ namespace msv {
 
             core::base::ModuleState::MODULE_EXITCODE body();
 
+            virtual void nextString(const string &s);
+
         private:
             virtual void setUp();
 
@@ -63,9 +67,30 @@ namespace msv {
 
             void distribute(core::data::Container c);
 
+            void sendData();
+
+            int converter(char* ,int);
+
+        public:
+            struct vehicleControl {
+                    		int speed;
+                    		int steeringAngle;
+                    		bool leftFlash;
+                    		bool rightFlash;
+                    		bool brakeLight;
+
+                    	};
         private:
             tools::recorder::Recorder *m_recorder;
             Camera *m_camera;
+            vehicleControl previousValues, currentValues;
+
+            core::base::Mutex m_sensorBoardMutex;
+            SensorBoardData m_sensorBoardData;
+
+            bool m_debug;
+
+
     };
 
 } // msv
