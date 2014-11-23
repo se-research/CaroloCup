@@ -447,17 +447,17 @@
 <context>
     <name>cockpit::plugins::spy::SpyWidget</name>
     <message>
-        <location filename="src/plugins/spy/SpyWidget.cpp" line="55"/>
+        <location filename="src/plugins/spy/SpyWidget.cpp" line="57"/>
         <source>Datatype</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/plugins/spy/SpyWidget.cpp" line="55"/>
+        <location filename="src/plugins/spy/SpyWidget.cpp" line="57"/>
         <source>Received@</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/plugins/spy/SpyWidget.cpp" line="55"/>
+        <location filename="src/plugins/spy/SpyWidget.cpp" line="57"/>
         <source>Sent@</source>
         <translation type="unfinished"></translation>
     </message>

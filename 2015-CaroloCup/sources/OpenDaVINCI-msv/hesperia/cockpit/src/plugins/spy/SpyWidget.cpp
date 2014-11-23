@@ -25,8 +25,10 @@
 #include "core/data/RuntimeStatistic.h"
 #include "core/data/SharedData.h"
 #include "core/data/TimeStamp.h"
+#include "core/data/control/VehicleControl.h"
 
 #include "UserButtonData.h"
+#include "SensorBoardData.h"
 #include "plugins/spy/SpyWidget.h"
 
 namespace cockpit {
@@ -124,6 +126,10 @@ namespace cockpit {
                        return container.getData<core::data::TimeStamp> ().toString();
                     case Container::USER_BUTTON:
                        return container.getData<msv::UserButtonData> ().toString();
+                    case Container::USER_DATA_0:
+                    	return container.getData<msv::SensorBoardData> ().toString();
+                    case Container::VEHICLECONTROL:
+                    	return container.getData<core::data::control::VehicleControl>().toString();
                     default :
                        cs << container;
                        return cs.str();
