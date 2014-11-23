@@ -97,7 +97,7 @@ void Proxy::setUp() {
 			"proxy.camera.bpp");
 
 	if (TYPE.compare("opencv") == 0) {
-//		m_camera = new OpenCVCamera(NAME, ID, WIDTH, HEIGHT, BPP);
+		m_camera = new OpenCVCamera(NAME, ID, WIDTH, HEIGHT, BPP);
 	}
 	if (TYPE.compare("ueye") == 0) {
 #ifdef HAVE_UEYE
