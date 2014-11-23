@@ -64,7 +64,7 @@ void loop()
   ir3 = getDistance(analogRead(irpin3));
   ir4 = getDistance(analogRead(irpin4)); 
   
-  sprintf(irStr, "i%2d,%2d,%2d,%2d :", ir1, ir2, ir3, ir4);
+  sprintf(irStr, "i%2d,%2d,%2d,%2d", ir1, ir2, ir3, ir4);
 /*  Serial.print("i");
   Serial.print(ir1);
   Serial.print(",");
