@@ -45,7 +45,8 @@ Proxy::Proxy(const int32_t &argc, char **argv) :
 		currentValues(),
 		m_sensorBoardMutex(),
 		m_sensorBoardData(),
-		m_debug(false) {
+		m_debug(false)
+		{
 }
 
 Proxy::~Proxy() {
@@ -322,7 +323,13 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 		}
 
 		if (previousValues.speed != currentValues.speed) {
-			m_protocol.setSpeed(currentValues.speed);
+			if(getKeyValueConfiguration().getValue<uint32_t>("Proxy.Actuator.UseRealSpeed")==1){
+				bool reverse= currentValues.speed<0? true:false;
+				m_protocol.setWheelFrequency(abs(currentValues.speed),reverse);
+			}
+			else{
+				m_protocol.setSpeed(currentValues.speed);
+			}
 			previousValues.speed=(int)currentValues.speed;
 		}
 		if (previousValues.steeringAngle != currentValues.steeringAngle) {
