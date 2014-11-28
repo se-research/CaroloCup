@@ -8,23 +8,6 @@
 #define BRAKE_SPEED_MIN 1299
 #define INIT_MOTOR_SPEED 1520
 
-// WHEEL ENCODER
-#define WHEEL_DIAMETER            65.4
-#define PI                        3.141592
-#define WHEEL_CIRCUMFERENCE       WHEEL_DIAMETER * PI
-#define WHEEL_ENCODER_SEGMENTS    20
-#define DISTANCE_PER_SEGMENT      (float)WHEEL_CIRCUMFERENCE / WHEEL_ENCODER_SEGMENTS
-#define WHEEL_ENCODER_A_PIN       2
-#define WHEEL_ENCODER_B_PIN       3
-#define STOPPED_THRESHOLD_MICROS  2000000
-#define MICROS_TO_SECONDS         1000000
-#define MILLIMETER_TO_METER       1000
-
-float velocity = 0.0;       // Velocity in meters / second
-long wheelEncoderLastTime = 0;
-int metersTraveled = 0;
-long distanceTravelledMilli = 0;
-
 // This is our motor.
 Servo myMotor;
 Servo mySteering;
@@ -97,7 +80,6 @@ void setup()
 
   time = 0;
   
-  attachInterrupt(0, encoderISR, CHANGE);
   attachInterrupt(3, countRotations, FALLING);
   pinMode(2, INPUT);
   pinMode(3, INPUT);
@@ -366,15 +348,6 @@ void loop()
   //Serial.println(carSpeed);
   delay(10);
   //Serial.println((millis()-time));
-}
-
-void encoderISR(){
-  long newTime = micros();
-  float timePassed = (float)(newTime - wheelEncoderLastTime) / (float) MICROS_TO_SECONDS;
-
-  distanceTravelledMilli += DISTANCE_PER_SEGMENT;
-  velocity = (DISTANCE_PER_SEGMENT / MILLIMETER_TO_METER) / timePassed;
-  wheelEncoderLastTime = newTime;
 }
 
 void controlMotor() {
