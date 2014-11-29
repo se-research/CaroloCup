@@ -4,6 +4,23 @@
 #define ADDRESSFRONT 112
 //#define ADDRESSMIDDLE 114
 
+// WHEEL ENCODER
+#define WHEEL_DIAMETER            65.4
+#define PI                        3.141592
+#define WHEEL_CIRCUMFERENCE       WHEEL_DIAMETER * PI
+#define WHEEL_ENCODER_SEGMENTS    20
+#define DISTANCE_PER_SEGMENT      (float)WHEEL_CIRCUMFERENCE / WHEEL_ENCODER_SEGMENTS
+#define WHEEL_ENCODER_A_PIN       2
+#define WHEEL_ENCODER_B_PIN       3
+#define STOPPED_THRESHOLD_MICROS  2000000
+#define MICROS_TO_SECONDS         1000000
+#define MILLIMETER_TO_METER       1000
+
+float velocity = 0.0;       // Velocity in meters / second
+long wheelEncoderLastTime = 0;
+int metersTraveled = 0;
+long distanceTravelledMilli = 0;
+
 int irpin1 = 0;                 // analog pin used to connect the sharp sensor
 int irpin2 = 1;                 // analog pin used to connect the sharp sensor
 int irpin3 = 2;                 // analog pin used to connect the sharp sensor
@@ -31,6 +48,8 @@ void setup()
 {
   Serial.begin(115200);               // starts the serial monitor
   Wire.begin();
+  
+  attachInterrupt(0, encoderISR, CHANGE);
   
   //attachInterrupt(0, countRotationsF, FALLING);
   //attachInterrupt(1, countRotationsR, FALLING);
@@ -209,6 +228,16 @@ void loop()
     time = curr;
   }*/
 }
+
+void encoderISR(){
+  long newTime = micros();
+  float timePassed = (float)(newTime - wheelEncoderLastTime) / (float) MICROS_TO_SECONDS;
+
+  distanceTravelledMilli += DISTANCE_PER_SEGMENT;
+  velocity = (DISTANCE_PER_SEGMENT / MILLIMETER_TO_METER) / timePassed;
+  wheelEncoderLastTime = newTime;
+}
+
 
 /*void countRotationsF() {
   cntF++;
