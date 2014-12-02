@@ -89,6 +89,7 @@ namespace msv {
             SensorBoardData m_sensorBoardData;
 
             bool m_debug;
+            bool m_useRealSpeed;
 
 
     };

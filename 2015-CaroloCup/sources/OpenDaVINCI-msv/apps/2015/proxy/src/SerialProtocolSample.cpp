@@ -25,13 +25,13 @@ SerialProtocolSample::~SerialProtocolSample() {
 }
 
 void SerialProtocolSample::connect(const string &port) {
-	//fd = open(port, O_RDWR | O_NOCTTY | O_NDELAY);
-	fd = open(port.c_str(), O_RDWR | O_NONBLOCK );
+	fd = open(port.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
+//	fd = open(port.c_str(), O_RDWR | O_NONBLOCK );
 	if (fd == -1) {
 		perror("cannot open");
 	}
 	else {
-//		fcntl(fd, F_SETFL, 0);
+		fcntl(fd, F_SETFL, 0);
 	}
 	struct termios options;
 	tcgetattr(fd, &options);

@@ -191,7 +191,9 @@ void loop()
   char uStr[13];
 
   //sprintf(uStr, "u%3d,%3d,%3d", uf,um,ub);
-    sprintf(uStr, "u%3d,%3d.", uf,ub);
+    sprintf(uStr, "u%3d,%3d", uf,ub);
+  char wStr[5];
+  sprintf(wStr, "w%4d.",distanceTravelledMilli);
   /*Serial.print("u");
   Serial.print(uff);
   Serial.print(",");
@@ -201,7 +203,9 @@ void loop()
 
   Serial.print(irStr);
   Serial.print(":");
-  Serial.println(uStr);
+  Serial.print(uStr);
+  Serial.print(":");
+  Serial.println(wStr);
   
   //sprintf(sndStr,"%d:%s",n,sndStr);
   //Serial.println(sndStr);

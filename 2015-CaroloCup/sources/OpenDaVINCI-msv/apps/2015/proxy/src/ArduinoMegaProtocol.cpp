@@ -51,7 +51,7 @@ namespace msv {
 		sum += chkSum(angle) + chkSum('s');
 		
 		ss << angle << '/';
-		//cout << "Angle message ========================= " << ss.str() << endl;
+		cout << "Angle message ========================= " << ss.str() << endl;
 		int error_code = m_SerialProtocol.writeToSerial(&ss);
 	if (error_code == -1) {
 		cerr << "Serial send failed." << endl;

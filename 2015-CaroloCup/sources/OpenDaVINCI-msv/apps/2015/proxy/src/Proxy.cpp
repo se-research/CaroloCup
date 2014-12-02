@@ -45,7 +45,8 @@ Proxy::Proxy(const int32_t &argc, char **argv) :
 		currentValues(),
 		m_sensorBoardMutex(),
 		m_sensorBoardData(),
-		m_debug(false)
+		m_debug(false),
+		m_useRealSpeed(false)
 		{
 }
 
@@ -65,6 +66,7 @@ void Proxy::setUp() {
 	m_debug=kv.getValue<uint32_t>("proxy.debug")==1;
 	// Create built-in recorder.
 	const bool useRecorder = kv.getValue<uint32_t>("proxy.useRecorder") == 1;
+	 m_useRealSpeed = kv.getValue<uint32_t>("proxy.Actuator.UseRealSpeed") == 1;
 	if (useRecorder) {
 		// URL for storing containers.
 		stringstream recordingURL;
@@ -115,9 +117,11 @@ void Proxy::setUp() {
 
 void Proxy::nextString(const string &s)
 {
-
-	string iStr=s.substr(0,s.find(':'));
-	string uStr=s.substr(s.find(':')+1);
+	int posIstr=s.find(':');
+	int posUstr=s.find(':',posIstr+1);
+	string iStr=s.substr(0,posIstr);
+	string uStr=s.substr(posIstr+1,posUstr-posIstr);
+	string wStr=s.substr(posUstr+1);
 
     if (iStr[0] == 'i') {
 
@@ -156,11 +160,12 @@ void Proxy::nextString(const string &s)
 				m_sensorBoardData.update(2, thirdInfraDist);
 				m_sensorBoardData.update(3, fourthInfraDist);
 			}
-		}  //End of main if
+		}
 		if (m_debug) {
 			cout << "proxy:" << s << endl;
 			cout << "uStr:" << uStr << endl;
 			cout << "iStr:" << iStr << endl;
+			cout << "wStr:" << wStr <<endl;
 			cout << "Found First: " << m_sensorBoardData.getDistance(0) << endl;
 			cout << "Found Second: " << m_sensorBoardData.getDistance(1)
 					<< endl;
@@ -170,7 +175,7 @@ void Proxy::nextString(const string &s)
 
 		}
 
-	}   //end of if statement when start byte is found
+	}
 
     if(uStr[0]=='u')
     {
@@ -206,6 +211,26 @@ void Proxy::nextString(const string &s)
 		    	cout << "Found Second Ultra: " << m_sensorBoardData.getDistance(5) << endl;
 		    }
     }
+
+    if(wStr[0]=='w')
+    {
+			char wheelEncoder[4];
+			wheelEncoder[0] = wStr[1];
+			wheelEncoder[1] = wStr[2];
+			wheelEncoder[2] = wStr[3];
+			wheelEncoder[3] = wStr[4];
+			int distanceTraveled;
+			distanceTraveled=converter(wheelEncoder,4);
+
+			{
+				Lock l(m_sensorBoardMutex);
+				m_sensorBoardData.update(6, distanceTraveled);
+			}
+    }
+    if(m_debug)
+   		    {
+   		    	cout << "Found Encoder: " << m_sensorBoardData.getDistance(6) << endl;
+   		    }
 
 }
 
@@ -323,7 +348,7 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 		}
 
 		if (previousValues.speed != currentValues.speed) {
-			if(getKeyValueConfiguration().getValue<uint32_t>("Proxy.Actuator.UseRealSpeed")==1){
+			if(m_useRealSpeed){
 				bool reverse= currentValues.speed<0? true:false;
 				m_protocol.setWheelFrequency(abs(currentValues.speed),reverse);
 			}
@@ -333,7 +358,7 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 			previousValues.speed=(int)currentValues.speed;
 		}
 		if (previousValues.steeringAngle != currentValues.steeringAngle) {
-			m_protocol.setSteeringAngle(currentValues.steeringAngle);
+			m_protocol.setSteeringAngle((int)currentValues.steeringAngle);
 			previousValues.steeringAngle=(int)currentValues.steeringAngle;
 		}
 
