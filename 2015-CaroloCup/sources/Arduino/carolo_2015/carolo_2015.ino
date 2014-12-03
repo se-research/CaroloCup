@@ -4,6 +4,7 @@
 #define MAX_STEERING_ANGLE_L -43
 #define MIN_MOTOR_SPEED 800
 #define MAX_MOTOR_SPEED 1623
+#define MIN_REVERSE_SPEED 1100
 #define BRAKE_SPEED_MAX 1541
 #define BRAKE_SPEED_MIN 1299
 #define INIT_MOTOR_SPEED 1520
@@ -167,17 +168,7 @@ void loop()
         
         //Cruise control
         if (!first && cruiseCtrl) {
-          if (readbyte == 'r' && !applyCruiseCtrl && reverse == -1) {
-            applyCruiseCtrl = true;
-            reverse = -1;
-            speed = 1240;
-            Serial.println("Reverse");
-          } else if (readbyte == 'f' && !applyCruiseCtrl && reverse == 1) {
-            applyCruiseCtrl = true;
-            reverse = 1;
-            speed = 1520;
-            Serial.println("Forward");
-          } else if (readbyte == 'f' || readbyte == 'r') {
+          if (readbyte == 'f' || readbyte == 'r') {
             isDirSet = true;
             if(!applyCruiseCtrl) {
                applyCruiseCtrl = true;
@@ -330,9 +321,9 @@ void loop()
       }
   
       if(reverse == 1) {
-        speed = constrain(speed, 1547, 1580);
+        speed = constrain(speed, 1547, MAX_MOTOR_SPEED);
       } else {
-        speed = constrain(speed, 1200, 1270);
+        speed = constrain(speed, MIN_REVERSE_SPEED, 1270);
       }
     }
     //Serial.print("Speed :");
