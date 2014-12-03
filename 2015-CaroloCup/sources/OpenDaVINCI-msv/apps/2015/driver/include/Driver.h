@@ -20,15 +20,16 @@ enum DRIVING_STATE {
 	DRIVE = 0,
 	START_OBST = 1,
 	POSSIBLE_SPOT = 2,
-	STOP_FOR_PARKING = 3,
-	PARKING = 4
+	Initialize_Pos_For_Parking = 3,
+	STOP_FOR_PARKING = 4,
+	PARKING = 5
 
 };
 
 enum PARKINGSTATE {
-	INIT_PARKING = 0,
-	BACK_UP_PARKING = 1,
-	FINAL_PARKING = 2,
+	BACKWARDS_RIGHT = 0,
+	BACKWARDS_LEFT = 1,
+	FORWARD_RIGHT = 2,
 	BACK_AGAIN = 3,
 	STOP = 4
 };
@@ -79,7 +80,7 @@ private:
 	virtual void setUp();
 
 	virtual void tearDown();
-	void parking(double time, VehicleControl& vc, VehicleData& vd);
+	void parking();
 };
 
 } // msv
