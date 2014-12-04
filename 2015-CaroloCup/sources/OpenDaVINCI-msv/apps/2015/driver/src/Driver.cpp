@@ -215,6 +215,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 			break;
 
 		case PARKING: {
+			CurrentDist = Distance;
 			parking();
 		}
 			break;
@@ -263,6 +264,7 @@ void Driver::parking() {
 			parking_state = BACKWARDS_LEFT;
 			driving_speed = -1;
 			desiredSteeringWheelAngle = 25;
+			CurrentDist = Distance;
 
 		} 
 	}
@@ -270,12 +272,13 @@ void Driver::parking() {
 		
 	case BACKWARDS_LEFT: {
 
-		CurrentDist = Distance;
+		
 		if (Distance == (CurrentDist + DesiredDistance3)) {
 
 			driving_speed = -1;
 			desiredSteeringWheelAngle = -25;
 			parking_state = FORWARD_RIGHT;
+			CurrentDist = Distance;
 
 		} 
 	}
@@ -289,6 +292,7 @@ void Driver::parking() {
 			driving_speed = 1;
 			desiredSteeringWheelAngle = 25;
 			parking_state = BACK_AGAIN;
+			CurrentDist = Distance;
 
 		} 
 	}
