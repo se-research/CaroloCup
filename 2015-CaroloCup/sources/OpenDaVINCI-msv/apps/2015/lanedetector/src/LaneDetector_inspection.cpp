@@ -306,9 +306,8 @@ namespace msv {
 	//m_inspection = kv.getValue<u_int32_t>("lanedetector.inspection")==1;
 
 
-        // Lane-detector can also directly read the data from file. This might be interesting to inspect the algorithm step-wisely.
-	// TO-DO: move url to the configuration file
-        core::io::URL url("file:///opt/msv/bin/2013/DIT-168/project-template/FullTrackUEyeCamera.rec");
+        // Lane-detector can also directly read the data from file. This might be interesting to inspect the algorithm step-wisely
+        core::io::URL url(kv.getValue<string>("lanedetector.inspect_rec"));
 	
 
         // Size of the memory buffer.
