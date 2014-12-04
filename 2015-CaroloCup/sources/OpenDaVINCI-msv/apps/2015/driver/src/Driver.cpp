@@ -64,7 +64,7 @@ void Driver::tearDown() {
 double start_timer;
 double time_taken;
 
-double driving_speed;			// Speed of the car
+int driving_speed;			// Speed of the car
 double desiredSteeringWheelAngle;// Angle of the wheels
 
 // This method will do the main data processing job.
@@ -131,19 +131,21 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 		switch (driving_state) {
 		case DRIVE: {
 			cout << "In drive mode" << endl;
-			driving_speed = 1.0;
+			driving_speed = 1;
 			desiredSteeringWheelAngle = 0;
 
-			if (IRdis_SR < 10)
+			if ((IRdis_SR < 20 && IRdis_SR > 2)){ 
 				driving_state = START_OBST;
+			  
+			}
 		}
 			break;
 
 		case START_OBST: {
-			cout << "Scanning Obstacle" << endl;
-			driving_speed = 1.0;
+			cout << "START_OBST mode" << endl;
+			driving_speed = 1;
 			desiredSteeringWheelAngle = 0;
-			if (IRdis_SR > 15) {
+			if ((IRdis_SR > 20 || IRdis_SR < 2)) {
 				driving_state = POSSIBLE_SPOT;
 	
 // 				TimeStamp currentTime_strt1;
@@ -156,26 +158,29 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 
 
 			cout << "---- DIstance so far: " << Distance << endl;
-			driving_speed = 1.0;
+			cout << "---- POSSIBLE_SPOT" << endl;
+			driving_speed = 1;
 			desiredSteeringWheelAngle = 0;
 			
 			CurrentDist = Distance;
-			if (IRdis_SR > 15 && Distance == (CurrentDist + MinParkingDist)) {
+			if ((IRdis_SR > 20 || IRdis_SR < 2) && Distance == (CurrentDist + MinParkingDist)) {
 				
 				desiredSteeringWheelAngle = 0;
 				driving_state = STOP_FOR_PARKING;
-
-				cout << "Found a parking spot" << endl;
+				
+				cout << "CurrentDist (STOP_FOR_PARKING)"<< CurrentDist << endl;
+				cout << "Found a parking spot (STOP_FOR_PARKING)" << endl;
 			} else {
 
-				driving_state = START_OBST;
+				driving_state = Initialize_Pos_For_Parking;
 			}
 			
 			cout << "Found a possible spot" << endl;
 		}
 			break;
-		case Initialize_Pos_For_Parking: {
-		  
+		case Initialize_Pos_For_Parking: { 
+		 
+			cout << "Found a parking spot (Initialize_Pos_For_Parking)" << endl;
 			TimeStamp currentTime;
 			CurrentDist = Distance;
 			if (Distance == (CurrentDist + DesiredDistance1)) {
@@ -187,7 +192,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 		}
 			break;
 
-		case STOP_FOR_PARKING: {
+		case STOP_FOR_PARKING: { 
 		  
 			TimeStamp currentTime2;
 			time_taken = (currentTime2.toMicroseconds() / 1000000.0)
@@ -195,8 +200,8 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 					
 			cout << "++++++++++ Stoping timer: " << time_taken << endl;
 			CurrentDist = Distance;
-			if (time_taken > 4) {
-				
+			if (time_taken > 4) {  //can this be reached ? because start_timer never started.
+ 				
 				//parking(vc, vd);
 				driving_state = PARKING;
 				CurrentDist = Distance;
