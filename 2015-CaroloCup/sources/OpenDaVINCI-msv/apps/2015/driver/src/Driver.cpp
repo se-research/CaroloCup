@@ -147,7 +147,9 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 			desiredSteeringWheelAngle = 0;
 			if ((IRdis_SR > 20 || IRdis_SR < 2)) {
 				driving_state = POSSIBLE_SPOT;
-	
+				
+				CurrentDist = Distance;
+				
 // 				TimeStamp currentTime_strt1;
 // 				start = currentTime_strt1;
 			}
@@ -162,25 +164,27 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 			driving_speed = 1;
 			desiredSteeringWheelAngle = 0;
 			
-			CurrentDist = Distance;
-			if ((IRdis_SR > 20 || IRdis_SR < 2) && Distance == (CurrentDist + MinParkingDist)) {
+			
+			if ((IRdis_SR > 20 || IRdis_SR < 2)) {
+			  if (Distance == (CurrentDist + MinParkingDist)){
 				
 				desiredSteeringWheelAngle = 0;
-				driving_state = STOP_FOR_PARKING;
-				
+				driving_state = INITIALIZE_POS_FOR_PARKING;
+			    
+			  }
 				cout << "CurrentDist (STOP_FOR_PARKING)"<< CurrentDist << endl;
 				cout << "Found a parking spot (STOP_FOR_PARKING)" << endl;
 			} else {
 
-				driving_state = Initialize_Pos_For_Parking;
+				driving_state = DRIVE;
 			}
 			
 			cout << "Found a possible spot" << endl;
 		}
 			break;
-		case Initialize_Pos_For_Parking: { 
+		case INITIALIZE_POS_FOR_PARKING: { 
 		 
-			cout << "Found a parking spot (Initialize_Pos_For_Parking)" << endl;
+			cout << "Found a parking spot (INITIALIZE_POS_FOR_PARKING)" << endl;
 			TimeStamp currentTime;
 			CurrentDist = Distance;
 			if (Distance == (CurrentDist + DesiredDistance1)) {
