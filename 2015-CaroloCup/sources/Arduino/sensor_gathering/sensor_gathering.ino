@@ -55,22 +55,19 @@ void setup()
   //attachInterrupt(1, countRotationsR, FALLING);
 }
 
-int getDistance(int val)
+int getDistance(int val, int sensorPin)
 {
-  // take care the value is within range
-  // val = constrain(val, _in[0], _in[size-1]);
-  if (val <= in[0]) return -1;
-  if (val >= in[size-1]) return -1;
-  
-  // search right interval
-  uint8_t pos = 1;  // _in[0] allready tested
-  while(val > in[pos]) pos++;
-
-  // this will handle all exact "points" in the _in array
-  if (val == in[pos]) return out[pos];
-
-  // interpolate in the right segment for the rest
-  return map(val, in[pos-1], in[pos], out[pos-1], out[pos]);
+  int returnVal = -1;
+  if(sensorPin == 1){
+      returnVal = 9963.2 * pow(val, -1.207);
+  }else if(sensorPin == 2){
+      returnVal = 1383 * pow(val, -0.897);
+  }else if(sensorPin == 3){
+      returnVal = 703.48 * pow(val, -0.771);
+  }else if(sensorPin == 0){
+      returnVal = 26181 * pow(val, -1.394);
+  }
+  return returnVal;
 }
 
 void loop()
@@ -78,10 +75,10 @@ void loop()
   char irStr[13];
   if(infraCount >= 2){
   int ir1, ir2, ir3, ir4;
-  ir1 = getDistance(analogRead(irpin1));
-  ir2 = getDistance(analogRead(irpin2));
-  ir3 = getDistance(analogRead(irpin3));
-  ir4 = getDistance(analogRead(irpin4)); 
+  ir1 = getDistance(analogRead(irpin1), 0);
+  ir2 = getDistance(analogRead(irpin2), 1);
+  ir3 = getDistance(analogRead(irpin3), 2);
+  ir4 = getDistance(analogRead(irpin4), 3); 
   
   sprintf(irStr, "i%2d,%2d,%2d,%2d", ir1, ir2, ir3, ir4);
 /*  Serial.print("i");
@@ -250,4 +247,3 @@ void encoderISR(){
 void countRotationsR() {
   cntR++;
 }*/
-
