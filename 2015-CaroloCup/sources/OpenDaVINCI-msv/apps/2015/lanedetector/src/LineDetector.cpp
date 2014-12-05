@@ -444,7 +444,7 @@ CustomLine LineDetector::createLineFromRect(RotatedRect* rect, int sizeX,
 	return l;
 }
 
-vector<vector<Point> > LineDetector::getContours(cv::Mat &outputImg) {
+void LineDetector::getContours(cv::Mat &outputImg) {
 	vector<vector<Point> > contours;
 	vector<Vec4i> hierarchy;
 	cntDash = 0;
@@ -454,8 +454,7 @@ vector<vector<Point> > LineDetector::getContours(cv::Mat &outputImg) {
 			CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
 
 	/// Make polygon contours
-	//contours_poly( contours.size() );
-	vector<vector<Point> > contours_poly(contours.size());
+	contours_poly.resize(contours.size());
 
 	dashLines = vector<CustomLine>(contours.size());
 	solidLines = vector<CustomLine>(contours.size());
@@ -463,10 +462,10 @@ vector<vector<Point> > LineDetector::getContours(cv::Mat &outputImg) {
 		approxPolyDP(Mat(contours[i]), contours_poly[i], 3, true);
 	}
 
-	return contours_poly;
+	return;
 }
 
-void LineDetector::getAllLines(vector<vector<Point> > contours_poly) {
+void LineDetector::getAllLines() {
 
 	RotatedRect rect;
 	for (unsigned int i = 0; i < contours_poly.size(); i++) {
@@ -665,15 +664,50 @@ void LineDetector::finalFilter() {
 void LineDetector::findLines(cv::Mat &outputImg) {
 
 	//Find contours
-	vector<vector<Point> > contours_poly = getContours(outputImg);
+	getContours(outputImg);
+	if (m_debug)
+		result_getContours.contours = contours_poly;
+
 	//Get all marked lines
-	getAllLines(contours_poly);
+	getAllLines();
+	if (m_debug)
+		result_getAllLines.rects = rects;
+
 	//Classify dash lines and solid lines
 	classification();
+	if (m_debug){
+		result_classification.dashLines = dashLines;
+		result_classification.solidLines = solidLines;
+		result_classification.cntDash = cntDash;
+		result_classification.cntSolid = cntSolid;
+		result_classification.foundStopStartLine = foundStopStartLine;
+		result_classification.intersectionOn = intersectionOn;
+		result_classification.foundIntersection = foundIntersection;
+	}
+
 	//Filter dashes outside the solid lines and merge solid lines
 	filterAndMerge();
+	if (m_debug){
+		result_filterAndMerge.dashLines = dashLines;
+		result_filterAndMerge.solidLines = solidLines;
+		result_filterAndMerge.cntDash = cntDash;
+		result_filterAndMerge.cntSolid = cntSolid;
+		result_filterAndMerge.foundStopStartLine = foundStopStartLine;
+		result_filterAndMerge.intersectionOn = intersectionOn;
+		result_filterAndMerge.foundIntersection = foundIntersection;
+	}
+
 	//Filter lines with very small angles, filter dash positioned too high on the image or too left or too right
 	finalFilter();
+	if (m_debug){
+		result_finalFilter.dashLines = dashLines;
+		result_finalFilter.solidLines = solidLines;
+		result_finalFilter.cntDash = cntDash;
+		result_finalFilter.cntSolid = cntSolid;
+		result_finalFilter.foundStopStartLine = foundStopStartLine;
+		result_finalFilter.intersectionOn = intersectionOn;
+		result_finalFilter.foundIntersection = foundIntersection;
+	}
 
 	cout << "Dashes: " << cntDash << endl;
 	cout << "Solids: " << cntSolid << endl;
@@ -906,5 +940,27 @@ int LineDetector::getIntersectionWithBottom(CustomLine l) const {
 	}
 	return positionX;
 }
+
+IntermediateResult_getContours LineDetector::getResult_getContours(){
+	return result_getContours;
+}
+
+IntermediateResult_getAllLines LineDetector::getResult_getAllLines(){
+	return result_getAllLines;
+}
+
+IntermediateResult LineDetector::getResult_classification(){
+	return result_classification;
+}
+
+IntermediateResult LineDetector::getResult_filterAndMerge(){
+	return result_filterAndMerge;
+}
+
+IntermediateResult LineDetector::getResult_finalFilter(){
+	return result_finalFilter;
+}
+
+
 
 }
