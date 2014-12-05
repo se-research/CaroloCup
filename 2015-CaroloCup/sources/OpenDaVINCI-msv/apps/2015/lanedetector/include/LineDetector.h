@@ -67,6 +67,7 @@ public:
 	IntermediateResult getResult_classification();
 	IntermediateResult getResult_filterAndMerge();
 	IntermediateResult getResult_finalFilter();
+	Lines getResult_getLines();
 
 private:
 	LineDetector(const LineDetector&);
@@ -122,6 +123,7 @@ private:
 	IntermediateResult result_classification;
 	IntermediateResult result_filterAndMerge;
 	IntermediateResult result_finalFilter;
+	Lines result_getLines;
 };
 
 }

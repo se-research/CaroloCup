@@ -55,6 +55,8 @@ LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug,
 	// View
 	if (m_debug)
 		imshow("Output", outputImg);
+
+	//Lines result_getLines = getLines();
 }
 
 LineDetector::~LineDetector() {
@@ -961,6 +963,9 @@ IntermediateResult LineDetector::getResult_finalFilter(){
 	return result_finalFilter;
 }
 
+Lines LineDetector::getResult_getLines(){
+	return result_getLines;
+}
 
 
 }
