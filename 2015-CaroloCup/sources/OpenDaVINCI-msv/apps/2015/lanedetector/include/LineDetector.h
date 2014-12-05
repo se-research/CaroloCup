@@ -37,6 +37,7 @@ struct IntermediateResult_getContours{
 
 struct IntermediateResult_getAllLines{
 	vector<RotatedRect> rects;
+	vector<PolySize> line_sizes;
 };
 
 struct IntermediateResult{
@@ -68,6 +69,7 @@ public:
 	IntermediateResult getResult_filterAndMerge();
 	IntermediateResult getResult_finalFilter();
 	Lines getResult_getLines();
+	CustomLine createLineFromRect(RotatedRect* rect, int sizeX, int sizeY);
 
 private:
 	LineDetector(const LineDetector&);
@@ -82,7 +84,6 @@ private:
 	pair<vector<Point>::iterator, vector<Point>::iterator> findBiggestDistance(
 			Cluster& c);
 	Mat getBirdView(Mat& source);
-	CustomLine createLineFromRect(RotatedRect* rect, int sizeX, int sizeY);
 	void findLines(cv::Mat &outputImg);
 	float getLineSlope(Point &p1, Point &p2);
 	float getDist(const Point p1, const Point p2) const;

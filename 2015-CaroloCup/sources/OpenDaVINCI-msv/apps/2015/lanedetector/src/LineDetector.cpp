@@ -672,8 +672,10 @@ void LineDetector::findLines(cv::Mat &outputImg) {
 
 	//Get all marked lines
 	getAllLines();
-	if (m_debug)
+	if (m_debug){
 		result_getAllLines.rects = rects;
+		result_getAllLines.line_sizes = line_sizes;
+	}
 
 	//Classify dash lines and solid lines
 	classification();

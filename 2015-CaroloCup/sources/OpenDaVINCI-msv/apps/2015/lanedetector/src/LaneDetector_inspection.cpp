@@ -163,6 +163,7 @@ namespace msv {
 		msv::Lines lines = road.getLines();
 
 		// ADDED PART
+		showResult_allLines(road, neededPart);
 		showResult_classification(road, neededPart);
 		//msv::Lines lines = road.getResult_getLines();
 
@@ -374,7 +375,19 @@ namespace msv {
 	    return ModuleState::OKAY;
     }
 
-void LaneDetector_inspection::showResult_classification(LineDetector road, Mat& frame){
+void LaneDetector_inspection::showResult_allLines(LineDetector &road, Mat& frame){
+    IntermediateResult_getAllLines res = road.getResult_getAllLines();
+    vector<RotatedRect> rotated = res.rects;
+    vector<PolySize> line_sizes = res.line_sizes;
+    for(int i = 0; i < rotated.size(); i++){
+    	CustomLine theline = road.createLineFromRect(&rotated[i],line_sizes[i].sizeX,line_sizes[i].sizeY);
+    	line(frame, theline.p1, theline.p2, 0, 2);
+    }
+
+    imshow("Output from getAllLines", frame);
+}
+
+void LaneDetector_inspection::showResult_classification(LineDetector &road, Mat& frame){
 	IntermediateResult res = road.getResult_classification();
 
 	//Print lines
@@ -393,6 +406,7 @@ void LaneDetector_inspection::showResult_classification(LineDetector road, Mat& 
 	if (m_debug)
 		imshow("Output from classification", frame);
 }
+
 
 } // msv
 

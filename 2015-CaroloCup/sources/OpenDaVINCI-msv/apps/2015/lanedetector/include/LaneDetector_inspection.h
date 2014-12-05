@@ -73,7 +73,8 @@ namespace msv {
             Mat m_frame;
             uint32_t m_frame_count;
 	        
-			void showResult_classification(LineDetector road, Mat& frame);
+			void showResult_classification(LineDetector &road, Mat& frame);
+			void showResult_allLines(LineDetector &road, Mat& frame);
 
 	        virtual void setUp();
 
