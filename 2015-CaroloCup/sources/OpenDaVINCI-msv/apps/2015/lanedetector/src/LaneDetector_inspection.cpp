@@ -161,6 +161,16 @@ namespace msv {
 
 		LineDetector road(neededPart, cfg, debug, 1);
 		msv::Lines lines = road.getLines();
+
+		// ADDED PART
+		showResult_classification(road, neededPart);
+		//msv::Lines lines = road.getResult_getLines();
+
+
+
+		//END
+
+
 		if (&lines != NULL)
 			cout << "We have lines for frame " <<m_frame_count << endl;
 		LaneDetectionData data;
@@ -363,6 +373,26 @@ namespace msv {
         waitKey(20);
 	    return ModuleState::OKAY;
     }
+
+void LaneDetector_inspection::showResult_classification(LineDetector road, Mat& frame){
+	IntermediateResult res = road.getResult_classification();
+
+	//Print lines
+	for (int i = 0; i < res.cntDash; i++) {
+		line(frame, res.dashLines[i].p1, res.dashLines[i].p2, 45, 2);
+		if (m_debug) {
+			cout << "Dash line angle: " << res.dashLines[i].slope << endl;
+		}
+	}
+	for (int i = 0; i < res.cntSolid; i++) {
+		line(frame, res.solidLines[i].p1, res.solidLines[i].p2, 0, 2);
+		if (m_debug) {
+			cout << "Solid line angle: " << res.solidLines[i].slope << endl;
+		}
+	}
+	if (m_debug)
+		imshow("Output from classification", frame);
+}
 
 } // msv
 

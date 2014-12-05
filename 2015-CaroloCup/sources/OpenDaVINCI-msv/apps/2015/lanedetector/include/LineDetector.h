@@ -30,6 +30,26 @@ struct PolySize {
 	Point longSideMiddle;
 };
 
+// Structs for intermediate results
+struct IntermediateResult_getContours{
+	vector<vector<Point> > contours;
+};
+
+struct IntermediateResult_getAllLines{
+	vector<RotatedRect> rects;
+};
+
+struct IntermediateResult{
+	vector<CustomLine> dashLines;
+	vector<CustomLine> solidLines;
+	int cntDash;
+	int cntSolid;
+	bool foundStopStartLine;
+	bool intersectionOn;
+	bool foundIntersection;
+};
+
+
 class LineDetector {
 public:
 	LineDetector(const Mat& f, const Config& cfg, const bool debug,
@@ -40,6 +60,14 @@ public:
 	int detectStopLine(int dist);
 
 	Clusters* getClusters(); // Attila: Only debugging
+
+	// Functions to retrive debug information
+	IntermediateResult_getContours getResult_getContours();
+	IntermediateResult_getAllLines getResult_getAllLines();
+	IntermediateResult getResult_classification();
+	IntermediateResult getResult_filterAndMerge();
+	IntermediateResult getResult_finalFilter();
+	Lines getResult_getLines();
 
 private:
 	LineDetector(const LineDetector&);
@@ -65,9 +93,9 @@ private:
 	int getIntersectionWithBottom(CustomLine l) const;
 
 	//Find contours
-	vector<vector<Point> > getContours(cv::Mat &outputImg);
+	void getContours(cv::Mat &outputImg);
 	//Get all marked lines
-	void getAllLines(vector<vector<Point> > contours_poly);
+	void getAllLines();
 	//Classify dash lines and solid lines
 	void classification();
 	//Filter dashes outside the solid lines and merge solid lines
@@ -83,11 +111,19 @@ private:
 	std::vector<CustomLine> detectedLines;
 	Config m_config;
 
+	vector<vector<Point> > contours_poly;
 	vector<CustomLine> dashLines;
 	vector<CustomLine> solidLines;
 	vector<PolySize> line_sizes;
 	vector<RotatedRect> rects;
 
+	// Variables for function's results
+	IntermediateResult_getContours result_getContours;
+	IntermediateResult_getAllLines result_getAllLines;
+	IntermediateResult result_classification;
+	IntermediateResult result_filterAndMerge;
+	IntermediateResult result_finalFilter;
+	Lines result_getLines;
 };
 
 }
