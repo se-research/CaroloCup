@@ -40,6 +40,7 @@ namespace msv {
     double width = 752, height = 480;
     Mat img;
     int key;
+    long time_taken_get_line;
     LaneDetector_inspection::LaneDetector_inspection(const int32_t &argc, char **argv) :
     	ConferenceClientModule(argc, argv, "lanedetector"),
         m_hasAttachedToSharedImageMemory(false),
@@ -160,7 +161,17 @@ namespace msv {
 		Mat neededPart = m_frame(cv::Rect(1, 2*height/16-1, width-1, 10*height/16-1));
 
 		LineDetector road(neededPart, cfg, debug, 1);
+		long startTime;
+			//Find contours
+		if(m_debug){
+			TimeStamp currentTime;
+			startTime = currentTime.toMicroseconds();
+		}
 		msv::Lines lines = road.getLines();
+		if (m_debug){
+			TimeStamp endTime;
+			time_taken_get_line = endTime.toMicroseconds() - startTime;
+		}
 
 		// ADDED PART
 		//showResult_allLines(road, neededPart);
@@ -265,6 +276,13 @@ namespace msv {
 			convert.str("");
 			convert << road.time_taken_final_filter;
 			putText(neededPart,convert.str(), cvPoint(160,200),
+			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+
+			putText(neededPart, "get line", cvPoint(30,220),
+			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+			convert.str("");
+			convert << time_taken_get_line;
+			putText(neededPart,convert.str(), cvPoint(150,220),
 			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
 
 
