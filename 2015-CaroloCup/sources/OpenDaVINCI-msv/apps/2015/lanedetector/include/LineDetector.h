@@ -60,6 +60,12 @@ public:
 	int detectStartLine(int dist);
 	int detectStopLine(int dist);
 
+	long time_taken_contour;
+	long time_taken_find_lines;
+	long time_taken_classification;
+	long time_taken_filter_merge;
+	long time_taken_final_filter;
+
 	Clusters* getClusters(); // Attila: Only debugging
 
 	// Functions to retrive debug information

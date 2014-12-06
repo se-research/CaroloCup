@@ -163,7 +163,7 @@ namespace msv {
 		msv::Lines lines = road.getLines();
 
 		// ADDED PART
-		showResult_allLines(road, neededPart);
+		//showResult_allLines(road, neededPart);
 		showResult_classification(road, neededPart);
 		//msv::Lines lines = road.getResult_getLines();
 
@@ -219,18 +219,62 @@ namespace msv {
 			cout << "Position [x, y] : [" << lines.currentLine.p2.x << ", "
 					<< lines.currentLine.p2.y << "]" << endl;
 			//Putting text on the image for the 4 cases and current frame number
-			putText(neededPart, "TP - 1", cvPoint(30,30), 
+			putText(neededPart, "TP - 1", cvPoint(30,20),
 			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-			putText(neededPart, "TN - 2", cvPoint(30,60), 
+			putText(neededPart, "TN - 2", cvPoint(30,40),
 			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-			putText(neededPart, "FP - 3", cvPoint(30,90), 
+			putText(neededPart, "FP - 3", cvPoint(30,60),
 			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-			putText(neededPart, "FN - 4", cvPoint(30,120), 
+			putText(neededPart, "FN - 4", cvPoint(30,80),
 			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-			putText(neededPart, "Frame", cvPoint(30,150), 
+			putText(neededPart, "Frame", cvPoint(30,100),
 			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-			putText(neededPart,current_frame, cvPoint(100,150), 
+			putText(neededPart,current_frame, cvPoint(100,100),
 			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+
+			putText(neededPart, "contour", cvPoint(30,120),
+			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+			convert.str("");
+			convert << road.time_taken_contour;
+			putText(neededPart,convert.str(), cvPoint(110,120),
+			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+
+			putText(neededPart, "all lines", cvPoint(30,140),
+			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+			convert.str("");
+			convert << road.time_taken_find_lines;
+			putText(neededPart,convert.str(), cvPoint(120,140),
+			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+
+			putText(neededPart, "classification", cvPoint(30,160),
+			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+			convert.str("");
+			convert << road.time_taken_classification;
+			putText(neededPart,convert.str(), cvPoint(170,160),
+			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+
+			putText(neededPart, "filter merge", cvPoint(30,180),
+			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+			convert.str("");
+			convert << road.time_taken_filter_merge;
+			putText(neededPart,convert.str(), cvPoint(160,180),
+			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+
+			putText(neededPart, "final filter", cvPoint(30,200),
+			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+			convert.str("");
+			convert << road.time_taken_final_filter;
+			putText(neededPart,convert.str(), cvPoint(160,200),
+			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+
+
+
+//			std::ofstream log_file(
+//				        	        "/opt/msv/bin/2013/DIT-168/project-template/log_file.txt", std::ios_base::out | std::ios_base::app );
+//				        	 long time_result = pow(time_taken_mul, 1.0/frame_count);
+//				        	    log_file << "Time consumed " << time_result << endl;
+
+
 			imshow("Result", neededPart);
 			
 		}

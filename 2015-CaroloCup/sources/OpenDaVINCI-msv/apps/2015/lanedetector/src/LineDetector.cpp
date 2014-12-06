@@ -13,8 +13,11 @@
 #include "nnRoadSizeCalc.h"
 #include "nnRoadAngleCalc.h"
 
+#include "core/data/TimeStamp.h"
+
 namespace msv {
 
+using namespace core::data;
 using namespace std;
 using namespace cv;
 
@@ -665,21 +668,38 @@ void LineDetector::finalFilter() {
 
 void LineDetector::findLines(cv::Mat &outputImg) {
 
+	long startTime;
 	//Find contours
+	if(m_debug){
+		TimeStamp currentTime;
+		startTime = currentTime.toMicroseconds();
+	}
 	getContours(outputImg);
-	if (m_debug)
-		result_getContours.contours = contours_poly;
 
+	if (m_debug){
+		TimeStamp endTime;
+		time_taken_contour = endTime.toMicroseconds() - startTime;
+		result_getContours.contours = contours_poly;
+		TimeStamp currentTime;
+		startTime = currentTime.toMicroseconds();
+	}
 	//Get all marked lines
 	getAllLines();
 	if (m_debug){
+		TimeStamp endTime;
+		time_taken_find_lines = endTime.toMicroseconds() - startTime;
 		result_getAllLines.rects = rects;
 		result_getAllLines.line_sizes = line_sizes;
+		TimeStamp currentTime;
+		startTime = currentTime.toMicroseconds();
 	}
 
 	//Classify dash lines and solid lines
 	classification();
+
 	if (m_debug){
+		TimeStamp endTime;
+		time_taken_classification = endTime.toMicroseconds() - startTime;
 		result_classification.dashLines = dashLines;
 		result_classification.solidLines = solidLines;
 		result_classification.cntDash = cntDash;
@@ -687,11 +707,15 @@ void LineDetector::findLines(cv::Mat &outputImg) {
 		result_classification.foundStopStartLine = foundStopStartLine;
 		result_classification.intersectionOn = intersectionOn;
 		result_classification.foundIntersection = foundIntersection;
+		TimeStamp currentTime;
+		startTime = currentTime.toMicroseconds();
 	}
 
 	//Filter dashes outside the solid lines and merge solid lines
 	filterAndMerge();
 	if (m_debug){
+		TimeStamp endTime;
+		time_taken_filter_merge = endTime.toMicroseconds() - startTime;
 		result_filterAndMerge.dashLines = dashLines;
 		result_filterAndMerge.solidLines = solidLines;
 		result_filterAndMerge.cntDash = cntDash;
@@ -699,11 +723,15 @@ void LineDetector::findLines(cv::Mat &outputImg) {
 		result_filterAndMerge.foundStopStartLine = foundStopStartLine;
 		result_filterAndMerge.intersectionOn = intersectionOn;
 		result_filterAndMerge.foundIntersection = foundIntersection;
+		TimeStamp currentTime;
+		startTime = currentTime.toMicroseconds();
 	}
 
 	//Filter lines with very small angles, filter dash positioned too high on the image or too left or too right
 	finalFilter();
 	if (m_debug){
+		TimeStamp endTime;
+		time_taken_final_filter = endTime.toMicroseconds() - startTime;
 		result_finalFilter.dashLines = dashLines;
 		result_finalFilter.solidLines = solidLines;
 		result_finalFilter.cntDash = cntDash;
