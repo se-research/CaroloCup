@@ -493,15 +493,15 @@ namespace msv {
 		//end of converting --Need find better way for this ---
 
 		//Putting text on the image for the 4 cases and current frame number
-		putText(frame, "TP - 1", cvPoint(30,30), 
+		putText(frame, "TP - 1", cvPoint(30,20),
 		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-		putText(frame, "TN - 2", cvPoint(30,60), 
+		putText(frame, "TN - 2", cvPoint(30,40),
 		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-		putText(frame, "FP - 3", cvPoint(30,90), 
+		putText(frame, "FP - 3", cvPoint(30,60),
 		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-		putText(frame, "FN - 4", cvPoint(30,120), 
+		putText(frame, "FN - 4", cvPoint(30,80),
 		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-		putText(frame, "Frame", cvPoint(30,150), 
+		putText(frame, "Frame", cvPoint(30,100),
 		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
 		putText(frame,current_frame, cvPoint(100,150), 
 		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
