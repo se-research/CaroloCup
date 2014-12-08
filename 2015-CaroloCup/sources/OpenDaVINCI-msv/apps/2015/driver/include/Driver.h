@@ -20,7 +20,7 @@ enum DRIVING_STATE {
 	DRIVE = 0,
 	START_OBST = 1,
 	POSSIBLE_SPOT = 2,
-	Initialize_Pos_For_Parking = 3,
+	INITIALIZE_POS_FOR_PARKING = 3,
 	STOP_FOR_PARKING = 4,
 	PARKING = 5
 

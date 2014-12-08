@@ -59,6 +59,12 @@ public:
 	int detectStartLine(int dist);
 	int detectStopLine(int dist);
 
+	long time_taken_contour;
+	long time_taken_find_lines;
+	long time_taken_classification;
+	long time_taken_filter_merge;
+	long time_taken_final_filter;
+
 	Clusters* getClusters(); // Attila: Only debugging
 
 	// Functions to retrive debug information
@@ -79,10 +85,8 @@ private:
 	int calcLength(const Vec4i& v);
 	int calcStdev(vector<int>& v);
 	Lines findCurves();
-	pair<vector<Point>::iterator, vector<Point>::iterator> findBiggestDistance(
-			Cluster& c);
+	pair<vector<Point>::iterator, vector<Point>::iterator> findBiggestDistance(Cluster& c);
 	Mat getBirdView(Mat& source);
-	CustomLine createLineFromRect(RotatedRect* rect, int sizeX, int sizeY);
 	void findLines(cv::Mat &outputImg);
 	float getLineSlope(Point &p1, Point &p2);
 	float getDist(const Point p1, const Point p2) const;
@@ -91,6 +95,7 @@ private:
 	int getRoadSize(int roadAngle);
 	Point2f getWorldPoint(Point2i imgPoint);
 	int getIntersectionWithBottom(CustomLine l) const;
+	CustomLine createLineFromRect(RotatedRect* rect, int sizeX,	int sizeY);
 
 	//Find contours
 	void getContours(cv::Mat &outputImg);

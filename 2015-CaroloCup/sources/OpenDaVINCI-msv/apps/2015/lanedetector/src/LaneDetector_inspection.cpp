@@ -40,6 +40,7 @@ namespace msv {
     double width = 752, height = 480;
     Mat img;
     int key;
+    long time_taken_get_line;
     LaneDetector_inspection::LaneDetector_inspection(const int32_t &argc, char **argv) :
     	ConferenceClientModule(argc, argv, "lanedetector"),
         m_hasAttachedToSharedImageMemory(false),
@@ -192,7 +193,13 @@ namespace msv {
 			cout << dec;
 			cout << "avg_time: " << avg_time << "ms" << endl;
 		}
-		
+
+
+//			std::ofstream log_file(
+//				        	        "/opt/msv/bin/2013/DIT-168/project-template/log_file.txt", std::ios_base::out | std::ios_base::app );
+//				        	 long time_result = pow(time_taken_mul, 1.0/frame_count);
+//				        	    log_file << "Time consumed " << time_result << endl;
+
 		//end of the mess
 		
 		//Inspection part. move to function later
@@ -333,7 +340,6 @@ namespace msv {
 	    return ModuleState::OKAY;
     }
 
-
 	// All the showResult_* functions assumes that data is put in the sub result structs in LineDetector. 
 
 	void LaneDetector_inspection::showResult_getContours(LineDetector& road, Mat& f){
@@ -350,7 +356,7 @@ namespace msv {
 
 		//imshow("All contours", frame);
 		if (what_to_inspect == 1)
-			addInspectionInfo(frame);
+			addInspectionInfo(road, frame);
 
 		frame.release();
 	}
@@ -373,7 +379,7 @@ namespace msv {
 				line(frame, vertices[i], vertices[(i+1)%4], Scalar(0,255,0), 2);
 		}
 		if (what_to_inspect == 2)
-			addInspectionInfo(frame);
+			addInspectionInfo(road, frame);
 		
 		imshow("All rectangles", frame);
 		frame.release();
@@ -392,7 +398,7 @@ namespace msv {
 		print_lines(res, frame);
 
 		if (what_to_inspect == 3)
-			addInspectionInfo(frame);
+			addInspectionInfo(road, frame);
 		
 		imshow("Result from classification", frame);
 		if (m_debug){
@@ -414,7 +420,7 @@ namespace msv {
 		print_lines(res, frame);
 
 		if (what_to_inspect == 4)
-			addInspectionInfo(frame);
+			addInspectionInfo(road, frame);
 		
 		imshow("Result from filterAndMerge", frame);
 		if (m_debug){
@@ -436,7 +442,7 @@ namespace msv {
 		print_lines(res, frame);
 
 		if (what_to_inspect == 5)
-			addInspectionInfo(frame);		
+			addInspectionInfo(road, frame);		
 
 		imshow("Result from finalFilter", frame);
 		if (m_debug){
@@ -469,7 +475,7 @@ namespace msv {
 					<< res->currentLine.p2.y << "]" << endl;			
 		}
 		if (what_to_inspect == 2)
-			addInspectionInfo(frame);
+			addInspectionInfo(road, frame);
 		
 		imshow("Final result", frame);
 		if (m_debug){
@@ -477,7 +483,7 @@ namespace msv {
 		}
 		frame.release();
 	}
-	void LaneDetector_inspection::addInspectionInfo(Mat& frame){
+	void LaneDetector_inspection::addInspectionInfo(LineDetector& road, Mat& frame){
 
 		//converting current frame count into string
 		string current_frame;
@@ -499,6 +505,48 @@ namespace msv {
 		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
 		putText(frame,current_frame, cvPoint(100,150), 
 		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+
+		putText(frame, "contour", cvPoint(30,120),
+		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+		convert.str("");
+		convert << road.time_taken_contour;
+		putText(frame,convert.str(), cvPoint(110,120),
+		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+
+		putText(frame, "all lines", cvPoint(30,140),
+		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+		convert.str("");
+		convert << road.time_taken_find_lines;
+		putText(frame,convert.str(), cvPoint(120,140),
+		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+
+		putText(frame, "classification", cvPoint(30,160),
+		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+		convert.str("");
+		convert << road.time_taken_classification;
+		putText(frame,convert.str(), cvPoint(170,160),
+		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+
+		putText(frame, "filter merge", cvPoint(30,180),
+		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+		convert.str("");
+		convert << road.time_taken_filter_merge;
+		putText(frame,convert.str(), cvPoint(160,180),
+		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+
+		putText(frame, "final filter", cvPoint(30,200),
+		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+		convert.str("");
+		convert << road.time_taken_final_filter;
+		putText(frame,convert.str(), cvPoint(160,200),
+		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+
+		// putText(frame, "get line", cvPoint(30,220),
+		// FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+		// convert.str("");
+		// convert << time_taken_get_line;
+		// putText(frame,convert.str(), cvPoint(150,220),
+		// FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
 	}
 
 	void LaneDetector_inspection::drawLines(msv::Lines* lines, Mat* dst, int offset) {

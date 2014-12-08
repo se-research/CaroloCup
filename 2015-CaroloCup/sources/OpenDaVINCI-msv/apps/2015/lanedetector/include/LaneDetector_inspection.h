@@ -87,7 +87,7 @@ namespace msv {
 			void showResult_finalFilter(LineDetector& road, Mat& f);
 			void showResult_finalResult(LineDetector& road, Mat& f);
 
-			void addInspectionInfo(Mat& frame);
+			void addInspectionInfo(LineDetector& road, Mat& frame);
 
 			void drawLines(msv::Lines* lines, Mat* dst, int offset);
 			void print_lines(IntermediateResult* res, Mat& f);
