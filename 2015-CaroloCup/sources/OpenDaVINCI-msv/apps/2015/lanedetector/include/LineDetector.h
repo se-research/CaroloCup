@@ -35,7 +35,7 @@ struct IntermediateResult_getContours{
 	vector<vector<Point> > contours;
 };
 
-struct IntermediateResult_getAllLines{
+struct IntermediateResult_getAllRects{
 	vector<RotatedRect> rects;
 };
 
@@ -62,12 +62,12 @@ public:
 	Clusters* getClusters(); // Attila: Only debugging
 
 	// Functions to retrive debug information
-	IntermediateResult_getContours getResult_getContours();
-	IntermediateResult_getAllLines getResult_getAllLines();
-	IntermediateResult getResult_classification();
-	IntermediateResult getResult_filterAndMerge();
-	IntermediateResult getResult_finalFilter();
-	Lines getResult_getLines();
+	IntermediateResult_getContours* getResult_getContours();
+	IntermediateResult_getAllRects* getResult_getAllRectangles();
+	IntermediateResult* getResult_classification();
+	IntermediateResult* getResult_filterAndMerge();
+	IntermediateResult* getResult_finalFilter();
+	Lines* getResult_getLines();
 
 private:
 	LineDetector(const LineDetector&);
@@ -95,7 +95,7 @@ private:
 	//Find contours
 	void getContours(cv::Mat &outputImg);
 	//Get all marked lines
-	void getAllLines();
+	void getAllRectangles();
 	//Classify dash lines and solid lines
 	void classification();
 	//Filter dashes outside the solid lines and merge solid lines
@@ -119,7 +119,7 @@ private:
 
 	// Variables for function's results
 	IntermediateResult_getContours result_getContours;
-	IntermediateResult_getAllLines result_getAllLines;
+	IntermediateResult_getAllRects result_getAllRects;
 	IntermediateResult result_classification;
 	IntermediateResult result_filterAndMerge;
 	IntermediateResult result_finalFilter;

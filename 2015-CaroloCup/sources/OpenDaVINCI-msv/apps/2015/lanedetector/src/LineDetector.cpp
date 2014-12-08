@@ -467,7 +467,7 @@ void LineDetector::getContours(cv::Mat &outputImg) {
 	return;
 }
 
-void LineDetector::getAllLines() {
+void LineDetector::getAllRectangles() {
 
 	RotatedRect rect;
 	for (unsigned int i = 0; i < contours_poly.size(); i++) {
@@ -671,9 +671,9 @@ void LineDetector::findLines(cv::Mat &outputImg) {
 		result_getContours.contours = contours_poly;
 
 	//Get all marked lines
-	getAllLines();
+	getAllRectangles();
 	if (m_debug)
-		result_getAllLines.rects = rects;
+		result_getAllRects.rects = rects;
 
 	//Classify dash lines and solid lines
 	classification();
@@ -709,24 +709,6 @@ void LineDetector::findLines(cv::Mat &outputImg) {
 		result_finalFilter.foundStopStartLine = foundStopStartLine;
 		result_finalFilter.intersectionOn = intersectionOn;
 		result_finalFilter.foundIntersection = foundIntersection;
-	}
-
-	cout << "Dashes: " << cntDash << endl;
-	cout << "Solids: " << cntSolid << endl;
-	cout << "Intersection: " << intersectionOn << endl;
-
-	//Print lines
-	for (int i = 0; i < cntDash; i++) {
-		line(outputImg, dashLines[i].p1, dashLines[i].p2, 45, 2);
-		if (m_debug) {
-			cout << "Dash line angle: " << dashLines[i].slope << endl;
-		}
-	}
-	for (int i = 0; i < cntSolid; i++) {
-		line(outputImg, solidLines[i].p1, solidLines[i].p2, 0, 2);
-		if (m_debug) {
-			cout << "Solid line angle: " << solidLines[i].slope << endl;
-		}
 	}
 }
 
@@ -943,28 +925,28 @@ int LineDetector::getIntersectionWithBottom(CustomLine l) const {
 	return positionX;
 }
 
-IntermediateResult_getContours LineDetector::getResult_getContours(){
-	return result_getContours;
+IntermediateResult_getContours* LineDetector::getResult_getContours(){
+	return &result_getContours;
 }
 
-IntermediateResult_getAllLines LineDetector::getResult_getAllLines(){
-	return result_getAllLines;
+IntermediateResult_getAllRects* LineDetector::getResult_getAllRectangles(){
+	return &result_getAllRects;
 }
 
-IntermediateResult LineDetector::getResult_classification(){
-	return result_classification;
+IntermediateResult* LineDetector::getResult_classification(){
+	return &result_classification;
 }
 
-IntermediateResult LineDetector::getResult_filterAndMerge(){
-	return result_filterAndMerge;
+IntermediateResult* LineDetector::getResult_filterAndMerge(){
+	return &result_filterAndMerge;
 }
 
-IntermediateResult LineDetector::getResult_finalFilter(){
-	return result_finalFilter;
+IntermediateResult* LineDetector::getResult_finalFilter(){
+	return &result_finalFilter;
 }
 
-Lines LineDetector::getResult_getLines(){
-	return result_getLines;
+Lines* LineDetector::getResult_getLines(){
+	return &result_getLines;
 }
 
 

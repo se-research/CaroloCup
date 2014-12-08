@@ -164,9 +164,9 @@ namespace msv {
 
 		// ADDED PART
 		showResult_classification(road, neededPart);
-		//msv::Lines lines = road.getResult_getLines();
-
-
+		showResult_getAllRectangles(road, neededPart);
+		showResult_filterAndMerge(road, neededPart);
+		showResult_finalFilter(road, neededPart);
 
 		//END
 
@@ -357,14 +357,7 @@ namespace msv {
 		    if (true == has_next_frame) {
 		    	++m_frame_count;
 			  processImage();
-			}
-			
-			
-			
-			  
-			   
-			
-		    
+			} 
 
 	    }
 
@@ -374,25 +367,94 @@ namespace msv {
 	    return ModuleState::OKAY;
     }
 
-void LaneDetector_inspection::showResult_classification(LineDetector road, Mat& frame){
-	IntermediateResult res = road.getResult_classification();
+void LaneDetector_inspection::showResult_getAllRectangles(LineDetector& road, Mat& f){
+	Mat frame1 = f.clone();
+	IntermediateResult_getAllRects* res = road.getResult_getAllRectangles();
 
-	//Print lines
-	for (int i = 0; i < res.cntDash; i++) {
-		line(frame, res.dashLines[i].p1, res.dashLines[i].p2, 45, 2);
-		if (m_debug) {
-			cout << "Dash line angle: " << res.dashLines[i].slope << endl;
-		}
+	if (m_debug){
+		cout << "__START: All found rectangles" << endl;
+		cout << res->rects.size() << " rectangles." << endl;
+		cout << "__END: All found rectangles" << endl;
 	}
-	for (int i = 0; i < res.cntSolid; i++) {
-		line(frame, res.solidLines[i].p1, res.solidLines[i].p2, 0, 2);
-		if (m_debug) {
-			cout << "Solid line angle: " << res.solidLines[i].slope << endl;
-		}
+
+	// Print rectangles to the frame
+	for (int j = 0; j < res->rects.size(); j++){
+		Point2f vertices[4];
+		res->rects[j].points(vertices);
+		for (int i = 0; i < 4; i++)
+			line(frame1, vertices[i], vertices[(i+1)%4], Scalar(0,255,0), 2);
 	}
-	if (m_debug)
-		imshow("Output from classification", frame);
+	imshow("All rectangles", frame1);
 }
 
+void LaneDetector_inspection::showResult_classification(LineDetector& road, Mat& f){
+	Mat frame = f.clone();
+	IntermediateResult* res = road.getResult_classification();
+
+	if (m_debug){
+		cout << "__START: Result after classification " << endl;
+		cout << "Dashes: " << res->cntDash << endl;
+		cout << "Solids: " << res->cntSolid << endl;
+		cout << "Intersection: " << res->intersectionOn << endl;
+	}
+	print_lines(res, frame);
+
+	imshow("Result from classification", frame);
+	if (m_debug){
+		cout << "__END: Result after classification" << endl;
+	}
+}
+
+void LaneDetector_inspection::showResult_filterAndMerge(LineDetector& road, Mat& f){
+	Mat frame = f.clone();
+	IntermediateResult* res = road.getResult_filterAndMerge();
+
+	if (m_debug){
+		cout << "__START: Result after filterAndMerge " << endl;
+		cout << "Dashes: " << res->cntDash << endl;
+		cout << "Solids: " << res->cntSolid << endl;
+		cout << "Intersection: " << res->intersectionOn << endl;
+	}
+	print_lines(res, frame);
+
+	imshow("Result from filterAndMerge", frame);
+	if (m_debug){
+		cout << "__END: Result after filterAndMerge" << endl;
+	}
+}
+
+void LaneDetector_inspection::showResult_finalFilter(LineDetector& road, Mat& f){
+	Mat frame = f.clone();
+	IntermediateResult* res = road.getResult_finalFilter();
+
+	if (m_debug){
+		cout << "__START: Result after finalFilter " << endl;
+		cout << "Dashes: " << res->cntDash << endl;
+		cout << "Solids: " << res->cntSolid << endl;
+		cout << "Intersection: " << res->intersectionOn << endl;
+	}
+	print_lines(res, frame);
+
+	imshow("Result from finalFilter", frame);
+	if (m_debug){
+		cout << "__END: Result after finalFilter" << endl;
+	}
+}
+
+void LaneDetector_inspection::print_lines(IntermediateResult* res, Mat& f){
+	for (int i = 0; i < res->cntDash; i++) {
+		line(f, res->dashLines[i].p1, res->dashLines[i].p2, 45, 2);
+		if (m_debug) {
+			cout << "Dash line angle: " << res->dashLines[i].slope << endl;
+		}
+	}
+	for (int i = 0; i < res->cntSolid; i++) {
+		line(f, res->solidLines[i].p1, res->solidLines[i].p2, 0, 2);
+		if (m_debug) {
+			cout << "Solid line angle: " << res->solidLines[i].slope << endl;
+		}
+	}
+
+}
 } // msv
 
