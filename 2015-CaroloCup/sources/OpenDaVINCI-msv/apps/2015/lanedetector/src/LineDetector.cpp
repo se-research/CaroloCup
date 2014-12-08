@@ -52,11 +52,7 @@ LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug,
 	findLines(outputImg);
 	cout << "Id:" << id << endl;
 
-	// View
-	if (m_debug)
-		imshow("Output", outputImg);
-
-	//Lines result_getLines = getLines();
+	result_getLines = getLines();
 }
 
 LineDetector::~LineDetector() {
@@ -467,7 +463,7 @@ void LineDetector::getContours(cv::Mat &outputImg) {
 	return;
 }
 
-void LineDetector::getAllRectangles() {
+void LineDetector::getRectangles() {
 
 	RotatedRect rect;
 	for (unsigned int i = 0; i < contours_poly.size(); i++) {
@@ -671,9 +667,9 @@ void LineDetector::findLines(cv::Mat &outputImg) {
 		result_getContours.contours = contours_poly;
 
 	//Get all marked lines
-	getAllRectangles();
+	getRectangles();
 	if (m_debug)
-		result_getAllRects.rects = rects;
+		result_getRectangles.rects = rects;
 
 	//Classify dash lines and solid lines
 	classification();
@@ -929,8 +925,8 @@ IntermediateResult_getContours* LineDetector::getResult_getContours(){
 	return &result_getContours;
 }
 
-IntermediateResult_getAllRects* LineDetector::getResult_getAllRectangles(){
-	return &result_getAllRects;
+IntermediateResult_getRectangles* LineDetector::getResult_getRectangles(){
+	return &result_getRectangles;
 }
 
 IntermediateResult* LineDetector::getResult_classification(){

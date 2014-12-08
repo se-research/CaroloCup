@@ -160,21 +160,23 @@ namespace msv {
 		Mat neededPart = m_frame(cv::Rect(1, 2*height/16-1, width-1, 10*height/16-1));
 
 		LineDetector road(neededPart, cfg, debug, 1);
-		msv::Lines lines = road.getLines();
+		//msv::Lines lines = road.getLines();
 
 		// ADDED PART
+		showResult_getContours(road, neededPart);
+		showResult_getRectangles(road, neededPart);
 		showResult_classification(road, neededPart);
-		showResult_getAllRectangles(road, neededPart);
 		showResult_filterAndMerge(road, neededPart);
 		showResult_finalFilter(road, neededPart);
 
+		msv::Lines* lines = road.getResult_getLines();
 		//END
 
 
-		if (&lines != NULL)
+		if (lines != NULL)
 			cout << "We have lines for frame " <<m_frame_count << endl;
 		LaneDetectionData data;
-		data.setLaneDetectionData(lines);
+		data.setLaneDetectionData(*lines);
 		data.setFrameCount(m_frame_count);
 		
 		//converting current frame count into string
@@ -202,21 +204,21 @@ namespace msv {
 			cout << "avg_time: " << avg_time << "ms" << endl;
 		}
 
-		if (lines.goalLine.p1.x == 0 && lines.goalLine.p1.y == 0
-				&& lines.goalLine.p2.x == 0 && lines.goalLine.p2.y == 0
-				&& lines.currentLine.p2.x == 0 && lines.currentLine.p2.y == 0) {
+		if (lines->goalLine.p1.x == 0 && lines->goalLine.p1.y == 0
+				&& lines->goalLine.p2.x == 0 && lines->goalLine.p2.y == 0
+				&& lines->currentLine.p2.x == 0 && lines->currentLine.p2.y == 0) {
 			cout << "Nothing in..." << endl;
 		} else {
-			drawLines(&lines, &neededPart, 0);
+			drawLines(lines, &neededPart, 0);
 		}
 
 		if (debug) {
-			cout << "VP [x, y] : [" << lines.goalLine.p1.x << ", "
-					<< lines.goalLine.p1.y << "]" << endl;
-			cout << "Goal [x, y] : [" << lines.goalLine.p2.x << ", "
-					<< lines.goalLine.p2.y << "]" << endl;
-			cout << "Position [x, y] : [" << lines.currentLine.p2.x << ", "
-					<< lines.currentLine.p2.y << "]" << endl;
+			cout << "VP [x, y] : [" << lines->goalLine.p1.x << ", "
+					<< lines->goalLine.p1.y << "]" << endl;
+			cout << "Goal [x, y] : [" << lines->goalLine.p2.x << ", "
+					<< lines->goalLine.p2.y << "]" << endl;
+			cout << "Position [x, y] : [" << lines->currentLine.p2.x << ", "
+					<< lines->currentLine.p2.y << "]" << endl;
 			//Putting text on the image for the 4 cases and current frame number
 			putText(neededPart, "TP - 1", cvPoint(30,30), 
 			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
@@ -367,9 +369,23 @@ namespace msv {
 	    return ModuleState::OKAY;
     }
 
-void LaneDetector_inspection::showResult_getAllRectangles(LineDetector& road, Mat& f){
+void LaneDetector_inspection::showResult_getContours(LineDetector& road, Mat& f){
 	Mat frame1 = f.clone();
-	IntermediateResult_getAllRects* res = road.getResult_getAllRectangles();
+	IntermediateResult_getContours* res = road.getResult_getContours();
+
+	if (m_debug){
+		cout << "__START: All found contours" << endl;
+		cout << "NOT IMPLEMENTED" << endl;
+		cout << "__END: All found contours" << endl;
+	}
+
+	// TODO add the contours to the frame
+
+	//imshow("All contours", frame1);
+}
+void LaneDetector_inspection::showResult_getRectangles(LineDetector& road, Mat& f){
+	Mat frame1 = f.clone();
+	IntermediateResult_getRectangles* res = road.getResult_getRectangles();
 
 	if (m_debug){
 		cout << "__START: All found rectangles" << endl;

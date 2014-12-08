@@ -35,7 +35,7 @@ struct IntermediateResult_getContours{
 	vector<vector<Point> > contours;
 };
 
-struct IntermediateResult_getAllRects{
+struct IntermediateResult_getRectangles{
 	vector<RotatedRect> rects;
 };
 
@@ -63,7 +63,7 @@ public:
 
 	// Functions to retrive debug information
 	IntermediateResult_getContours* getResult_getContours();
-	IntermediateResult_getAllRects* getResult_getAllRectangles();
+	IntermediateResult_getRectangles* getResult_getRectangles();
 	IntermediateResult* getResult_classification();
 	IntermediateResult* getResult_filterAndMerge();
 	IntermediateResult* getResult_finalFilter();
@@ -95,7 +95,7 @@ private:
 	//Find contours
 	void getContours(cv::Mat &outputImg);
 	//Get all marked lines
-	void getAllRectangles();
+	void getRectangles();
 	//Classify dash lines and solid lines
 	void classification();
 	//Filter dashes outside the solid lines and merge solid lines
@@ -119,7 +119,7 @@ private:
 
 	// Variables for function's results
 	IntermediateResult_getContours result_getContours;
-	IntermediateResult_getAllRects result_getAllRects;
+	IntermediateResult_getRectangles result_getRectangles;
 	IntermediateResult result_classification;
 	IntermediateResult result_filterAndMerge;
 	IntermediateResult result_finalFilter;

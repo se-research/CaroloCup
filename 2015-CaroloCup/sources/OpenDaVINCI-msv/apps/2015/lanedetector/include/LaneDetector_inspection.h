@@ -73,7 +73,8 @@ namespace msv {
             Mat m_frame;
             uint32_t m_frame_count;
 	        
-	        void showResult_getAllRectangles(LineDetector& road, Mat& f);
+			void showResult_getContours(LineDetector& road, Mat& f);
+	        void showResult_getRectangles(LineDetector& road, Mat& f);
 			void showResult_classification(LineDetector& road, Mat& f);
 	        void showResult_filterAndMerge(LineDetector& road, Mat& f);
 			void showResult_finalFilter(LineDetector& road, Mat& f);
