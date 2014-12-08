@@ -503,7 +503,7 @@ namespace msv {
 		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
 		putText(frame, "Frame", cvPoint(30,100),
 		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-		putText(frame,current_frame, cvPoint(100,150), 
+		putText(frame,current_frame, cvPoint(100,100),
 		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
 
 		putText(frame, "contour", cvPoint(30,120),
