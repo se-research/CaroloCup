@@ -135,18 +135,6 @@ namespace msv {
 	    return retVal;
     }
 
-    void drawLines(msv::Lines* lines, Mat* dst, int offset) {
-        Line dashed = lines->dashedLine;
-        Line solidRight = lines->rightLine;
-        Line solidLeft = lines->leftLine;
-
-        line( *dst, Point(dashed[0], dashed[1]+offset), Point(dashed[2], dashed[3]+offset), Scalar(0,255,0), 3, CV_AA);
-        line( *dst, Point(solidRight[0], solidRight[1]+offset), Point(solidRight[2], solidRight[3]+offset), Scalar(255,0,0), 3, CV_AA);
-        line( *dst, Point(solidLeft[0], solidLeft[1]+offset), Point(solidLeft[2], solidLeft[3]+offset), Scalar(255,255,255), 3, CV_AA);
-        line( *dst, lines->goalLine.p1, lines->goalLine.p2, Scalar(200,0,0), 3, CV_AA);
-        line( *dst, lines->currentLine.p1, lines->currentLine.p2, Scalar(200,0,0), 3,CV_AA);
-    }
-
     // You should start your work in this method.
     void LaneDetector_inspection::processImage()
     {
@@ -160,31 +148,32 @@ namespace msv {
 		Mat neededPart = m_frame(cv::Rect(1, 2*height/16-1, width-1, 10*height/16-1));
 
 		LineDetector road(neededPart, cfg, debug, 1);
-		//msv::Lines lines = road.getLines();
 
-		// ADDED PART
-		showResult_getContours(road, neededPart);
-		showResult_getRectangles(road, neededPart);
-		showResult_classification(road, neededPart);
-		showResult_filterAndMerge(road, neededPart);
-		showResult_finalFilter(road, neededPart);
+		// Show result windows
+		if (showRes_getContours)
+			showResult_getContours(road, neededPart);
 
-		msv::Lines* lines = road.getResult_getLines();
-		//END
+		if (showRes_getRectangles)
+			showResult_getRectangles(road, neededPart);
 
+		if (showRes_classification)
+			showResult_classification(road, neededPart);
+		
+		if (showRes_filterAndMerge)
+			showResult_filterAndMerge(road, neededPart);
+		
+		if (showRes_finalFilter)
+			showResult_finalFilter(road, neededPart);
+		
+		if (showRes_finalResult)
+			showResult_finalResult(road, neededPart);
 
-		if (lines != NULL)
-			cout << "We have lines for frame " <<m_frame_count << endl;
+		// if (lines != NULL)
+		// 	cout << "We have lines for frame " <<m_frame_count << endl;
 		LaneDetectionData data;
-		data.setLaneDetectionData(*lines);
+		// data.setLaneDetectionData(*lines);
 		data.setFrameCount(m_frame_count);
 		
-		//converting current frame count into string
-		string current_frame;
-		ostringstream convert;
-		convert << m_frame_count;
-		current_frame = convert.str();
-		//end of converting --Need find better way for this ---
 		
 		//some more mess 
 		TimeStamp currentTime_strt7;
@@ -202,38 +191,6 @@ namespace msv {
 		if (debug) {
 			cout << dec;
 			cout << "avg_time: " << avg_time << "ms" << endl;
-		}
-
-		if (lines->goalLine.p1.x == 0 && lines->goalLine.p1.y == 0
-				&& lines->goalLine.p2.x == 0 && lines->goalLine.p2.y == 0
-				&& lines->currentLine.p2.x == 0 && lines->currentLine.p2.y == 0) {
-			cout << "Nothing in..." << endl;
-		} else {
-			drawLines(lines, &neededPart, 0);
-		}
-
-		if (debug) {
-			cout << "VP [x, y] : [" << lines->goalLine.p1.x << ", "
-					<< lines->goalLine.p1.y << "]" << endl;
-			cout << "Goal [x, y] : [" << lines->goalLine.p2.x << ", "
-					<< lines->goalLine.p2.y << "]" << endl;
-			cout << "Position [x, y] : [" << lines->currentLine.p2.x << ", "
-					<< lines->currentLine.p2.y << "]" << endl;
-			//Putting text on the image for the 4 cases and current frame number
-			putText(neededPart, "TP - 1", cvPoint(30,30), 
-			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-			putText(neededPart, "TN - 2", cvPoint(30,60), 
-			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-			putText(neededPart, "FP - 3", cvPoint(30,90), 
-			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-			putText(neededPart, "FN - 4", cvPoint(30,120), 
-			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-			putText(neededPart, "Frame", cvPoint(30,150), 
-			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-			putText(neededPart,current_frame, cvPoint(100,150), 
-			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-			imshow("Result", neededPart);
-			
 		}
 		
 		//end of the mess
@@ -284,8 +241,6 @@ namespace msv {
 		getConference().send(con);
 
 		
-
-		neededPart.release();
 		m_frame.release();
 		waitKey(20);
 
@@ -315,7 +270,7 @@ namespace msv {
 		}
 
         Player *player = NULL;
-	//m_inspection = kv.getValue<u_int32_t>("lanedetector.inspection")==1;
+		//m_inspection = kv.getValue<u_int32_t>("lanedetector.inspection")==1;
 
 
         // Lane-detector can also directly read the data from file. This might be interesting to inspect the algorithm step-wisely
@@ -327,6 +282,15 @@ namespace msv {
 
         // Number of memory segments.
         const uint32_t NUMBER_OF_SEGMENTS = kv.getValue<uint32_t>("global.buffer.numberOfMemorySegments");
+
+        // The output windows to display
+		showRes_getContours = kv.getValue<bool>("lanedetector.showRes_getContours");
+		showRes_getRectangles = kv.getValue<bool>("lanedetector.showRes_getRectangles");
+		showRes_classification = kv.getValue<bool>("lanedetector.showRes_classification");
+		showRes_filterAndMerge = kv.getValue<bool>("lanedetector.showRes_filterAndMerge");
+		showRes_finalFilter = kv.getValue<bool>("lanedetector.showRes_finalFilter");
+		showRes_finalResult = kv.getValue<bool>("lanedetector.showRes_finalResult");
+		what_to_inspect = kv.getValue<uint32_t>("lanedetector.what_to_inspect");
 
         // If AUTO_REWIND is true, the file will be played endlessly.
         const bool AUTO_REWIND = false;
@@ -369,108 +333,199 @@ namespace msv {
 	    return ModuleState::OKAY;
     }
 
-void LaneDetector_inspection::showResult_getContours(LineDetector& road, Mat& f){
-	Mat frame1 = f.clone();
-	IntermediateResult_getContours* res = road.getResult_getContours();
 
-	if (m_debug){
-		cout << "__START: All found contours" << endl;
-		cout << "NOT IMPLEMENTED" << endl;
-		cout << "__END: All found contours" << endl;
+	// All the showResult_* functions assumes that data is put in the sub result structs in LineDetector. 
+
+	void LaneDetector_inspection::showResult_getContours(LineDetector& road, Mat& f){
+		Mat frame = f.clone();
+		IntermediateResult_getContours* res = road.getResult_getContours();
+
+		if (m_debug){
+			cout << "__START: All found contours" << endl;
+			cout << "NOT IMPLEMENTED" << endl;
+			cout << "__END: All found contours" << endl;
+		}
+
+		// TODO add the contours to the frame
+
+		//imshow("All contours", frame);
+		if (what_to_inspect == 1)
+			addInspectionInfo(frame);
+
+		frame.release();
+	}
+	
+	void LaneDetector_inspection::showResult_getRectangles(LineDetector& road, Mat& f){
+		Mat frame = f.clone();
+		IntermediateResult_getRectangles* res = road.getResult_getRectangles();
+
+		if (m_debug){
+			cout << "__START: All found rectangles" << endl;
+			cout << res->rects.size() << " rectangles." << endl;
+			cout << "__END: All found rectangles" << endl;
+		}
+
+		// Print rectangles to the frame
+		for (int j = 0; j < res->rects.size(); j++){
+			Point2f vertices[4];
+			res->rects[j].points(vertices);
+			for (int i = 0; i < 4; i++)
+				line(frame, vertices[i], vertices[(i+1)%4], Scalar(0,255,0), 2);
+		}
+		if (what_to_inspect == 2)
+			addInspectionInfo(frame);
+		
+		imshow("All rectangles", frame);
+		frame.release();
 	}
 
-	// TODO add the contours to the frame
+	void LaneDetector_inspection::showResult_classification(LineDetector& road, Mat& f){
+		Mat frame = f.clone();
+		IntermediateResult* res = road.getResult_classification();
 
-	//imshow("All contours", frame1);
-}
-void LaneDetector_inspection::showResult_getRectangles(LineDetector& road, Mat& f){
-	Mat frame1 = f.clone();
-	IntermediateResult_getRectangles* res = road.getResult_getRectangles();
+		if (m_debug){
+			cout << "__START: Result after classification " << endl;
+			cout << "Dashes: " << res->cntDash << endl;
+			cout << "Solids: " << res->cntSolid << endl;
+			cout << "Intersection: " << res->intersectionOn << endl;
+		}
+		print_lines(res, frame);
 
-	if (m_debug){
-		cout << "__START: All found rectangles" << endl;
-		cout << res->rects.size() << " rectangles." << endl;
-		cout << "__END: All found rectangles" << endl;
+		if (what_to_inspect == 3)
+			addInspectionInfo(frame);
+		
+		imshow("Result from classification", frame);
+		if (m_debug){
+			cout << "__END: Result after classification" << endl;
+		}
+		frame.release();
 	}
 
-	// Print rectangles to the frame
-	for (int j = 0; j < res->rects.size(); j++){
-		Point2f vertices[4];
-		res->rects[j].points(vertices);
-		for (int i = 0; i < 4; i++)
-			line(frame1, vertices[i], vertices[(i+1)%4], Scalar(0,255,0), 2);
+	void LaneDetector_inspection::showResult_filterAndMerge(LineDetector& road, Mat& f){
+		Mat frame = f.clone();
+		IntermediateResult* res = road.getResult_filterAndMerge();
+
+		if (m_debug){
+			cout << "__START: Result after filterAndMerge " << endl;
+			cout << "Dashes: " << res->cntDash << endl;
+			cout << "Solids: " << res->cntSolid << endl;
+			cout << "Intersection: " << res->intersectionOn << endl;
+		}
+		print_lines(res, frame);
+
+		if (what_to_inspect == 4)
+			addInspectionInfo(frame);
+		
+		imshow("Result from filterAndMerge", frame);
+		if (m_debug){
+			cout << "__END: Result after filterAndMerge" << endl;
+		}
+		frame.release();
 	}
-	imshow("All rectangles", frame1);
-}
 
-void LaneDetector_inspection::showResult_classification(LineDetector& road, Mat& f){
-	Mat frame = f.clone();
-	IntermediateResult* res = road.getResult_classification();
+	void LaneDetector_inspection::showResult_finalFilter(LineDetector& road, Mat& f){
+		Mat frame = f.clone();
+		IntermediateResult* res = road.getResult_finalFilter();
 
-	if (m_debug){
-		cout << "__START: Result after classification " << endl;
-		cout << "Dashes: " << res->cntDash << endl;
-		cout << "Solids: " << res->cntSolid << endl;
-		cout << "Intersection: " << res->intersectionOn << endl;
+		if (m_debug){
+			cout << "__START: Result after finalFilter " << endl;
+			cout << "Dashes: " << res->cntDash << endl;
+			cout << "Solids: " << res->cntSolid << endl;
+			cout << "Intersection: " << res->intersectionOn << endl;
+		}
+		print_lines(res, frame);
+
+		if (what_to_inspect == 5)
+			addInspectionInfo(frame);		
+
+		imshow("Result from finalFilter", frame);
+		if (m_debug){
+			cout << "__END: Result after finalFilter" << endl;
+		}
+		frame.release();
 	}
-	print_lines(res, frame);
 
-	imshow("Result from classification", frame);
-	if (m_debug){
-		cout << "__END: Result after classification" << endl;
-	}
-}
+	void LaneDetector_inspection::showResult_finalResult(LineDetector& road, Mat& f){
+		Mat frame = f.clone();
+		msv::Lines* res = road.getResult_getLines();
 
-void LaneDetector_inspection::showResult_filterAndMerge(LineDetector& road, Mat& f){
-	Mat frame = f.clone();
-	IntermediateResult* res = road.getResult_filterAndMerge();
+		if (m_debug){
+			cout << "__START: Final result" << endl;
+		}
+		if (res->goalLine.p1.x == 0 && res->goalLine.p1.y == 0
+				&& res->goalLine.p2.x == 0 && res->goalLine.p2.y == 0
+				&& res->currentLine.p2.x == 0 && res->currentLine.p2.y == 0) {
+			cout << "Nothing in..." << endl;
+		} else {
+			drawLines(res, &frame, 0);
+		}
 
-	if (m_debug){
-		cout << "__START: Result after filterAndMerge " << endl;
-		cout << "Dashes: " << res->cntDash << endl;
-		cout << "Solids: " << res->cntSolid << endl;
-		cout << "Intersection: " << res->intersectionOn << endl;
-	}
-	print_lines(res, frame);
-
-	imshow("Result from filterAndMerge", frame);
-	if (m_debug){
-		cout << "__END: Result after filterAndMerge" << endl;
-	}
-}
-
-void LaneDetector_inspection::showResult_finalFilter(LineDetector& road, Mat& f){
-	Mat frame = f.clone();
-	IntermediateResult* res = road.getResult_finalFilter();
-
-	if (m_debug){
-		cout << "__START: Result after finalFilter " << endl;
-		cout << "Dashes: " << res->cntDash << endl;
-		cout << "Solids: " << res->cntSolid << endl;
-		cout << "Intersection: " << res->intersectionOn << endl;
-	}
-	print_lines(res, frame);
-
-	imshow("Result from finalFilter", frame);
-	if (m_debug){
-		cout << "__END: Result after finalFilter" << endl;
-	}
-}
-
-void LaneDetector_inspection::print_lines(IntermediateResult* res, Mat& f){
-	for (int i = 0; i < res->cntDash; i++) {
-		line(f, res->dashLines[i].p1, res->dashLines[i].p2, 45, 2);
 		if (m_debug) {
-			cout << "Dash line angle: " << res->dashLines[i].slope << endl;
+			cout << "VP [x, y] : [" << res->goalLine.p1.x << ", "
+					<< res->goalLine.p1.y << "]" << endl;
+			cout << "Goal [x, y] : [" << res->goalLine.p2.x << ", "
+					<< res->goalLine.p2.y << "]" << endl;
+			cout << "Position [x, y] : [" << res->currentLine.p2.x << ", "
+					<< res->currentLine.p2.y << "]" << endl;			
+		}
+		if (what_to_inspect == 2)
+			addInspectionInfo(frame);
+		
+		imshow("Final result", frame);
+		if (m_debug){
+			cout << "__END: Final result" << endl;
+		}
+		frame.release();
+	}
+	void LaneDetector_inspection::addInspectionInfo(Mat& frame){
+
+		//converting current frame count into string
+		string current_frame;
+		ostringstream convert;
+		convert << m_frame_count;
+		current_frame = convert.str();
+		//end of converting --Need find better way for this ---
+
+		//Putting text on the image for the 4 cases and current frame number
+		putText(frame, "TP - 1", cvPoint(30,30), 
+		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+		putText(frame, "TN - 2", cvPoint(30,60), 
+		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+		putText(frame, "FP - 3", cvPoint(30,90), 
+		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+		putText(frame, "FN - 4", cvPoint(30,120), 
+		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+		putText(frame, "Frame", cvPoint(30,150), 
+		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+		putText(frame,current_frame, cvPoint(100,150), 
+		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+	}
+
+	void LaneDetector_inspection::drawLines(msv::Lines* lines, Mat* dst, int offset) {
+	    Line dashed = lines->dashedLine;
+	    Line solidRight = lines->rightLine;
+	    Line solidLeft = lines->leftLine;
+
+	    line( *dst, Point(dashed[0], dashed[1]+offset), Point(dashed[2], dashed[3]+offset), Scalar(0,255,0), 3, CV_AA);
+	    line( *dst, Point(solidRight[0], solidRight[1]+offset), Point(solidRight[2], solidRight[3]+offset), Scalar(255,0,0), 3, CV_AA);
+	    line( *dst, Point(solidLeft[0], solidLeft[1]+offset), Point(solidLeft[2], solidLeft[3]+offset), Scalar(255,255,255), 3, CV_AA);
+	    line( *dst, lines->goalLine.p1, lines->goalLine.p2, Scalar(200,0,0), 3, CV_AA);
+	    line( *dst, lines->currentLine.p1, lines->currentLine.p2, Scalar(200,0,0), 3,CV_AA);
+	}
+
+	void LaneDetector_inspection::print_lines(IntermediateResult* res, Mat& f){
+		for (int i = 0; i < res->cntDash; i++) {
+			line(f, res->dashLines[i].p1, res->dashLines[i].p2, 45, 2);
+			if (m_debug) {
+				cout << "Dash line angle: " << res->dashLines[i].slope << endl;
+			}
+		}
+		for (int i = 0; i < res->cntSolid; i++) {
+			line(f, res->solidLines[i].p1, res->solidLines[i].p2, 0, 2);
+			if (m_debug) {
+				cout << "Solid line angle: " << res->solidLines[i].slope << endl;
+			}
 		}
 	}
-	for (int i = 0; i < res->cntSolid; i++) {
-		line(f, res->solidLines[i].p1, res->solidLines[i].p2, 0, 2);
-		if (m_debug) {
-			cout << "Solid line angle: " << res->solidLines[i].slope << endl;
-		}
-	}
-
-}
 } // msv
 

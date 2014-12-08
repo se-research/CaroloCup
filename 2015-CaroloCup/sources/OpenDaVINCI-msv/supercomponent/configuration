@@ -31,8 +31,22 @@ global.buffer.numberOfMemorySegments = 20 # Number of memory segments used for b
 #
 lanedetector.camera_id = 2  # select here the proper camera
 lanedetector.debug = 1      # set to 0 to disable any windows and further output
-# Config for lanedetector-inspection
-lanedetector.inspect_rec = file://recording.rec
+lanedetector.inspect_rec = file://recording.rec # Config for lanedetector-inspection
+# Choose what to inspect, where
+# getContours = 1
+# getRectangles = 2
+# classification = 3
+# filterAndMerge = 4
+# finalFilter = 5
+# finalResult = 6
+lanedetector.what_to_inspect = 3 
+# Choose which windows to display. 0: no, 1: yes
+lanedetector.showRes_getContours = 0
+lanedetector.showRes_getRectangles = 1
+lanedetector.showRes_classification = 1
+lanedetector.showRes_filterAndMerge = 0
+lanedetector.showRes_finalFilter = 0
+lanedetector.showRes_finalResult = 1
 
 
 #

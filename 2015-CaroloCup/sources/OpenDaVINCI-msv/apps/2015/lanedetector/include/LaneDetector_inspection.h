@@ -72,12 +72,24 @@ namespace msv {
             Config m_config;
             Mat m_frame;
             uint32_t m_frame_count;
+            uint32_t what_to_inspect;
+			bool showRes_getContours;
+			bool showRes_getRectangles;
+			bool showRes_classification;
+			bool showRes_filterAndMerge;
+			bool showRes_finalFilter;
+			bool showRes_finalResult;
 	        
 			void showResult_getContours(LineDetector& road, Mat& f);
 	        void showResult_getRectangles(LineDetector& road, Mat& f);
 			void showResult_classification(LineDetector& road, Mat& f);
 	        void showResult_filterAndMerge(LineDetector& road, Mat& f);
 			void showResult_finalFilter(LineDetector& road, Mat& f);
+			void showResult_finalResult(LineDetector& road, Mat& f);
+
+			void addInspectionInfo(Mat& frame);
+
+			void drawLines(msv::Lines* lines, Mat* dst, int offset);
 			void print_lines(IntermediateResult* res, Mat& f);
 
 	        virtual void setUp();
