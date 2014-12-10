@@ -343,7 +343,8 @@ namespace msv {
 	// All the showResult_* functions assumes that data is put in the sub result structs in LineDetector. 
 
 	void LaneDetector_inspection::showResult_getContours(LineDetector& road, Mat& f){
-		Mat frame = f.clone();
+		//Mat frame = f.clone();
+		Mat frame(f.rows,f.cols,CV_8UC1,Scalar(0,0,0));
 		IntermediateResult_getContours* res = road.getResult_getContours();
 
 		if (m_debug){
@@ -353,8 +354,8 @@ namespace msv {
 		}
 
 		// TODO add the contours to the frame
-
-		//imshow("All contours", frame);
+		drawContours(frame,res->contours,-1, Scalar(255,0,0), -1, 8);
+		imshow("All contours", frame);
 		if (what_to_inspect == 1)
 			addInspectionInfo(road, frame);
 
@@ -362,7 +363,8 @@ namespace msv {
 	}
 	
 	void LaneDetector_inspection::showResult_getRectangles(LineDetector& road, Mat& f){
-		Mat frame = f.clone();
+		//Mat frame = f.clone();
+		Mat frame(f.rows,f.cols,CV_8UC1,Scalar(0,0,0));
 		IntermediateResult_getRectangles* res = road.getResult_getRectangles();
 
 		if (m_debug){
@@ -376,7 +378,7 @@ namespace msv {
 			Point2f vertices[4];
 			res->rects[j].points(vertices);
 			for (int i = 0; i < 4; i++)
-				line(frame, vertices[i], vertices[(i+1)%4], Scalar(0,255,0), 2);
+				line(frame, vertices[i], vertices[(i+1)%4], Scalar(255,255,255));
 		}
 		if (what_to_inspect == 2)
 			addInspectionInfo(road, frame);
