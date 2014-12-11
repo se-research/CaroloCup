@@ -59,10 +59,8 @@ struct LinesToUse{
 	Vec4i dashLineVec;
 	Vec4i leftLineVec;
 	Vec4i rightLineVec;
-	bool isDashEstimated;
-	bool isRightEstimated;
-	Lines* lines;
 };
+
 
 class LineDetector {
 public:
@@ -87,7 +85,6 @@ public:
 	IntermediateResult* getResult_classification();
 	IntermediateResult* getResult_filterAndMerge();
 	IntermediateResult* getResult_finalFilter();
-	LinesToUse* getResult_ltu();
 	Lines* getResult_getLines();
 
 private:
@@ -102,7 +99,7 @@ private:
 	Lines findCurves();
 	pair<vector<Point>::iterator, vector<Point>::iterator> findBiggestDistance(Cluster& c);
 	Mat getBirdView(Mat& source);
-	void findLines();
+	void findLines(cv::Mat &outputImg);
 	float getLineSlope(Point &p1, Point &p2);
 	float getDist(const Point p1, const Point p2) const;
 	int detectHorizontalLine(Mat canny_roi, int dist);
@@ -113,7 +110,7 @@ private:
 	CustomLine createLineFromRect(RotatedRect* rect, int sizeX,	int sizeY);
 
 	//Find contours
-	void getContours();
+	void getContours(cv::Mat &outputImg);
 	//Get all marked lines
 	void getRectangles();
 	//Classify dash lines and solid lines
@@ -122,11 +119,9 @@ private:
 	void filterAndMerge();
 	//Filter lines with very small angles, filter dash positioned too high on the image or too left or too right
 	void finalFilter();
-	//Filer the lines w.r.t. road characteristics
+
+
 	void characteristicFiltering(LinesToUse* ltu);
-	//Estimate missing needed lines
-	void estimateLines(LinesToUse* ltu);
-	//Calculate the goal line etc.
 	void calculateGoalLine(LinesToUse* ltu);
 
 	cv::Mat m_frame;
