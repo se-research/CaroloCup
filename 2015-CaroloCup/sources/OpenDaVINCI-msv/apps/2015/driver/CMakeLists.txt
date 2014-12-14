@@ -12,13 +12,23 @@ INCLUDE_DIRECTORIES (../msv-data/include)
 INCLUDE_DIRECTORIES (include)
 
 # Recipe for building "driver".
-FILE(GLOB_RECURSE driver-sources "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+FILE(GLOB_RECURSE driver-sources "${CMAKE_CURRENT_SOURCE_DIR}/src/Driver.cpp")
 ADD_LIBRARY (driverlib STATIC ${driver-sources})
 ADD_EXECUTABLE (driver "${CMAKE_CURRENT_SOURCE_DIR}/apps/MainModule.cpp")
 TARGET_LINK_LIBRARIES (driver driverlib ${MSVDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS}) 
 
+# Recipe for building "lanedriver".
+
+FILE(GLOB_RECURSE ldriver-sources "${CMAKE_CURRENT_SOURCE_DIR}/src/laneDriver.cpp")
+ADD_LIBRARY (ldriverlib STATIC ${ldriver-sources})
+ADD_EXECUTABLE (ldriver "${CMAKE_CURRENT_SOURCE_DIR}/apps/laneDriver_module.cpp")
+TARGET_LINK_LIBRARIES (ldriver ldriverlib ${MSVDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS})
+#ADD_EXECUTABLE (lanedriver "${CMAKE_CURRENT_SOURCE_DIR}/apps/laneDriver_module.cpp")
+#TARGET_LINK_LIBRARIES (lanedriver driverlib ${MSVDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS}) 
+
 # Recipe for installing "driver".
 INSTALL(TARGETS driver RUNTIME DESTINATION bin/2013/DIT-168/project-template) 
+INSTALL(TARGETS ldriver RUNTIME DESTINATION bin/2013/DIT-168/project-template) 
 
 # Enable CxxTest for all available testsuites.
 IF(CXXTEST_FOUND)

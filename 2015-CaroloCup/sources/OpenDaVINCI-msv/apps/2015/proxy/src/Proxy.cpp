@@ -195,7 +195,7 @@ void Proxy::nextString(const string &s)
 		int firstUltraDist;
 		int secondUltraDist;
 
-		if (three == ',' && six == '.') {
+		if (three == ',') {
 			firstUltraDist = converter(firstUltra, 3);
 			secondUltraDist = converter(secondUltra, 3);
 
