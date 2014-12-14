@@ -55,9 +55,6 @@ LineDetector::LineDetector(const Mat& f, const Config& cfg, const bool debug,
 	findLines(outputImg);
 	cout << "Id:" << id << endl;
 
-	characteristicFiltering(&ltu);
-	calculateGoalLine(&ltu);
-
 	result_getLines = *m_lines;
 }
 
@@ -72,7 +69,303 @@ Lines LineDetector::getLines(){
 	return result_getLines;
 }
 
-// This function filters the lines based on road characteristics
+// The "body"
+void LineDetector::findLines(cv::Mat &outputImg) {
+
+	long startTime;
+	if(m_debug){
+		TimeStamp currentTime;
+		startTime = currentTime.toMicroseconds();
+	}
+	//Find contours
+	getContours(outputImg);
+
+	if (m_debug){
+		TimeStamp endTime;
+		time_taken_contour = endTime.toMicroseconds() - startTime;
+		result_getContours.contours = contours_poly;
+		TimeStamp currentTime;
+		startTime = currentTime.toMicroseconds();
+	}
+	//Get all marked lines
+	getRectangles();
+	if (m_debug){
+		TimeStamp endTime;
+		time_taken_find_lines = endTime.toMicroseconds() - startTime;
+		result_getRectangles.rects = rects;
+		TimeStamp currentTime;
+		startTime = currentTime.toMicroseconds();
+	}
+
+	//Classify dash lines and solid lines
+	classification();
+	if (m_debug){
+		TimeStamp endTime;
+		time_taken_classification = endTime.toMicroseconds() - startTime;
+		result_classification.dashLines = dashLines;
+		result_classification.solidLines = solidLines;
+		result_classification.cntDash = cntDash;
+		result_classification.cntSolid = cntSolid;
+		result_classification.foundStopStartLine = foundStopStartLine;
+		result_classification.intersectionOn = intersectionOn;
+		result_classification.foundIntersection = foundIntersection;
+		TimeStamp currentTime;
+		startTime = currentTime.toMicroseconds();
+	}
+
+	//Filter dashes outside the solid lines and merge solid lines
+	filterAndMerge();
+	if (m_debug){
+		TimeStamp endTime;
+		time_taken_filter_merge = endTime.toMicroseconds() - startTime;
+		result_filterAndMerge.dashLines = dashLines;
+		result_filterAndMerge.solidLines = solidLines;
+		result_filterAndMerge.cntDash = cntDash;
+		result_filterAndMerge.cntSolid = cntSolid;
+		result_filterAndMerge.foundStopStartLine = foundStopStartLine;
+		result_filterAndMerge.intersectionOn = intersectionOn;
+		result_filterAndMerge.foundIntersection = foundIntersection;
+		TimeStamp currentTime;
+		startTime = currentTime.toMicroseconds();
+	}
+
+	//Filter lines with very small angles, filter dash positioned too high on the image or too left or too right
+	finalFilter();
+	if (m_debug){
+		TimeStamp endTime;
+		time_taken_final_filter = endTime.toMicroseconds() - startTime;
+		result_finalFilter.dashLines = dashLines;
+		result_finalFilter.solidLines = solidLines;
+		result_finalFilter.cntDash = cntDash;
+		result_finalFilter.cntSolid = cntSolid;
+		result_finalFilter.foundStopStartLine = foundStopStartLine;
+		result_finalFilter.intersectionOn = intersectionOn;
+		result_finalFilter.foundIntersection = foundIntersection;
+	}
+
+	characteristicFiltering(&ltu);
+
+	calculateGoalLine(&ltu);
+}
+
+// The "body" functions follow in call order 
+
+void LineDetector::getContours(cv::Mat &outputImg) {
+	vector<vector<Point> > contours;
+	vector<Vec4i> hierarchy;
+	cntDash = 0;
+	cntSolid = 0;
+	/// Find contours
+	findContours(m_frame, contours, hierarchy, CV_RETR_TREE,
+			CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
+
+	/// Make polygon contours
+	contours_poly.resize(contours.size());
+
+	dashLines = vector<CustomLine>(contours.size());
+	solidLines = vector<CustomLine>(contours.size());
+	for (unsigned int i = 0; i < contours.size(); i++) {
+		approxPolyDP(Mat(contours[i]), contours_poly[i], 3, true);
+	}
+
+	return;
+}
+
+void LineDetector::getRectangles() {
+
+	RotatedRect rect;
+	for (unsigned int i = 0; i < contours_poly.size(); i++) {
+		rect = minAreaRect(contours_poly[i]);
+		Point2f rect_points[4];
+		rect.points(rect_points);
+		rects.push_back(rect);
+		//cout << "Angle: " << rect.angle << endl;
+		int sizeX = 0, sizeY = 0, sizeR = 0;
+		Point shortSideMiddle;
+		Point longSideMiddle;
+		// Find rect sizes
+		for (int j = 0; j < 4; j++) {
+			//cout << "Point [x,y] = [" << rect_points[j].x << "," << rect_points[j].y << "]" << endl;
+			sizeR = cv::sqrt(
+					cv::pow((rect_points[j].x - rect_points[(j + 1) % 4].x), 2)
+							+ cv::pow(
+									(rect_points[j].y
+											- rect_points[(j + 1) % 4].y), 2));
+			//cout << "Size:" << sizeR << endl;
+			if (sizeX == 0) {
+				sizeX = sizeR;
+				shortSideMiddle.x = (rect_points[j].x
+						+ rect_points[(j + 1) % 4].x) / 2;
+				shortSideMiddle.y = (rect_points[j].y
+						+ rect_points[(j + 1) % 4].y) / 2;
+			} else if (sizeY == 0 && sizeR != sizeX) {
+				sizeY = sizeR;
+				longSideMiddle.x = (rect_points[j].x
+						+ rect_points[(j + 1) % 4].x) / 2;
+				longSideMiddle.y = (rect_points[j].y
+						+ rect_points[(j + 1) % 4].y) / 2;
+			}
+		}
+		if (sizeX > sizeY) {
+			Point2f temp;
+			sizeR = sizeX;
+			sizeX = sizeY;
+			sizeY = sizeR;
+			temp = longSideMiddle;
+			longSideMiddle = shortSideMiddle;
+			shortSideMiddle = temp;
+		}
+
+		PolySize polysize = { sizeX, sizeY, sizeR, shortSideMiddle,
+				longSideMiddle };
+		line_sizes.push_back(polysize);
+	}
+}
+
+void LineDetector::classification() {
+	int sizeX;
+	int sizeY;
+	int sizeR;
+	int area;
+	RotatedRect rect;
+	Point2f rect_points[4];
+	Point rectCenter;
+	Point shortSideMiddle;
+
+	for (unsigned int i = 0; i < line_sizes.size(); i++) {
+		sizeX = line_sizes[i].sizeX;
+		sizeY = line_sizes[i].sizeY;
+		sizeR = line_sizes[i].sizeR;
+		shortSideMiddle = line_sizes[i].shortSideMiddle;
+		area = sizeX * sizeY;
+		rect = rects[i];
+		rect.points(rect_points);
+		rectCenter.x = rect.center.x;
+		rectCenter.y = rect.center.y;
+		rect.angle = getLineSlope(shortSideMiddle, rectCenter);
+		if (sizeY > m_config.XTimesYMin * sizeX
+				&& sizeY < m_config.XTimesYMax * sizeX
+				&& sizeY < m_config.maxY) {
+			dashLines[cntDash] = createLineFromRect(&rect, sizeX, sizeY);
+			cntDash++;
+			//cout << "Dash Rect y: " << rectCenter.y << endl;
+		} else if (sizeY > sizeX && sizeY > (m_config.maxY / 2)
+				&& area < m_config.maxArea * 10000) {
+			solidLines[cntSolid] = createLineFromRect(&rect, sizeX, sizeY);
+			cntSolid++;
+		} else if (area > m_config.maxArea * 10000) {
+			minXI = w;
+			minYI = h;
+			for (int j = 0; j < 4; j++) {
+				if (minXI > rect_points[j].x) {
+					minXI = rect_points[j].x;
+				}
+				if (minYI > rect_points[j].y) {
+					minYI = rect_points[j].y;
+				}
+			}
+			YI = rectCenter.y;
+			if (m_debug) {
+				cout << "Intersection x: " << minXI << ", Intersection y: "
+						<< minYI << ", Center y: " << rectCenter.y << endl;
+			}
+			intersectionOn = true;
+			foundIntersection = true;
+		}
+	}
+
+	if (intersectionOn && !foundIntersection) {
+		YI = h;
+	}
+}
+
+void LineDetector::filterAndMerge() {
+	for (int j = 0; j < cntSolid; j++) {
+		float a = tan(M_PI * solidLines[j].slope / 180);
+		Point center;
+		center.x = (solidLines[j].p1.x + solidLines[j].p2.x) / 2;
+		center.y = (solidLines[j].p1.y + solidLines[j].p2.y) / 2;
+		float b = center.y - center.x * a;
+		//cout << "Equation [a,b]: [" << a << "," << b << "]" << endl;
+		//cout << "Dashes" << endl;
+		if ((solidLines[j].slope > MIN_ANGLE - 5
+				&& max(solidLines[j].p1.x, solidLines[j].p1.x) > w / 2)
+				|| (solidLines[j].slope < (-1) * (MIN_ANGLE - 5)
+						&& min(solidLines[j].p1.x, solidLines[j].p1.x) < w / 2)) {
+			for (int l = 0; l < cntDash; l++) {
+				Point dashCenter;
+				dashCenter.x = (dashLines[l].p1.x + dashLines[l].p2.x) / 2;
+				dashCenter.y = (dashLines[l].p1.y + dashLines[l].p2.y) / 2;
+				float res = a * dashCenter.x + b;
+				//cout << "[res, y] = [" << res << "," << dashCenter.y << "]" << endl;
+				//cout << "[x, y] = [" << dashCenter.x << "," << dashCenter.y << "]" << endl;
+				if (res > dashCenter.y) {
+					dashLines[l] = dashLines[cntDash - 1];
+					cntDash--;
+					l--;
+					//cout<< cntDash <<endl;
+				}
+			}
+			//cout << "Solids" << endl;
+			for (int k = j + 1; k < cntSolid; k++) {
+				Point sldCenter;
+				sldCenter.x = (solidLines[k].p1.x + solidLines[k].p2.x) / 2;
+				sldCenter.y = (solidLines[k].p1.y + solidLines[k].p2.y) / 2;
+				float res = a * sldCenter.x + b;
+				if (res > sldCenter.y) {
+					solidLines[k] = solidLines[cntSolid - 1];
+					cntSolid--;
+					k--;
+					//cout<< cntSolid <<endl;
+				}
+			}
+		}
+	}
+}
+
+void LineDetector::finalFilter() {
+	for (int i = 0; i < cntSolid; i++) {
+		CustomLine l = solidLines[i];
+		int minAngle = MIN_ANGLE - 5;
+		//cout << "Slope: " << l.slope << " min is " << minAngle << endl;
+		if (abs(l.slope) < minAngle) {
+			solidLines[i] = solidLines[cntSolid - 1];
+			cntSolid--;
+			if (i > 0) {
+				i--;
+			}
+			foundStopStartLine = true;
+		}
+	}
+
+	//Dash also positioned too high on the image or too left or too right
+	int maxDashY = 0;
+	for (int i = 0; i < cntDash; i++) {
+		CustomLine l = dashLines[i];
+		int dashCenterX = (l.p1.x + l.p2.x) / 2;
+		int dashCenterY = (l.p1.y + l.p2.y) / 2;
+		//cout << "Slope: " << l.slope << " min is " << MIN_ANGLE << endl;
+		if ((l.slope < MIN_ANGLE && l.slope > ((-1) * MIN_ANGLE))
+				|| (dashCenterY < h / 15) || (dashCenterX > 19 * w / 20)) //|| (dashCenterX < w/20) too left //too high
+				{
+			dashLines[i] = dashLines[cntDash - 1];
+			cntDash--;
+			if (i > 0) {
+				i--;
+			}
+		}
+
+		if (maxDashY < max(dashLines[i].p1.y, dashLines[i].p2.y)) {
+			maxDashY = max(dashLines[i].p1.y, dashLines[i].p2.y);
+		}
+	}
+
+	if ((cntSolid > 0 && cntDash > 1 && maxDashY < (9 * h / 10)) || YI < 120) {
+		//cout << "Switch off: " << minXI << "," << YI << "," << maxDashY << "==========================================================================================" << endl;
+		intersectionOn = false;
+	}
+}
+
 void LineDetector::characteristicFiltering(LinesToUse* ltu){
 	//LinesToUse old_ltu;
 	// if (ltu != NULL) 
@@ -433,6 +726,8 @@ void LineDetector::calculateGoalLine(LinesToUse* ltu){
 	return;
 }
 
+// Helper functions follows
+
 CustomLine LineDetector::createLineFromRect(RotatedRect* rect, int sizeX,	int sizeY) {
 	CustomLine l;
 	Point pt1, pt2;
@@ -462,297 +757,6 @@ CustomLine LineDetector::createLineFromRect(RotatedRect* rect, int sizeX,	int si
 	l.p2 = pt2;
 	l.slope = rect->angle;
 	return l;
-}
-
-void LineDetector::getContours(cv::Mat &outputImg) {
-	vector<vector<Point> > contours;
-	vector<Vec4i> hierarchy;
-	cntDash = 0;
-	cntSolid = 0;
-	/// Find contours
-	findContours(m_frame, contours, hierarchy, CV_RETR_TREE,
-			CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
-
-	/// Make polygon contours
-	contours_poly.resize(contours.size());
-
-	dashLines = vector<CustomLine>(contours.size());
-	solidLines = vector<CustomLine>(contours.size());
-	for (unsigned int i = 0; i < contours.size(); i++) {
-		approxPolyDP(Mat(contours[i]), contours_poly[i], 3, true);
-	}
-
-	return;
-}
-
-void LineDetector::getRectangles() {
-
-	RotatedRect rect;
-	for (unsigned int i = 0; i < contours_poly.size(); i++) {
-		rect = minAreaRect(contours_poly[i]);
-		Point2f rect_points[4];
-		rect.points(rect_points);
-		rects.push_back(rect);
-		//cout << "Angle: " << rect.angle << endl;
-		int sizeX = 0, sizeY = 0, sizeR = 0;
-		Point shortSideMiddle;
-		Point longSideMiddle;
-		// Find rect sizes
-		for (int j = 0; j < 4; j++) {
-			//cout << "Point [x,y] = [" << rect_points[j].x << "," << rect_points[j].y << "]" << endl;
-			sizeR = cv::sqrt(
-					cv::pow((rect_points[j].x - rect_points[(j + 1) % 4].x), 2)
-							+ cv::pow(
-									(rect_points[j].y
-											- rect_points[(j + 1) % 4].y), 2));
-			//cout << "Size:" << sizeR << endl;
-			if (sizeX == 0) {
-				sizeX = sizeR;
-				shortSideMiddle.x = (rect_points[j].x
-						+ rect_points[(j + 1) % 4].x) / 2;
-				shortSideMiddle.y = (rect_points[j].y
-						+ rect_points[(j + 1) % 4].y) / 2;
-			} else if (sizeY == 0 && sizeR != sizeX) {
-				sizeY = sizeR;
-				longSideMiddle.x = (rect_points[j].x
-						+ rect_points[(j + 1) % 4].x) / 2;
-				longSideMiddle.y = (rect_points[j].y
-						+ rect_points[(j + 1) % 4].y) / 2;
-			}
-		}
-		if (sizeX > sizeY) {
-			Point2f temp;
-			sizeR = sizeX;
-			sizeX = sizeY;
-			sizeY = sizeR;
-			temp = longSideMiddle;
-			longSideMiddle = shortSideMiddle;
-			shortSideMiddle = temp;
-		}
-
-		PolySize polysize = { sizeX, sizeY, sizeR, shortSideMiddle,
-				longSideMiddle };
-		line_sizes.push_back(polysize);
-	}
-
-}
-
-void LineDetector::classification() {
-	int sizeX;
-	int sizeY;
-	int sizeR;
-	int area;
-	RotatedRect rect;
-	Point2f rect_points[4];
-	Point rectCenter;
-	Point shortSideMiddle;
-
-	for (unsigned int i = 0; i < line_sizes.size(); i++) {
-		sizeX = line_sizes[i].sizeX;
-		sizeY = line_sizes[i].sizeY;
-		sizeR = line_sizes[i].sizeR;
-		shortSideMiddle = line_sizes[i].shortSideMiddle;
-		area = sizeX * sizeY;
-		rect = rects[i];
-		rect.points(rect_points);
-		rectCenter.x = rect.center.x;
-		rectCenter.y = rect.center.y;
-		rect.angle = getLineSlope(shortSideMiddle, rectCenter);
-		if (sizeY > m_config.XTimesYMin * sizeX
-				&& sizeY < m_config.XTimesYMax * sizeX
-				&& sizeY < m_config.maxY) {
-			dashLines[cntDash] = createLineFromRect(&rect, sizeX, sizeY);
-			cntDash++;
-			//cout << "Dash Rect y: " << rectCenter.y << endl;
-		} else if (sizeY > sizeX && sizeY > (m_config.maxY / 2)
-				&& area < m_config.maxArea * 10000) {
-			solidLines[cntSolid] = createLineFromRect(&rect, sizeX, sizeY);
-			cntSolid++;
-		} else if (area > m_config.maxArea * 10000) {
-			minXI = w;
-			minYI = h;
-			for (int j = 0; j < 4; j++) {
-				if (minXI > rect_points[j].x) {
-					minXI = rect_points[j].x;
-				}
-				if (minYI > rect_points[j].y) {
-					minYI = rect_points[j].y;
-				}
-			}
-			YI = rectCenter.y;
-			if (m_debug) {
-				cout << "Intersection x: " << minXI << ", Intersection y: "
-						<< minYI << ", Center y: " << rectCenter.y << endl;
-			}
-			intersectionOn = true;
-			foundIntersection = true;
-		}
-	}
-
-	if (intersectionOn && !foundIntersection) {
-		YI = h;
-	}
-}
-
-void LineDetector::filterAndMerge() {
-	for (int j = 0; j < cntSolid; j++) {
-		float a = tan(M_PI * solidLines[j].slope / 180);
-		Point center;
-		center.x = (solidLines[j].p1.x + solidLines[j].p2.x) / 2;
-		center.y = (solidLines[j].p1.y + solidLines[j].p2.y) / 2;
-		float b = center.y - center.x * a;
-		//cout << "Equation [a,b]: [" << a << "," << b << "]" << endl;
-		//cout << "Dashes" << endl;
-		if ((solidLines[j].slope > MIN_ANGLE - 5
-				&& max(solidLines[j].p1.x, solidLines[j].p1.x) > w / 2)
-				|| (solidLines[j].slope < (-1) * (MIN_ANGLE - 5)
-						&& min(solidLines[j].p1.x, solidLines[j].p1.x) < w / 2)) {
-			for (int l = 0; l < cntDash; l++) {
-				Point dashCenter;
-				dashCenter.x = (dashLines[l].p1.x + dashLines[l].p2.x) / 2;
-				dashCenter.y = (dashLines[l].p1.y + dashLines[l].p2.y) / 2;
-				float res = a * dashCenter.x + b;
-				//cout << "[res, y] = [" << res << "," << dashCenter.y << "]" << endl;
-				//cout << "[x, y] = [" << dashCenter.x << "," << dashCenter.y << "]" << endl;
-				if (res > dashCenter.y) {
-					dashLines[l] = dashLines[cntDash - 1];
-					cntDash--;
-					l--;
-					//cout<< cntDash <<endl;
-				}
-			}
-			//cout << "Solids" << endl;
-			for (int k = j + 1; k < cntSolid; k++) {
-				Point sldCenter;
-				sldCenter.x = (solidLines[k].p1.x + solidLines[k].p2.x) / 2;
-				sldCenter.y = (solidLines[k].p1.y + solidLines[k].p2.y) / 2;
-				float res = a * sldCenter.x + b;
-				if (res > sldCenter.y) {
-					solidLines[k] = solidLines[cntSolid - 1];
-					cntSolid--;
-					k--;
-					//cout<< cntSolid <<endl;
-				}
-			}
-		}
-	}
-}
-
-void LineDetector::finalFilter() {
-	for (int i = 0; i < cntSolid; i++) {
-		CustomLine l = solidLines[i];
-		int minAngle = MIN_ANGLE - 5;
-		//cout << "Slope: " << l.slope << " min is " << minAngle << endl;
-		if (abs(l.slope) < minAngle) {
-			solidLines[i] = solidLines[cntSolid - 1];
-			cntSolid--;
-			if (i > 0) {
-				i--;
-			}
-			foundStopStartLine = true;
-		}
-	}
-
-	//Dash also positioned too high on the image or too left or too right
-	int maxDashY = 0;
-	for (int i = 0; i < cntDash; i++) {
-		CustomLine l = dashLines[i];
-		int dashCenterX = (l.p1.x + l.p2.x) / 2;
-		int dashCenterY = (l.p1.y + l.p2.y) / 2;
-		//cout << "Slope: " << l.slope << " min is " << MIN_ANGLE << endl;
-		if ((l.slope < MIN_ANGLE && l.slope > ((-1) * MIN_ANGLE))
-				|| (dashCenterY < h / 15) || (dashCenterX > 19 * w / 20)) //|| (dashCenterX < w/20) too left //too high
-				{
-			dashLines[i] = dashLines[cntDash - 1];
-			cntDash--;
-			if (i > 0) {
-				i--;
-			}
-		}
-
-		if (maxDashY < max(dashLines[i].p1.y, dashLines[i].p2.y)) {
-			maxDashY = max(dashLines[i].p1.y, dashLines[i].p2.y);
-		}
-	}
-
-	if ((cntSolid > 0 && cntDash > 1 && maxDashY < (9 * h / 10)) || YI < 120) {
-		//cout << "Switch off: " << minXI << "," << YI << "," << maxDashY << "==========================================================================================" << endl;
-		intersectionOn = false;
-	}
-}
-
-void LineDetector::findLines(cv::Mat &outputImg) {
-
-	long startTime;
-	//Find contours
-	if(m_debug){
-		TimeStamp currentTime;
-		startTime = currentTime.toMicroseconds();
-	}
-	getContours(outputImg);
-
-	if (m_debug){
-		TimeStamp endTime;
-		time_taken_contour = endTime.toMicroseconds() - startTime;
-		result_getContours.contours = contours_poly;
-		TimeStamp currentTime;
-		startTime = currentTime.toMicroseconds();
-	}
-	//Get all marked lines
-	getRectangles();
-	if (m_debug){
-		TimeStamp endTime;
-		time_taken_find_lines = endTime.toMicroseconds() - startTime;
-		result_getRectangles.rects = rects;
-		TimeStamp currentTime;
-		startTime = currentTime.toMicroseconds();
-	}
-
-	//Classify dash lines and solid lines
-	classification();
-	if (m_debug){
-		TimeStamp endTime;
-		time_taken_classification = endTime.toMicroseconds() - startTime;
-		result_classification.dashLines = dashLines;
-		result_classification.solidLines = solidLines;
-		result_classification.cntDash = cntDash;
-		result_classification.cntSolid = cntSolid;
-		result_classification.foundStopStartLine = foundStopStartLine;
-		result_classification.intersectionOn = intersectionOn;
-		result_classification.foundIntersection = foundIntersection;
-		TimeStamp currentTime;
-		startTime = currentTime.toMicroseconds();
-	}
-
-	//Filter dashes outside the solid lines and merge solid lines
-	filterAndMerge();
-	if (m_debug){
-		TimeStamp endTime;
-		time_taken_filter_merge = endTime.toMicroseconds() - startTime;
-		result_filterAndMerge.dashLines = dashLines;
-		result_filterAndMerge.solidLines = solidLines;
-		result_filterAndMerge.cntDash = cntDash;
-		result_filterAndMerge.cntSolid = cntSolid;
-		result_filterAndMerge.foundStopStartLine = foundStopStartLine;
-		result_filterAndMerge.intersectionOn = intersectionOn;
-		result_filterAndMerge.foundIntersection = foundIntersection;
-		TimeStamp currentTime;
-		startTime = currentTime.toMicroseconds();
-	}
-
-	//Filter lines with very small angles, filter dash positioned too high on the image or too left or too right
-	finalFilter();
-	if (m_debug){
-		TimeStamp endTime;
-		time_taken_final_filter = endTime.toMicroseconds() - startTime;
-		result_finalFilter.dashLines = dashLines;
-		result_finalFilter.solidLines = solidLines;
-		result_finalFilter.cntDash = cntDash;
-		result_finalFilter.cntSolid = cntSolid;
-		result_finalFilter.foundStopStartLine = foundStopStartLine;
-		result_finalFilter.intersectionOn = intersectionOn;
-		result_finalFilter.foundIntersection = foundIntersection;
-	}
 }
 
 int LineDetector::detectHorizontalLine(Mat canny_roi, int dist) {
