@@ -725,6 +725,8 @@ void LineDetector::calculateGoalLine(LinesToUse* ltu){
 		cout << "CASE: NONE" << endl;
 	}
 	//mylog.close();
+
+	ltu->lines = *m_lines;
 	return;
 }
 
@@ -994,8 +996,8 @@ IntermediateResult* LineDetector::getResult_finalFilter(){
 	return &result_finalFilter;
 }
 
-Lines* LineDetector::getResult_getLines(){
-	return &result_getLines;
+LinesToUse* LineDetector::getResult_calculateGoalLine(){
+	return &ltu;
 }
 
 

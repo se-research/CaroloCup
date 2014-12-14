@@ -59,6 +59,7 @@ struct LinesToUse{
 	Vec4i dashLineVec;
 	Vec4i leftLineVec;
 	Vec4i rightLineVec;
+	Lines lines;
 };
 
 
@@ -85,7 +86,7 @@ public:
 	IntermediateResult* getResult_classification();
 	IntermediateResult* getResult_filterAndMerge();
 	IntermediateResult* getResult_finalFilter();
-	Lines* getResult_getLines();
+	LinesToUse* getResult_calculateGoalLine();
 
 private:
 	LineDetector(const LineDetector&);

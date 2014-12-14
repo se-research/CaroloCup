@@ -455,28 +455,33 @@ namespace msv {
 
 	void LaneDetector_inspection::showResult_finalResult(LineDetector& road, Mat& f){
 		Mat frame = f.clone();
-		msv::Lines* res = road.getResult_getLines();
+		LinesToUse* res = road.getResult_calculateGoalLine();
 
 		if (m_debug){
 			cout << "__START: Final result" << endl;
 		}
-		if (res->goalLine.p1.x == 0 && res->goalLine.p1.y == 0
-				&& res->goalLine.p2.x == 0 && res->goalLine.p2.y == 0
-				&& res->currentLine.p2.x == 0 && res->currentLine.p2.y == 0) {
+		if (res->lines.goalLine.p1.x == 0 && res->lines.goalLine.p1.y == 0
+				&& res->lines.goalLine.p2.x == 0 && res->lines.goalLine.p2.y == 0
+				&& res->lines.currentLine.p2.x == 0 && res->lines.currentLine.p2.y == 0) {
 			cout << "Nothing in..." << endl;
 		} else {
-			drawLines(res, &frame, 0);
+			drawLines(&res->lines, &frame, 0);
 		}
 
 		if (m_debug) {
-			cout << "VP [x, y] : [" << res->goalLine.p1.x << ", "
-					<< res->goalLine.p1.y << "]" << endl;
-			cout << "Goal [x, y] : [" << res->goalLine.p2.x << ", "
-					<< res->goalLine.p2.y << "]" << endl;
-			cout << "Position [x, y] : [" << res->currentLine.p2.x << ", "
-					<< res->currentLine.p2.y << "]" << endl;			
+			cout << "Found lines, left: " << res->foundL << ". dashed: " << res->foundD << ". right: " << res->foundR << endl;
+			cout << "Left line. p1(" << res->leftLine.p1.x << "," << res->leftLine.p1.y << ") p2(" << res->leftLine.p2.x << "," << res->leftLine.p2.y << ")" << endl;
+			cout << "Dashed line. p1(" << res->dashLine.p1.x << "," << res->dashLine.p1.y << ") p2(" << res->dashLine.p2.x << "," << res->dashLine.p2.y << ")" << endl;
+			cout << "Right line. p1(" << res->rightLine.p1.x << "," << res->rightLine.p1.y << ") p2(" << res->rightLine.p2.x << "," << res->rightLine.p2.y << ")" << endl;
+
+			cout << "VP [x, y] : [" << res->lines.goalLine.p1.x << ", "
+					<< res->lines.goalLine.p1.y << "]" << endl;
+			cout << "Goal [x, y] : [" << res->lines.goalLine.p2.x << ", "
+					<< res->lines.goalLine.p2.y << "]" << endl;
+			cout << "Position [x, y] : [" << res->lines.currentLine.p2.x << ", "
+					<< res->lines.currentLine.p2.y << "]" << endl;			
 		}
-		if (what_to_inspect == 2)
+		if (what_to_inspect == 6)
 			addInspectionInfo(road, frame);
 		
 		imshow("Final result", frame);
