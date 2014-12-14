@@ -31,9 +31,9 @@ int roadAngle = 91;
 bool foundStopStartLine = false;
 bool intersectionOn = false;
 bool foundIntersection = false;
-int oldDashGoalX = 0;
-int oldRightGoalX = 0;
-int oldLeftGoalX = 0;
+int currentDashGoalX = 0;
+int currentRightGoalX = 0;
+int currentLeftGoalX = 0;
 int calcRoadSize, calcRoadAngle;
 float minXI, minYI, YI;
 
@@ -396,9 +396,9 @@ void LineDetector::characteristicFiltering(LinesToUse* ltu){
 				int positionX = getIntersectionWithBottom(dashLines[i]);
 				int nPositionX = getIntersectionWithBottom(
 						dashLines[i + 1]);
-				//cout << "Curr closenest: " << abs(oldDashGoalX - positionX) << ", other:" << abs(oldDashGoalX - nPositionX) << endl;
-				if (abs(oldDashGoalX - positionX)
-						< abs(oldDashGoalX - nPositionX)) {
+				//cout << "Curr closenest: " << abs(currentDashGoalX - positionX) << ", other:" << abs(currentDashGoalX - nPositionX) << endl;
+				if (abs(currentDashGoalX - positionX)
+						< abs(currentDashGoalX - nPositionX)) {
 					dashLines[i + 1] = dashLines[cntDash - 1];
 					cntDash--;
 				} else {
@@ -430,15 +430,16 @@ void LineDetector::characteristicFiltering(LinesToUse* ltu){
 			if (m_debug) {
 				cout << "Dash line slope: " << ltu->dashLine.slope << endl;
 			}
-			//cout << "Dash diff: " << abs(dashSupPosX - oldDashGoalX) << endl;
-			if (abs(dashSupPosX - oldDashGoalX) < calcRoadSize * 0.8
-					|| oldDashGoalX == 0) {
+			//cout << "Dash diff: " << abs(dashSupPosX - currentDashGoalX) << endl;
+			if (abs(dashSupPosX - currentDashGoalX) < calcRoadSize * 0.8
+					|| currentDashGoalX == 0) {
 				/*if(max(ltu->dashLine.p1.x, ltu->dashLine.p2.x) < w/10) {
 				 shrinkSize = true;
 				 }*/
 				ltu->dashLineVec = Vec4i(ltu->dashLine.p1.x, ltu->dashLine.p1.y,
 						ltu->dashLine.p2.x, ltu->dashLine.p2.y);
 				ltu->foundD = true;
+				currentDashGoalX = dashSupPosX;
 			}
 		}
 	}
@@ -456,16 +457,16 @@ void LineDetector::characteristicFiltering(LinesToUse* ltu){
 		}
 		if (ltu->foundR) {
 			int rSupPosX = getIntersectionWithBottom(ltu->rightLine);
-			//cout << "Right diff x: " << abs(rSupPosX - oldRightGoalX) << endl;
-			if (abs(rSupPosX - oldRightGoalX) < calcRoadSize * 0.8
-					|| oldRightGoalX == 0) {
+			//cout << "Right diff x: " << abs(rSupPosX - currentRightGoalX) << endl;
+			if (abs(rSupPosX - currentRightGoalX) < calcRoadSize * 0.8
+					|| currentRightGoalX == 0) {
 				if (m_debug) {
 					cout << "Right line slope: " << ltu->rightLine.slope
 							<< endl;
 				}
 				ltu->rightLineVec = Vec4i(ltu->rightLine.p1.x, ltu->rightLine.p1.y,
 						ltu->rightLine.p2.x, ltu->rightLine.p2.y);
-				oldRightGoalX = rSupPosX;
+				currentRightGoalX = rSupPosX;
 			} else {
 				ltu->foundR = false;
 			}
@@ -484,20 +485,28 @@ void LineDetector::characteristicFiltering(LinesToUse* ltu){
 		}
 		if (ltu->foundL) {
 			int lSupPosX = getIntersectionWithBottom(ltu->leftLine);
-			if (abs(lSupPosX - oldLeftGoalX) < calcRoadSize * 0.8
-					|| oldLeftGoalX == 0) {
+			if (abs(lSupPosX - currentLeftGoalX) < calcRoadSize * 0.8
+					|| currentLeftGoalX == 0) {
 				if (m_debug) {
 					cout << "Left line slope: " << ltu->leftLine.slope
 							<< endl;
 				}
 				ltu->leftLineVec = Vec4i(ltu->leftLine.p1.x, ltu->leftLine.p1.y,
 						ltu->leftLine.p2.x, ltu->leftLine.p2.y);
-				oldLeftGoalX = lSupPosX;
+				currentLeftGoalX = lSupPosX;
 			} else {
 				ltu->foundL = false;
 			}
 		}
 	}
+	// Get rid of information gathered one frame back 
+	if (!ltu->foundD)
+		currentDashGoalX = 0;
+	if (!ltu->foundR)
+		currentRightGoalX = 0;
+	if (!ltu->foundL)
+		currentLeftGoalX = 0;
+
 	return;
 }
 
@@ -515,7 +524,7 @@ void LineDetector::calculateGoalLine(LinesToUse* ltu){
 		float da = tan(ltu->dashLine.slope * M_PI / 180);
 		float db = ltu->dashLine.p1.y - ltu->dashLine.p1.x * da;
 		int dashGoalX = (goalP.y - db) / da;
-		oldDashGoalX = dashGoalX;
+
 		int dashCenterX = (ltu->dashLine.p1.x + ltu->dashLine.p2.x) / 2;
 		int dashCenterY = (ltu->dashLine.p1.y + ltu->dashLine.p2.y) / 2;
 		if (m_debug) {
@@ -551,7 +560,6 @@ void LineDetector::calculateGoalLine(LinesToUse* ltu){
 				cout << "Right line X: " << rightGoalX << endl;
 				cout << "CASE: Dash and right" << endl;
 			}
-			oldLeftGoalX = 0;
 			/*} else if(ltu->foundL){
 			 //We have dash and left line
 			 float a = tan(ltu->leftLine.slope * M_PI / 180);
@@ -605,8 +613,6 @@ void LineDetector::calculateGoalLine(LinesToUse* ltu){
 			}
 			vp.y = da * vp.x + db;
 			goalP.x = dashGoalX + calcRoadSize * ROAD_GOAL;
-			oldRightGoalX = 0;
-			oldLeftGoalX = 0;
 			cout << "CASE: Only dash" << endl;
 		}
 		foundGoal = true;
@@ -648,8 +654,6 @@ void LineDetector::calculateGoalLine(LinesToUse* ltu){
 			vp.y = a * vp.x + b;
 			foundGoal = true;
 			goalP.x = expectedDashLineX + calcRoadSize * ROAD_GOAL;
-			oldDashGoalX = 0;
-			oldLeftGoalX = 0;
 			cout << "CASE: Only right" << endl;
 		} else if (ltu->foundL) {
 			//We have only left line
@@ -687,8 +691,6 @@ void LineDetector::calculateGoalLine(LinesToUse* ltu){
 			vp.y = a * vp.x + b;
 			foundGoal = true;
 			goalP.x = expectedDashLineX + calcRoadSize * ROAD_GOAL;
-			oldDashGoalX = 0;
-			oldRightGoalX = 0;
 			cout << "CASE: Only left" << endl;
 		}
 	}
