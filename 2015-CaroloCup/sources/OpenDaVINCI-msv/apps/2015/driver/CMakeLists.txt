@@ -22,7 +22,7 @@ TARGET_LINK_LIBRARIES (driver driverlib ${MSVDATA_LIBS} ${OPENDAVINCI_LIBS} ${LI
 FILE(GLOB_RECURSE ldriver-sources "${CMAKE_CURRENT_SOURCE_DIR}/src/laneDriver.cpp")
 ADD_LIBRARY (ldriverlib STATIC ${ldriver-sources})
 ADD_EXECUTABLE (lanedriver "${CMAKE_CURRENT_SOURCE_DIR}/apps/laneDriver_module.cpp")
-TARGET_LINK_LIBRARIES (ldriver ldriverlib ${MSVDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS})
+TARGET_LINK_LIBRARIES (lanedriver ldriverlib ${MSVDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS})
 
 # Recipe for installing "driver".
 INSTALL(TARGETS driver RUNTIME DESTINATION bin/2013/DIT-168/project-template) 
