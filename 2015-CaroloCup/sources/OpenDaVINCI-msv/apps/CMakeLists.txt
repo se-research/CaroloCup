@@ -1,4 +1,3 @@
 # Mini-Smart-Vehicles sources.
-ADD_SUBDIRECTORY (2013)
 ADD_SUBDIRECTORY (2015)
 

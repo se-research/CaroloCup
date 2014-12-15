@@ -23,25 +23,8 @@
 #include <pthread.h>
 #include "laneDriver.h"
 
-#define PARK_SPEED 0.5
-#define REVERSE_SPEED 0.5
-
-int lidarLookUp[360];
-
-    
-int sensorData[7];
-bool inPSpot = false;
-bool outPSpot = false;
-int distanceTR = 0;
-int pstate = 0; // 0 - searching; 1 - parking started; 3 - man1; 4 - man2; 5 - man3; 6 - finish
-int reverseCnt = 0;
-bool reverseDone = false;
-bool driveReverse = false;
 int indicators = -1;
 bool indicatorsOn = false;
-
-bool useRealSpeed = true;
-
 
 namespace msv
 {
@@ -123,22 +106,13 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
     // Get configuration data.
     KeyValueConfiguration kv = getKeyValueConfiguration();
 
-    
-    
-
-
-
-   VehicleControl vc;
+    VehicleControl vc;
 
 
     while (getModuleState() == ModuleState::RUNNING)
     {
         
         LaneDetectionData ldd;
-
-
-	
-
 		Container conUserData1 = getKeyValueDataStore().get(Container::USER_DATA_1);
 		if((conUserData1.getReceivedTimeStamp().getSeconds() + conUserData1.getReceivedTimeStamp().getFractionalMicroseconds()) < 1) {
 			//conUserData1 = getKeyValueDataStore().get(Container::USER_DATA_1);
@@ -166,71 +140,71 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
 
 
         stringstream speedStream, steeringAngleStream;
-	float desSteering = m_desiredSteeringWheelAngle*180/M_PI;
-	//cout << "Desired steering: " << desSteering <<endl;
+    	float desSteering = m_desiredSteeringWheelAngle*180/M_PI;
+    	//cout << "Desired steering: " << desSteering <<endl;
 
-	if(desSteering > 41) desSteering = 42;
-	if(desSteering < -41) desSteering = -42;
+    	if(desSteering > 41) desSteering = 42;
+    	if(desSteering < -41) desSteering = -42;
 
-    //vc.setSteeringWheelAngle(desSteering);
-	steeringVal = int16_t(desSteering);
-	if(steeringVal != oldSteeringVal) {
-		//cout << "Send angle: " << steeringVal << endl;
-        	vc.setSteeringWheelAngle(steeringVal);
-			
-		oldSteeringVal = steeringVal;
-		steerCnt ++;
-	} else {
-		steerCnt++;
-	}
-	if(steerCnt > 20) {
-		oldSteeringVal = -90;
-		steerCnt = 0;
-	}
-	
-	int speedVal;
-	
-		//int runSpeed = 1565;
-		speedVal = m_speed;
-		if(abs(desSteering) < 4) {
-			increaseSpeed++;
-		} else {
-			increaseSpeed = 0;
-		}
-	
-		if(increaseSpeed >= 3 && increaseSpeed < 6) {
-			speedVal = m_speed + 1;
-		} /*else if (increaseSpeed > 3 && increaseSpeed < 8) {
-			speedVal = m_speed + (increaseSpeed - 3)*0.1;
-		}*/ else if (increaseSpeed >= 6) {
-			speedVal = m_speed + 2;
-		}
+        //vc.setSteeringWheelAngle(desSteering);
+    	steeringVal = int16_t(desSteering);
+    	if(steeringVal != oldSteeringVal) {
+    		//cout << "Send angle: " << steeringVal << endl;
+            	vc.setSteeringWheelAngle(steeringVal);
+    			
+    		oldSteeringVal = steeringVal;
+    		steerCnt ++;
+    	} else {
+    		steerCnt++;
+    	}
+    	if(steerCnt > 20) {
+    		oldSteeringVal = -90;
+    		steerCnt = 0;
+    	}
+    	
+    	int speedVal;
+    	
+    		//int runSpeed = 1565;
+    		speedVal = m_speed;
+    		if(abs(desSteering) < 4) {
+    			increaseSpeed++;
+    		} else {
+    			increaseSpeed = 0;
+    		}
+    	
+    		if(increaseSpeed >= 3 && increaseSpeed < 6) {
+    			speedVal = m_speed + 1;
+    		} /*else if (increaseSpeed > 3 && increaseSpeed < 8) {
+    			speedVal = m_speed + (increaseSpeed - 3)*0.1;
+    		}*/ else if (increaseSpeed >= 6) {
+    			speedVal = m_speed + 2;
+    		}
 
 
-	
-	if(speedVal != oldSpeedVal) {
-		
-		
-			cout << "Send speed: " << speedVal << endl;
-			vc.setSpeed(speedVal);
-		
-		isSpeedSent = true;
-		oldSpeedVal = speedVal;
-		speedCnt++;
-	} else {
-		speedCnt++;
-		isSpeedSent = false;
-	}
-	if(speedCnt > 120) {
-		oldSpeedVal = -1;
-		speedCnt = 0;
-	}
+    	
+    	if(speedVal != oldSpeedVal) {
+    		
+    		
+    			cout << "Send speed: " << speedVal << endl;
+    			vc.setSpeed(speedVal);
+    		
+    		isSpeedSent = true;
+    		oldSpeedVal = speedVal;
+    		speedCnt++;
+    	} else {
+    		speedCnt++;
+    		isSpeedSent = false;
+    	}
+    	if(speedCnt > 120) {
+    		oldSpeedVal = -1;
+    		speedCnt = 0;
+    	}
 
-	Container c(Container::VEHICLECONTROL,vc);
-	getConference().send(c);
-	
-	//cout << isIndicatorSent << "," << isAngleSent << "," << isSpeedSent << endl;
-	}
+    	Container c(Container::VEHICLECONTROL,vc);
+    	getConference().send(c);
+    	
+    	//cout << isIndicatorSent << "," << isAngleSent << "," << isSpeedSent << endl;
+    }
     
 
     cout << "Body exiting............................................................................" << endl;
