@@ -44,8 +44,8 @@ do
         nohup ${caroloCup}/lanedetector --cid=111 --freq=20 &
 	    echo "$!" >> $pidfile
 
-#Note that this is only ldriver!
-	    nohup ${caroloCup}/ldriver --cid=111 --freq=40 &
+#Note that this is only lanedriver!
+	    nohup ${caroloCup}/lanedriver --cid=111 --freq=40 &
 	    echo "$!" >> $pidfile
 	    started=1
     fi
