@@ -11,6 +11,7 @@
 
 #include "core/base/ConferenceClientModule.h"
 #include "core/data/Container.h"
+#include "core/data/TimeStamp.h"
 #include "tools/recorder/Recorder.h"
 #include "ArduinoMegaProtocol.h"
 #include "SensorBoardData.h"
@@ -20,6 +21,7 @@
 namespace msv {
 
     using namespace std;
+    using namespace core::data;
 
     /**
      * This class wraps the software/hardware interface board.
@@ -71,6 +73,8 @@ namespace msv {
 
             int converter(char* ,int);
 
+            void log(const string &s);
+
         public:
             struct vehicleControl {
                     		int speed;
@@ -90,6 +94,8 @@ namespace msv {
 
             bool m_debug;
             bool m_useRealSpeed;
+            ofstream logger;
+            TimeStamp timestamp;
 
 
     };

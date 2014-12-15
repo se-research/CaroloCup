@@ -7,6 +7,7 @@
 #include <ctype.h>
 #include <cstring>
 #include <cmath>
+#include <string>
 
 #include "core/base/KeyValueConfiguration.h"
 #include "core/data/Container.h"
@@ -46,8 +47,11 @@ Proxy::Proxy(const int32_t &argc, char **argv) :
 		m_sensorBoardMutex(),
 		m_sensorBoardData(),
 		m_debug(false),
-		m_useRealSpeed(false)
+		m_useRealSpeed(false),
+		logger(),
+		timestamp()
 		{
+
 }
 
 Proxy::~Proxy() {
@@ -60,6 +64,9 @@ void Proxy::setUp() {
 				<< "Proxy: WARNING! Running proxy with a LOW frequency (consequence: data updates are too seldom and will influence your algorithms in a negative manner!) --> suggestions: --freq=20 or higher! Current frequency: "
 				<< getFrequency() << " Hz." << endl << endl << endl;
 	}
+	stringstream loggerName;
+	loggerName<<"proxy_"<<TimeStamp().getYYYYMMDD_HHMMSS()<<".log";
+	logger.open(loggerName.str().c_str(),ios::out | ios::app);
 
 	// Get configuration data.
 	KeyValueConfiguration kv = getKeyValueConfiguration();
@@ -110,6 +117,7 @@ void Proxy::setUp() {
 
 	if (m_camera == NULL) {
 		cerr << "No valid camera type defined." << endl;
+		log("No valid camera type defined.");
 	}
 
 
@@ -117,6 +125,7 @@ void Proxy::setUp() {
 
 void Proxy::nextString(const string &s)
 {
+	log("Recieved Sensor Data ");
 	int posIstr=s.find(':');
 	int posUstr=s.find(':',posIstr+1);
 	string iStr=s.substr(0,posIstr);
@@ -190,7 +199,6 @@ void Proxy::nextString(const string &s)
 		secondUltra[2] = uStr[7];
 
 		char three = uStr[4];        //The ',' symbol
-		char six = uStr[8];          //The '.' symbol
 
 		int firstUltraDist;
 		int secondUltraDist;
@@ -231,6 +239,7 @@ void Proxy::nextString(const string &s)
    		    {
    		    	cout << "Found Encoder: " << m_sensorBoardData.getDistance(6) << endl;
    		    }
+    log("Converted sensor values "+m_sensorBoardData.toString());
 
 }
 
@@ -251,8 +260,10 @@ int Proxy::converter(char* arrayInput, int lenght){
 }//End of Converter function
 void Proxy::tearDown() {
 	// This method will be call automatically _after_ return from body().
+	log("TearDown.");
 	OPENDAVINCI_CORE_DELETE_POINTER(m_recorder);
 	OPENDAVINCI_CORE_DELETE_POINTER(m_camera);
+	logger.close();
 }
 
 void Proxy::distribute(Container c) {
@@ -267,6 +278,12 @@ void Proxy::distribute(Container c) {
 	getConference().send(c);
 }
 
+void Proxy::log(const string &s)
+{
+	TimeStamp time=TimeStamp()-timestamp;
+	logger<<time.getSeconds()<<"."<<time.getFractionalMicroseconds() <<":"<<s<<endl;
+}
+
 // This method will do the main data processing job.
 ModuleState::MODULE_EXITCODE Proxy::body() {
 
@@ -274,10 +291,8 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 
 
 	//initialize sensors
-	for (uint32_t i = 0;
-			i
-					< getKeyValueConfiguration().getValue<uint32_t>(
-							"proxy.numberOfSensors"); i++) {
+	for (uint32_t i = 0;i< getKeyValueConfiguration().getValue<uint32_t>("proxy.numberOfSensors"); i++)
+	{
 		stringstream sensorID;
 		sensorID << "proxy.sensor" << i << ".id";
 		uint16_t id(
@@ -329,6 +344,7 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 				vc = con.getData<VehicleControl>();
 				dataFound = true;
 				cout<<"found data"<<endl;
+				log("Found data:"+vc.toString() +" at timestamp "+(con.getReceivedTimeStamp()-timestamp).toString());
 			}
 		}
 		lifo.clear();
@@ -348,18 +364,27 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 		}
 
 		if (previousValues.speed != currentValues.speed) {
+			stringstream logs;
 			if(m_useRealSpeed){
 				bool reverse= currentValues.speed<0? true:false;
 				m_protocol.setWheelFrequency(abs(currentValues.speed),reverse);
+				logs<<"Set Wheel Frequency to "<<currentValues.speed<<endl;
+				log(logs.str());
 			}
 			else{
 				m_protocol.setSpeed(currentValues.speed);
+				logger<<"set speed to "<<currentValues.speed<<endl;
+				log(logs.str());
 			}
 			previousValues.speed=(int)currentValues.speed;
 		}
 		if (previousValues.steeringAngle != currentValues.steeringAngle) {
+			stringstream logs;
 			m_protocol.setSteeringAngle((int)currentValues.steeringAngle);
 			previousValues.steeringAngle=(int)currentValues.steeringAngle;
+
+			logs<<"Set Steering angle to "<<currentValues.steeringAngle<<endl;
+			log(logs.str());
 		}
 
 		//TODO: add control for brake light & indicators
@@ -387,6 +412,7 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 	m_protocol.setSpeed(0); //stop the car when proxy is stopped
 	serialPort->stop();
 	OPENDAVINCI_CORE_DELETE_POINTER(serialPort);
+	log("Proxy killed");
 	return ModuleState::OKAY;
 }
 } // msv
