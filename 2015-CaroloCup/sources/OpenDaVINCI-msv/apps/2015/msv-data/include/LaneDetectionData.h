@@ -30,8 +30,15 @@ namespace msv {
         virtual ~CustomLine () {}
 
         bool operator < (const CustomLine& other ) const {
-	   return max(p1.y,p2.y) > max(other.p1.y, other.p2.y);
-           //return slope < other.slope;
+          return max(p1.y,p2.y) > max(other.p1.y, other.p2.y);
+          //return slope < other.slope;
+        }
+
+        bool operator == (const CustomLine& other ) const {
+          if ((p1.y == other.p1.y) && (p1.x == other.p1.x)){
+            return true;
+          }
+          return false;
         }
 
         Point p1, p2;

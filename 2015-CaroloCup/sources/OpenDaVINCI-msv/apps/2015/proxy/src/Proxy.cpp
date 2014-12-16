@@ -191,6 +191,7 @@ void Proxy::nextString(const string &s)
 
 		char three = uStr[4];        //The ',' symbol
 		char six = uStr[8];          //The '.' symbol
+		if (six == 2){}	// Avoid unused variable warning 		
 
 		int firstUltraDist;
 		int secondUltraDist;

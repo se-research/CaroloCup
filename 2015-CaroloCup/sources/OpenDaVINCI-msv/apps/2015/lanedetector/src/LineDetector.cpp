@@ -374,6 +374,279 @@ void LineDetector::characteristicFiltering(LinesToUse* ltu){
 	//ofstream mylog;
 	//mylog.open("test.log", ios::out | ios::app);
 
+	// On first iteration
+	if (ltu->dashOldBy == NULL){
+		ltu->dashOldBy = 0;
+		ltu->rightOldBy = 0;
+		ltu->leftOldBy = 0;
+	}// On non-first iterations
+	else{
+		ltu->dashOldBy++;
+		ltu->rightOldBy++;
+		ltu->leftOldBy++;
+	}
+
+	ltu->foundR = false;
+	ltu->foundL = false;
+	ltu->foundD = false; // shrinkSize=false; Avoid unused variable warning
+
+	ltu->dashLineVec = Vec4i(0, 0, 0, 0);
+	ltu->leftLineVec = Vec4i(0, 0, 0, 0);
+	ltu->rightLineVec = Vec4i(0, 0, 0, 0);
+	//Pick the suitable dashLine
+	//cout << "Pick lines!" << endl;
+	if (cntDash > 0) {
+		ltu->dashLine.p1.y = 0;
+		ltu->dashLine.p2.y = 0;
+		// Sort the dashes by highest p1.y value first
+		std::sort(dashLines.begin(), dashLines.begin() + cntDash);
+		cout << endl;
+
+		for (int j = 0; j < cntDash; j++) {
+			cout << "Dash line. p1(" << dashLines[j].p1.x << "," << dashLines[j].p1.y << ") p2(" << dashLines[j].p2.x << "," << dashLines[j].p2.y << ")" << endl;
+		}
+		ltu->cntDash = cntDash;
+		// Make p1 be the bottom point
+		for (int i = 0; i < cntDash; i++) {
+			if (dashLines[i].p1.y < dashLines[i].p2.y){
+				// Flipping p1 <-> p2, recalc slope.
+				cout << "Flipping p1 <-> p2, recalc slope" << endl;
+				Point tmp = dashLines[i].p1;
+				dashLines[i].p2 = dashLines[i].p1;
+				dashLines[i].p2 = tmp;
+				dashLines[i].slope = getLineSlope(dashLines[i].p1,dashLines[i].p2);
+			}
+		}
+		cout << "---Start dash Lines" << endl;
+		// Try to find the dashed curve composed of several dashes
+		//
+		// TODO: it now assumes that the dashed curves are completely independent; 
+		// that a curve can not split into more curves. Right now it just picks the 
+		// first dash that matches and append that to the found curve, it does not 
+		// continue to look if other dashes also matches. (findCurve should spawn
+		// one CustomLine vector for eash found curve)
+		//
+		ltu->dashedCurveFound = false;
+		if (cntDash > 1){
+
+			std::vector<CustomLine> dashedLines = dashLines;
+			int cntDashed = cntDash;
+			std::vector<vector<CustomLine> > curves;
+
+			for (int i = 0; i < cntDash-1; i++) {
+				// When fiding curve from i, dashes present at i < don't need to be checked.
+				std::vector<CustomLine> lines;
+				for (int j = 0; j < cntDashed; j++){
+					lines.push_back(dashedLines[j]);
+				}
+
+				std::vector<CustomLine> res = findCurve(lines);
+				if (res.size() == 0){
+					dashedLines.erase(dashedLines.begin());
+					cntDashed--;
+					continue;
+				}
+				// If curve found, we proceed
+				std::vector<CustomLine> curve;
+				curve.push_back(lines[0]);
+
+				for (int j = 0; j < res.size(); j++){
+					curve.push_back(res[j]);
+				}
+				// Save the found curve
+				curves.push_back(curve);
+
+				// Check if we got enough lines to make another curve
+				if (cntDashed - curve.size() < 2){
+					cout << "less then two dashed lines left to use, breaks loop." << endl;
+					break;
+				}
+				// Remove dashed lines already a part of a found curve
+				for (int j = 0; j < curve.size(); j++){
+					for (int k = 0; k < cntDashed; k++){
+						if (curve[j] == dashedLines[k]){
+							cout << "remove used dash: p1(" << curve[j].p1.x << "," << curve[j].p1.y << ") p2(" << curve[j].p2.x << "," << curve[j].p2.y << ") " << endl;
+							dashedLines.erase(dashedLines.begin()+k);
+							cntDashed--;
+						}
+					}
+				}
+			}
+			// Pick which curve to use
+			int longest_curve = 0;
+			for(int i = 0; i < curves.size(); i++) {
+				ltu->dashedCurveFound = true;
+
+				if (curves[i].size() > longest_curve){
+					dashLines[0] = curves[i][0];
+					ltu->dashedCurve = curves[i];
+				}
+
+				// Print the found curve
+				cout << "size: " << curves[i].size() << " Dashed curve is: ";
+				for (int j = 0; j < curves[i].size(); j++){
+					cout << "p1(" << curves[i][j].p1.x << "," << curves[i][j].p1.y << ") ";
+					cout << "p2(" << curves[i][j].p2.x << "," << curves[i][j].p2.y << ") " << endl;
+				}
+			}
+		}
+		if (!ltu->dashedCurveFound){
+			for (int i = 0; i < cntDash; i++) {
+				cout << "new iteration" << endl;
+				for (int j = 0; j < cntDash; j++) {
+					cout << "Dash line. p1(" << dashLines[j].p1.x << "," << dashLines[j].p1.y << ") p2(" << dashLines[j].p2.x << "," << dashLines[j].p2.y << ")" << endl;
+				}
+				//cout << "Dash y: " << max(dashLines[i].p1.y,dashLines[i].p2.y) << endl;
+				//cout << "Dash max: " << max(dashLines[i+1].p1.y,dashLines[i+1].p2.y) << " Dash min: " <<  min(dashLines[i].p1.y,dashLines[i].p2.y) << endl;
+				if (i != cntDash - 1 && max(dashLines[i + 1].p1.y, dashLines[i + 1].p2.y)
+						> min(dashLines[i].p1.y, dashLines[i].p2.y)) {
+					//cout << "Removing wrong dash!" << endl;
+					int positionX = getIntersectionWithBottom(dashLines[i]);
+					int nPositionX = getIntersectionWithBottom(dashLines[i + 1]);
+					cout << "current closest: p1(" << dashLines[i].p1.x << "," << dashLines[i].p1.y << ") p2(" << dashLines[i].p2.x << "," << dashLines[i].p2.y << ")" << endl;
+					cout << "other: p1(" << dashLines[i+1].p1.x << "," << dashLines[i+1].p1.y << ") p2(" << dashLines[i+1].p2.x << "," << dashLines[i+1].p2.y << ")" << endl;
+			
+					cout << "bottomX Curr closest: " << positionX << ", other: " << nPositionX << endl;
+					cout << "bottomX abs Curr closest: " << abs(currentDashGoalX - positionX) << ", other: " << abs(currentDashGoalX - nPositionX) << endl;
+					if (abs(currentDashGoalX - positionX)
+							< abs(currentDashGoalX - nPositionX)) {
+						dashLines.erase(dashLines.begin()+1);
+						cntDash--;
+						cout << "rm other" << endl;
+					} else {
+						dashLines.erase(dashLines.begin());
+						cntDash--;
+						cout << "rm current" << endl;
+					}
+					if (i > 0) {
+						i--;
+					}
+				}
+
+				if (intersectionOn && ((dashLines[i].p1.y + dashLines[i].p2.y) / 2) < YI) {
+					dashLines[i] = dashLines[cntDash - 1];
+					cntDash--;
+					if (i > 0) {
+						i--;
+					}
+					if (m_debug) {
+						cout << "Remove dash becuase of intersection! (" << YI
+								<< ") " << endl;
+					}
+				}
+			}
+		}	
+		if (cntDash > 0) {
+			ltu->dashLine = dashLines[0];
+			int dashSupPosX = getIntersectionWithBottom(ltu->dashLine);
+			//if(ltu->dashLine.slope < 0) {
+			if (m_debug) {
+				cout << "Dash line slope: " << ltu->dashLine.slope << endl;
+			}
+			cout << "Dash diff: " << abs(dashSupPosX - currentDashGoalX) << " <? " << calcRoadSize * 0.8 << endl;
+			if (abs(dashSupPosX - currentDashGoalX) < calcRoadSize * 0.8
+					|| currentDashGoalX == 0) {
+				/*if(max(ltu->dashLine.p1.x, ltu->dashLine.p2.x) < w/10) {
+				 shrinkSize = true;
+				 }*/
+				ltu->dashLineVec = Vec4i(ltu->dashLine.p1.x, ltu->dashLine.p1.y,
+						ltu->dashLine.p2.x, ltu->dashLine.p2.y);
+				ltu->foundD = true;
+				ltu->dashOldBy = 0;	
+				cout << "Dash chosen: p1(" << dashLines[0].p1.x << "," << dashLines[0].p1.y << ") p2(" << dashLines[0].p2.x << "," << dashLines[0].p2.y << ")" << endl;
+				currentDashGoalX = dashSupPosX;
+			}
+		}
+	}
+	cout << "---End dash Lines" << endl;
+	cout << "---Start right Lines" << endl;
+	for (int i = 0; i < cntSolid; i++) {
+		cout << "solid line " << i << ": p1(" << solidLines[0].p1.x << "," << solidLines[0].p1.y << ") p2(" << solidLines[0].p2.x << "," << solidLines[0].p2.y << ")" << endl;
+	}
+	// Determine which solid line is the left and right solid lines
+	if (cntSolid > 0 && !intersectionOn) {
+		ltu->rightLine.p1.x = w;
+		ltu->rightLine.p2.x = w;
+		for (int i = 0; i < cntSolid; i++) {
+			if (solidLines[i].slope < 90 && solidLines[i].slope > 0
+					&& min(solidLines[i].p1.x, solidLines[i].p2.x)
+							< min(ltu->rightLine.p1.x, ltu->rightLine.p2.x)) {				
+				cout << "solid line " << i << " aspires as right line" << endl;
+				ltu->rightLine = solidLines[i];
+				ltu->foundR = true;
+			}
+		}
+		if (ltu->foundR) {
+			int rSupPosX = getIntersectionWithBottom(ltu->rightLine);
+			//cout << "Right diff x: " << abs(rSupPosX - currentRightGoalX) << endl;
+			if (abs(rSupPosX - currentRightGoalX) < calcRoadSize * 0.8
+					|| currentRightGoalX == 0) {
+				if (m_debug) {
+					cout << "Right line slope: " << ltu->rightLine.slope
+							<< endl;
+				}
+				ltu->rightLineVec = Vec4i(ltu->rightLine.p1.x, ltu->rightLine.p1.y,
+						ltu->rightLine.p2.x, ltu->rightLine.p2.y);
+				cout << "Aspired right line chosen" << endl;
+				currentRightGoalX = rSupPosX;
+				ltu->rightOldBy = 0;
+			} else {
+				ltu->foundR = false;
+			}
+		}
+	cout << "---End right Lines" << endl;
+	cout << "---Start left Lines" << endl;
+		ltu->leftLine.p1.x = 0;
+		ltu->leftLine.p2.x = 0;
+		for (int i = 0; i < cntSolid; i++) {
+			// centerSolidLineX commented to avoid unused variable warning!
+			//int centerSolidLineX = (solidLines[i].p1.x + solidLines[i].p2.x)/2;
+			if (solidLines[i].slope > -90 && solidLines[i].slope < 0
+					&& min(solidLines[i].p1.x, solidLines[i].p2.x)
+							> min(ltu->leftLine.p1.x, ltu->leftLine.p2.x)) {
+				cout << "solid line " << i << " aspires as left line" << endl;
+				ltu->leftLine = solidLines[i];
+				ltu->foundL = true;
+			}
+		}
+		if (ltu->foundL) {
+			int lSupPosX = getIntersectionWithBottom(ltu->leftLine);
+			if (abs(lSupPosX - currentLeftGoalX) < calcRoadSize * 0.8
+					|| currentLeftGoalX == 0) {
+				if (m_debug) {
+					cout << "Left line slope: " << ltu->leftLine.slope
+							<< endl;
+				}
+				ltu->leftLineVec = Vec4i(ltu->leftLine.p1.x, ltu->leftLine.p1.y,
+						ltu->leftLine.p2.x, ltu->leftLine.p2.y);
+				cout << "Aspired left line chosen" << endl;
+				currentLeftGoalX = lSupPosX;
+				ltu->leftOldBy = 0;
+			} else {
+				ltu->foundL = false;
+			}
+		}
+	}
+	cout << "---End left Lines" << endl;
+	// Get rid of information gathered one frame back 
+	if (!ltu->foundD)
+		currentDashGoalX = 0;
+	if (!ltu->foundR)
+		currentRightGoalX = 0;
+	if (!ltu->foundL)
+		currentLeftGoalX = 0;
+
+	return;
+}
+/*
+void LineDetector::characteristicFiltering(LinesToUse* ltu){
+	//LinesToUse old_ltu;
+	// if (ltu != NULL) 
+	// 	old_ltu = *ltu;
+
+	//ofstream mylog;
+	//mylog.open("test.log", ios::out | ios::app);
+
 	ltu->foundR = false;
 	ltu->foundL = false;
 	ltu->foundD = false; // shrinkSize=false; Avoid unused variable warning
@@ -433,9 +706,9 @@ void LineDetector::characteristicFiltering(LinesToUse* ltu){
 			//cout << "Dash diff: " << abs(dashSupPosX - currentDashGoalX) << endl;
 			if (abs(dashSupPosX - currentDashGoalX) < calcRoadSize * 0.8
 					|| currentDashGoalX == 0) {
-				/*if(max(ltu->dashLine.p1.x, ltu->dashLine.p2.x) < w/10) {
-				 shrinkSize = true;
-				 }*/
+				// if(max(ltu->dashLine.p1.x, ltu->dashLine.p2.x) < w/10) {
+				//  shrinkSize = true;
+				//  }
 				ltu->dashLineVec = Vec4i(ltu->dashLine.p1.x, ltu->dashLine.p1.y,
 						ltu->dashLine.p2.x, ltu->dashLine.p2.y);
 				ltu->foundD = true;
@@ -508,7 +781,7 @@ void LineDetector::characteristicFiltering(LinesToUse* ltu){
 		currentLeftGoalX = 0;
 
 	return;
-}
+}*/
 
 void LineDetector::calculateGoalLine(LinesToUse* ltu){
 
@@ -569,8 +842,8 @@ void LineDetector::calculateGoalLine(LinesToUse* ltu){
 			 vp.x = (b - db) / (da - a);
 			 }
 			 vp.y = da*vp.x + db;
-			 goalP.x = dashGoalX + ROAD_SIZE/2;
-			 cout << "CASE: Dash and left" << endl;*/
+			 goalP.x = dashGoalX + ROAD_SIZE/2;*/
+			 cout << "CASE: Dash and left" << endl;
 		} else {
 			//We have only dash line
 			//offset with half the size of road to the right
@@ -697,11 +970,9 @@ void LineDetector::calculateGoalLine(LinesToUse* ltu){
 	m_lines = new Lines(ltu->leftLineVec, ltu->dashLineVec, ltu->rightLineVec);
 	//If we have a goal set the position and
 	if (m_debug) {
-		cout << "Road size diff: " << abs(currRoadSize - calcRoadSize)
-				<< endl;
+		cout << "Road size diff: " << abs(currRoadSize - calcRoadSize) << " <? " << 0.5 * currRoadSize << endl;
 	}
-	if (foundGoal
-			&& abs(currRoadSize - calcRoadSize) < 0.5 * currRoadSize) {
+	if (foundGoal	&& abs(currRoadSize - calcRoadSize) < 0.5 * currRoadSize) {
 		//Suspect this position as the car position
 		Point position;
 		position.x = w / 2;
@@ -731,6 +1002,83 @@ void LineDetector::calculateGoalLine(LinesToUse* ltu){
 }
 
 // Helper functions follows
+
+std::vector<CustomLine> LineDetector::findCurve(std::vector<CustomLine> lines){
+	// This function is used to merge the dashes to one curve, or 
+	// used to be sure that you have found the dashes.
+	std::vector<CustomLine> curve;
+	if (lines.size() < 2){
+		cout << "findCurve need at least 2 lines. returning" << endl;
+		return curve;
+	}
+	cout << "__running findCurves" << endl;
+
+	for (int j = 0; j < lines.size(); j++) {
+		cout << "Dash line. p1(" << lines[j].p1.x << "," << lines[j].p1.y << ") p2(" << lines[j].p2.x << "," << lines[j].p2.y << ")" << endl;
+	}
+	for (int j = 1; j < lines.size(); j++)	{
+		// The snd dash has to be above the fst one
+		if (lines[0].p2.y > lines[j].p1.y){
+			// The slope diviation between the dashes is limited
+			float slopeA, slopeB;
+			if (lines[0].slope < 0)
+				slopeA = lines[0].slope + 180;
+			else
+				slopeA = lines[0].slope;
+
+			if (lines[j].slope < 0)
+				slopeB = lines[j].slope + 180;
+			else
+				slopeB = lines[j].slope;
+			
+			// The slope of a line drawn between the real lines
+			float slopeInBetween = getLineSlope(lines[0].p2, lines[j].p1);
+
+			if (slopeInBetween < 0)
+				slopeInBetween += 180;
+			
+			// The slope deviation between the lines
+			float slopeDiffLines = abs(slopeA - slopeB);
+			float slopeDiffToLine0 = abs(slopeInBetween - slopeA);
+			float slopeDiffToLineJ = abs(slopeInBetween - slopeB);
+
+
+			cout << "slopeA: " << slopeA;
+			cout << " slopeB: " << slopeB;
+			cout << " slopeInBetween: " << slopeInBetween << endl;
+			cout << " slopeDiffLines: " << slopeDiffLines;
+			cout << " slopeDiffToLine0: " << slopeDiffToLine0;
+			cout << " slopeDiffToLineJ: " << slopeDiffToLineJ << endl;
+
+			if ((slopeDiffLines < 60) && (slopeDiffToLine0 < slopeDiffLines+10) &&
+					(slopeDiffToLineJ < slopeDiffLines+10)){
+				cout << "curve found";
+				cout << "(" << lines[j].p1.x << "," << lines[j].p1.y << ") ";
+				cout << "(" << lines[j].p2.x << "," << lines[j].p2.y << ") " << endl;
+				
+				curve.push_back(lines[j]);
+
+				if (lines.size() > 2){
+					// Call recursively, but take away the already processed line
+					lines[0] = lines[j];
+					lines.erase(lines.begin()+j);
+					std::vector<CustomLine> res = findCurve(lines);
+
+					// Add the recursive result
+					for (int j = 0; j < res.size(); j++){
+						curve.push_back(res[j]);
+					}
+					return curve;
+				}else{
+					cout << "__longest curve found. returning" << endl;
+					return curve;
+				}
+			}
+		}
+	}
+	cout << "__No curve found, returning." << endl;
+	return curve;
+}
 
 CustomLine LineDetector::createLineFromRect(RotatedRect* rect, int sizeX,	int sizeY) {
 	CustomLine l;

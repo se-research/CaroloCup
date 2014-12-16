@@ -483,6 +483,29 @@ namespace msv {
 		}
 		if (what_to_inspect == 6)
 			addInspectionInfo(road, frame);
+
+		ostringstream convert;
+		convert << m_frame_count;
+		if (res->dashedCurveFound){
+			putText(frame, "dashedCurveFound #:", cvPoint(30,220),
+			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+			convert.str("");
+			convert << res->dashedCurve.size();
+			putText(frame,convert.str(), cvPoint(250,220),
+			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+
+		}else{
+			if (res->cntDash < 2){
+				putText(frame, "dashedCurveNotFound, need at least 2 dashes", cvPoint(30,220),
+				FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+				convert.str("");			
+
+			}else{
+				putText(frame, "dashedCurveNotFound", cvPoint(30,220),
+				FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
+				convert.str("");
+			}
+		}
 		
 		imshow("Final result", frame);
 		if (m_debug){
