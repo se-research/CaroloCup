@@ -357,57 +357,74 @@ namespace msv {
 		cv::Mat txtRes = cv::Mat::zeros(500,300,CV_8UC3);
 
 		ostringstream convert;
-		convert << m_frame_count;
 		int rB = 0; // Pixel where the row starts at
 		int rS = 15; // The row interleaving in pixels
+		string text;
+
+		rB += rS;
+		convert.str("");
+		convert << m_frame_count;
+		text = "Frame: " + convert.str();
+		cv::putText(txtRes, text,cv::Point(1,rB), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
 
 		// ----getContours() -----
 
 		rB += rS;
-		cv::putText(txtRes, "1 - getContours() ",cv::Point(1,rB), 
+		convert.str("");
+		convert << road.time_taken_contour;
+		text = convert.str() + " - getContours()";
+		cv::putText(txtRes, text,cv::Point(1,rB), 
 			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
 
 		rB += rS;
-		cv::putText(txtRes, "contours found: ",cv::Point(20,rB), 
-			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
 		convert.str("");
 		convert << res_getContours->contours.size();
-		cv::putText(txtRes, convert.str(),cv::Point(160,rB), 
+		text = "contours found: " + convert.str();
+		cv::putText(txtRes, text,cv::Point(20,rB), 
 			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
 
 		// ----getRectangles() -----
 
 		rB += rS;
-		cv::putText(txtRes, "2 - getRectangles() ",cv::Point(1,rB), 
+		convert.str("");
+		convert << road.time_taken_find_lines;
+		text = convert.str() + " - getRectangles()";
+		cv::putText(txtRes, text,cv::Point(1,rB), 
 			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
-
 
 		rB += rS;
-		cv::putText(txtRes, "rectangles found: ",cv::Point(20,rB), 
-			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
 		convert.str("");
 		convert << res_getRectangles->rects.size();
-		cv::putText(txtRes, convert.str(),cv::Point(170,rB), 
+		text = "rectangles found: " + convert.str();
+		cv::putText(txtRes, text,cv::Point(20,rB), 
 			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
 
 		// ----classification() -----
 
 		rB += rS;
-		cv::putText(txtRes, "3 - classification() ",cv::Point(1,rB), 
+		convert.str("");
+		convert << road.time_taken_classification;
+		text = convert.str() + " - classification()";
+		cv::putText(txtRes, text,cv::Point(1,rB), 
 			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
 
 		// ----filterAndMerge() -----
-
 		rB += rS;
-		cv::putText(txtRes, "4 - filterAndMerge() ",cv::Point(1,rB), 
+		convert.str("");
+		convert << road.time_taken_filter_merge;
+		text = convert.str() + " - filterAndMerge()";
+		cv::putText(txtRes, text,cv::Point(1,rB), 
 			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
 
 
 
 		// ----finalFilter() -----
-
 		rB += rS;
-		cv::putText(txtRes, "5 - finalFilter() ",cv::Point(1,rB), 
+		convert.str("");
+		convert << road.time_taken_final_filter;
+		text = convert.str() + " - finalFilter()";
+		cv::putText(txtRes, text,cv::Point(1,rB), 
 			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
 
 
@@ -422,10 +439,6 @@ namespace msv {
 		rB += rS;
 		cv::putText(txtRes, "7 - calculateGoalLine() ",cv::Point(0,rB), 
 			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
-
-
-
-
 
 		imshow("Text results", txtRes);
 	}
@@ -594,48 +607,6 @@ namespace msv {
 		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
 		putText(frame,current_frame, cvPoint(100,100),
 		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-
-		putText(frame, "contour", cvPoint(30,120),
-		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-		convert.str("");
-		convert << road.time_taken_contour;
-		putText(frame,convert.str(), cvPoint(110,120),
-		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-
-		putText(frame, "all lines", cvPoint(30,140),
-		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-		convert.str("");
-		convert << road.time_taken_find_lines;
-		putText(frame,convert.str(), cvPoint(120,140),
-		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-
-		putText(frame, "classification", cvPoint(30,160),
-		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-		convert.str("");
-		convert << road.time_taken_classification;
-		putText(frame,convert.str(), cvPoint(170,160),
-		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-
-		putText(frame, "filter merge", cvPoint(30,180),
-		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-		convert.str("");
-		convert << road.time_taken_filter_merge;
-		putText(frame,convert.str(), cvPoint(160,180),
-		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-
-		putText(frame, "final filter", cvPoint(30,200),
-		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-		convert.str("");
-		convert << road.time_taken_final_filter;
-		putText(frame,convert.str(), cvPoint(160,200),
-		FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-
-		// putText(frame, "get line", cvPoint(30,220),
-		// FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-		// convert.str("");
-		// convert << time_taken_get_line;
-		// putText(frame,convert.str(), cvPoint(150,220),
-		// FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
 	}
 
 	void LaneDetector_inspection::drawLines(msv::Lines* lines, Mat* dst, int offset) {
