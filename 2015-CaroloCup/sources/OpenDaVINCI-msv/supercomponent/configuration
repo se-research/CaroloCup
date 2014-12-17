@@ -39,13 +39,13 @@ lanedetector.inspect_rec = file://recording.rec # Config for lanedetector-inspec
 # filterAndMerge = 4
 # finalFilter = 5
 # finalResult = 6
-lanedetector.what_to_inspect = 3 
+lanedetector.what_to_inspect = 6
 # Choose which windows to display. 0: no, 1: yes
-lanedetector.showRes_getContours = 0
+lanedetector.showRes_getContours = 1
 lanedetector.showRes_getRectangles = 1
 lanedetector.showRes_classification = 1
-lanedetector.showRes_filterAndMerge = 0
-lanedetector.showRes_finalFilter = 0
+lanedetector.showRes_filterAndMerge = 1
+lanedetector.showRes_finalFilter = 1
 lanedetector.showRes_finalResult = 1
 
 

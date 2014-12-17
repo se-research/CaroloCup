@@ -186,38 +186,42 @@ namespace msv {
 		//end of the mess
 		
 		//Inspection part. move to function later
-		bool status= true;
 		string classification;
-		cvWaitKey(50);
-		char key = cvWaitKey(0);
-		
-		cout << key << endl;
-		while(status){
-		  switch(key){
-		    cout << key << endl;
-		    case 49:
-		      classification = "TP";
-		      status = false;
-		      break;
-		    case 50:
-		      classification = "TN";
-		      status = false;
-		      break;
-		    case 51:
-		      classification = "FP";
-		      status = false;
-		      break;
-		    case 52:
-		      classification = "FN";
-		      status = false;
-		      break;
-		    default:
-		      status = true;
-		      cvWaitKey(50);
-		      key = cvWaitKey(0);
-		      break;
-		    }
-		
+		int skip_to_frame = 0;	// Use this variable to fast-forward to a specific frame
+		if (m_frame_count < skip_to_frame){
+	      classification = "N/A";
+		}else{
+			bool status= true;
+			cvWaitKey(50);
+			char key = cvWaitKey(0);
+			
+			cout << key << endl;
+			while(status){
+			  switch(key){
+			    cout << key << endl;
+			    case 49:
+			      classification = "TP";
+			      status = false;
+			      break;
+			    case 50:
+			      classification = "TN";
+			      status = false;
+			      break;
+			    case 51:
+			      classification = "FP";
+			      status = false;
+			      break;
+			    case 52:
+			      classification = "FN";
+			      status = false;
+			      break;
+			    default:
+			      status = true;
+			      cvWaitKey(50);
+			      key = cvWaitKey(0);
+			      break;
+			    }
+			}
 		}
 		data.setClassification(classification);
 		cout << "classification : " + classification <<endl;

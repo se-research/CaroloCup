@@ -394,7 +394,8 @@ void LineDetector::characteristicFiltering(LinesToUse* ltu){
 	ltu->leftLineVec = Vec4i(0, 0, 0, 0);
 	ltu->rightLineVec = Vec4i(0, 0, 0, 0);
 	//Pick the suitable dashLine
-	//cout << "Pick lines!" << endl;
+	cout << "cntDash: " << cntDash << endl;
+	ltu->dashedCurveFound = false;
 	if (cntDash > 0) {
 		ltu->dashLine.p1.y = 0;
 		ltu->dashLine.p2.y = 0;
@@ -426,11 +427,13 @@ void LineDetector::characteristicFiltering(LinesToUse* ltu){
 		// continue to look if other dashes also matches. (findCurve should spawn
 		// one CustomLine vector for eash found curve)
 		//
-		ltu->dashedCurveFound = false;
 		if (cntDash > 1){
-
+			// Copy needed data
 			std::vector<CustomLine> dashedLines = dashLines;
+			std::vector<CustomLine> unusedLines; 
 			int cntDashed = cntDash;
+
+			// The found curves will be stored in this
 			std::vector<vector<CustomLine> > curves;
 
 			for (int i = 0; i < cntDash-1; i++) {
@@ -442,6 +445,7 @@ void LineDetector::characteristicFiltering(LinesToUse* ltu){
 
 				std::vector<CustomLine> res = findCurve(lines);
 				if (res.size() == 0){
+					unusedLines.push_back(dashedLines[0]);
 					dashedLines.erase(dashedLines.begin());
 					cntDashed--;
 					continue;
@@ -456,11 +460,6 @@ void LineDetector::characteristicFiltering(LinesToUse* ltu){
 				// Save the found curve
 				curves.push_back(curve);
 
-				// Check if we got enough lines to make another curve
-				if (cntDashed - curve.size() < 2){
-					cout << "less then two dashed lines left to use, breaks loop." << endl;
-					break;
-				}
 				// Remove dashed lines already a part of a found curve
 				for (int j = 0; j < curve.size(); j++){
 					for (int k = 0; k < cntDashed; k++){
@@ -470,6 +469,11 @@ void LineDetector::characteristicFiltering(LinesToUse* ltu){
 							cntDashed--;
 						}
 					}
+				}
+				// Check if we got enough lines to make another curve
+				if (cntDashed < 2){
+					cout << "less then two dashed lines left to use, breaks loop." << endl;
+					break;
 				}
 			}
 			// Pick which curve to use
@@ -489,7 +493,34 @@ void LineDetector::characteristicFiltering(LinesToUse* ltu){
 					cout << "p2(" << curves[i][j].p2.x << "," << curves[i][j].p2.y << ") " << endl;
 				}
 			}
+			// Check if any remaining dashed lines not a part of a curve could be potential 
+			// left or right lines.
+			if (ltu->dashedCurveFound){
+				for (int j = 0; j < cntDashed; j++){
+					unusedLines.push_back(dashedLines[j]);
+				}
+				cout << "unusedLines: " << unusedLines.size() << endl;
+				cout << "Curve p1.y(" << ltu->dashedCurve[0].p1.y << ") p2.y(" << ltu->dashedCurve[ltu->dashedCurve.size()-1].p2.y << ") " << endl;
+			
+				for (int i = 0; i < unusedLines.size(); i++){
+					int s = ltu->dashedCurve.size()-1;
+
+					// Checks if a unused dash line is interleaved with the found dashed curve w.r.t the y-axis
+					if (!(((unusedLines[i].p1.y > ltu->dashedCurve[0].p1.y) && 
+							 (unusedLines[i].p2.y > ltu->dashedCurve[0].p1.y)) ||
+							((unusedLines[i].p1.y < ltu->dashedCurve[s].p2.y) && 
+							 (unusedLines[i].p2.y < ltu->dashedCurve[s].p2.y)))){
+						solidLines[cntSolid] = unusedLines[i];
+						cntSolid++;
+						cout << "Added to solid: p1(" << unusedLines[i].p1.x << "," << unusedLines[i].p1.y << ") p2(" << unusedLines[i].p2.x << "," << unusedLines[i].p2.y << ") " << endl;
+					}else
+						cout << "Line not added p1(" << unusedLines[i].p1.x << "," << unusedLines[i].p1.y << ") p2(" << unusedLines[i].p2.x << "," << unusedLines[i].p2.y << ") " << endl;
+				}
+			}
 		}
+		//
+		// The old way to do it follows
+		//
 		if (!ltu->dashedCurveFound){
 			for (int i = 0; i < cntDash; i++) {
 				cout << "new iteration" << endl;
