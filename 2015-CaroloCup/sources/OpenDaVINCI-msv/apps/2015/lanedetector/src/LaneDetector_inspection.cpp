@@ -354,7 +354,7 @@ namespace msv {
 			showResult_finalResult(res_finalResult, road, f);
 
 		// Create window to display text results
-		cv::Mat txtRes = cv::Mat::zeros(500,300,CV_8UC3);
+		cv::Mat txtRes = cv::Mat::zeros(500,330,CV_8UC3);
 
 		ostringstream convert;
 		convert << m_frame_count;
@@ -415,6 +415,44 @@ namespace msv {
 
 		rB += rS;
 		cv::putText(txtRes, "6 - characteristicFiltering() ",cv::Point(0,rB), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
+
+		rB += rS;
+		cv::putText(txtRes, "Dashed curve: ",cv::Point(20,rB), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);		
+		if (res_finalResult->dashedCurveFound){
+			putText(txtRes, "Found #:", cvPoint(140,rB),
+			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
+		convert.str("");
+		convert << res_finalResult->dashedCurve.size();
+		cv::putText(txtRes, convert.str(),cv::Point(220,rB), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
+
+		}else{
+			if (res_finalResult->cntDash < 2){
+				putText(txtRes, "More dashes needed", cvPoint(140,rB),
+				FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
+
+			}else{
+				putText(txtRes, "FAILURE TO FIND CURVE", cvPoint(140,rB),
+				FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
+			}
+		}
+
+		rB += rS;
+		cv::putText(txtRes, "Found left:   dashed:   right:",cv::Point(20,rB), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
+		convert.str("");
+		convert << res_finalResult->foundL;
+		cv::putText(txtRes, convert.str(),cv::Point(120,rB), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
+		convert.str("");
+		convert << res_finalResult->foundD;
+		cv::putText(txtRes, convert.str(),cv::Point(200,rB), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
+		convert.str("");
+		convert << res_finalResult->foundR;
+		cv::putText(txtRes, convert.str(),cv::Point(270,rB), 
 			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
 
 		// ----calculateGoalLine() -----
@@ -565,29 +603,6 @@ namespace msv {
 		}
 		if (what_to_inspect == 6)
 			addInspectionInfo(road, frame);
-
-		ostringstream convert;
-		convert << m_frame_count;
-		if (res->dashedCurveFound){
-			putText(frame, "dashedCurveFound #:", cvPoint(30,220),
-			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-			convert.str("");
-			convert << res->dashedCurve.size();
-			putText(frame,convert.str(), cvPoint(250,220),
-			FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-
-		}else{
-			if (res->cntDash < 2){
-				putText(frame, "dashedCurveNotFound, need at least 2 dashes", cvPoint(30,220),
-				FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-				convert.str("");			
-
-			}else{
-				putText(frame, "dashedCurveNotFound", cvPoint(30,220),
-				FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(255,128,0), 1, CV_AA);
-				convert.str("");
-			}
-		}
 		
 		imshow("Final result", frame);
 		if (m_debug){
