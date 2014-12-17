@@ -79,13 +79,14 @@ namespace msv {
 			bool showRes_filterAndMerge;
 			bool showRes_finalFilter;
 			bool showRes_finalResult;
-	        
-			void showResult_getContours(LineDetector& road, Mat& f);
-	        void showResult_getRectangles(LineDetector& road, Mat& f);
-			void showResult_classification(LineDetector& road, Mat& f);
-	        void showResult_filterAndMerge(LineDetector& road, Mat& f);
-			void showResult_finalFilter(LineDetector& road, Mat& f);
-			void showResult_finalResult(LineDetector& road, Mat& f);
+
+	        void showResult(LineDetector& road, Mat& f);
+			void showResult_getContours(IntermediateResult_getContours* res, LineDetector& road, Mat& f);
+	        void showResult_getRectangles(IntermediateResult_getRectangles* res, LineDetector& road, Mat& f);
+			void showResult_classification(IntermediateResult* res, LineDetector& road, Mat& f);
+	        void showResult_filterAndMerge(IntermediateResult* res, LineDetector& road, Mat& f);
+			void showResult_finalFilter(IntermediateResult* res, LineDetector& road, Mat& f);
+			void showResult_finalResult(LinesToUse* res, LineDetector& road, Mat& f);
 
 			void addInspectionInfo(LineDetector& road, Mat& frame);
 

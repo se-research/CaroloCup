@@ -150,24 +150,7 @@ namespace msv {
 
 		LineDetector road(neededPart, cfg, debug, 1);
 
-		// Show result windows
-		if (showRes_getContours)
-			showResult_getContours(road, neededPart);
-
-		if (showRes_getRectangles)
-			showResult_getRectangles(road, neededPart);
-
-		if (showRes_classification)
-			showResult_classification(road, neededPart);
-		
-		if (showRes_filterAndMerge)
-			showResult_filterAndMerge(road, neededPart);
-		
-		if (showRes_finalFilter)
-			showResult_finalFilter(road, neededPart);
-		
-		if (showRes_finalResult)
-			showResult_finalResult(road, neededPart);
+		showResult(road, neededPart);
 
 		// if (lines != NULL)
 		// 	cout << "We have lines for frame " <<m_frame_count << endl;
@@ -342,10 +325,114 @@ namespace msv {
 
 	// All the showResult_* functions assumes that data is put in the sub result structs in LineDetector. 
 
-	void LaneDetector_inspection::showResult_getContours(LineDetector& road, Mat& f){
+	void LaneDetector_inspection::showResult(LineDetector& road, Mat& f){
+		// Fetch pointers to result data
+		IntermediateResult_getContours* res_getContours = road.getResult_getContours();
+		IntermediateResult_getRectangles* res_getRectangles = road.getResult_getRectangles();
+		IntermediateResult* res_classification = road.getResult_classification();
+		IntermediateResult* res_filterAndMerge = road.getResult_filterAndMerge();
+		IntermediateResult* res_finalFilter = road.getResult_finalFilter();
+		LinesToUse* res_finalResult = road.getResult_calculateGoalLine();
+
+		// Show result windows
+		if (showRes_getContours)
+			showResult_getContours(res_getContours, road, f);
+
+		if (showRes_getRectangles)
+			showResult_getRectangles(res_getRectangles, road, f);
+
+		if (showRes_classification)
+			showResult_classification(res_classification, road, f);
+		
+		if (showRes_filterAndMerge)
+			showResult_filterAndMerge(res_filterAndMerge, road, f);
+		
+		if (showRes_finalFilter)
+			showResult_finalFilter(res_finalFilter, road, f);
+		
+		if (showRes_finalResult)
+			showResult_finalResult(res_finalResult, road, f);
+
+		// Create window to display text results
+		cv::Mat txtRes = cv::Mat::zeros(500,300,CV_8UC3);
+
+		ostringstream convert;
+		convert << m_frame_count;
+		int rB = 0; // Pixel where the row starts at
+		int rS = 15; // The row interleaving in pixels
+
+		// ----getContours() -----
+
+		rB += rS;
+		cv::putText(txtRes, "1 - getContours() ",cv::Point(1,rB), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
+
+		rB += rS;
+		cv::putText(txtRes, "contours found: ",cv::Point(20,rB), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
+		convert.str("");
+		convert << res_getContours->contours.size();
+		cv::putText(txtRes, convert.str(),cv::Point(160,rB), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
+
+		// ----getRectangles() -----
+
+		rB += rS;
+		cv::putText(txtRes, "2 - getRectangles() ",cv::Point(1,rB), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
+
+
+		rB += rS;
+		cv::putText(txtRes, "rectangles found: ",cv::Point(20,rB), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
+		convert.str("");
+		convert << res_getRectangles->rects.size();
+		cv::putText(txtRes, convert.str(),cv::Point(170,rB), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
+
+		// ----classification() -----
+
+		rB += rS;
+		cv::putText(txtRes, "3 - classification() ",cv::Point(1,rB), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
+
+		// ----filterAndMerge() -----
+
+		rB += rS;
+		cv::putText(txtRes, "4 - filterAndMerge() ",cv::Point(1,rB), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
+
+
+
+		// ----finalFilter() -----
+
+		rB += rS;
+		cv::putText(txtRes, "5 - finalFilter() ",cv::Point(1,rB), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
+
+
+		// ----characteristicFiltering() -----
+
+		rB += rS;
+		cv::putText(txtRes, "6 - characteristicFiltering() ",cv::Point(0,rB), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
+
+		// ----calculateGoalLine() -----
+
+		rB += rS;
+		cv::putText(txtRes, "7 - calculateGoalLine() ",cv::Point(0,rB), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
+
+
+
+
+
+		imshow("Text results", txtRes);
+	}
+
+	void LaneDetector_inspection::showResult_getContours(IntermediateResult_getContours* res, LineDetector& road, Mat& f){
 		//Mat frame = f.clone();
 		Mat frame(f.rows,f.cols,CV_8UC1,Scalar(0,0,0));
-		IntermediateResult_getContours* res = road.getResult_getContours();
 
 		if (m_debug){
 			cout << "__START: All found contours" << endl;
@@ -362,10 +449,9 @@ namespace msv {
 		frame.release();
 	}
 	
-	void LaneDetector_inspection::showResult_getRectangles(LineDetector& road, Mat& f){
+	void LaneDetector_inspection::showResult_getRectangles(IntermediateResult_getRectangles* res, LineDetector& road, Mat& f){
 		//Mat frame = f.clone();
 		Mat frame(f.rows,f.cols,CV_8UC1,Scalar(0,0,0));
-		IntermediateResult_getRectangles* res = road.getResult_getRectangles();
 
 		if (m_debug){
 			cout << "__START: All found rectangles" << endl;
@@ -387,9 +473,8 @@ namespace msv {
 		frame.release();
 	}
 
-	void LaneDetector_inspection::showResult_classification(LineDetector& road, Mat& f){
+	void LaneDetector_inspection::showResult_classification(IntermediateResult* res, LineDetector& road, Mat& f){
 		Mat frame = f.clone();
-		IntermediateResult* res = road.getResult_classification();
 
 		if (m_debug){
 			cout << "__START: Result after classification " << endl;
@@ -409,9 +494,8 @@ namespace msv {
 		frame.release();
 	}
 
-	void LaneDetector_inspection::showResult_filterAndMerge(LineDetector& road, Mat& f){
+	void LaneDetector_inspection::showResult_filterAndMerge(IntermediateResult* res, LineDetector& road, Mat& f){
 		Mat frame = f.clone();
-		IntermediateResult* res = road.getResult_filterAndMerge();
 
 		if (m_debug){
 			cout << "__START: Result after filterAndMerge " << endl;
@@ -431,9 +515,8 @@ namespace msv {
 		frame.release();
 	}
 
-	void LaneDetector_inspection::showResult_finalFilter(LineDetector& road, Mat& f){
+	void LaneDetector_inspection::showResult_finalFilter(IntermediateResult* res, LineDetector& road, Mat& f){
 		Mat frame = f.clone();
-		IntermediateResult* res = road.getResult_finalFilter();
 
 		if (m_debug){
 			cout << "__START: Result after finalFilter " << endl;
@@ -453,9 +536,8 @@ namespace msv {
 		frame.release();
 	}
 
-	void LaneDetector_inspection::showResult_finalResult(LineDetector& road, Mat& f){
+	void LaneDetector_inspection::showResult_finalResult(LinesToUse* res, LineDetector& road, Mat& f){
 		Mat frame = f.clone();
-		LinesToUse* res = road.getResult_calculateGoalLine();
 
 		if (m_debug){
 			cout << "__START: Final result" << endl;
