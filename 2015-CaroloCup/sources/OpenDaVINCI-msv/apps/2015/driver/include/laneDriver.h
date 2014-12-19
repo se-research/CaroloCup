@@ -65,25 +65,16 @@ namespace msv {
 
       // Define control parameters
       float m_controlGains[3];	//For feedback linearization controller
-      float m_deltaPath;
       float m_angularError;
-      float m_steeringWheelAngle;
-      float m_curvature;
-      float m_curvatureDifferential;
-      float m_oldCurvature;
       float m_speed;
       double m_lateralError;
       double m_intLateralError;
       double m_derLateralError;
       float m_desiredSteeringWheelAngle;
-      float m_scaledLength;
       float m_propGain;
       float m_intGain;
       float m_derGain;
-      float m_length;
-      float m_wheelRadius;
       //core::wrapper::SerialPort *m_serialPortPtr;
-      const float ANGLE_TO_CURVATURE;
       const float SCALE_FACTOR;	//For example, 12000 dpm (dots-per-meter)
 
       int32_t m_timestamp;
