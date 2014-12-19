@@ -47,7 +47,6 @@ namespace core {
 
             for (int32_t i = 1; i < argc; i++) {
                 string cmdLineValue(argv[i]);
-                bool handled = false;
                 for (it = m_listOfArgumentsToParse.begin(); it != m_listOfArgumentsToParse.end(); it++) {
                     const string argument = (*it);
                     string cmdLineArgument = argStart + argument + "=";
@@ -55,13 +54,8 @@ namespace core {
                     if ( (cmdLineValue.length() > cmdLineArgument.length()) &&
                             (cmdLineValue.substr(0, cmdLineArgument.length()) == cmdLineArgument) ) {
                         m_values[argument].push_back(CommandLineArgument(argument, cmdLineValue.substr(cmdLineArgument.length()), true));
-                        handled = true;
                         break;
                     }
-                }
-
-                if (!handled) {
-                    OPENDAVINCI_CORE_THROW_EXCEPTION(CommandLineParserException, "Unknown command line argument '" + cmdLineValue + "'.");
                 }
             }
         }

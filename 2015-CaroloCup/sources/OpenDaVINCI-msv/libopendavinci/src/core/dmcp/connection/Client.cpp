@@ -11,6 +11,7 @@
 #include "core/exceptions/Exceptions.h"
 
 #include "core/data/Configuration.h"
+#include "core/data/TimeStamp.h"
 #include "core/data/dmcp/ModuleExitCodeMessage.h"
 #include "core/data/dmcp/ModuleStateMessage.h"
 #include "core/data/dmcp/ModuleDescriptor.h"
@@ -40,7 +41,10 @@ namespace core {
                 m_configuredMutex(),
                 m_configurationRequestCondition(),
                 m_listenerMutex(),
-                m_listener(NULL)
+                m_listener(NULL),
+                m_pulseCondition(),
+                m_pulseMessageMutex(),
+                m_pulseMessage()
             {
                 m_connection.setContainerListener(this);
                 m_connection.setErrorListener(this);
@@ -106,6 +110,34 @@ namespace core {
                     Configuration configuration = c.getData<Configuration>();
                     handleConfiguration(configuration);
                 }
+
+                if (c.getDataType() == Container::DMCP_PULSE_MESSAGE) {
+                    {
+                        Lock l(m_pulseMessageMutex);
+                        m_pulseMessage = c.getData<PulseMessage>();
+                    }
+
+                    {
+                        Lock l(m_pulseCondition);
+                        m_pulseCondition.wakeAll();
+                    }
+                }
+            }
+
+            const core::data::dmcp::PulseMessage Client::getPulseMessage() {
+                PulseMessage pm;
+
+                {
+                    Lock l(m_pulseCondition);
+                    m_pulseCondition.waitOnSignal();
+                }
+
+                {
+                    Lock l(m_pulseMessageMutex);
+                    pm = m_pulseMessage;
+                }
+
+                return pm;
             }
 
             void Client::handleConnectionError() {
@@ -154,6 +186,11 @@ namespace core {
             {
                 Lock l(m_configuredMutex);
                 return m_configured;
+            }
+
+            bool Client::isConnected()
+            {
+                return m_connection.isConnected();
             }
         }
     }

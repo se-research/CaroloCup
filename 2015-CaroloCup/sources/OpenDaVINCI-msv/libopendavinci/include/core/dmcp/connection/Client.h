@@ -20,6 +20,7 @@
 #include "core/io/ConnectionErrorListener.h"
 
 #include "core/data/Configuration.h"
+#include "core/data/dmcp/PulseMessage.h"
 #include "core/data/dmcp/ModuleDescriptor.h"
 #include "core/dmcp/Config.h"
 #include "core/dmcp/ServerInformation.h"
@@ -65,7 +66,11 @@ namespace core {
 
                     core::base::KeyValueConfiguration getConfiguration();
 
+                    const core::data::dmcp::PulseMessage getPulseMessage();
+
                     void setSupercomponentStateListener(SupercomponentStateListener* listener);
+
+                    bool isConnected();
 
                 protected:
                     void sendConfigurationRequest();
@@ -91,6 +96,10 @@ namespace core {
 
                     core::base::Mutex m_listenerMutex;
                     SupercomponentStateListener* m_listener;
+
+                    core::base::Condition m_pulseCondition;
+                    core::base::Mutex m_pulseMessageMutex;
+                    core::data::dmcp::PulseMessage m_pulseMessage;
             };
         }
     }

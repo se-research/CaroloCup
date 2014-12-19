@@ -19,7 +19,9 @@ namespace core {
                 m_listenerMutex(),
                 m_connection(NULL),
                 m_errorHandler(NULL),
-                m_errorHandlerMutex() {
+                m_errorHandlerMutex(),
+                m_connected(false),
+                m_connectedMutex() {
             try {
                 m_connection = wrapper::TCPFactory::createTCPConnectionTo(ip, port);
             } catch (string& s) {
@@ -35,7 +37,9 @@ namespace core {
                 m_listenerMutex(),
                 m_connection(connection),
                 m_errorHandler(NULL),
-                m_errorHandlerMutex() {
+                m_errorHandlerMutex(),
+                m_connected(false),
+                m_connectedMutex() {
             m_connection->setStringListener(this);
             m_connection->setConnectionListener(this);
         }
@@ -45,7 +49,17 @@ namespace core {
             m_connection->setStringListener(NULL);
             m_connection->stop();
 
+            {
+                core::base::Lock l(m_connectedMutex);
+                m_connected = false;
+            }
+
             OPENDAVINCI_CORE_DELETE_POINTER(m_connection);
+        }
+
+        bool Connection::isConnected() {
+            core::base::Lock l(m_connectedMutex);
+            return m_connected;
         }
 
         void Connection::send(core::data::Container& container) {
@@ -71,10 +85,17 @@ namespace core {
         }
 
         void Connection::handleConnectionError() {
-            core::base::Lock l(m_errorHandlerMutex);
+            {
+                core::base::Lock l(m_errorHandlerMutex);
 
-            if (m_errorHandler != NULL ) {
-                m_errorHandler->handleConnectionError();
+                if (m_errorHandler != NULL ) {
+                    m_errorHandler->handleConnectionError();
+                }
+            }
+
+            {
+                core::base::Lock l(m_connectedMutex);
+                m_connected = false;
             }
         }
 
@@ -90,10 +111,20 @@ namespace core {
 
         void Connection::start() {
             m_connection->start();
+
+            {
+                core::base::Lock l(m_connectedMutex);
+                m_connected = true;
+            }
         }
 
         void Connection::stop() {
             m_connection->stop();
+
+            {
+                core::base::Lock l(m_connectedMutex);
+                m_connected = false;
+            }
         }
     }
 }

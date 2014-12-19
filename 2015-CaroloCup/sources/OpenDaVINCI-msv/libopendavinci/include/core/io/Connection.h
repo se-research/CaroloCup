@@ -35,6 +35,8 @@ namespace core {
                 void start();
                 void stop();
 
+                bool isConnected();
+
             protected:
                 friend class ConnectionAcceptor;
                 Connection(wrapper::TCPConnection* connection);
@@ -49,6 +51,9 @@ namespace core {
 
                 ConnectionErrorListener* m_errorHandler;
                 core::base::Mutex m_errorHandlerMutex;
+
+                bool m_connected;
+                core::base::Mutex m_connectedMutex;
 
                 /**
                  * Forbidden copy constructor

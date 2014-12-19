@@ -136,7 +136,9 @@ class CommandLineParserTestSuite : public CxxTest::TestSuite {
             TS_ASSERT( cla3.getValue<string>() == "");
         }
 
-        void testUnhandledArgument() {
+        // 2014-12-06: Unhandled arguments are no longer invalid (changed specification!)
+/*
+        void notestUnhandledArgument() {
             CommandLineParser parser;
             parser.addCommandLineArgument("arg1");
 
@@ -160,6 +162,7 @@ class CommandLineParserTestSuite : public CxxTest::TestSuite {
 
             TS_ASSERT(caught);
         }
+*/
 };
 
 #endif /*CORE_COMMANDLINEPARSERTESTSUITE_H_*/

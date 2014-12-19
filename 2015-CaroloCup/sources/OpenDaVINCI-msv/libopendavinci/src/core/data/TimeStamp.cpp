@@ -135,11 +135,23 @@ namespace core {
             return (*this);
         }
 
+        TimeStamp TimeStamp::operator+(const TimeStamp & t) const {
+            int32_t sumSeconds = m_seconds + t.getSeconds();
+            int32_t sumMicroseconds = m_microseconds + t.getFractionalMicroseconds();
+
+            while (sumMicroseconds > 1000000L) {
+                sumSeconds++;
+                sumMicroseconds -= 1000000L;
+            }
+
+            return TimeStamp(sumSeconds, sumMicroseconds);
+        }
+
         TimeStamp TimeStamp::operator-(const TimeStamp & t) const {
             int32_t deltaSeconds = m_seconds - t.getSeconds();
             int32_t deltaMicroseconds = m_microseconds - t.getFractionalMicroseconds();
 
-            if (deltaMicroseconds < 0) {
+            while (deltaMicroseconds < 0) {
                 deltaSeconds--;
                 deltaMicroseconds += 1000000L;
             }

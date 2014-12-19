@@ -86,12 +86,22 @@ namespace core {
                     return m_verbose;
                 }
 
+                /**
+                 * This method returns true, if --profiling is enabled.
+                 *
+                 * @return true if profiling is enabled.
+                 */
+                inline bool isProfiling() const {
+                    return m_profiling;
+                }
+
             private:
                 float m_frequency;
                 string m_identifier;
                 string m_mulitcastGroup;
                 uint32_t m_CID;
                 bool m_verbose;
+                bool m_profiling;
 
                 /**
                  * This method tries to parse the identifier.

@@ -18,6 +18,7 @@
 #include "core/io/ContainerConference.h"
 #include "core/io/ContainerListener.h"
 #include "core/data/dmcp/ModuleStatistics.h"
+
 #include "core/dmcp/Config.h"
 #include "core/dmcp/ModuleConfigurationProvider.h"
 #include "core/dmcp/ModuleStateListener.h"
@@ -25,6 +26,7 @@
 #include "core/dmcp/connection/ConnectionHandler.h"
 #include "core/dmcp/connection/ModuleConnection.h"
 #include "core/dmcp/discoverer/Server.h"
+#include "core/dmcp/ServerInformation.h"
 
 #include "GlobalConfigurationProvider.h"
 #include "ConnectedModule.h"
@@ -89,6 +91,8 @@ namespace supercomponent {
 
             ConnectedModule* moveToShutdownModules(const core::data::dmcp::ModuleDescriptor& md);
 
+            core::base::KeyValueConfiguration m_configuration;
+
             GlobalConfigurationProvider m_configurationProvider;
             core::dmcp::discoverer::Server* m_discovererServer;
             core::dmcp::connection::Server* m_connectionServer;
@@ -100,6 +104,15 @@ namespace supercomponent {
 
             core::base::Mutex m_moduleStatisticsMutex;
             core::data::dmcp::ModuleStatistics m_moduleStatistics;
+
+            core::dmcp::ServerInformation::MANAGED_LEVEL m_managedLevel;
+
+        private:
+            void parseAdditionalCommandLineParameters(const int &argc, char **argv);
+
+            core::data::TimeStamp m_lastCycle;
+            uint64_t m_lastWaitTime;
+            uint32_t m_shiftMicroseconds;
     };
 }
 

@@ -73,6 +73,14 @@ namespace core {
                 TimeStamp& operator=(const TimeStamp &obj);
 
                 /**
+                 * Add operator.
+                 *
+                 * @param obj Reference to an object of this class.
+                 * @return Reference to this instance.
+                 */
+                TimeStamp operator+(const TimeStamp& t) const;
+
+                /**
                  * Subtract operator.
                  *
                  * @param obj Reference to an object of this class.

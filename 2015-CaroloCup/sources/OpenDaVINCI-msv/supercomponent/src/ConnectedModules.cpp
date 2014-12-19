@@ -43,6 +43,38 @@ namespace supercomponent {
         return (m_modules.count(md) != 0);
     }
 
+    void ConnectedModules::pulse(const core::data::dmcp::PulseMessage &pm) {
+        Lock l(m_modulesMutex);
+        map< core::data::dmcp::ModuleDescriptor,
+             ConnectedModule*,
+             core::data::dmcp::ModuleDescriptorComparator>::iterator iter;
+
+        for (iter = m_modules.begin(); iter != m_modules.end(); ++iter) {
+            iter->second->getConnection().pulse(pm);
+        }
+    }
+
+    void ConnectedModules::pulseShift(const core::data::dmcp::PulseMessage &pm, const uint32_t &shift) {
+        Lock l(m_modulesMutex);
+        map< core::data::dmcp::ModuleDescriptor,
+             ConnectedModule*,
+             core::data::dmcp::ModuleDescriptorComparator>::iterator iter;
+
+        uint32_t connectedModulesCounter = 0;
+        core::data::dmcp::PulseMessage pm_shifted = pm;
+        const core::data::TimeStamp pm_org_ts = pm.getRealtimeFromSupercomponent();
+
+        for (iter = m_modules.begin(); iter != m_modules.end(); ++iter) {
+            core::data::TimeStamp ts(0, shift * connectedModulesCounter);
+            core::data::TimeStamp shiftedTime = pm_org_ts + ts;
+
+            pm_shifted.setRealTimeFromSupercomponent(shiftedTime);
+            iter->second->getConnection().pulse(pm_shifted);
+
+            connectedModulesCounter++;
+        }
+    }
+
     void ConnectedModules::deleteAllModules() {
         Lock l(m_modulesMutex);
         map< core::data::dmcp::ModuleDescriptor,

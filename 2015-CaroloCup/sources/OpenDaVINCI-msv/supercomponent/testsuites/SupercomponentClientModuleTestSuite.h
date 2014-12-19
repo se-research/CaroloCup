@@ -117,6 +117,30 @@ class SupercomponentClientModuleTest : public CxxTest::TestSuite,
             m_connection = core::SharedPointer<connection::ModuleConnection>(mc);
         }
 
+        void testServerInformation() {
+            ServerInformation s1("127.0.0.1", 19000);
+            ServerInformation s2;
+
+            stringstream sstr;
+            sstr << s1;
+            sstr >> s2;
+
+            cerr << s1.toString() << endl;
+
+            TS_ASSERT(s1 == s2);
+
+            ServerInformation s3("127.0.0.1", 19000, ServerInformation::ML_PULSE);
+            ServerInformation s4;
+
+            stringstream sstr2;
+            sstr2 << s3;
+            sstr2 >> s4;
+
+            cerr << s4.toString() << endl;
+
+            TS_ASSERT(s3 == s4);
+        }
+
         void testRegularConfiguration() {
             // Setup DMCP.
             stringstream sstr;

@@ -40,6 +40,25 @@ namespace core {
 		            s.erase(s.begin(), s.end());
 	            }
             };
+
+            /**
+             * This method compares two strings while ignoring case.
+             *
+             * @param s1 String 1
+             * @param s2 String 2
+             * @return true if s1 equals s2
+             */
+            static bool equalsIgnoreCase(const string &s1, const string &s2) {
+                if (s1.size() != s2.size()) {
+                    return false;
+                }
+                for (string::const_iterator c1 = s1.begin(), c2 = s2.begin(); c1 != s1.end(); ++c1, ++c2) {
+                    if (tolower(*c1) != tolower(*c2)) {
+                        return false;
+                    }
+                }
+                return true;
+            };
     };
 }
 

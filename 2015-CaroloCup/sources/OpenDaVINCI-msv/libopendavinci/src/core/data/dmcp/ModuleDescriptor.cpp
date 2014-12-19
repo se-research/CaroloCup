@@ -18,26 +18,30 @@ namespace core {
             using namespace core::base;
 
             ModuleDescriptor::ModuleDescriptor() :
-		SerializableData(),
-                    m_name(""),
-                    m_identifier(""),
-                    m_version("")
+        		SerializableData(),
+                m_name(""),
+                m_identifier(""),
+                m_version(""),
+                m_frequency(1)           
             {}
 
             ModuleDescriptor::ModuleDescriptor(const string& name,
                                                const string& identifier,
-                                               const string& version ) :
-		SerializableData(),
-                    m_name(name),
-                    m_identifier(identifier),
-                    m_version(version)
+                                               const string& version,
+                                               const float& frequency) :
+                SerializableData(),
+                m_name(name),
+                m_identifier(identifier),
+                m_version(version),
+                m_frequency(frequency)
             {}
 
             ModuleDescriptor::ModuleDescriptor(const ModuleDescriptor &obj) :
-		SerializableData(),
+                SerializableData(),
                 m_name(obj.getName()),
                 m_identifier(obj.getIdentifier()),
-                m_version(obj.getVersion())
+                m_version(obj.getVersion()),
+                m_frequency(obj.getFrequency())
             {}
 
             ModuleDescriptor::~ModuleDescriptor() {}
@@ -46,6 +50,7 @@ namespace core {
                 m_name = obj.getName();
                 m_identifier = obj.getIdentifier();
                 m_version = obj.getVersion();
+                m_frequency = obj.getFrequency();
 
                 return (*this);
             }
@@ -62,9 +67,13 @@ namespace core {
                 return m_version;
             }
 
+            float ModuleDescriptor::getFrequency() const {
+                return m_frequency;
+            }
+
             const string ModuleDescriptor::toString() const {
                 stringstream ss;
-                ss << m_name << "[" << m_identifier << "]" << m_version;
+                ss << m_name << "[" << m_identifier << "]" << m_version << "@" << m_frequency;
 
                 return ss.str();
             }
@@ -83,6 +92,9 @@ namespace core {
                 s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL7('v', 'e', 'r', 's', 'i', 'o', 'n') >::RESULT,
                         m_version);
 
+                s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL4('f', 'r', 'e', 'q') >::RESULT,
+                        m_frequency);
+
                 return out;
             }
 
@@ -99,6 +111,9 @@ namespace core {
 
                 d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL7('v', 'e', 'r', 's', 'i', 'o', 'n') >::RESULT,
                        m_version);
+
+                d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL4('f', 'r', 'e', 'q') >::RESULT,
+                       m_frequency);
 
                 return in;
             }

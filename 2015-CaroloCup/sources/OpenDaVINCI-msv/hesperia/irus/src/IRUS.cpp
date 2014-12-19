@@ -193,13 +193,13 @@ namespace irus {
 
                 // MSV: Store data for sensorboard.
                 sensorBoardData.update(sensor->getID(), m_distances[sensor->getName()]);
-
-        		// MSV: Create a container with type USER_DATA_0.
-        		c = Container(Container::USER_DATA_0, sensorBoardData);
-
-                // MSV: Send container.
-                getConference().send(c);
             }
+
+    		// MSV: Create a container with type USER_DATA_0.
+    		c = Container(Container::USER_DATA_0, sensorBoardData);
+
+            // MSV: Send container.
+            getConference().send(c);
 
             // Distribute FOV where necessary.
             uint32_t sensorID = 9000;

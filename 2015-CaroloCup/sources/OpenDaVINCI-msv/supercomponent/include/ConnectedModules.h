@@ -9,6 +9,7 @@
 
 #include "core/base/ModuleState.h"
 #include "core/base/Mutex.h"
+#include "core/data/dmcp/PulseMessage.h"
 #include "core/data/dmcp/ModuleDescriptor.h"
 #include "core/data/dmcp/ModuleDescriptorComparator.h"
 
@@ -27,6 +28,23 @@ namespace supercomponent {
             ConnectedModule* getModule(const core::data::dmcp::ModuleDescriptor& md);
             void removeModule(const core::data::dmcp::ModuleDescriptor& md);
             bool hasModule(const core::data::dmcp::ModuleDescriptor& md);
+
+            /**
+             * This method sends a pulse to all connected modules.
+             *
+             * @param pm Pulse to be sent.
+             */
+            void pulse(const core::data::dmcp::PulseMessage &pm);
+
+            /**
+             * This method sends a pulse to all connected modules but shifts
+             * the alignment interval by shift microseconds for each connected
+             * module.
+             *
+             * @param pm Pulse to be sent.
+             * @shift Increment for each newly connected module.
+             */
+            void pulseShift(const core::data::dmcp::PulseMessage &pm, const uint32_t &shift);
 
             void deleteAllModules();
 

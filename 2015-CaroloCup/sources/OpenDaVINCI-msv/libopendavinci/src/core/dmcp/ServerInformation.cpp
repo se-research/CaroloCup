@@ -9,14 +9,31 @@
 namespace core {
     namespace dmcp {
         using namespace core::base;
+
         ServerInformation::ServerInformation() :
             m_serverIP(""),
-            m_serverPort(0)
+            m_serverPort(0),
+            m_managedLevel(ServerInformation::ML_NONE)
         {}
 
-        ServerInformation::ServerInformation(const string& ip, const uint32_t& port) :
+        ServerInformation::ServerInformation(const ServerInformation &obj) :
+            m_serverIP(obj.m_serverIP),
+            m_serverPort(obj.m_serverPort),
+            m_managedLevel(obj.m_managedLevel)
+        {}
+
+        ServerInformation& ServerInformation::operator=(const ServerInformation &obj) {
+            m_serverIP = obj.m_serverIP;
+            m_serverPort = obj.m_serverPort;
+            m_managedLevel = obj.m_managedLevel;
+
+            return *this;
+        }
+
+        ServerInformation::ServerInformation(const string& ip, const uint32_t& port, const MANAGED_LEVEL &managedLevel):
             m_serverIP(ip),
-            m_serverPort(port)
+            m_serverPort(port),
+            m_managedLevel(managedLevel)
         {}
 
         ServerInformation::~ServerInformation()
@@ -32,6 +49,10 @@ namespace core {
             return m_serverPort;
         }
 
+        ServerInformation::MANAGED_LEVEL ServerInformation::getManagedLevel() const {
+            return m_managedLevel;
+        }
+
         ostream& ServerInformation::operator<<(ostream &out) const
         {
             SerializationFactory sf;
@@ -39,6 +60,7 @@ namespace core {
 
             s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL2('i', 'p') >::RESULT, m_serverIP);
             s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL4('p', 'o', 'r', 't') >::RESULT, m_serverPort);
+            s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL6('m', 'a', 'n', 'l', 'e', 'v') >::RESULT, (uint32_t)m_managedLevel);
 
             return out;
         }
@@ -51,18 +73,22 @@ namespace core {
             d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL2('i', 'p') >::RESULT, m_serverIP);
             d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL4('p', 'o', 'r', 't') >::RESULT, m_serverPort);
 
+            uint32_t v = 0;
+            d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL6('m', 'a', 'n', 'l', 'e', 'v') >::RESULT, v);
+            m_managedLevel = static_cast<ServerInformation::MANAGED_LEVEL>(v);
+
             return in;
         }
 
         const string ServerInformation::toString() const
         {
             stringstream ss;
-            ss << "IP: " << m_serverIP << ", Port: " << m_serverPort;
+            ss << "IP: " << m_serverIP << ", Port: " << m_serverPort << ", managedLevel: " << m_managedLevel;
             return ss.str();
         }
 
         bool ServerInformation::operator==(const ServerInformation& other) const {
-            return (m_serverIP ==other.m_serverIP ) && (m_serverPort==other.m_serverPort);
+            return (m_serverIP ==other.m_serverIP ) && (m_serverPort==other.m_serverPort) && (m_managedLevel == other.m_managedLevel);
         }
     }
 }

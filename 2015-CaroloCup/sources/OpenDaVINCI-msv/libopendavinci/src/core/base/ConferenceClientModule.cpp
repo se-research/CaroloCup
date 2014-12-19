@@ -22,7 +22,7 @@ namespace core {
         using namespace core::exceptions;
 
         ConferenceClientModule::ConferenceClientModule(const int32_t &argc, char **argv, const string &name) throw (InvalidArgumentException, NoDatabaseAvailableException) :
-                ClientModule(argc, argv, name),
+                ManagedClientModule(argc, argv, name),
                 m_conference(NULL),
                 m_dataStoresMutex(),
                 m_listOfDataStores(),

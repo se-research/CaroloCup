@@ -8,6 +8,7 @@
 #include "core/data/Container.h"
 
 #include "core/data/Configuration.h"
+#include "core/data/dmcp/PulseMessage.h"
 #include "core/data/dmcp/ModuleStateMessage.h"
 #include "core/data/dmcp/ModuleExitCodeMessage.h"
 
@@ -62,6 +63,11 @@ namespace core {
             const ModuleDescriptor ModuleConnection::getModuleDescriptor() const
             {
                 return m_descriptor;
+            }
+
+            void ModuleConnection::pulse(const core::data::dmcp::PulseMessage &pm) {
+                Container c(Container::DMCP_PULSE_MESSAGE, pm);
+                m_connection->send(c);
             }
 
             void ModuleConnection::nextContainer(Container &container)

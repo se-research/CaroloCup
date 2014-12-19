@@ -20,7 +20,8 @@ namespace core {
                 m_identifier(),
                 m_mulitcastGroup(),
                 m_CID(0),
-                m_verbose(false) {
+                m_verbose(false),
+                m_profiling(false) {
             parseCommandLine(argc, argv);
         }
 
@@ -38,6 +39,7 @@ namespace core {
             cmdParser.addCommandLineArgument("cid");
             cmdParser.addCommandLineArgument("freq");
             cmdParser.addCommandLineArgument("verbose");
+            cmdParser.addCommandLineArgument("profiling");
 
             cmdParser.parse(argc, argv);
 
@@ -45,6 +47,7 @@ namespace core {
             CommandLineArgument cmdArgumentCID = cmdParser.getCommandLineArgument("cid");
             CommandLineArgument cmdArgumentFREQ = cmdParser.getCommandLineArgument("freq");
             CommandLineArgument cmdArgumentVERBOSE = cmdParser.getCommandLineArgument("verbose");
+            CommandLineArgument cmdArgumentPROFILING = cmdParser.getCommandLineArgument("profiling");
 
             if (cmdArgumentID.isSet()) {
                 m_identifier = cmdArgumentID.getValue<string>();
@@ -83,6 +86,9 @@ namespace core {
                 m_verbose = true;
             }
 
+            if (cmdArgumentPROFILING.isSet()) {
+                m_profiling = true;
+            }
         }
 
         uint32_t AbstractCIDModule::getCID() const {

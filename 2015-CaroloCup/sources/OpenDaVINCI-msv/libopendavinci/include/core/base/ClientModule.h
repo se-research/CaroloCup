@@ -12,9 +12,9 @@
 
 #include "core/base/AbstractCIDModule.h"
 #include "core/base/KeyValueConfiguration.h"
-#include "core/data/TimeStamp.h"
 #include "core/exceptions/Exceptions.h"
 
+#include "core/dmcp/ServerInformation.h"
 #include "core/dmcp/connection/Client.h"
 #include "core/dmcp/SuperComponentStateListener.h"
 
@@ -30,13 +30,13 @@ namespace core {
          * @See ConferenceClientModule
          */
         class OPENDAVINCI_API ClientModule : public core::base::AbstractCIDModule,
-                                          protected core::dmcp::SupercomponentStateListener
+                                             protected core::dmcp::SupercomponentStateListener
         {
             private:
-                friend class ConferenceClientModule;
+                friend class ManagedClientModule;
 
                 /**
-                 * Constructor.
+                 * Private constructor to not allow any other subclasses than ManagedClientModule to instantiate an object.
                  *
                  * @param argc Number of command line arguments.
                  * @param argv Command line arguments.
@@ -98,18 +98,40 @@ namespace core {
                  */
                 const core::base::KeyValueConfiguration getKeyValueConfiguration() const;
 
+                /**
+                 * This method returns the SharedPointer for the
+                 * DMCP connection.
+                 *
+                 * @return SharedPointer for DMCP connection.
+                 */
+                core::SharedPointer<core::dmcp::connection::Client>& getDMCPClient();
+
                 virtual void handleConnectionLost();
 
-            private:
-                virtual void wait();
+                /**
+                 * This method is called after the connection to supercomponent is lost.
+                 */
+                virtual void DMCPconnectionLost() = 0;
+
+                /**
+                 * This method calls the implementation logic setUp - body - tearDown.
+                 *
+                 * @return return status.
+                 */
+                virtual core::base::ModuleState::MODULE_EXITCODE runModuleImplementation() = 0;
+
+                /**
+                 * This method returns the ServerInformation object describing the supercomponent.
+                 *
+                 * @return ServerInformation
+                 */
+                const core::dmcp::ServerInformation getServerInformation() const;
 
             private:
                 string m_name;
                 core::base::KeyValueConfiguration m_keyValueConfiguration;
+                core::dmcp::ServerInformation m_serverInformation;
                 core::SharedPointer<core::dmcp::connection::Client> m_dmcpClient;
-                core::data::TimeStamp m_lastCycle;
-                long m_lastWaitTime;
-                int32_t m_cycleCounter;
         };
 
     }

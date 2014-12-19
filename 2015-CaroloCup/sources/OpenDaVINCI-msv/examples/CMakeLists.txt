@@ -22,3 +22,5 @@ IF(UNIX)
 ENDIF(UNIX)
 
 #ADD_SUBDIRECTORY (example6) # Please see example6/README.TXT before enabling this target.
+
+ADD_SUBDIRECTORY (example7)

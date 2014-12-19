@@ -19,13 +19,37 @@ namespace core {
 
         class OPENDAVINCI_API ServerInformation : public core::base::Serializable {
             public:
+                    enum MANAGED_LEVEL {
+                        ML_NONE = 0,
+                        ML_PULSE,
+                        ML_PULSE_SHIFT,
+                    };
+
+            public:
                 ServerInformation();
-                ServerInformation(const string& ip, const uint32_t& port);
+
+                ServerInformation(const string& ip, const uint32_t& port, const MANAGED_LEVEL &managedLevel = ML_NONE);
+
+                /**
+                 * Copy constructor.
+                 *
+                 * @param obj Reference to an object of this class.
+                 */
+                ServerInformation(const ServerInformation &obj);
+
+                /**
+                 * Assignment operator.
+                 *
+                 * @param obj Reference to an object of this class.
+                 * @return Reference to this instance.
+                 */
+                ServerInformation& operator=(const ServerInformation &obj);
 
                 virtual ~ServerInformation();
 
                 const string getIP() const;
                 uint32_t getPort() const;
+                MANAGED_LEVEL getManagedLevel() const;
 
                 virtual ostream& operator<<(ostream &out) const;
                 virtual istream& operator>>(istream &in);
@@ -35,6 +59,7 @@ namespace core {
             protected:
                 string m_serverIP;
                 uint32_t m_serverPort;
+                MANAGED_LEVEL m_managedLevel;
         };
     }
 } // core::dmcp

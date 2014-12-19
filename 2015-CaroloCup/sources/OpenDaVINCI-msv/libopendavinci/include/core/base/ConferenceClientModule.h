@@ -17,7 +17,7 @@
 #include "core/io/ContainerConference.h"
 #include "core/io/ContainerListener.h"
 
-#include "core/base/ClientModule.h"
+#include "core/base/ManagedClientModule.h"
 #include "core/base/DataStoreManager.h"
 
 namespace core {
@@ -72,7 +72,7 @@ namespace core {
          * }
          * @endcode
          */
-        class OPENDAVINCI_API ConferenceClientModule : public ClientModule, public core::io::ContainerListener, public DataStoreManager {
+        class OPENDAVINCI_API ConferenceClientModule : public ManagedClientModule, public core::io::ContainerListener, public DataStoreManager {
             private:
                 /**
                  * "Forbidden" copy constructor. Goal: The compiler should warn

@@ -186,6 +186,8 @@ namespace core {
                     return "StringData";
                 case USER_BUTTON:
                     return "User Button";
+                case DMCP_PULSE_MESSAGE:
+                    return "DMCP_PULSE_MESSAGE";
                 case USER_DATA_0:
                     return "UserData_0";
                 case USER_DATA_1:

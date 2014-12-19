@@ -63,7 +63,7 @@ class DMCPConnectionTestsuite : public CxxTest::TestSuite,
             mocks::ConnectionHandlerMock connectionHandler;
 
             ServerInformation serverInfo("127.0.0.1", DMCPConfig_TEST_SERVERPORT);
-            ModuleDescriptor descriptor("DMCPConnectionTestSuite", "NONE", "TestVersion");
+            ModuleDescriptor descriptor("DMCPConnectionTestSuite", "NONE", "TestVersion", 1);
 
             configProvider.addConfig(descriptor, kv);
 

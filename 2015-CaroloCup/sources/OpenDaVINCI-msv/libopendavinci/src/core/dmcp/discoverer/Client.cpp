@@ -82,7 +82,7 @@ namespace core {
                         if (!m_response) {
                         	ServerInformation tmp = msg.getServerInformation();
                         	// Use the IP address from the received UDP packet.
-                            m_serverInformation = ServerInformation(p.getSender(), tmp.getPort());
+                            m_serverInformation = ServerInformation(p.getSender(), tmp.getPort(), tmp.getManagedLevel());
                             m_response = true;
                             onResponse();
                             m_responseCondition.wakeAll();

@@ -56,6 +56,8 @@ namespace core {
 
                     STRINGDATA                   = 100,
 
+                    DMCP_PULSE_MESSAGE           = 101,
+
                     USER_BUTTON                  = 999,
                     USER_DATA_0                  = 1000,
                     USER_DATA_1                  = 1001,

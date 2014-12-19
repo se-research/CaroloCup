@@ -18,6 +18,7 @@
 #include "core/io/ContainerListener.h"
 
 #include "core/data/dmcp/ModuleDescriptor.h"
+#include "core/data/dmcp/PulseMessage.h"
 #include "core/dmcp/ModuleConfigurationProvider.h"
 #include "core/dmcp/ModuleStateListener.h"
 
@@ -51,6 +52,9 @@ namespace core {
                     void setModuleStateListener(ModuleStateListener* listener);
 
                     void waitForModuleDescription();
+
+                    void pulse(const core::data::dmcp::PulseMessage &pm);
+
                     const core::data::dmcp::ModuleDescriptor getModuleDescriptor() const;
 
                 protected:

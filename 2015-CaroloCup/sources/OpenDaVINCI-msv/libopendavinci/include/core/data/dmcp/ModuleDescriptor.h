@@ -23,7 +23,8 @@ namespace core {
 
                     ModuleDescriptor(const string& name,
                                      const string& identifier,
-                                     const string& version);
+                                     const string& version,
+                                     const float &frequency);
                     /**
                      * Copy constructor.
                      *
@@ -44,6 +45,7 @@ namespace core {
                     const string getName() const;
                     const string getIdentifier() const;
                     const string getVersion() const;
+                    float getFrequency() const;
 
                     virtual ostream& operator<<(ostream &out) const;
                     virtual istream& operator>>(istream &in);
@@ -54,6 +56,7 @@ namespace core {
                     string m_name;
                     string m_identifier;
                     string m_version;
+                    float m_frequency;
             };
         }
     }
