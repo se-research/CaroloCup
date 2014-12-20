@@ -12,6 +12,8 @@
 
 #include "core/base/ManagedClientModule.h"
 
+#include "context/base/RuntimeControl.h"
+
 namespace core {
     namespace base {
 
@@ -28,7 +30,9 @@ namespace core {
             m_lastWaitTime(0),
             m_cycleCounter(0),
             m_profilingFile(NULL),
-            m_firstCallToBreakpoint_ManagedLevel_Pulse(true) {}
+            m_firstCallToBreakpoint_ManagedLevel_Pulse(true),
+            m_time(),
+            m_controlledTimeFactory(NULL) {}
 
         ManagedClientModule::~ManagedClientModule() {
             if (m_profilingFile != NULL) {
@@ -52,6 +56,10 @@ namespace core {
             if (getServerInformation().getManagedLevel() == core::dmcp::ServerInformation::ML_PULSE_SHIFT) {
                 wait_ManagedLevel_Pulse_Shift();
             }
+
+            if (getServerInformation().getManagedLevel() == core::dmcp::ServerInformation::ML_PULSE_TIME) {
+                wait_ManagedLevel_Pulse_Time();
+            }
         }
 
         ModuleState::MODULE_EXITCODE ManagedClientModule::runModuleImplementation() {
@@ -67,6 +75,10 @@ namespace core {
                 return runModuleImplementation_ManagedLevel_Pulse_Shift();
             }
 
+            if (getServerInformation().getManagedLevel() == core::dmcp::ServerInformation::ML_PULSE_TIME) {
+                return runModuleImplementation_ManagedLevel_Pulse_Time();
+            }
+
             return ModuleState::OKAY;
         }
 
@@ -77,6 +89,10 @@ namespace core {
 
             if (getServerInformation().getManagedLevel() == core::dmcp::ServerInformation::ML_PULSE_SHIFT) {
                 reached_ManagedLevel_Pulse_Shift();
+            }
+
+            if (getServerInformation().getManagedLevel() == core::dmcp::ServerInformation::ML_PULSE_TIME) {
+                reached_ManagedLevel_Pulse_Time();
             }
         }
 
@@ -159,7 +175,7 @@ namespace core {
             return retVal;
         }
 
-        void ManagedClientModule::wait_ManagedLevel_None() {
+        uint32_t ManagedClientModule::getWaitingTimeAndUpdateRuntimeStatistics() {
             // Update liveliness.
             m_cycleCounter++;
 
@@ -204,13 +220,24 @@ namespace core {
             // Store "now" to m_lastCycle for usage in next cycle.
             m_lastCycle = current;
 
-            // Enforce waiting to consume the rest of the time slice.
+            // Save the time to be waited.
             if (WAITING_TIME_OF_CURRENT_SLICE > 0) {
                 m_lastWaitTime = WAITING_TIME_OF_CURRENT_SLICE;
-                Thread::usleep(WAITING_TIME_OF_CURRENT_SLICE);
             }
             else {
                 m_lastWaitTime = 0;
+            }
+
+            // Return the time to wait.
+            return WAITING_TIME_OF_CURRENT_SLICE;
+        }
+
+        void ManagedClientModule::wait_ManagedLevel_None() {
+            const long WAITING_TIME_OF_CURRENT_SLICE = getWaitingTimeAndUpdateRuntimeStatistics();
+
+            // Enforce waiting to consume the rest of the time slice.
+            if (WAITING_TIME_OF_CURRENT_SLICE > 0) {
+                Thread::usleep(WAITING_TIME_OF_CURRENT_SLICE);
             }
 
             if (isVerbose()) {
@@ -308,13 +335,76 @@ namespace core {
         }
 
         core::base::ModuleState::MODULE_EXITCODE ManagedClientModule::runModuleImplementation_ManagedLevel_Pulse_Shift() {
-            // No specific implementation for waiting in mode managed_level == pulse_shift.
+            // No specific implementation for waiting in mode managed_level == pulse_shift 
             return runModuleImplementation_ManagedLevel_Pulse();
         }
 
         void ManagedClientModule::wait_ManagedLevel_Pulse_Shift() {
             // No specific implementation for waiting in mode managed_level == pulse_shift.
             wait_ManagedLevel_None();
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+        // Implementation for managed level pulse time (i.e. the execution of
+        // this module is suspended unless we receive the next pulse.
+        ///////////////////////////////////////////////////////////////////////
+
+        void ManagedClientModule::reached_ManagedLevel_Pulse_Time() {
+            // Get next PulseMessage. This call blocks until the next PulseMessage has been received.
+            const core::data::dmcp::PulseMessage pm = getDMCPClient()->getPulseMessage();
+
+            // Check whether our clock was already initialized (i.e. getSeconds() > 0).
+            if (m_time.now().getSeconds() < 1) {
+                // Set seconds of our virtual clock to the clock from supercomponents.
+                m_time = context::base::Clock(pm.getRealtimeFromSupercomponent().getSeconds(), 0);
+            }
+
+            // Increment the virtual time by the nominal value of the time slice
+            // provided by from supercomponent. As PulseMessage provides this
+            // value in microseconds, we need to convert to milliseconds.
+            const uint32_t INCREMENT_IN_MS = pm.getNominalTimeSlice()/1000.0;
+            m_time.increment(INCREMENT_IN_MS);
+
+            // Set the new system time in the TimeFactory.
+            m_controlledTimeFactory->setTime(m_time.now());
+
+            // Update the RuntimeStatistics which will be done by the following method.
+            getWaitingTimeAndUpdateRuntimeStatistics();
+
+            if (isVerbose()) {
+                clog << "Starting next cycle at " << TimeStamp().toString() << endl;
+            }
+        }
+
+        core::base::ModuleState::MODULE_EXITCODE ManagedClientModule::runModuleImplementation_ManagedLevel_Pulse_Time() {
+            // In the controlled pulse_time mode, the time pulses are provided
+            // centrally from supercomponent and each component is incrementing
+            // the local time based on these pulses.
+            //
+            // Therefore, the local TimeFactory that wraps the local system
+            // time needs to be disabled and exchanged by a controllable one.
+
+            // 1) Disable the existing TimeFactory.
+            context::base::RuntimeControl::DisableTimeFactory dtf;
+            dtf.disable();
+
+            // 2) Create a controllable TimeFactory.
+            m_controlledTimeFactory = new context::base::ControlledTimeFactory();
+
+            // 3) Initialize the new TimeFactory with the new actual time.
+            m_controlledTimeFactory->setTime(m_time.now());
+
+            // 4) Run the module implementation as usual. As the
+            //    module will be exited after the following call
+            //    has returned, we don't need to change back the
+            //    time.
+            return runModuleImplementation_ManagedLevel_Pulse();
+        }
+
+        void ManagedClientModule::wait_ManagedLevel_Pulse_Time() {
+            // As the managed level ML_PULSE_TIME uses a breakpoint, the wait() method
+            // will not be called at all. Thus, all profiling information needs to be
+            // handled in reached_ManagedLevel_Pulse_Time().
         }
 
     }

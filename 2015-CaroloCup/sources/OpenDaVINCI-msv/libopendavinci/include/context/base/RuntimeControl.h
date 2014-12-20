@@ -192,6 +192,7 @@ namespace context {
                  */
                 void doReporting(RuntimeEnvironment &rte, const core::wrapper::Time &time);
 
+            public:
                 /**
                  * This class is used to disable to TimeFactory.
                  */

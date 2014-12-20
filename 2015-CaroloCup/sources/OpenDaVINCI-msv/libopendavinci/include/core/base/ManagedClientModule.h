@@ -15,6 +15,9 @@
 #include "core/data/TimeStamp.h"
 #include "core/exceptions/Exceptions.h"
 
+#include "context/base/Clock.h"
+#include "context/base/ControlledTimeFactory.h"
+
 namespace core {
     namespace base {
 
@@ -98,6 +101,19 @@ namespace core {
                 void wait_ManagedLevel_Pulse_Shift();
                 void reached_ManagedLevel_Pulse_Shift();
 
+                core::base::ModuleState::MODULE_EXITCODE runModuleImplementation_ManagedLevel_Pulse_Time();
+                void wait_ManagedLevel_Pulse_Time();
+                void reached_ManagedLevel_Pulse_Time();
+
+                /**
+                 * This method calculates the waiting time in microseconds
+                 * to complete this execution cycle. Furthermore, it updates
+                 * RuntimeStatistics and local profiling data.
+                 *
+                 * @return waiting time in microseconds.
+                 */
+                uint32_t getWaitingTimeAndUpdateRuntimeStatistics();
+
                 /**
                  * This method is used to log the time consumption (load)
                  * for this module into a profiling file.
@@ -111,6 +127,9 @@ namespace core {
                 ofstream *m_profilingFile;
 
                 bool m_firstCallToBreakpoint_ManagedLevel_Pulse;
+
+                context::base::Clock m_time;
+                context::base::ControlledTimeFactory *m_controlledTimeFactory;
         };
 
     }

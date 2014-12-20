@@ -23,6 +23,7 @@ namespace core {
                         ML_NONE = 0,
                         ML_PULSE,
                         ML_PULSE_SHIFT,
+                        ML_PULSE_TIME,
                     };
 
             public:

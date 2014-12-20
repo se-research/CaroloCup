@@ -121,6 +121,9 @@ namespace supercomponent {
                     cerr << "(supercomponent) Value for 'supercomponent.pulseshift.shift' not found in configuration, using " << m_shiftMicroseconds << " as default." << endl;
                 }
             }
+            if (core::StringToolbox::equalsIgnoreCase(managedLevel, "pulse_time")) {
+                m_managedLevel = core::dmcp::ServerInformation::ML_PULSE_TIME;
+            }
         }
     }
 
@@ -156,7 +159,8 @@ namespace supercomponent {
                 Thread::usleep(1000 * 5000);
             }
             else if ( (m_managedLevel == core::dmcp::ServerInformation::ML_PULSE) ||
-                      (m_managedLevel == core::dmcp::ServerInformation::ML_PULSE_SHIFT) ) {
+                      (m_managedLevel == core::dmcp::ServerInformation::ML_PULSE_SHIFT) ||
+                      (m_managedLevel == core::dmcp::ServerInformation::ML_PULSE_TIME) ) {
                 const float FREQ = getFrequency();
                 const long TIME_CONSUMPTION_OF_CURRENT_SLICE = (current.toMicroseconds() - m_lastCycle.toMicroseconds()) - m_lastWaitTime;
                 m_lastCycle = current;
@@ -175,6 +179,10 @@ namespace supercomponent {
                 }
                 else if (m_managedLevel == core::dmcp::ServerInformation::ML_PULSE_SHIFT) {
                     m_modules.pulseShift(pm, m_shiftMicroseconds);
+                }
+                else if (m_managedLevel == core::dmcp::ServerInformation::ML_PULSE_TIME) {
+                    // Managed level ML_PULSE_TIME is handled by the modules and thus, the regular pulse method can be called.
+                    m_modules.pulse(pm);
                 }
 
                 m_lastWaitTime = WAITING_TIME_OF_CURRENT_SLICE;

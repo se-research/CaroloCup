@@ -24,6 +24,14 @@ namespace context {
                 Clock();
 
                 /**
+                 * Constructor.
+                 *
+                 * @param s Seconds.
+                 * @param ps Partial microseconds.
+                 */
+                Clock(const uint32_t &s, const uint32_t &ps);
+
+                /**
                  * Copy constructor.
                  *
                  * @param obj Object from same type.
