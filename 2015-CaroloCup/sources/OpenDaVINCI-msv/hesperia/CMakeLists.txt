@@ -3,10 +3,10 @@
 #
 # This software is open source. Please see COPYING and AUTHORS for further information.
 #
-
-IF (NOT "${PANDABOARD}" STREQUAL "YES")
-    # Add subdirectories.
     ADD_SUBDIRECTORY (libhesperia)
+IF (NOT ("${PANDABOARD}" STREQUAL "YES" OR "${ODROID}" STREQUAL "YES"))
+    # Add subdirectories.
+
 
     # hesperia depends on OpenCV.
     SET (OpenCV_LIBS opencv_core opencv_imgproc opencv_highgui)
@@ -30,5 +30,5 @@ IF (NOT "${PANDABOARD}" STREQUAL "YES")
 
     FILE(GLOB OBJX "Scenarios/Models/*.objx")
     INSTALL(FILES ${OBJX} DESTINATION bin/Scenarios/Models)
-ENDIF(NOT "${PANDABOARD}" STREQUAL "YES")
+ENDIF(NOT ("${PANDABOARD}" STREQUAL "YES" OR "${ODROID}" STREQUAL "YES"))
 
