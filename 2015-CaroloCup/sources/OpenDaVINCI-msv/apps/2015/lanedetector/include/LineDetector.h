@@ -116,7 +116,8 @@ private:
 	int getIntersectionWithBottom(CustomLine l) const;
 	CustomLine createLineFromRect(RotatedRect* rect, int sizeX,	int sizeY);
 	std::vector<CustomLine> findCurve(std::vector<CustomLine> lines);
-
+	Point intersectionPoint(CustomLine fst, CustomLine snd);	
+	std::vector<Point> convertToBirdsEyeView(std::vector<Point> ps);
 
 	//Find contours
 	void getContours(cv::Mat &outputImg);

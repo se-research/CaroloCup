@@ -456,6 +456,9 @@ void LineDetector::finalFilter() {
 }
 
 void LineDetector::characteristicFiltering(LinesToUse* ltu){
+	// Now we got the lines which we actually shall work with
+
+
 	//LinesToUse old_ltu;
 	// if (ltu != NULL) 
 	// 	old_ltu = *ltu;
@@ -758,6 +761,7 @@ void LineDetector::characteristicFiltering(LinesToUse* ltu){
 
 	return;
 }
+// This is the old function without the find-dashed-curve part 
 /*
 void LineDetector::characteristicFiltering(LinesToUse* ltu){
 	//LinesToUse old_ltu;
@@ -902,7 +906,109 @@ void LineDetector::characteristicFiltering(LinesToUse* ltu){
 
 	return;
 }*/
+/*
+void manageTrajectory(LinesToUse* ltu){
+	// The found lines are used to create a trajectory for the car's future movement
 
+	std::vector<CustomLine> splitSolid;
+	bool solidIsSplitted = false;
+
+	if (ltu->foundR || ltu->foundL){
+
+		std::vector<Point> cutPoints;
+		CustomLine lineToSplit;
+		bool splitRight;
+
+		// Split right line if it is found 
+		if(ltu->foundR){
+			lineToSplit = ltu->rightLine;
+			splitRight = true;
+		}	else if (ltu->foundL){
+			lineToSplit = ltu->leftLine;
+			splitRight = false;
+		}
+
+		if (ltu->foundD){
+			//extract the points where to split
+			for(int i = 0; i < ltu->dashedCurve.size(); i++){
+				cutPoints.push_back(ltu->dashedCurve[i].p2);
+			}
+		}else{
+			// Use deafult cut points
+			cutPoints.push_back((int)400);
+			cutPoints.push_back((int)300);
+			cutPoints.push_back((int)200);
+			cutPoints.push_back((int)100);
+		}
+
+		// Split the solid line
+		//SplitContourAtPoints(cutPoints, lineToSplit, HORIZONTAL_SPLIT);
+		//....
+		//=> 
+		splitSolid = some_lines;
+		solidIsSplitted = true;
+	}
+
+	// Create a vector of goal lines
+	std::vector<CustomLine> goalLines;
+
+	for(int i = 0; i < ltu->dashedCurve.size(); i++){
+		if (solidIsSplitted == true){
+			if (splitRight == true)
+				goalLines.push_back(calculateGoalLine(NULL, ltu->dashedCurve[i], splitSolid[i]));
+			else{
+				goalLines.push_back(calculateGoalLine(splitSolid[i], ltu->dashedCurve[i], NULL));					
+			}				
+		}else{
+			goalLines.push_back(calculateGoalLine(NULL, ltu->dashedCurve[i], NULL));								
+		}
+	}
+
+	// find the intersection points of the goal lines
+	std::vector<Point> trajectoryPoints;
+
+	for (int i = 1; i < goalLines.size()+1; i++){
+		// find the intersection point between line i-1 and i
+		trajectoryPoints.push_back(intersectionPoint(goalLines[i-1], goalLines[i]));
+	}
+
+	// Convert the trajectory into bird view
+	for (int i = 0, i < trajectoryPoints.size(); i++){
+		trajectoryPoints[i] = convertToBirdsEyeView(trajectoryPoints[i]);
+	}
+
+	// Merge th
+}
+
+
+std::vector<Point> LineDetector::convertToBirdsEyeView(std::vector<Point> ps){	
+	//Convert the point to bird eye view
+	Mat m = getPerspectiveTransform(rect, dst);
+	warped = warpPerspective(ps, M, (maxWidth, maxHeight))
+
+	return p;
+}
+Point LineDetector::intersectionPoint(CustomLine fst, CustomLine snd){	
+	Point retVal;
+
+	// Get the line equation for first line
+	float da = tan(fst.slope * M_PI / 180);
+	float db = fst.p1.y - fst.p1.x * da;
+
+	// Get the line equation for second line
+	float a = tan(snd.slope * M_PI / 180);
+	float b = snd.p1.y - snd.p1.x * a;
+
+	//Calculate intersection point
+	if (fabs(da - a) > 0.001) {
+		retVal.x = (b - db) / (da - a);
+	}else{
+		// Use some default value???
+	}
+	retVal.y = da * retVal.x + db;
+	return retVal;
+}
+*/
 void LineDetector::calculateGoalLine(LinesToUse* ltu){
 
 	Point vp;
