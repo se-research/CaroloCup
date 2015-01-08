@@ -53,6 +53,12 @@ struct LinesToUse{
 	CustomLine dashLine;
 	CustomLine rightLine;
 	CustomLine leftLine;
+	vector<CustomLine> dashedCurve;	// debug
+	int cntDash;	// debug
+	uint16_t dashOldBy;
+	uint16_t rightOldBy;
+	uint16_t leftOldBy;
+	bool dashedCurveFound;
 	bool foundD;
 	bool foundR;
 	bool foundL;
@@ -109,6 +115,8 @@ private:
 	Point2f getWorldPoint(Point2i imgPoint);
 	int getIntersectionWithBottom(CustomLine l) const;
 	CustomLine createLineFromRect(RotatedRect* rect, int sizeX,	int sizeY);
+	std::vector<CustomLine> findCurve(std::vector<CustomLine> lines);
+
 
 	//Find contours
 	void getContours(cv::Mat &outputImg);

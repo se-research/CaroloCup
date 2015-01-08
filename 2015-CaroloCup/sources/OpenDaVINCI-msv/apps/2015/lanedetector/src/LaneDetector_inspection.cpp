@@ -186,38 +186,42 @@ namespace msv {
 		//end of the mess
 		
 		//Inspection part. move to function later
-		bool status= true;
 		string classification;
-		cvWaitKey(50);
-		char key = cvWaitKey(0);
-		
-		cout << key << endl;
-		while(status){
-		  switch(key){
-		    cout << key << endl;
-		    case 49:
-		      classification = "TP";
-		      status = false;
-		      break;
-		    case 50:
-		      classification = "TN";
-		      status = false;
-		      break;
-		    case 51:
-		      classification = "FP";
-		      status = false;
-		      break;
-		    case 52:
-		      classification = "FN";
-		      status = false;
-		      break;
-		    default:
-		      status = true;
-		      cvWaitKey(50);
-		      key = cvWaitKey(0);
-		      break;
-		    }
-		
+		int skip_to_frame = 0;	// Use this variable to fast-forward to a specific frame
+		if (m_frame_count < skip_to_frame){
+	      classification = "N/A";
+		}else{
+			bool status= true;
+			cvWaitKey(50);
+			char key = cvWaitKey(0);
+			
+			cout << key << endl;
+			while(status){
+			  switch(key){
+			    cout << key << endl;
+			    case 49:
+			      classification = "TP";
+			      status = false;
+			      break;
+			    case 50:
+			      classification = "TN";
+			      status = false;
+			      break;
+			    case 51:
+			      classification = "FP";
+			      status = false;
+			      break;
+			    case 52:
+			      classification = "FN";
+			      status = false;
+			      break;
+			    default:
+			      status = true;
+			      cvWaitKey(50);
+			      key = cvWaitKey(0);
+			      break;
+			    }
+			}
 		}
 		data.setClassification(classification);
 		cout << "classification : " + classification <<endl;
@@ -354,7 +358,7 @@ namespace msv {
 			showResult_finalResult(res_finalResult, road, f);
 
 		// Create window to display text results
-		cv::Mat txtRes = cv::Mat::zeros(500,300,CV_8UC3);
+		cv::Mat txtRes = cv::Mat::zeros(500,330,CV_8UC3);
 
 		ostringstream convert;
 		int rB = 0; // Pixel where the row starts at
@@ -432,6 +436,44 @@ namespace msv {
 
 		rB += rS;
 		cv::putText(txtRes, "6 - characteristicFiltering() ",cv::Point(0,rB), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
+
+		rB += rS;
+		cv::putText(txtRes, "Dashed curve: ",cv::Point(20,rB), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);		
+		if (res_finalResult->dashedCurveFound){
+			putText(txtRes, "Found #:", cvPoint(140,rB),
+			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
+		convert.str("");
+		convert << res_finalResult->dashedCurve.size();
+		cv::putText(txtRes, convert.str(),cv::Point(220,rB), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
+
+		}else{
+			if (res_finalResult->cntDash < 2){
+				putText(txtRes, "More dashes needed", cvPoint(140,rB),
+				FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
+
+			}else{
+				putText(txtRes, "FAILURE TO FIND CURVE", cvPoint(140,rB),
+				FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
+			}
+		}
+
+		rB += rS;
+		cv::putText(txtRes, "Found left:   dashed:   right:",cv::Point(20,rB), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
+		convert.str("");
+		convert << res_finalResult->foundL;
+		cv::putText(txtRes, convert.str(),cv::Point(120,rB), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
+		convert.str("");
+		convert << res_finalResult->foundD;
+		cv::putText(txtRes, convert.str(),cv::Point(200,rB), 
+			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
+		convert.str("");
+		convert << res_finalResult->foundR;
+		cv::putText(txtRes, convert.str(),cv::Point(270,rB), 
 			FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0,255,0),1, CV_AA);
 
 		// ----calculateGoalLine() -----
