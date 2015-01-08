@@ -122,6 +122,8 @@ private:
 	void getContours(cv::Mat &outputImg);
 	//Get all marked lines
 	void getRectangles();
+	// Split big rectangles into smaller pieces
+	void splitBigRectangles(int index);
 	//Classify dash lines and solid lines
 	void classification();
 	//Filter dashes outside the solid lines and merge solid lines
