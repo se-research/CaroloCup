@@ -428,20 +428,6 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
     //ofstream mylog;
     //mylog.open("test.log", ios::out | ios::app);
 
-    // On first iteration
-    if (ltu->dashOldBy == NULL)
-        {
-            ltu->dashOldBy = 0;
-            ltu->rightOldBy = 0;
-            ltu->leftOldBy = 0;
-        }// On non-first iterations
-    else
-        {
-            ltu->dashOldBy++;
-            ltu->rightOldBy++;
-            ltu->leftOldBy++;
-        }
-
     ltu->foundR = false;
     ltu->foundL = false;
     ltu->foundD = false; // shrinkSize=false; Avoid unused variable warning
@@ -674,7 +660,6 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
                             ltu->dashLineVec = Vec4i(ltu->dashLine.p1.x, ltu->dashLine.p1.y,
                                                      ltu->dashLine.p2.x, ltu->dashLine.p2.y);
                             ltu->foundD = true;
-                            ltu->dashOldBy = 0;
                             cout << "Dash chosen: p1(" << dashLines[0].p1.x << "," << dashLines[0].p1.y << ") p2(" << dashLines[0].p2.x << "," << dashLines[0].p2.y << ")" << endl;
                             currentDashGoalX = dashSupPosX;
                         }
@@ -718,7 +703,6 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
                                                       ltu->rightLine.p2.x, ltu->rightLine.p2.y);
                             cout << "Aspired right line chosen" << endl;
                             currentRightGoalX = rSupPosX;
-                            ltu->rightOldBy = 0;
                         }
                     else
                         {
@@ -757,7 +741,6 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
                                                      ltu->leftLine.p2.x, ltu->leftLine.p2.y);
                             cout << "Aspired left line chosen" << endl;
                             currentLeftGoalX = lSupPosX;
-                            ltu->leftOldBy = 0;
                         }
                     else
                         {

@@ -62,9 +62,6 @@ struct LinesToUse
     CustomLine leftLine;
     vector<CustomLine> dashedCurve; // debug
     int cntDash;    // debug
-    uint16_t dashOldBy;
-    uint16_t rightOldBy;
-    uint16_t leftOldBy;
     bool dashedCurveFound;
     bool foundD;
     bool foundR;
