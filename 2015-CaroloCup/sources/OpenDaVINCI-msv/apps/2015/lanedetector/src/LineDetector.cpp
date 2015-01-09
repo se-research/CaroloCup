@@ -850,8 +850,6 @@ void manageTrajectory(LinesToUse* ltu){
     // Merge th
 }
 
-<<<<<<< HEAD
-
 std::vector<Point> LineDetector::convertToBirdsEyeView(std::vector<Point> ps){
     //Convert the point to bird eye view
     Mat m = getPerspectiveTransform(rect, dst);
@@ -964,6 +962,13 @@ void LineDetector::estimateLines(LinesToUse *ltu)
 
 void LineDetector::calculateGoalLine(LinesToUse *ltu)
 {
+	// Check whether to run the function
+	if(!(ltu->foundGoal)){
+	    if (m_debug){
+	        cout << "CASE: NO FOUND GOAL" << endl;    	
+	    }
+		return;
+	}
 
     // If any line is estimated, goalP.x is calculated differently
     bool linesEstimated = false;
@@ -1054,8 +1059,7 @@ void LineDetector::calculateGoalLine(LinesToUse *ltu)
 
 
         }
-    cout << "found goal" << ltu->foundGoal << endl;
-    if (ltu->foundGoal && abs(currRoadSize - calcRoadSize) < 0.5 * currRoadSize)
+    if (abs(currRoadSize - calcRoadSize) < 0.5 * currRoadSize)
         {
             //Assume this position as the car position
             Point position;
