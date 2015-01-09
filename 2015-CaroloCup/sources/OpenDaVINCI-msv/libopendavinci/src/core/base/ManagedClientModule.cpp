@@ -235,8 +235,9 @@ namespace core {
         void ManagedClientModule::wait_ManagedLevel_None() {
             const long WAITING_TIME_OF_CURRENT_SLICE = getWaitingTimeAndUpdateRuntimeStatistics();
 
-            // Enforce waiting to consume the rest of the time slice.
-            if (WAITING_TIME_OF_CURRENT_SLICE > 0) {
+            // Enforce waiting to consume the rest of the time slice but ensure that there is no overflow.
+            const long ONE_SECOND_IN_MICROSECONDS = 1000 * 1000 * 1;
+            if ( (WAITING_TIME_OF_CURRENT_SLICE > 0) && (WAITING_TIME_OF_CURRENT_SLICE < ONE_SECOND_IN_MICROSECONDS) ) {
                 Thread::usleep(WAITING_TIME_OF_CURRENT_SLICE);
             }
 
