@@ -59,6 +59,30 @@ namespace core {
                 }
                 return true;
             };
+
+            /**
+             * This method splits a string using the delimiter.
+             *
+             * @param s String to split.
+             * @param delimiter
+             * @return Vector of tokens.
+             */
+            static vector<string> split(const string &s, const char &delimiter) {
+                vector<string> v;
+                string::size_type start = 0;
+                string::size_type pos = s.find_first_of(delimiter, start);
+                while (pos != string::npos) {
+                    if(pos != start) {
+                        v.push_back(s.substr(start, pos - start));
+                    }
+                    start = pos + 1;
+                    pos = s.find_first_of(delimiter, start);
+                }
+                if ((start > 0) && (start < s.length())) {
+                    v.push_back(s.substr(start, s.length() - start));
+                }
+                return v;
+            }
     };
 }
 

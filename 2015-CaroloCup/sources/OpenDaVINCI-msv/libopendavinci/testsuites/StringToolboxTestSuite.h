@@ -66,6 +66,39 @@ class StringToolboxTest : public CxxTest::TestSuite {
             string s10 = "abc ";
             TS_ASSERT(!core::StringToolbox::equalsIgnoreCase(s9, s10)); 
         }
+
+        void testSplit() {
+            string s1 = "abc";
+            vector<string> vs1 = core::StringToolbox::split(s1, ',');
+            TS_ASSERT(vs1.size() == 0);
+
+            string s2 = "abc;def";
+            vector<string> vs2_no = core::StringToolbox::split(s2, ',');
+            TS_ASSERT(vs2_no.size() == 0);
+            vector<string> vs2 = core::StringToolbox::split(s2, ';');
+            TS_ASSERT(vs2.size() == 2);
+            TS_ASSERT(core::StringToolbox::equalsIgnoreCase(vs2.at(0), "abc"));
+            TS_ASSERT(core::StringToolbox::equalsIgnoreCase(vs2.at(1), "def"));
+
+            string s3 = ";abc;def";
+            vector<string> vs3 = core::StringToolbox::split(s3, ';');
+            TS_ASSERT(vs3.size() == 2);
+            TS_ASSERT(core::StringToolbox::equalsIgnoreCase(vs3.at(0), "abc"));
+            TS_ASSERT(core::StringToolbox::equalsIgnoreCase(vs3.at(1), "def"));
+
+            string s4 = "abc;def;";
+            vector<string> vs4 = core::StringToolbox::split(s4, ';');
+            TS_ASSERT(vs4.size() == 2);
+            TS_ASSERT(core::StringToolbox::equalsIgnoreCase(vs4.at(0), "abc"));
+            TS_ASSERT(core::StringToolbox::equalsIgnoreCase(vs4.at(1), "def"));
+
+            string s5 = ";abc;def;";
+            vector<string> vs5 = core::StringToolbox::split(s5, ';');
+            TS_ASSERT(vs5.size() == 2);
+            TS_ASSERT(core::StringToolbox::equalsIgnoreCase(vs5.at(0), "abc"));
+            TS_ASSERT(core::StringToolbox::equalsIgnoreCase(vs5.at(1), "def"));
+        }
+
 };
 
 #endif /*CORE_STRINGTOOLBOXTESTSUITE_H_*/

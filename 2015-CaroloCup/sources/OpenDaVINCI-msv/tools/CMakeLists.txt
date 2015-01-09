@@ -6,8 +6,9 @@
 
 # Add subdirectories.
 
-ADD_SUBDIRECTORY (recorder)
 ADD_SUBDIRECTORY (player)
-ADD_SUBDIRECTORY (spy)
 ADD_SUBDIRECTORY (recintegrity)
+ADD_SUBDIRECTORY (recorder)
+ADD_SUBDIRECTORY (split)
+ADD_SUBDIRECTORY (spy)
 
