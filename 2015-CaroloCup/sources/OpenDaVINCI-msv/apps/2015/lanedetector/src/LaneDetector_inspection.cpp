@@ -555,12 +555,12 @@ namespace msv {
 		if (m_debug){
 			cout << "__START: Final result" << endl;
 		}
-		if (res->lines.goalLine.p1.x == 0 && res->lines.goalLine.p1.y == 0
-				&& res->lines.goalLine.p2.x == 0 && res->lines.goalLine.p2.y == 0
-				&& res->lines.currentLine.p2.x == 0 && res->lines.currentLine.p2.y == 0) {
+		if (res->lines->goalLine.p1.x == 0 && res->lines->goalLine.p1.y == 0
+				&& res->lines->goalLine.p2.x == 0 && res->lines->goalLine.p2.y == 0
+				&& res->lines->currentLine.p2.x == 0 && res->lines->currentLine.p2.y == 0) {
 			cout << "Nothing in..." << endl;
 		} else {
-			drawLines(&res->lines, &frame, 0);
+			drawLines(res->lines, &frame, 0);
 		}
 
 		if (m_debug) {
@@ -569,12 +569,12 @@ namespace msv {
 			cout << "Dashed line. p1(" << res->dashLine.p1.x << "," << res->dashLine.p1.y << ") p2(" << res->dashLine.p2.x << "," << res->dashLine.p2.y << ")" << endl;
 			cout << "Right line. p1(" << res->rightLine.p1.x << "," << res->rightLine.p1.y << ") p2(" << res->rightLine.p2.x << "," << res->rightLine.p2.y << ")" << endl;
 
-			cout << "VP [x, y] : [" << res->lines.goalLine.p1.x << ", "
-					<< res->lines.goalLine.p1.y << "]" << endl;
-			cout << "Goal [x, y] : [" << res->lines.goalLine.p2.x << ", "
-					<< res->lines.goalLine.p2.y << "]" << endl;
-			cout << "Position [x, y] : [" << res->lines.currentLine.p2.x << ", "
-					<< res->lines.currentLine.p2.y << "]" << endl;			
+			cout << "VP [x, y] : [" << res->lines->goalLine.p1.x << ", "
+					<< res->lines->goalLine.p1.y << "]" << endl;
+			cout << "Goal [x, y] : [" << res->lines->goalLine.p2.x << ", "
+					<< res->lines->goalLine.p2.y << "]" << endl;
+			cout << "Position [x, y] : [" << res->lines->currentLine.p2.x << ", "
+					<< res->lines->currentLine.p2.y << "]" << endl;			
 		}
 		if (what_to_inspect == 6)
 			addInspectionInfo(road, frame);

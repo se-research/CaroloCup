@@ -56,10 +56,13 @@ struct LinesToUse{
 	bool foundD;
 	bool foundR;
 	bool foundL;
+	bool foundGoal;
 	Vec4i dashLineVec;
 	Vec4i leftLineVec;
 	Vec4i rightLineVec;
-	Lines lines;
+	bool isDashEstimated;
+	bool isRightEstimated;
+	Lines* lines;
 };
 
 
@@ -122,9 +125,11 @@ private:
 	void filterAndMerge();
 	//Filter lines with very small angles, filter dash positioned too high on the image or too left or too right
 	void finalFilter();
-
-
+	//Filer the lines w.r.t. road characteristics
 	void characteristicFiltering(LinesToUse* ltu);
+	//Estimate missing needed lines
+	void estimateLines(LinesToUse* ltu);
+	//Calculate the goal line etc.
 	void calculateGoalLine(LinesToUse* ltu);
 
 	cv::Mat m_frame;

@@ -170,6 +170,7 @@ namespace msv {
 
 		LineDetector road(neededPart, cfg, debug, 1);
 		msv::Lines lines = road.getLines();
+
 		if (&lines != NULL)
 			cout << "We have lines for frame " <<m_frame_count << endl;
 		LaneDetectionData data;
