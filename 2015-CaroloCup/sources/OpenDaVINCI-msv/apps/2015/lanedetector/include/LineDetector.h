@@ -55,6 +55,16 @@ struct IntermediateResult
     bool foundIntersection;
 };
 
+struct EstimationData {
+    bool dashEstimated;
+    bool otherEstimated;
+    bool otherFlipped;
+    bool foundGoal;
+    CustomLine dash;
+    CustomLine other;
+    int calcRoadSize;
+};
+
 struct LinesToUse
 {
     CustomLine dashLine;
