@@ -174,7 +174,6 @@ void LineDetector::getContours(cv::Mat &outputImg) {
 void LineDetector::getRectangles() {
 
 	RotatedRect rect;
-	cv::Mat out = m_frame.clone();
 
 	for (unsigned int i = 0; i < contours_poly.size(); i++) {
 		rect = minAreaRect(contours_poly[i]);
@@ -207,7 +206,6 @@ void LineDetector::getRectangles() {
 				longSideMiddle.y = (rect_points[j].y
 						+ rect_points[(j + 1) % 4].y) / 2;
 			}
-			line(out, rect_points[j], rect_points[(j+1)%4], Scalar(255,0,0));
 		}
 		if (sizeX > sizeY) {
 			Point2f temp;
@@ -219,96 +217,11 @@ void LineDetector::getRectangles() {
 			shortSideMiddle = temp;
 		}
 
-		if(sizeX*sizeY> m_config.maxArea * 10000){
-			splitBigRectangles(i);
-		}else{
-			rects.push_back(rect);
-			PolySize polysize = { sizeX, sizeY, sizeR, shortSideMiddle, longSideMiddle };
-			line_sizes.push_back(polysize);
-		}
-
-	}
-	imshow("Rect", out);
-}
-
-void LineDetector::splitBigRectangles(int index){
-
-	// Get the bounding rectangle
-	Rect roi = boundingRect(contours_poly[index]);
-	//vector<Point> contours1, contours2;
-	vector<Point> contours[2];
-	cv::Mat out = m_frame.clone();
-
-	// Create masks for each contour to mask out that region from image.
-	//Mat mask = Mat::zeros(m_frame.size(), CV_8UC1);
-	//drawContours(mask, contours_poly, index, Scalar(255), CV_FILLED); // This is a OpenCV function
-
-	for(unsigned int i = 0; i < contours_poly[index].size(); i++ ){
-		Point p = contours_poly[index][i];
-		// Separate the points into two groups
-		if(p.x < (roi.x+roi.width/2)){
-			contours[0].push_back(p);
-		}else{
-			contours[1].push_back(p);
-		}
-	}
-
-	for(unsigned int i = 0; i < 2; i++){
-		vector<Point> cont = contours[i];
-		RotatedRect rect = minAreaRect(cont);
-		Point2f rect_points[4];
-		rect.points(rect_points);
-
-		int sizeX = 0, sizeY = 0, sizeR = 0;
-		Point shortSideMiddle;
-		Point longSideMiddle;
-		// Find rect sizes
-		for (int j = 0; j < 4; j++) {
-			//cout << "Point [x,y] = [" << rect_points[j].x << "," << rect_points[j].y << "]" << endl;
-			sizeR = cv::sqrt(
-					cv::pow((rect_points[j].x - rect_points[(j + 1) % 4].x), 2)
-							+ cv::pow(
-									(rect_points[j].y
-											- rect_points[(j + 1) % 4].y), 2));
-			//cout << "Size:" << sizeR << endl;
-			if (sizeX == 0) {
-				sizeX = sizeR;
-				shortSideMiddle.x = (rect_points[j].x
-						+ rect_points[(j + 1) % 4].x) / 2;
-				shortSideMiddle.y = (rect_points[j].y
-						+ rect_points[(j + 1) % 4].y) / 2;
-			} else if (sizeY == 0 && sizeR != sizeX) {
-				sizeY = sizeR;
-				longSideMiddle.x = (rect_points[j].x
-						+ rect_points[(j + 1) % 4].x) / 2;
-				longSideMiddle.y = (rect_points[j].y
-						+ rect_points[(j + 1) % 4].y) / 2;
-			}
-		line(out, rect_points[j], rect_points[(j+1)%4], Scalar(255,0,0));
-		}
-		if (sizeX > sizeY) {
-			Point2f temp;
-			sizeR = sizeX;
-			sizeX = sizeY;
-			sizeY = sizeR;
-			temp = longSideMiddle;
-			longSideMiddle = shortSideMiddle;
-			shortSideMiddle = temp;
-		}
-
-		PolySize polysize = { sizeX, sizeY, sizeR, shortSideMiddle, longSideMiddle };
 		rects.push_back(rect);
+		PolySize polysize = { sizeX, sizeY, sizeR, shortSideMiddle, longSideMiddle };
 		line_sizes.push_back(polysize);
 
 	}
-	//drawContours(mask, contours_poly, index, Scalar(255), CV_FILLED);
-	imshow("Smaller Rect", out);
-
-
-	//Mat region;
-	//Mat imageROI;
-	//m_frame.copyTo(imageROI, mask);
-
 }
 
 void LineDetector::classification() {
