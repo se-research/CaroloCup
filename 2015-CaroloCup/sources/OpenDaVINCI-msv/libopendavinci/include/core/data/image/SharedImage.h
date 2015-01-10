@@ -123,6 +123,8 @@ namespace core {
                      */
                     void setBytesPerPixel(const uint32_t &bytesPerPixel);
 
+                    virtual uint32_t getSize() const;
+
                     virtual ostream& operator<<(ostream &out) const;
                     virtual istream& operator>>(istream &in);
 

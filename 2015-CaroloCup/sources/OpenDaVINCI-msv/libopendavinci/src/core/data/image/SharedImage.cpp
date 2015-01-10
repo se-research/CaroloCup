@@ -67,6 +67,10 @@ namespace core {
                 m_bytesPerPixel = bytesPerPixel;
             }
 
+            uint32_t SharedImage::getSize() const {
+                return getWidth() * getHeight() * getBytesPerPixel();
+            }
+
             ostream& SharedImage::operator<<(ostream &out) const {
                 // Serializer super class.
                 SharedData::operator<<(out);

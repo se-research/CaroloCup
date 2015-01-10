@@ -26,8 +26,7 @@ namespace core {
          * // Server:
          * SharedPointer<wrapper::SharedMemory> memory = wrapper::SharedMemoryFactory::getInstance().createSharedMemory("NameOfSharedMemory", 1024);
          * if (memory->isValid()) {
-         *     SharedData sd;
-         *     sd.setName(memory->getName());
+         *     SharedData sd(memory->getName(), memory->getSize());
          *
          *     Container c(Container::SHARED_DATA, sd);
          *     getConference().send(c);
@@ -58,6 +57,14 @@ namespace core {
         class OPENDAVINCI_API SharedData : public SerializableData {
             public:
                 SharedData();
+
+                /**
+                 * Constructor.
+                 *
+                 * @param name Name of the shared memory segment.
+                 * @param size Size of the shared memory segment.
+                 */
+                SharedData(const string &name, const uint32_t &size);
 
                 virtual ~SharedData();
 
@@ -90,6 +97,20 @@ namespace core {
                  */
                 void setName(const string &name);
 
+                /**
+                 * This method returns the size of the shared data.
+                 *
+                 * @return Size for the shared data.
+                 */
+                virtual uint32_t getSize() const;
+
+                /**
+                 * This method sets the size of the shared data.
+                 *
+                 * @param s Size for the shared data.
+                 */
+                void setSize(const uint32_t &s);
+
                 virtual ostream& operator<<(ostream &out) const;
                 virtual istream& operator>>(istream &in);
 
@@ -97,6 +118,7 @@ namespace core {
 
             private:
                 string m_name;
+                uint32_t m_size;
         };
 
     }

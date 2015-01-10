@@ -16,16 +16,23 @@ namespace core {
         using namespace std;
         using namespace base;
 
-        SharedData::SharedData() : m_name() {}
+        SharedData::SharedData() : m_name(), m_size(0) {}
 
         SharedData::SharedData(const SharedData &obj) :
                 SerializableData(),
-                m_name(obj.m_name) {}
+                m_name(obj.m_name),
+                m_size(obj.m_size) {}
+
+        SharedData::SharedData(const string &name, const uint32_t &size) :
+                SerializableData(),
+                m_name(name),
+                m_size(size) {}
 
         SharedData::~SharedData() {}
 
         SharedData& SharedData::operator=(const SharedData &obj) {
             m_name = obj.m_name;
+            m_size = obj.m_size;
 
             return (*this);
         }
@@ -38,9 +45,17 @@ namespace core {
             m_name = name;
         }
 
+        uint32_t SharedData::getSize() const {
+            return m_size;
+        }
+
+        void SharedData::setSize(const uint32_t &s) {
+            m_size = s;
+        }
+
         const string SharedData::toString() const {
             stringstream s;
-            s << m_name;
+            s << m_name << " " << m_size;
             return s.str();
         }
 
@@ -52,6 +67,9 @@ namespace core {
             s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL4('n', 'a', 'm', 'e') >::RESULT,
                     m_name);
 
+            s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL6('l', 'e', 'n', 'g', 't', 'h') >::RESULT,
+                    m_size);
+
             return out;
         }
 
@@ -62,6 +80,9 @@ namespace core {
 
             d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL4('n', 'a', 'm', 'e') >::RESULT,
                    m_name);
+
+            d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL6('l', 'e', 'n', 'g', 't', 'h') >::RESULT,
+                   m_size);
 
             return in;
         }

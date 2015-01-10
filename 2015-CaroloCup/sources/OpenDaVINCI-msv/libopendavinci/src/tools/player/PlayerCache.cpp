@@ -10,6 +10,7 @@
 #include "core/base/Lock.h"
 #include "core/base/Thread.h"
 
+#include "core/data/SharedData.h"
 #include "core/data/image/SharedImage.h"
 #include "core/wrapper/SharedMemoryFactory.h"
 
@@ -225,10 +226,16 @@ namespace tools {
                     core::data::image::SharedImage si = header.getData<core::data::image::SharedImage>();
 
                     nameOfSharedMemory = si.getName();
-                    size = si.getWidth() * si.getHeight() * si.getBytesPerPixel();
+                    size = si.getSize();
+                }
+                else if (header.getDataType() == Container::SHARED_DATA) {
+                    core::data::SharedData sd = header.getData<core::data::SharedData>();
+
+                    nameOfSharedMemory = sd.getName();
+                    size = sd.getSize();
                 }
 
-                // Check, whether a shared memory was already created for this SharedImage; otherwise, create it and save it for later.
+                // Check, whether a shared memory was already created for this SharedImage or SharedData; otherwise, create it and save it for later.
                 map<string, SharedPointer<core::wrapper::SharedMemory> >::iterator it = m_sharedPointers.find(nameOfSharedMemory);
                 if (it == m_sharedPointers.end()) {
                     SharedPointer<core::wrapper::SharedMemory> sp = core::wrapper::SharedMemoryFactory::createSharedMemory(nameOfSharedMemory, size);
@@ -275,6 +282,10 @@ namespace tools {
                 if (container.getDataType() == Container::SHARED_IMAGE) {
                     core::data::image::SharedImage si = container.getData<core::data::image::SharedImage>();
                     nameOfSharedMemory = si.getName();
+                }
+                else if (container.getDataType() == Container::SHARED_DATA) {
+                    core::data::SharedData sd = container.getData<core::data::SharedData>();
+                    nameOfSharedMemory = sd.getName();
                 }
 
                 // Check, if a shared memory exists for this container.

@@ -124,6 +124,11 @@ namespace tools {
                 m_playerCache->copyMemoryToSharedMemory(m_actual);
             }
 
+            // If the actual container is a SHARED_IMAGE then copy next entry into the shared memory before sending the actual container.
+            if (m_actual.getDataType() == Container::SHARED_DATA) {
+                m_playerCache->copyMemoryToSharedMemory(m_actual);
+            }
+
             // Return the m_actual container as retVal;
             retVal = m_actual;
 

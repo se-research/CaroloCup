@@ -46,6 +46,7 @@ namespace recintegrity {
             int32_t oldPercentage = -1;
             bool fileNotCorrupt = true;
             uint32_t numberOfSharedImages = 0;
+            uint32_t numberOfSharedData = 0;
             while (in.good()) {
                 Container c;
                 in >> c;
@@ -59,11 +60,20 @@ namespace recintegrity {
                     if (c.getDataType() == Container::SHARED_IMAGE) {
                         core::data::image::SharedImage si = c.getData<core::data::image::SharedImage>();
 
-                        uint32_t lengthToSkip = si.getWidth() * si.getHeight() * si.getBytesPerPixel();
+                        uint32_t lengthToSkip = si.getSize();
 
                         in.seekg(currPos + lengthToSkip);
                         cout << "  Found SHARED_IMAGE '" << si.getName() << "' (" << lengthToSkip << " bytes)" << endl;
                         numberOfSharedImages++;
+                    }
+                    else if (c.getDataType() == Container::SHARED_DATA) {
+                        core::data::SharedData sd = c.getData<core::data::SharedData>();
+
+                        uint32_t lengthToSkip = sd.getSize();
+
+                        in.seekg(currPos + lengthToSkip);
+                        cout << "  Found SHARED_DATA '" << sd.getName() << "' (" << lengthToSkip << " bytes)" << endl;
+                        numberOfSharedData++;
                     }
 
                     float percentage = (float)(currPos*100.0)/(float)length;
@@ -74,7 +84,7 @@ namespace recintegrity {
                     }
                 }
             }
-            cout << "Input file is " << ((fileNotCorrupt) ? "not " : "") << "corrupt and contains " << numberOfSharedImages << " shared images." << endl;
+            cout << "Input file is " << ((fileNotCorrupt) ? "not " : "") << "corrupt, contains " << numberOfSharedImages << " shared images and " << numberOfSharedData << " shared data segments." << endl;
         }
 
         return ModuleState::OKAY;

@@ -10,6 +10,7 @@
 #include "cxxtest/TestSuite.h"
 
 #include "core/SharedPointer.h"
+#include "core/data/SharedData.h"
 #include "core/wrapper/SharedMemory.h"
 #include "core/wrapper/SharedMemoryFactory.h"
 
@@ -17,6 +18,44 @@ using namespace std;
 
 class SharedMemoryTest : public CxxTest::TestSuite {
     public:
+        void testSharedData1() {
+            core::data::SharedData sd;
+
+            stringstream sstr;
+            sstr << sd;
+
+            core::data::SharedData sd2;
+            sstr >> sd2;
+            TS_ASSERT(sd2.getName() == "");
+            TS_ASSERT(sd2.getSize() == 0);
+        }
+
+        void testSharedData2() {
+            core::data::SharedData sd("abc", 10);
+
+            stringstream sstr;
+            sstr << sd;
+
+            core::data::SharedData sd2;
+            sstr >> sd2;
+            TS_ASSERT(sd2.getName() == "abc");
+            TS_ASSERT(sd2.getSize() == 10);
+        }
+
+        void testSharedData3() {
+            core::data::SharedData sd;
+            sd.setName("def");
+            sd.setSize(22);
+
+            stringstream sstr;
+            sstr << sd;
+
+            core::data::SharedData sd2;
+            sstr >> sd2;
+            TS_ASSERT(sd2.getName() == "def");
+            TS_ASSERT(sd2.getSize() == 22);
+        }
+
         void testSharedMemory() {
             core::SharedPointer<core::wrapper::SharedMemory> memClient;
 

@@ -16,6 +16,7 @@
 
 #include "tools/player/Player.h"
 #include "tools/recorder/Recorder.h"
+#include "tools/splitter/Splitter.h"
 
 #include "Split.h"
 
@@ -27,6 +28,7 @@ namespace split {
     using namespace core::io;
     using namespace tools::player;
     using namespace tools::recorder;
+    using namespace tools::splitter;
 
     Split::Split(const int32_t &argc, char **argv) :
         ConferenceClientModule(argc, argv, "split"),
@@ -64,21 +66,10 @@ namespace split {
     }
 
     ModuleState::MODULE_EXITCODE Split::body() {
+        ModuleState::MODULE_EXITCODE retVal = ModuleState::OKAY;
+
         // Size of the memory buffer.
         const uint32_t MEMORY_SEGMENT_SIZE = getKeyValueConfiguration().getValue<uint32_t>("global.buffer.memorySegmentSize");
-
-        // Number of memory segments can be set to a fixed value.
-        const uint32_t NUMBER_OF_SEGMENTS = 3;
-
-        // Stop playback at EOF.
-        const bool AUTO_REWIND = false;
-
-        // Compose URL for source.
-        stringstream playbackURL;
-        playbackURL << "file://" << m_source;
-
-        // Construct player.
-        Player player(playbackURL.str(), AUTO_REWIND, MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS);
 
         // Split the range parameter.
         vector<string> rangeTokens = core::StringToolbox::split(m_range, '-');
@@ -93,34 +84,16 @@ namespace split {
             s_end << rangeTokens.at(1);
             s_end >> end;
 
-            // Compose URL for storing containers.
-            stringstream recordingURL;
-            recordingURL << "file://" << m_source << "_" << start << "-" << end << ".rec";
-
-            // Construct recorder.
-            Recorder recorder(recordingURL.str(), MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS);
-
-            // The next container to be sent.
-            Container nextContainerToBeSent;
-
-            uint32_t containerCounter = 0;
-
-            // The main processing loop.
-            while ((getModuleState() == ModuleState::RUNNING) && player.hasMoreData() && (containerCounter <= end)) {
-                // Get container to be sent.
-                nextContainerToBeSent = player.getNextContainerToBeSent();
-
-                if (containerCounter >= start && containerCounter <= end) {
-                    cout << "Processing container " << containerCounter << " of type '" << nextContainerToBeSent.toString() << "'";
-                    recorder.store(nextContainerToBeSent);
-                    cout << "." << endl;
-                }
-
-                containerCounter++;
+            if (start < end) {
+                Splitter s;
+                s.process(m_source, MEMORY_SEGMENT_SIZE, start, end);
+            }
+            else {
+                retVal = ModuleState::SERIOUS_ERROR;
             }
         }
 
-        return ModuleState::OKAY;
+        return retVal;
     }
 
 } // split
