@@ -18,6 +18,8 @@
 #include "core/io/StreamFactory.h"
 #include "core/io/URL.h"
 
+#include "tools/splitter/Splitter.h"
+
 #include "plugins/player/PlayerWidget.h"
 
 namespace cockpit {
@@ -29,6 +31,7 @@ namespace cockpit {
             using namespace std;
             using namespace core::data;
             using namespace tools::player;
+            using namespace tools::splitter;
 
             PlayerWidget::PlayerWidget(const PlugIn &/*plugIn*/, const core::base::KeyValueConfiguration &kvc, core::io::ContainerConference &conf, QWidget *prnt) :
                 QWidget(prnt),
@@ -45,7 +48,11 @@ namespace cockpit {
                 m_containerCounter(0),
                 m_containerCounterTotal(0),
                 m_timeScaleFactor(1),
-                m_player(NULL) {
+                m_processBtn(NULL),
+                m_start(NULL),
+                m_end(NULL),
+                m_player(NULL),
+                m_fileName("") {
                 // Set size.
                 setMinimumSize(400, 150);
 
@@ -100,12 +107,30 @@ namespace cockpit {
                 operations->addLayout(timeScale);
                 operations->addWidget(m_autoRewind);
 
+                // Splitting file.
+                m_processBtn = new QPushButton("Split", this);
+                m_processBtn->setEnabled(false);
+                QObject::connect(m_processBtn, SIGNAL(clicked()), this, SLOT(process()));
+
+                QLabel *lblStart = new QLabel(tr("Start container:"));
+                QLabel *lblEnd = new QLabel(tr("End container:"));
+                m_start = new QLineEdit();
+                m_end = new QLineEdit();
+
+                QHBoxLayout *splitting = new QHBoxLayout();
+                splitting->addWidget(m_processBtn);
+                splitting->addWidget(lblStart);
+                splitting->addWidget(m_start);
+                splitting->addWidget(lblEnd);
+                splitting->addWidget(m_end);
+
                 // Final layout.
                 QVBoxLayout *mainLayout = new QVBoxLayout(this);
                 mainLayout->addLayout(fileOperations);
                 mainLayout->addWidget(m_desc);
                 mainLayout->addWidget(m_containerCounterDesc);
                 mainLayout->addLayout(operations);
+                mainLayout->addLayout(splitting);
 
                 setLayout(mainLayout);
             }
@@ -119,6 +144,7 @@ namespace cockpit {
                 m_pauseBtn->setEnabled(true);
                 m_rewindBtn->setEnabled(false);
                 m_stepBtn->setEnabled(false);
+                m_processBtn->setEnabled(false);
 
                 sendNextContainer();
             }
@@ -128,6 +154,7 @@ namespace cockpit {
                 m_pauseBtn->setEnabled(false);
                 m_stepBtn->setEnabled(true);
                 m_rewindBtn->setEnabled(true);
+                m_processBtn->setEnabled(true);
             }
 
             void PlayerWidget::rewind() {
@@ -139,6 +166,7 @@ namespace cockpit {
                 m_pauseBtn->setEnabled(false);
                 m_stepBtn->setEnabled(true);
                 m_rewindBtn->setEnabled(false);
+                m_processBtn->setEnabled(true);
 
                 stringstream sstr;
                 sstr << m_containerCounter << "/" << m_containerCounterTotal << " container(s) replayed.";
@@ -198,14 +226,49 @@ namespace cockpit {
                 }
             }
 
-            void PlayerWidget::loadFile() {
-                string fn = QFileDialog::getOpenFileName(this, tr("Open previous recording file"), "", tr("Recording files (*.rec)")).toStdString();
+            void PlayerWidget::process() {
+                if (!m_fileName.empty()) {
+                    uint32_t start = 0, end = 0;
+                    stringstream s_start;
+                    s_start << m_start->text().toStdString();
+                    s_start >> start;
 
-                if (!fn.empty()) {
+                    stringstream s_end;
+                    s_end << m_end->text().toStdString();
+                    s_end >> end;
+
+                    if (start < end) {
+                        // Size of the memory buffer.
+                        const uint32_t MEMORY_SEGMENT_SIZE = m_kvc.getValue<uint32_t>("global.buffer.memorySegmentSize");
+
+                        Splitter s;
+                        s.process(m_fileName, MEMORY_SEGMENT_SIZE, start, end);
+                        
+                        QMessageBox msgBox;
+                        msgBox.setText("Current file split completed.");
+                        msgBox.exec();
+                    }
+                    else {
+                        QMessageBox msgBox;
+                        msgBox.setText("Invalid range specified.");
+                        msgBox.exec();
+                    }
+                }
+                else {
+                    QMessageBox msgBox;
+                    msgBox.setText("No recording specified.");
+                    msgBox.exec();
+                }
+            }
+
+            void PlayerWidget::loadFile() {
+                m_fileName = QFileDialog::getOpenFileName(this, tr("Open previous recording file"), "", tr("Recording files (*.rec)")).toStdString();
+
+                if (!m_fileName.empty()) {
                     OPENDAVINCI_CORE_DELETE_POINTER(m_player);
 
                     stringstream s;
-                    s << "file://" << fn;
+                    s << "file://" << m_fileName;
                     core::io::URL url(s.str());
 
                     m_desc->setText(url.toString().c_str());

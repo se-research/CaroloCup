@@ -411,17 +411,27 @@
 <context>
     <name>cockpit::plugins::player::PlayerWidget</name>
     <message>
-        <location filename="src/plugins/player/PlayerWidget.cpp" line="80"/>
+        <location filename="src/plugins/player/PlayerWidget.cpp" line="87"/>
         <source>Time scale:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/plugins/player/PlayerWidget.cpp" line="202"/>
+        <location filename="src/plugins/player/PlayerWidget.cpp" line="115"/>
+        <source>Start container:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/player/PlayerWidget.cpp" line="116"/>
+        <source>End container:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/plugins/player/PlayerWidget.cpp" line="265"/>
         <source>Open previous recording file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/plugins/player/PlayerWidget.cpp" line="202"/>
+        <location filename="src/plugins/player/PlayerWidget.cpp" line="265"/>
         <source>Recording files (*.rec)</source>
         <translation type="unfinished"></translation>
     </message>

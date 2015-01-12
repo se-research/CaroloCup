@@ -43,8 +43,9 @@
 #include <Qt/qmenubar.h>
 #include <Qt/qmessagebox.h>
 #include <Qt/qlabel.h>
-#include <Qt/qlocale.h>
+#include <Qt/qlineedit.h>
 #include <Qt/qlistwidget.h>
+#include <Qt/qlocale.h>
 #include <Qt/qpainter.h>
 #include <Qt/qprogressbar.h>
 #include <Qt/qpushbutton.h>

@@ -80,6 +80,8 @@ namespace cockpit {
 
                     void sendNextContainer();
 
+                    void process();
+
                 private:
                     const core::base::KeyValueConfiguration &m_kvc;
                     core::io::ContainerConference &m_conference;
@@ -96,7 +98,13 @@ namespace cockpit {
                     int32_t m_containerCounterTotal;
                     double m_timeScaleFactor;
 
+                    QPushButton *m_processBtn;
+                    QLineEdit *m_start;
+                    QLineEdit *m_end;
+
                     tools::player::Player *m_player;
+
+                    string m_fileName;
             };
 
         }

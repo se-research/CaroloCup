@@ -387,25 +387,21 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 			log(logs.str());
 		}
 
-		//TODO: add control for brake light & indicators
-		if (previousValues.brakeLight != currentValues.brakeLight) {
-			if (currentValues.brakeLight) {
-			} else {
-			}
-			previousValues.brakeLight = currentValues.brakeLight;
-		}
-		if ((previousValues.leftFlash != currentValues.leftFlash)
-				&& currentValues.leftFlash) {
-			m_protocol.setIndicatorsLeft();
-		} else if ((previousValues.rightFlash != currentValues.rightFlash)
-				&& currentValues.rightFlash) {
-			m_protocol.setIndicatorsRight();
-		} if (((previousValues.rightFlash != currentValues.rightFlash)
-				|| (previousValues.leftFlash != currentValues.leftFlash))&&!(currentValues.rightFlash || currentValues.leftFlash)) {
+		if((previousValues.leftFlash != currentValues.leftFlash) || (previousValues.rightFlash != currentValues.rightFlash))
+		{
 			m_protocol.setIndicatorsStop();
+			if(currentValues.rightFlash)
+			{
+				m_protocol.setIndicatorsRight();
+			}
+			if(currentValues.leftFlash)
+			{
+				m_protocol.setIndicatorsLeft();
+			}
+			previousValues.leftFlash = currentValues.leftFlash;
+			previousValues.rightFlash = currentValues.rightFlash;
 		}
 		dataFound=false;
-		//TODO: validate this indicator logic
 	}
 
 	cout << "Proxy: Captured " << captureCounter << " frames." << endl;
