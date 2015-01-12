@@ -52,8 +52,9 @@ namespace tools {
                  * @param autoRewind True if the file should be rewind at EOF.
                  * @param memorySegmentSize Size of the memory segment to be used for buffering.
                  * @param numberOfMemorySegments Number of memory segments to be used for buffering.
+                 * @param threading If set to true, player will load new containers from the file in background.
                  */
-                Player(const core::io::URL &url, const bool &autoRewind, const uint32_t &memorySegmentSize, const uint32_t &numberOfMemorySegments);
+                Player(const core::io::URL &url, const bool &autoRewind, const uint32_t &memorySegmentSize, const uint32_t &numberOfMemorySegments, const bool &threading);
 
                 virtual ~Player();
 
@@ -84,6 +85,7 @@ namespace tools {
                 bool hasMoreData() const;
 
             private:
+                bool m_threading;
                 bool m_autoRewind;
 
                 istream *m_inFile;

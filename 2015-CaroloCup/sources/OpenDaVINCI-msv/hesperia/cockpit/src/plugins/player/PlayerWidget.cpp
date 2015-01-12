@@ -279,8 +279,10 @@ namespace cockpit {
                     // Number of memory segments.
                     const uint32_t NUMBER_OF_SEGMENTS = m_kvc.getValue<uint32_t>("global.buffer.numberOfMemorySegments");
 
+                    // We use the asychronous player to allow data caching in background.
+                    const bool THREADING = false;
                     const bool AUTO_REWIND = false;
-                    m_player = new Player(url, AUTO_REWIND, MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS);
+                    m_player = new Player(url, AUTO_REWIND, MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS, THREADING);
 
                     m_playBtn->setEnabled(true);
                     m_pauseBtn->setEnabled(false);

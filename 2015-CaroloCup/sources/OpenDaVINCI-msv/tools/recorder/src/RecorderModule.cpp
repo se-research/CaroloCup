@@ -46,9 +46,11 @@ namespace recorder {
         const uint32_t MEMORY_SEGMENT_SIZE = getKeyValueConfiguration().getValue<uint32_t>("global.buffer.memorySegmentSize");
         // Number of memory segments.
         const uint32_t NUMBER_OF_SEGMENTS = getKeyValueConfiguration().getValue<uint32_t>("global.buffer.numberOfMemorySegments");
+        // Run recorder in asynchronous mode to allow real-time recording in background.
+        const bool THREADING = true;
 
         // Actual "recording" interface.
-        Recorder r(recorderOutputURL, MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS);
+        Recorder r(recorderOutputURL, MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS, THREADING);
 
         // Connect recorder's FIFOQueue to record all containers except for shared images/shared data.
         addDataStoreFor(r.getFIFO());

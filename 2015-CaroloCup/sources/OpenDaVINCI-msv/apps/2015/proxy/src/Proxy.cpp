@@ -86,9 +86,10 @@ void Proxy::setUp() {
 		// Number of memory segments.
 		const uint32_t NUMBER_OF_SEGMENTS = getKeyValueConfiguration().getValue<
 				uint32_t>("global.buffer.numberOfMemorySegments");
-
-		m_recorder = new Recorder(recordingURL.str(), MEMORY_SEGMENT_SIZE,
-				NUMBER_OF_SEGMENTS);
+                // Run recorder in asynchronous mode to allow real-time recording in background.
+                const bool THREADING = true;
+ 
+                m_recorder = new Recorder(recordingURL.str(), MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS, THREADING);
 	}
 
 	// Create the camera grabber.

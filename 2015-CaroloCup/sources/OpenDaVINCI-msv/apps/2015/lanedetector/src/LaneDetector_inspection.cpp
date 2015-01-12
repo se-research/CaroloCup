@@ -308,7 +308,6 @@ namespace msv {
 
         // Lane-detector can also directly read the data from file. This might be interesting to inspect the algorithm step-wisely
         core::io::URL url(kv.getValue<string>("lanedetector.inspect_rec"));
-	
 
         // Size of the memory buffer.
         const uint32_t MEMORY_SEGMENT_SIZE = kv.getValue<uint32_t>("global.buffer.memorySegmentSize");
@@ -319,7 +318,10 @@ namespace msv {
         // If AUTO_REWIND is true, the file will be played endlessly.
         const bool AUTO_REWIND = false;
 
-        player = new Player(url, AUTO_REWIND, MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS);
+        // Use asynchronous player.
+        const bool THREADING = true;
+
+        player = new Player(url, AUTO_REWIND, MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS, THREADING);
 
 
         // "Working horse."

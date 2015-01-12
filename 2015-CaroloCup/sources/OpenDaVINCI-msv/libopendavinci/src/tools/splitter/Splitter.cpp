@@ -28,6 +28,9 @@ namespace tools {
         Splitter::~Splitter() {}
 
         void Splitter::process(const string &source, const uint32_t &memorySegmentSize, const uint32_t &start, const uint32_t &end) {
+            // Run player and recorder in synchronous mode.
+            const bool THREADING = false;
+
             // Number of memory segments can be set to a fixed value.
             const uint32_t NUMBER_OF_SEGMENTS = 3;
 
@@ -39,14 +42,14 @@ namespace tools {
             const bool AUTO_REWIND = false;
 
             // Construct player.
-            Player player(playbackURL.str(), AUTO_REWIND, memorySegmentSize, NUMBER_OF_SEGMENTS);
+            Player player(playbackURL.str(), AUTO_REWIND, memorySegmentSize, NUMBER_OF_SEGMENTS, THREADING);
 
             // Compose URL for storing containers.
             stringstream recordingURL;
             recordingURL << "file://" << source << "_" << start << "-" << end << ".rec";
 
             // Construct recorder.
-            Recorder recorder(recordingURL.str(), memorySegmentSize, NUMBER_OF_SEGMENTS);
+            Recorder recorder(recordingURL.str(), memorySegmentSize, NUMBER_OF_SEGMENTS, THREADING);
 
             // The next container to be sent.
             Container nextContainerToBeSent;
@@ -65,9 +68,6 @@ namespace tools {
                 }
 
                 containerCounter++;
-
-                // Allow scheduling in player and recorder as they have background threads.
-                Thread::usleep(1000 * 10);
             }
         }
 

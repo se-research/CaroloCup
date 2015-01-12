@@ -49,8 +49,13 @@ namespace tools {
                  * @param url URL of the resource to be used for writing containers to.
                  * @param memorySegmentSize Size of a memory segment for storing shared memory data (like shared images).
                  * @param numberOfSegments Number of segments to be used.
+                 * @param threading If true recorder is using a background thread to dump shared memory data.
+                 *                  If set to true recorder can be used in real-time required scenarios where
+                 *                  it is embedded in user supplied apps; however, there is a risk that if the
+                 *                  queue size (numberOfSegments) is chosen too small or the low-level disk I/O
+                 *                  containers of type SharedImage or SharedMemory are dropped. 
                  */
-                Recorder(const string &url, const uint32_t &memorySegmentSize, const uint32_t &numberOfSegments);
+                Recorder(const string &url, const uint32_t &memorySegmentSize, const uint32_t &numberOfSegments, const bool &threading);
 
                 virtual ~Recorder();
 
