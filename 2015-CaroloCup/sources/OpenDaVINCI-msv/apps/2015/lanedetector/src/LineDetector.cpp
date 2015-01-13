@@ -26,6 +26,7 @@ int cntDash = 0;
 int cntSolid = 0;
 vector<CustomLine> dashLines;
 vector<CustomLine> solidLines;
+vector<CustomLine> global_dashedCurve;
 int h, w, offset;
 int roadSize = ROAD_SIZE;
 int roadAngle = 91;
@@ -158,6 +159,36 @@ void LineDetector::findLines(cv::Mat &outputImg)
     estimateLines(&ltu);
 
     calculateGoalLine(&ltu);
+
+    //testing of intersectionPoint:
+
+    // cv::Mat out = m_frame.clone();
+
+    // cout << "DashedCurve " << endl;
+    // for (int i = 1; i < ltu.dashedCurve.size() + 1; i++)
+    //     {
+    //         cout << "line " << i - 1 << ": (" <<  ltu.dashedCurve[i - 1].p1 << "," << ltu.dashedCurve[i - 1].p2 << ")" << endl;
+    //         line(out, ltu.dashedCurve[i - 1].p1, ltu.dashedCurve[i - 1].p2, Scalar(255, 0, 0));
+    //     }
+    // cout << "DashedCurve end." << endl;
+    // imshow("Dashed curve", out);
+
+    // std::vector<CustomLine> ll = ltu.dashedCurve;
+    // std::vector<Point> trajectoryPoints = trajectorySwitchingPoints(ltu.dashedCurve);
+    // std::vector<CustomLine> res = findCurve(ltu.dashedCurve);
+
+    // cv::Mat out2 = m_frame.clone();
+    // cout << "--------------------" << endl << " trajectory points: ";
+    // for (int i = 1; i < trajectoryPoints.size(); i++)
+    //     {
+    //         cout << "(" << trajectoryPoints[i - 1] << "," << trajectoryPoints[i] << ") ";
+    //         polylines(out2, trajectoryPoints, false, Scalar(255, 0, 0), 1, CV_AA);
+    //     }
+    // cout << endl;
+    // imshow("Dashed curve trajectory", out2);
+
+    //end testing
+
 }
 
 // The "body" functions follow in call order
@@ -227,7 +258,7 @@ void LineDetector::getRectangles()
                             longSideMiddle.y = (rect_points[j].y
                                                 + rect_points[(j + 1) % 4].y) / 2;
                         }
-                        line(out, rect_points[j], rect_points[(j+1)%4], Scalar(255,0,0));
+                    line(out, rect_points[j], rect_points[(j + 1) % 4], Scalar(255, 0, 0));
                 }
             if (sizeX > sizeY)
                 {
@@ -240,94 +271,108 @@ void LineDetector::getRectangles()
                     shortSideMiddle = temp;
                 }
 
-			if(sizeX*sizeY> m_config.maxArea * 10000){
-				splitBigRectangles(i);
-			}else{
-				rects.push_back(rect);
-				PolySize polysize = { sizeX, sizeY, sizeR, shortSideMiddle, longSideMiddle };
-				line_sizes.push_back(polysize);
-			}
+            if (sizeX * sizeY > m_config.maxArea * 10000)
+                {
+                    splitBigRectangles(i);
+                }
+            else
+                {
+                    rects.push_back(rect);
+                    PolySize polysize = { sizeX, sizeY, sizeR, shortSideMiddle, longSideMiddle };
+                    line_sizes.push_back(polysize);
+                }
         }
-        imshow("Rect", out);
+    imshow("Rect", out);
 }
 
-void LineDetector::splitBigRectangles(int index){
+void LineDetector::splitBigRectangles(int index)
+{
 
-	// Get the bounding rectangle
-	Rect roi = boundingRect(contours_poly[index]);
-	//vector<Point> contours1, contours2;
-	vector<Point> contours[2];
-	cv::Mat out = m_frame.clone();
+    // Get the bounding rectangle
+    Rect roi = boundingRect(contours_poly[index]);
+    //vector<Point> contours1, contours2;
+    vector<Point> contours[2];
+    cv::Mat out = m_frame.clone();
 
-	// Create masks for each contour to mask out that region from image.
-	//Mat mask = Mat::zeros(m_frame.size(), CV_8UC1);
-	//drawContours(mask, contours_poly, index, Scalar(255), CV_FILLED); // This is a OpenCV function
+    // Create masks for each contour to mask out that region from image.
+    //Mat mask = Mat::zeros(m_frame.size(), CV_8UC1);
+    //drawContours(mask, contours_poly, index, Scalar(255), CV_FILLED); // This is a OpenCV function
 
-	for(unsigned int i = 0; i < contours_poly[index].size(); i++ ){
-		Point p = contours_poly[index][i];
-		// Separate the points into two groups
-		if(p.x < (roi.x+roi.width/2)){
-			contours[0].push_back(p);
-		}else{
-			contours[1].push_back(p);
-		}
-	}
+    for (unsigned int i = 0; i < contours_poly[index].size(); i++ )
+        {
+            Point p = contours_poly[index][i];
+            // Separate the points into two groups
+            if (p.x < (roi.x + roi.width / 2))
+                {
+                    contours[0].push_back(p);
+                }
+            else
+                {
+                    contours[1].push_back(p);
+                }
+        }
 
-	for(unsigned int i = 0; i < 2; i++){
-		vector<Point> cont = contours[i];
-		RotatedRect rect = minAreaRect(cont);
-		Point2f rect_points[4];
-		rect.points(rect_points);
+    for (unsigned int i = 0; i < 2; i++)
+        {
+            vector<Point> cont = contours[i];
+            RotatedRect rect = minAreaRect(cont);
+            Point2f rect_points[4];
+            rect.points(rect_points);
 
-		int sizeX = 0, sizeY = 0, sizeR = 0;
-		Point shortSideMiddle;
-		Point longSideMiddle;
-		// Find rect sizes
-		for (int j = 0; j < 4; j++) {
-			//cout << "Point [x,y] = [" << rect_points[j].x << "," << rect_points[j].y << "]" << endl;
-			sizeR = cv::sqrt(
-					cv::pow((rect_points[j].x - rect_points[(j + 1) % 4].x), 2)
-							+ cv::pow(
-									(rect_points[j].y
-											- rect_points[(j + 1) % 4].y), 2));
-			//cout << "Size:" << sizeR << endl;
-			if (sizeX == 0) {
-				sizeX = sizeR;
-				shortSideMiddle.x = (rect_points[j].x
-						+ rect_points[(j + 1) % 4].x) / 2;
-				shortSideMiddle.y = (rect_points[j].y
-						+ rect_points[(j + 1) % 4].y) / 2;
-			} else if (sizeY == 0 && sizeR != sizeX) {
-				sizeY = sizeR;
-				longSideMiddle.x = (rect_points[j].x
-						+ rect_points[(j + 1) % 4].x) / 2;
-				longSideMiddle.y = (rect_points[j].y
-						+ rect_points[(j + 1) % 4].y) / 2;
-			}
-		line(out, rect_points[j], rect_points[(j+1)%4], Scalar(255,0,0));
-		}
-		if (sizeX > sizeY) {
-			Point2f temp;
-			sizeR = sizeX;
-			sizeX = sizeY;
-			sizeY = sizeR;
-			temp = longSideMiddle;
-			longSideMiddle = shortSideMiddle;
-			shortSideMiddle = temp;
-		}
+            int sizeX = 0, sizeY = 0, sizeR = 0;
+            Point shortSideMiddle;
+            Point longSideMiddle;
+            // Find rect sizes
+            for (int j = 0; j < 4; j++)
+                {
+                    //cout << "Point [x,y] = [" << rect_points[j].x << "," << rect_points[j].y << "]" << endl;
+                    sizeR = cv::sqrt(
+                                cv::pow((rect_points[j].x - rect_points[(j + 1) % 4].x), 2)
+                                + cv::pow(
+                                    (rect_points[j].y
+                                     - rect_points[(j + 1) % 4].y), 2));
+                    //cout << "Size:" << sizeR << endl;
+                    if (sizeX == 0)
+                        {
+                            sizeX = sizeR;
+                            shortSideMiddle.x = (rect_points[j].x
+                                                 + rect_points[(j + 1) % 4].x) / 2;
+                            shortSideMiddle.y = (rect_points[j].y
+                                                 + rect_points[(j + 1) % 4].y) / 2;
+                        }
+                    else if (sizeY == 0 && sizeR != sizeX)
+                        {
+                            sizeY = sizeR;
+                            longSideMiddle.x = (rect_points[j].x
+                                                + rect_points[(j + 1) % 4].x) / 2;
+                            longSideMiddle.y = (rect_points[j].y
+                                                + rect_points[(j + 1) % 4].y) / 2;
+                        }
+                    line(out, rect_points[j], rect_points[(j + 1) % 4], Scalar(255, 0, 0));
+                }
+            if (sizeX > sizeY)
+                {
+                    Point2f temp;
+                    sizeR = sizeX;
+                    sizeX = sizeY;
+                    sizeY = sizeR;
+                    temp = longSideMiddle;
+                    longSideMiddle = shortSideMiddle;
+                    shortSideMiddle = temp;
+                }
 
-		PolySize polysize = { sizeX, sizeY, sizeR, shortSideMiddle, longSideMiddle };
-		rects.push_back(rect);
-		line_sizes.push_back(polysize);
+            PolySize polysize = { sizeX, sizeY, sizeR, shortSideMiddle, longSideMiddle };
+            rects.push_back(rect);
+            line_sizes.push_back(polysize);
 
-	}
-	//drawContours(mask, contours_poly, index, Scalar(255), CV_FILLED);
-	imshow("Smaller Rect", out);
+        }
+    //drawContours(mask, contours_poly, index, Scalar(255), CV_FILLED);
+    imshow("Smaller Rect", out);
 
 
-	//Mat region;
-	//Mat imageROI;
-	//m_frame.copyTo(imageROI, mask);
+    //Mat region;
+    //Mat imageROI;
+    //m_frame.copyTo(imageROI, mask);
 }
 
 void LineDetector::classification()
@@ -636,6 +681,7 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
                                     cout << "p2(" << curves[i][j].p2.x << "," << curves[i][j].p2.y << ") " << endl;
                                 }
                         }
+                    global_dashedCurve = ltu->dashedCurve;
                     // Check if any remaining dashed lines not a part of a curve could be potential
                     // left or right lines.
                     if (ltu->dashedCurveFound)
@@ -882,9 +928,8 @@ void manageTrajectory(LinesToUse *ltu)
             else
                 {
                     // Use deafult cut points
-                    cutPoints.push_back((int)400);
-                    cutPoints.push_back((int)300);
-                    cutPoints.push_back((int)200);
+                    cutPoints.push_back((int)220);
+                    cutPoints.push_back((int)150);
                     cutPoints.push_back((int)100);
                 }
 
@@ -920,62 +965,37 @@ void manageTrajectory(LinesToUse *ltu)
         }
 
     // find the intersection points of the goal lines
-    std::vector<Point> trajectoryPoints;
+    std::vector<Point> switchPoints;
 
     for (int i = 1; i < goalLines.size() + 1; i++)
         {
             // find the intersection point between line i-1 and i
-            trajectoryPoints.push_back(intersectionPoint(goalLines[i - 1], goalLines[i]));
+            switchPoints.push_back(trajectorySwitchingPoints(goalLines[i - 1], goalLines[i]));
         }
 
-    // Convert the trajectory into bird view
-    for (int i = 0, i < trajectoryPoints.size(); i++)
-        {
-            trajectoryPoints[i] = convertToBirdsEyeView(trajectoryPoints[i]);
-        }
-
-    // Merge th
+    // For now we give the switchPoints and goalLines to driver
+    // TODO:
+    // Make a bspline curve to give instead of the goalLines
+    dataToDriver.switchPoints = switchPoints;
+    dataToDriver.goalLines = goalLines;
 }
 
-std::vector<Point> LineDetector::convertToBirdsEyeView(std::vector<Point> ps)
-{
-    //Convert the point to bird eye view
-    Mat m = getPerspectiveTransform(rect, dst);
-    warped = warpPerspective(ps, M, (maxWidth, maxHeight))
+// Use victors idea and do not transform to bird eye
+// std::vector<Point> LineDetector::convertToBirdsEyeView(std::vector<Point> ps)
+// {
+//     //Convert the point to bird eye view
+//     Mat m = getPerspectiveTransform(rect, dst);
+//     warped = warpPerspective(ps, M, (maxWidth, maxHeight))
 
-             return p;
-}
-Point LineDetector::intersectionPoint(CustomLine fst, CustomLine snd)
-{
-    Point retVal;
+//              return p;
+// }
 
-    // Get the line equation for first line
-    float da = tan(fst.slope * M_PI / 180);
-    float db = fst.p1.y - fst.p1.x * da;
-
-    // Get the line equation for second line
-    float a = tan(snd.slope * M_PI / 180);
-    float b = snd.p1.y - snd.p1.x * a;
-
-    //Calculate intersection point
-    if (fabs(da - a) > 0.001)
-        {
-            retVal.x = (b - db) / (da - a);
-        }
-    else
-        {
-            // Use some default value???
-        }
-    retVal.y = da * retVal.x + db;
-    return retVal;
-}
-
-// INFO 
+// INFO
 // This function is the "new" estimationLines used when deriving a trajectory.
 // Only provides data for right lane gaol line calculations.
 EstimationData LineDetector::estimateLines(CustomLine left, CustomLine dash, CustomLine right)
 {
-	int calcRoadAngle;
+    int calcRoadAngle;
     EstimationData = ed;
     ed.dashEstimated = false;
     ed.otherEstimated = false;
@@ -1060,18 +1080,18 @@ EstimationData LineDetector::estimateLines(CustomLine left, CustomLine dash, Cus
     return ed;
 }
 
-// INFO 
+// INFO
 // This function is the "new" calculateGoalLine used when deriving a trajectory
 // I want this very generic. given two lines it calculates a goalLine
 CustomLine LineDetector::calculateGoalLine(EstimationData* ed)
 {
-	CustomLine goalLine;
+    CustomLine goalLine;
     Point vp;
     Point goalP;
 
-	if (ed->foundGoal == false){
-		return goalLine;
-	}
+    if (ed->foundGoal == false){
+        return goalLine;
+    }
 
     // If any line is estimated, goalP.x is calculated differently
     bool linesEstimated = false;
@@ -1162,7 +1182,117 @@ CustomLine LineDetector::calculateGoalLine(EstimationData* ed)
         }
     //mylog.close();
     return goalLine;
-}*/
+}
+*/
+// This function is tested and working
+std::vector<Point> LineDetector::trajectorySwitchingPoints(std::vector<CustomLine> lines)
+{
+    cout << "__getTrajectoryPoints START" << endl;
+    std::vector<Point> points;
+
+    // If empty vector, return
+    if (lines.size() == 0)
+        {
+            cout << "__getTrajectoryPoints END" << endl;
+            return points;
+
+        }
+    // If one line in vector
+    else if (lines.size() == 1)
+        {
+            // Get line eq.
+            float a = tan(lines[0].slope * M_PI / 180);
+            float b = lines[0].p1.y - lines[0].p1.x * a;
+
+            Point down;
+            down.y = h;
+            down.x = (h - b) / a;
+            points.push_back(down);
+
+            // Find point where the line intersects with the top of the screen
+            Point up;
+            up.y = 0;
+            up.x = (0 - b) / a;
+            points.push_back(up);
+
+        }
+    // If more than one line in vector
+    else
+        {
+            for (int i = 0; i < lines.size() + 1; i++)
+                {
+                    Point p;
+
+                    // Find point where the line intersects with bottom of the frame
+                    if (i == 0)
+                        {
+                            // Get line eq.
+                            float a = tan(lines[i].slope * M_PI / 180);
+                            float b = lines[i].p1.y - lines[i].p1.x * a;
+
+                            p.y = h;
+                            p.x = (h - b) / a;
+                            points.push_back(p);
+                            cout << "fst point: " << p << endl;
+
+                            // Find point where the line intersects with the top of the screen
+                        }
+                    else if (i == lines.size())
+                        {
+                            // Get line eq.
+                            float a = tan(lines[i - 1].slope * M_PI / 180);
+                            float b = lines[i - 1].p1.y - lines[i - 1].p1.x * a;
+
+                            p.y = 0;
+                            p.x = (0 - b) / a;
+                            points.push_back(p);
+                            cout << "last point: " << p << endl;
+
+                            // Find point where the lines intersect
+                        }
+                    else
+                        {
+                            cout << "line1 " <<  lines[i - 1].p1 << "," << lines[i - 1].p2 << ")" << endl;
+                            cout << "line2 " <<  lines[i].p1 << "," << lines[i].p2 << ")" << endl;
+
+                            // Get the line equation for first line
+                            float da = tan(lines[i - 1].slope * M_PI / 180);
+                            float db = lines[i - 1].p1.y - lines[i - 1].p1.x * da;
+
+                            // Get the line equation for second line
+                            float a = tan(lines[i].slope * M_PI / 180);
+                            float b = lines[i].p1.y - lines[i].p1.x * a;
+
+                            //Calculate intersection point
+                            if (fabs(da - a) > 0.001)
+                                {
+                                    p.x = (b - db) / (da - a);
+                                }
+                            else
+                                {
+                                    // Use some default value???
+                                }
+                            p.y = da * p.x + db;
+
+                            // If lines do not intersect cleanly, use the goalLine start as switching point
+                            if (p.y < lines[i].p2.y)
+                                {
+                                    p.y = lines[i].p1.y;
+                                }
+                            points.push_back(p);
+                            cout << "point " << i << ": " << p << endl;
+                        }
+                    cout << "Points: " << endl;
+                    for (int i = 0; i < points.size(); i++)
+                        {
+                            cout << points[i] ;
+                        }
+                    cout << endl;
+                }
+        }
+    cout << "__getTrajectoryPoints END" << endl;
+    return points;
+}
 // The old estimateLines
 void LineDetector::estimateLines(LinesToUse *ltu)
 {

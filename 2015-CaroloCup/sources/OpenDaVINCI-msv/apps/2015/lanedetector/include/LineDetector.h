@@ -134,7 +134,7 @@ private:
     int getIntersectionWithBottom(CustomLine l) const;
     CustomLine createLineFromRect(RotatedRect *rect, int sizeX, int sizeY);
     std::vector<CustomLine> findCurve(std::vector<CustomLine> lines);
-    Point intersectionPoint(CustomLine fst, CustomLine snd);
+	std::vector<Point> trajectorySwitchingPoints(std::vector<CustomLine> lines);
     std::vector<Point> convertToBirdsEyeView(std::vector<Point> ps);
 
     //Find contours
@@ -155,7 +155,7 @@ private:
     void estimateLines(LinesToUse *ltu);
     //Calculate the goal line etc.
     void calculateGoalLine(LinesToUse *ltu);
-
+    
     cv::Mat m_frame;
     cv::Mat m_frameCanny;
     Lines *m_lines;
