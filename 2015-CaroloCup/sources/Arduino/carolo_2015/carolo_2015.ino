@@ -297,7 +297,8 @@ void loop()
     int error = goalSpeed - 10*carSpeed;
     Serial.print("Error: ");
     Serial.println(error);
-    if(abs(error) < 35) {
+    if(abs(error) < 35 && abs(error) > 1) {
+      error = error - 1;
       //int errorSign = error < 0 ? -1 : +1;
       /*if (abs(error) > 12) {
         speed += 5*errorSign;
@@ -470,4 +471,5 @@ void countRotations() {
   carSpeed = 32.5/(curr - time);
   //cnt++;
   time = curr;
+  //Serial.println(carSpeed);
 }
