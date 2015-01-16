@@ -895,73 +895,96 @@ void manageTrajectory(LinesToUse *ltu)
 {
     // The found lines are used to create a trajectory for the car's future movement
 
-    std::vector<CustomLine> splitSolid;
+
+    if (!(ltu->foundL || ltu->foundD || ltu->foundR))
+        {
+            if (debug)
+                {
+                    cout << "No lines found, trajectory will not be derived." << endl;
+                }
+            &(dataToDriver.switchPoints) = NULL;
+            &(dataToDriver.goalLines) = NULL;
+            return;
+        }
+    Point defaultCutPoints[3] = {230, 170, 120};
+    std::vector<Point> cutPoints;
+    std::vector<CustomLine> leftSplitted;
+    std::vector<CustomLine> rightSplitted;
+    std::vector<CustomLine> dashToUse;
     bool solidIsSplitted = false;
+
+    // Derive cutpoints for the solid line and match which dash to use to which
+    // part of the cutted solid line
+    if (ltu->foundD && (ltu->foundR || ltu->foundL))
+        {
+            for (int i = 0; i < ltu->dashedCurve.size(); i++)
+                {
+                    cutPoints.push_back(ltu->dashedCurve[i].p2);
+                }
+
+        	dashToUse = ltu->dashedCurve;
+            // Add cut points to have cut points throughout the whole frame
+            int lowestCut = cutPoints[0];
+            int highestCut = cutPoints[cutPoints.size()];
+            for (int i = 0; i < defaultCutPoints.size(); i++)
+                {
+                    if (highestCut - 30 > defaultCutPoints[i])
+                        {
+                            cutPoints.push_back(defaultCutPoints[i];
+                            dashToUse.push_back(NULL);
+                        }
+                    else if (lowestCut + 30 < defaultCutPoints[i])
+                        {
+                            cutPoints.insert(defaultCutPoints[i];
+                        }
+                }
+
+            // Set which dash that will be used between each cut
+
+        }
+    else
+        {
+            cutPoints = defaultCutPoints;
+        }
 
     if (ltu->foundR || ltu->foundL)
         {
 
-            std::vector<Point> cutPoints;
-            CustomLine lineToSplit;
             bool splitRight;
 
-            // Split right line if it is found
+            // Prioritize to split right line if it is found
             if (ltu->foundR)
                 {
-                    lineToSplit = ltu->rightLine;
-                    splitRight = true;
+                    //x = SplitContourAtPoints(cutPoints, ltu->rightLine, HORIZONTAL_SPLIT);
+                    //rightSplitted = toLines(x);
                 }
             else if (ltu->foundL)
                 {
-                    lineToSplit = ltu->leftLine;
-                    splitRight = false;
+                    //x = SplitContourAtPoints(cutPoints, ltu->leftLine, HORIZONTAL_SPLIT);
+                    //leftSplitted = toLines(x);
                 }
 
-            if (ltu->foundD)
+            if (splitRight)
                 {
-                    //extract the points where to split
-                    for (int i = 0; i < ltu->dashedCurve.size(); i++)
-                        {
-                            cutPoints.push_back(ltu->dashedCurve[i].p2);
-                        }
+                    leftSplitted.resize(rightSplitted.size());
+                    // All values should be NULL in leftSplitted
                 }
             else
                 {
-                    // Use deafult cut points
-                    cutPoints.push_back((int)220);
-                    cutPoints.push_back((int)150);
-                    cutPoints.push_back((int)100);
+                    rightSplitted.resize(leftSplitted.size());
+                    // All values should be NULL in rightSplitted
                 }
-
-            // Split the solid line
-            //SplitContourAtPoints(cutPoints, lineToSplit, HORIZONTAL_SPLIT);
-            //....
-            //=>
-            splitSolid = some_lines;
             solidIsSplitted = true;
         }
+
 
     // Create a vector of goal lines
     std::vector<CustomLine> goalLines;
     EstimationData ed;
     for (int i = 0; i < ltu->dashedCurve.size(); i++)
         {
-            if (solidIsSplitted == true)
-                {
-                    if (splitRight == true)
-                        {
-                            ed = estimateLines(NULL, ltu->dashedCurve[i], splitSolid[i]);
-                            goalLines.push_back(calculateGoalLine(ed));
-                        }
-                    else
-                        {
-                            goalLines.push_back(calculateGoalLine(true, splitSolid[i], ltu->dashedCurve[i], NULL));
-                        }
-                }
-            else
-                {
-                    goalLines.push_back(calculateGoalLine(true, NULL, ltu->dashedCurve[i], NULL));
-                }
+            ed = estimateLines(leftSplitted[i], dashToUse[i], rightSplitted[i]);
+            goalLines.push_back(calculateGoalLine(ed));
         }
 
     // find the intersection points of the goal lines
@@ -1083,15 +1106,16 @@ EstimationData LineDetector::estimateLines(CustomLine left, CustomLine dash, Cus
 // INFO
 // This function is the "new" calculateGoalLine used when deriving a trajectory
 // I want this very generic. given two lines it calculates a goalLine
-CustomLine LineDetector::calculateGoalLine(EstimationData* ed)
+CustomLine LineDetector::calculateGoalLine(EstimationData *ed)
 {
     CustomLine goalLine;
     Point vp;
     Point goalP;
 
-    if (ed->foundGoal == false){
-        return goalLine;
-    }
+    if (ed->foundGoal == false)
+        {
+            return goalLine;
+        }
 
     // If any line is estimated, goalP.x is calculated differently
     bool linesEstimated = false;
