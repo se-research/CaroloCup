@@ -169,6 +169,7 @@ void drawLines(msv::Lines *lines, Mat *dst, int offset)
     line( *dst, Point(solidRight[0], solidRight[1] + offset), Point(solidRight[2], solidRight[3] + offset), Scalar(255, 0, 0), 3, CV_AA);
     line( *dst, Point(solidLeft[0], solidLeft[1] + offset), Point(solidLeft[2], solidLeft[3] + offset), Scalar(0, 0, 255), 3, CV_AA);
     line( *dst, lines->goalLine.p1, lines->goalLine.p2, 255, 3, CV_AA);
+    line( *dst, lines->goalLineLeft.p1, lines->goalLineLeft.p2, 124,3,CV_AA);
     line( *dst, lines->currentLine.p1, lines->currentLine.p2, 0, 3, CV_AA);
 }
 
@@ -236,6 +237,8 @@ void LaneDetector::processImage()
                  << lines.goalLine.p1.y << "]" << endl;
             cout << "Goal [x, y] : [" << lines.goalLine.p2.x << ", "
                  << lines.goalLine.p2.y << "]" << endl;
+            cout << "GoalLineLeft p1:"<<lines.goalLineLeft.p1.x<<","<<lines.goalLineLeft.p1.y<<endl;
+            cout << "GoalLineLeft p2:"<<lines.goalLineLeft.p2.x<<","<<lines.goalLineLeft.p2.y<<endl;
             cout << "Position [x, y] : [" << lines.currentLine.p2.x << ", "
                  << lines.currentLine.p2.y << "]" << endl;
 
