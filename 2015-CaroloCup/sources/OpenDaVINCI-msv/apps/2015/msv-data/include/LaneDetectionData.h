@@ -52,6 +52,7 @@ namespace msv {
         rightLine(Vec4i(0,0,0,0)) ,
         dashedLine(Vec4i(0,0,0,0)),
         goalLine(),
+        goalLineLeft(),
 	currentLine(),
         pGain(0),
         intGain(0),
@@ -67,6 +68,7 @@ namespace msv {
         rightLine(r) ,
         dashedLine(d),
         goalLine(),
+        goalLineLeft(),
 	currentLine(),
         pGain(0),
         intGain(0),
@@ -81,6 +83,9 @@ namespace msv {
       void setGoalLine(const CustomLine &goal) {
         goalLine = goal;
       }
+      void setGoalLineLeft(const CustomLine &goal) {
+        goalLineLeft = goal;
+      }
       void setCurrentLine(const CustomLine &curr) {
         currentLine = curr;
       }
@@ -89,6 +94,7 @@ namespace msv {
       Vec4i rightLine;
       Vec4i dashedLine;
       CustomLine goalLine;
+      CustomLine goalLineLeft;
       CustomLine currentLine;
       int pGain;
       int intGain;

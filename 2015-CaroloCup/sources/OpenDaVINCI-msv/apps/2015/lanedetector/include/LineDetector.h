@@ -80,6 +80,7 @@ struct LinesToUse
     Vec4i dashLineVec;
     Vec4i leftLineVec;
     Vec4i rightLineVec;
+    bool isLeftEstimated;
     bool isDashEstimated;
     bool isRightEstimated;
     Lines *lines;
