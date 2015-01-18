@@ -1514,7 +1514,7 @@ void LineDetector::calculateGoalLine(LinesToUse *ltu)
 
     // If any line is estimated, goalP.x is calculated differently
     bool linesEstimated = false;
-    if (ltu->isDashEstimated || ltu-LineDetector>isRightEstimated)
+    if (ltu->isDashEstimated || ltu->isRightEstimated)
         {
             linesEstimated = true;
         }
