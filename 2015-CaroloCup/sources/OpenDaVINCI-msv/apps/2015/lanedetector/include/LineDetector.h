@@ -158,10 +158,10 @@ private:
     void calculateGoalLine(LinesToUse *ltu);
     
     //Split  contour at given  the points
-    Vector<RotatedRect> splitContourAtPoints(Vector<Point> points,int contourIndex,bool horizontalSplit);
+    //Vector<RotatedRect> splitContourAtPoints(Vector<Point> points,int contourIndex,bool horizontalSplit);
 
     //creates a PolySize
-    PolySize createPolySize(const RotatedRect& rect);
+    //PolySize createPolySize(const RotatedRect& rect);
 
     cv::Mat m_frame;
     cv::Mat m_frameCanny;
