@@ -377,6 +377,107 @@ void LineDetector::splitBigRectangles(int index)
     //m_frame.copyTo(imageROI, mask);
 }
 
+/*
+Vector<RotatedRect> LineDetector::splitContourAtPoints(Vector<Point> points,int contourIndex,bool horizontalSplit){
+	//Rect roi = boundingRect(contours_poly[contourIndex]);
+	//vector<Point> contours1, contours2;
+	Vector<Point> contours[points.size()];
+	//std::array<Vector<Point>,points.size()> contours;
+	Vector<RotatedRect> recs;
+	// Create masks for each contour to mask out that region from image.
+		//Mat mask = Mat::zeros(m_frame.size(), CV_8UC1);
+		//drawContours(mask, contours_poly, index, Scalar(255), CV_FILLED); // This is a OpenCV function
+
+		for(unsigned int i = 0; i < contours_poly[contourIndex].size(); i++ ){
+			Point p = contours_poly[contourIndex][i];
+			// Separate the points into  groups
+			//if(p.x < (roi.x+roi.width/2)){
+			//	contours[0].push_back(p);
+			//}else{
+			//	contours[1].push_back(p);
+			//}
+
+			for(int j =0;j<points.size();j++){//we expect points to be in reducing order with respect to y
+				if(p.y >= points[j].y){
+					contours[j].push_back(p);
+					break;
+				}else if(j > 0 && p.y < points[j-1].y && p.y > points[j].y){
+					contours[j].push_back(p);
+					break;
+				}
+			}
+		}
+
+
+		for(unsigned int i = 0; i < points.size(); i++){
+			vector<Point> cont = contours[i];
+			RotatedRect rect = minAreaRect(cont);
+
+
+			PolySize polysize=createPolySize(rect);
+
+
+			recs.push_back(rect);
+			line_sizes.push_back(polysize);//TODO too many side effects in this function
+
+		}
+
+		return recs;
+
+
+}
+
+PolySize LineDetector::createPolySize(const RotatedRect& rect){
+				Point2f rect_points[4];
+				rect.points(rect_points);
+
+				int sizeX = 0, sizeY = 0, sizeR = 0;
+				Point shortSideMiddle;
+				Point longSideMiddle;
+				// Find rect sizes
+				for (int j = 0; j < 4; j++) {
+					cout << "Point [x,y] = [" << rect_points[j].x << "," << rect_points[j].y << "]" << endl;
+					sizeR = cv::sqrt(
+							cv::pow((rect_points[j].x - rect_points[(j + 1) % 4].x), 2)
+									+ cv::pow(
+											(rect_points[j].y
+													- rect_points[(j + 1) % 4].y), 2));
+					//cout << "Size:" << sizeR << endl;
+					if (sizeX == 0) {
+						sizeX = sizeR;
+						shortSideMiddle.x = (rect_points[j].x
+								+ rect_points[(j + 1) % 4].x) / 2;
+						shortSideMiddle.y = (rect_points[j].y
+								+ rect_points[(j + 1) % 4].y) / 2;
+					} else if (sizeY == 0 && sizeR != sizeX) {
+						sizeY = sizeR;
+						longSideMiddle.x = (rect_points[j].x
+								+ rect_points[(j + 1) % 4].x) / 2;
+						longSideMiddle.y = (rect_points[j].y
+								+ rect_points[(j + 1) % 4].y) / 2;
+					}
+				//line(out, rect_points[j], rect_points[(j+1)%4], Scalar(255,0,0));
+				}
+				if (sizeX > sizeY) {
+					Point2f temp;
+					sizeR = sizeX;
+					sizeX = sizeY;
+					sizeY = sizeR;
+					temp = longSideMiddle;
+					longSideMiddle = shortSideMiddle;
+					shortSideMiddle = temp;
+				}
+
+				PolySize polysize = { sizeX, sizeY, sizeR, shortSideMiddle, longSideMiddle };
+
+	return polysize;
+
+}
+
+*/
+
+
+
 void LineDetector::classification()
 {
     int sizeX;
@@ -1584,9 +1685,9 @@ void LineDetector::calculateGoalLine(LinesToUse *ltu)
             ltu->lines->setGoalLine(goal);
 
             cout << "LINES: " << endl;
-            cout << "leftLine: " << ltu->lines->leftLine << endl;
-            cout << "dashedLine: " << ltu->lines->dashedLine << endl;
-            cout << "rightLine: " << ltu->lines->rightLine << endl;
+            //cout << "leftLine: " << ltu->lines->leftLine << endl;
+            //cout << "dashedLine: " << ltu->lines->dashedLine << endl;
+            //cout << "rightLine: " << ltu->lines->rightLine << endl;
 
         }
     else
