@@ -36,9 +36,9 @@ int CurrentDistSpot;
 int CurrentDistSpot2;
 int CurrentDist;
 int DesiredDistance1 = 100; //700 is required 550+150;
-int DesiredDistance2 = 460;
+int DesiredDistance2 = 430;
 int DesiredDistance3 = 490;
-int DesiredDistance4 = 110;
+int DesiredDistance4 = 100;
 int DesiredDistance5 = 60;
 int CurrentDist1;
 int CurrentDist2;
@@ -187,7 +187,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 			
 			if(IRdis_SR < 25 && IRdis_SR > 2){
 			  gapWidth = Distance - CurrentDistSpot;
-			  CurrentDistSpot2 = Distance;
+			  //CurrentDistSpot2 = Distance;
 			 if(gapWidth > MinParkingDist){
 			   desiredSteeringWheelAngle=0;
 			   driving_state = INITIALIZE_POS_FOR_PARKING; 
@@ -230,12 +230,12 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 					
 			cout << "++++++++++ Stoping timer: " << time_taken << endl;
 			CurrentDist = Distance;
-			if (time_taken > 1) {  //can this be reached ? because start_timer never started.
+			if (time_taken > 5) {  
  				
 				//parking(vc, vd);
 				
 				CurrentDist1 = Distance;
-				driving_speed = 0;
+				driving_speed = 1;
 				driving_state = PARKING;
 				
 
