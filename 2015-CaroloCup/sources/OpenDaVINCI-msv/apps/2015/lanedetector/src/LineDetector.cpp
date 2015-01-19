@@ -1381,48 +1381,51 @@ void LineDetector::estimateLines(LinesToUse *ltu)
 
 
         }
-    else if (ltu->foundL)
+    else
         {
-            // Estimate dash line and use left line instead of right line
-            //offset with one and a half the size of road to the right
-            calcRoadAngle = getRoadAngle(3, ltu->leftLine.slope);
-            calcRoadSize = getRoadSize(calcRoadAngle);
-            int expectedDashLineX = currentLeftGoalX + calcRoadSize;
-            float expectedDashLineAngle =  abs(ltu->leftLine.slope)
-                                           + calcRoadAngle;
-            if (expectedDashLineAngle > 90)
+            if (ltu->foundL)
                 {
-                    expectedDashLineAngle = 180 - expectedDashLineAngle;
-                }
+                    // Estimate dash line and use left line instead of right line
+                    //offset with one and a half the size of road to the right
+                    calcRoadAngle = getRoadAngle(3, ltu->leftLine.slope);
+                    calcRoadSize = getRoadSize(calcRoadAngle);
+                    int expectedDashLineX = currentLeftGoalX + calcRoadSize;
+                    float expectedDashLineAngle =  abs(ltu->leftLine.slope)
+                                                   + calcRoadAngle;
+                    if (expectedDashLineAngle > 90)
+                        {
+                            expectedDashLineAngle = 180 - expectedDashLineAngle;
+                        }
 
-            ltu->dashLine.slope = expectedDashLineAngle;
-            ltu->dashLine.p1.x = expectedDashLineX;
-            ltu->dashLine.p1.y = h;
-            ltu->isDashEstimated = true;
-            ltu->foundGoal = true;
-            cout << "Found only left" << endl;
-        }
-    else if (ltu->foundR)
-        {
-            // Estimate dash line
-            //offset with half the size of road to the left
-            calcRoadAngle = getRoadAngle(1, ltu->rightLine.slope);
-            calcRoadSize = getRoadSize(calcRoadAngle);
-            int expectedDashLineX = currentRightGoalX - calcRoadSize;
-            float expectedDashLineAngle =  abs(ltu->rightLine.slope)
-                                           + calcRoadAngle;
-            if (expectedDashLineAngle > 90)
+                    ltu->dashLine.slope = expectedDashLineAngle;
+                    ltu->dashLine.p1.x = expectedDashLineX;
+                    ltu->dashLine.p1.y = h;
+                    ltu->isDashEstimated = true;
+                    ltu->foundGoal = true;
+                    cout << "Found only left" << endl;
+                }
+            else if (ltu->foundR)
                 {
-                    expectedDashLineAngle = 180 - expectedDashLineAngle;
+                    // Estimate dash line
+                    //offset with half the size of road to the left
+                    calcRoadAngle = getRoadAngle(1, ltu->rightLine.slope);
+                    calcRoadSize = getRoadSize(calcRoadAngle);
+                    int expectedDashLineX = currentRightGoalX - calcRoadSize;
+                    float expectedDashLineAngle =  abs(ltu->rightLine.slope)
+                                                   + calcRoadAngle;
+                    if (expectedDashLineAngle > 90)
+                        {
+                            expectedDashLineAngle = 180 - expectedDashLineAngle;
+                        }
+
+                    ltu->dashLine.slope = expectedDashLineAngle;
+                    ltu->dashLine.p1.x = expectedDashLineX;
+                    ltu->dashLine.p1.y = h;
+                    ltu->isDashEstimated = true;
+                    ltu->foundGoal = true;
+                    cout << "found only right" << endl;
+
                 }
-
-            ltu->dashLine.slope = expectedDashLineAngle;
-            ltu->dashLine.p1.x = expectedDashLineX;
-            ltu->dashLine.p1.y = h;
-            ltu->isDashEstimated = true;
-            ltu->foundGoal = true;
-            cout << "found only right" << endl;
-
         }
 
     return;
