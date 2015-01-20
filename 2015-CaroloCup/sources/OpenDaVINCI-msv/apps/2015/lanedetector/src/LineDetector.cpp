@@ -275,7 +275,7 @@ void LineDetector::getRectangles()
 
             if (sizeX * sizeY > m_config.maxArea * 10000)
                 {
-                    splitBigRectangles(i);
+                    //splitBigRectangles(i);
                 }
             else
                 {
@@ -296,10 +296,17 @@ void LineDetector::splitBigRectangles(int index)
     vector<Point> contours[2];
     cv::Mat out = m_frame.clone();
 
+    //@BM Testing
+    Point p;
+    p.x=roi.x +roi.width / 2;
+    vector<Point> points;
+    points.push_back(p);
+    Vector<RotatedRect> res=splitContourAtPoints(points, index,false);
+    rects.insert(rects.end(),res.begin(),res.end());
     // Create masks for each contour to mask out that region from image.
     //Mat mask = Mat::zeros(m_frame.size(), CV_8UC1);
     //drawContours(mask, contours_poly, index, Scalar(255), CV_FILLED); // This is a OpenCV function
-
+/*
     for (unsigned int i = 0; i < contours_poly[index].size(); i++ )
         {
             Point p = contours_poly[index][i];
@@ -371,26 +378,29 @@ void LineDetector::splitBigRectangles(int index)
     //drawContours(mask, contours_poly, index, Scalar(255), CV_FILLED);
     imshow("Smaller Rect", out);
 
-
+*/
     //Mat region;
     //Mat imageROI;
     //m_frame.copyTo(imageROI, mask);
 }
 
-Vector<RotatedRect>LineDetector::splitContourAtPoints(Vector<Point> points, int contourIndex,bool yAxis)
+Vector<RotatedRect>LineDetector::splitContourAtPoints(vector<Point> points, int contourIndex,bool yAxis)
   {
-    vector<Point> contours[points.size ()];
+    int numberOfParts=points.size ()+1;
+    vector<Point> contours[numberOfParts];
     Vector<RotatedRect> recs;
+
 
 
     for (unsigned int i = 0; i < contours_poly[contourIndex].size (); i++)
       {
 	Point p = contours_poly[contourIndex][i];
 
+
 	for (int j = 0; j < points.size (); j++)
 	  {
 	    if (yAxis)
-	      {// Y axis, we expect the passed in points to be in reducing order with respect to y
+	      {// Y axis, we expect the passed in points to be in reducing order with respect to y,i.e starting from the bottom of the screen
 		if (j==0 && p.y >= points[j].y)
 		  {
 		    contours[j].push_back (p);
@@ -398,7 +408,7 @@ Vector<RotatedRect>LineDetector::splitContourAtPoints(Vector<Point> points, int 
 		  }
 		else if(j==points.size()-1 && p.y< points[j].y)
 		  {
-		    contours[j].push_back (p);
+		    contours[j+1].push_back (p);
 		    break;
 		  }
 		else if (j > 0 && p.y < points[j - 1].y && p.y > points[j].y)
@@ -409,17 +419,17 @@ Vector<RotatedRect>LineDetector::splitContourAtPoints(Vector<Point> points, int 
 	      }
 	    else
 	      {	//X-axis,we expect the passed in points to be in increasing order with respect to x
-		if (p.x <= points[j].x)
+		if (j==0 && p.x <= points[j].x)
 		  {
 		    contours[j].push_back (p);
 		    break;
 		  }
 		else if(j==points.size()-1 && p.x > points[j].x)
 		  {
-		    contours[j].push_back (p);
+		    contours[j+1].push_back (p);
 		    break;
 		  }
-		else if (j > 0 && p.x >points[j - 1].x && p.x < points[j].x)
+		else if (j > 0 && p.x >points[j - 1].x && p.x <= points[j].x)
 		  {
 		    contours[j].push_back (p);
 		    break;
@@ -427,7 +437,7 @@ Vector<RotatedRect>LineDetector::splitContourAtPoints(Vector<Point> points, int 
 	      }
 	  }
       }
-    for (unsigned int i = 0; i < points.size (); i++)
+    for (unsigned int i = 0; i < numberOfParts; i++)
       {
 	vector<Point> cont = contours[i];
 	RotatedRect rect = minAreaRect (cont);
