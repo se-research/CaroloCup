@@ -158,7 +158,7 @@ private:
     void calculateGoalLine(LinesToUse *ltu);
     
     //Split  contour at given  the points
-    Vector<RotatedRect> splitContourAtPoints(Vector<Point> points,int contourIndex,bool horizontalSplit);
+    Vector<RotatedRect> splitContourAtPoints(vector<Point> points,int contourIndex,bool horizontalSplit);
 
     //creates a PolySize
     PolySize createPolySize(const RotatedRect& rect);
