@@ -6,6 +6,7 @@
 #define ROAD_GOAL 0.5
 #define ROAD_ANGLE 85
 #define MID_DASH_ANGLE -47
+#define CUT_POINTS 3 // manageTracetory()
 
 #include <queue>
 #include "opencv2/opencv.hpp"
@@ -85,6 +86,11 @@ struct LinesToUse
     Lines *lines;
 };
 
+struct DataToDriver {
+    vector<int> switchPoints;
+    vector<CustomLine> goalLines;
+    bool noTrajectory;
+};
 
 class LineDetector
 {
@@ -151,6 +157,8 @@ private:
     void finalFilter();
     //Filer the lines w.r.t. road characteristics
     void characteristicFiltering(LinesToUse *ltu);
+    // Creates a trajectory for the driver
+	void manageTrajectory(LinesToUse *ltu);
     //Estimate missing needed lines
     void estimateLines(LinesToUse *ltu);
     //Calculate the goal line etc.
@@ -178,6 +186,7 @@ private:
     IntermediateResult result_finalFilter;
     LinesToUse ltu;
     Lines result_getLines;
+    DataToDriver dataToDriver;
 };
 
 }

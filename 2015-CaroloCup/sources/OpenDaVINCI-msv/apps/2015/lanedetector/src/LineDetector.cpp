@@ -891,27 +891,30 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
     return;
 }
 /*
-void manageTrajectory(LinesToUse *ltu)
+void LineDetector::manageTrajectory(LinesToUse *ltu)
 {
     // The found lines are used to create a trajectory for the car's future movement
 
 
     if (!(ltu->foundL || ltu->foundD || ltu->foundR))
         {
-            if (debug)
+            if (m_debug)
                 {
                     cout << "No lines found, trajectory will not be derived." << endl;
                 }
-            &(dataToDriver.switchPoints) = NULL;
-            &(dataToDriver.goalLines) = NULL;
+            dataToDriver.noTrajectory = true;
             return;
         }
-    Point defaultCutPoints[3] = {230, 170, 120};
-    std::vector<Point> cutPoints;
+    std::vector<int> defaultCutPoints;
+    defaultCutPoints.push_back(230);
+    defaultCutPoints.push_back(170);
+    defaultCutPoints.push_back(120);
+    std::vector<int> cutPoints;
     std::vector<CustomLine> leftSplitted;
     std::vector<CustomLine> rightSplitted;
     std::vector<CustomLine> dashToUse;
     bool solidIsSplitted = false;
+    dataToDriver.noTrajectory = false;
 
     // Derive cutpoints for the solid line and match which dash to use to which
     // part of the cutted solid line
@@ -919,28 +922,33 @@ void manageTrajectory(LinesToUse *ltu)
         {
             for (int i = 0; i < ltu->dashedCurve.size(); i++)
                 {
-                    cutPoints.push_back(ltu->dashedCurve[i].p2);
+                    cutPoints.push_back(ltu->dashedCurve[i].p2.y);
                 }
-
+            int lowestDashPointInLowestCut = ltu->dashedCurve[0].p1.y; // Observe that p1 is used
+            int highestCut = cutPoints[cutPoints.size()];
         	dashToUse = ltu->dashedCurve;
             // Add cut points to have cut points throughout the whole frame
-            int lowestCut = cutPoints[0];
-            int highestCut = cutPoints[cutPoints.size()];
             for (int i = 0; i < defaultCutPoints.size(); i++)
                 {
                     if (highestCut - 30 > defaultCutPoints[i])
                         {
-                            cutPoints.push_back(defaultCutPoints[i];
-                            dashToUse.push_back(NULL);
+                        	CustomLine none;
+                        	none.p1.x = 0;
+                        	none.p1.y = 0;
+                        	none.p2.x = 0;
+                        	none.p2.y = 0;
+                            cutPoints.push_back(defaultCutPoints[i]);
+                            dashToUse.push_back(none);
                         }
-                    else if (lowestCut + 30 < defaultCutPoints[i])
+                    else if (lowestDashPointInLowestCut + 30 < defaultCutPoints[i])
                         {
-                            cutPoints.insert(defaultCutPoints[i];
+                            cutPoints.insert(cutPoints.begin(), defaultCutPoints[i]);
+                            // It is assumed that it is safe to use the same dash line eq. to
+                            // calculate the goalLine more closer to the car.
+                            // TODO: Verify assumption.
+                            dashToUse.insert(dashToUse.begin(), CustomLine(dashToUse[0]));
                         }
                 }
-
-            // Set which dash that will be used between each cut
-
         }
     else
         {
@@ -983,17 +991,17 @@ void manageTrajectory(LinesToUse *ltu)
     EstimationData ed;
     for (int i = 0; i < ltu->dashedCurve.size(); i++)
         {
-            ed = estimateLines(leftSplitted[i], dashToUse[i], rightSplitted[i]);
-            goalLines.push_back(calculateGoalLine(ed));
+            // ed = estimateLines(leftSplitted[i], dashToUse[i], rightSplitted[i]);
+            // goalLines.push_back(calculateGoalLine(ed));
         }
 
     // find the intersection points of the goal lines
-    std::vector<Point> switchPoints;
+    std::vector<int> switchPoints;
 
     for (int i = 1; i < goalLines.size() + 1; i++)
         {
             // find the intersection point between line i-1 and i
-            switchPoints.push_back(trajectorySwitchingPoints(goalLines[i - 1], goalLines[i]));
+            // switchPoints.push_back(trajectorySwitchingPoints(goalLines[i - 1], goalLines[i]));
         }
 
     // For now we give the switchPoints and goalLines to driver
@@ -1001,7 +1009,7 @@ void manageTrajectory(LinesToUse *ltu)
     // Make a bspline curve to give instead of the goalLines
     dataToDriver.switchPoints = switchPoints;
     dataToDriver.goalLines = goalLines;
-}
+}*/
 
 // Use victors idea and do not transform to bird eye
 // std::vector<Point> LineDetector::convertToBirdsEyeView(std::vector<Point> ps)
@@ -1016,6 +1024,7 @@ void manageTrajectory(LinesToUse *ltu)
 // INFO
 // This function is the "new" estimationLines used when deriving a trajectory.
 // Only provides data for right lane gaol line calculations.
+/*
 EstimationData LineDetector::estimateLines(CustomLine left, CustomLine dash, CustomLine right)
 {
     int calcRoadAngle;
@@ -1102,10 +1111,12 @@ EstimationData LineDetector::estimateLines(CustomLine left, CustomLine dash, Cus
         }
     return ed;
 }
+*/
 
 // INFO
 // This function is the "new" calculateGoalLine used when deriving a trajectory
 // I want this very generic. given two lines it calculates a goalLine
+/*
 CustomLine LineDetector::calculateGoalLine(EstimationData *ed)
 {
     CustomLine goalLine;
