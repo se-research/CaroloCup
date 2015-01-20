@@ -164,39 +164,39 @@ void LineDetector::findLines(cv::Mat &outputImg)
 
     // -- testing of manageTrajectory:
     //manageTrajectory(&ltu);
-    // -- end testing 
+    // -- end testing
 
 
     // -- testing of new_estimateLines:
 
-  //   cv::Mat out = m_frame.clone();
-  //   bool go = false;
-  //   EstimationData ed;
+    //   cv::Mat out = m_frame.clone();
+    //   bool go = false;
+    //   EstimationData ed;
 
-  //   ed.yPosition = h;
-  //   if(ltu.foundD){
-  //   	if(ltu.foundR){
-  //   		ed.dash = ltu.dashLine;
-  //   		ed.right = ltu.rightLine;
-  //   	}else{
-  //   		ed.dash = ltu.dashLine;
-  //   	}
-  //   	go = true;
-  //   }else if (ltu.foundR){
-		// ed.right = ltu.rightLine;
-		// go = true;
-  //   }
-    
-  //  	if (go){
-  //   	new_estimateLines(&ed);
-		// line(out, ed.left.p1, ed.left.p2, Scalar(255, 0, 0));
-		// line(out, ed.dash.p1, ed.dash.p2, Scalar(255, 0, 0));
-		// line(out, ed.right.p1, ed.right.p2, Scalar(255, 0, 0));
-	 //    imshow("Lines gotten from estimation", out);
-  //  	}
+    //   ed.yPosition = h;
+    //   if(ltu.foundD){
+    //    if(ltu.foundR){
+    //        ed.dash = ltu.dashLine;
+    //        ed.right = ltu.rightLine;
+    //    }else{
+    //        ed.dash = ltu.dashLine;
+    //    }
+    //    go = true;
+    //   }else if (ltu.foundR){
+    // ed.right = ltu.rightLine;
+    // go = true;
+    //   }
 
-   	// -- end testing
-   
+    //    if (go){
+    //    new_estimateLines(&ed);
+    // line(out, ed.left.p1, ed.left.p2, Scalar(255, 0, 0));
+    // line(out, ed.dash.p1, ed.dash.p2, Scalar(255, 0, 0));
+    // line(out, ed.right.p1, ed.right.p2, Scalar(255, 0, 0));
+    //    imshow("Lines gotten from estimation", out);
+    //    }
+
+    // -- end testing
+
     // -- testing of intersectionPoint:
 
     // cv::Mat out = m_frame.clone();
@@ -314,10 +314,10 @@ void LineDetector::getRectangles()
             //     }
             // else
             //     {
-                    rects.push_back(rect);
-                    PolySize polysize = { sizeX, sizeY, sizeR, shortSideMiddle, longSideMiddle };
-                    line_sizes.push_back(polysize);
-                // }
+            rects.push_back(rect);
+            PolySize polysize = { sizeX, sizeY, sizeR, shortSideMiddle, longSideMiddle };
+            line_sizes.push_back(polysize);
+            // }
         }
     imshow("Rect", out);
 }
@@ -333,157 +333,159 @@ void LineDetector::splitBigRectangles(int index)
 
     //@BM Testing
     Point p;
-    p.x=roi.x +roi.width / 2;
+    p.x = roi.x + roi.width / 2;
     vector<Point> points;
     points.push_back(p);
-    Vector<RotatedRect> res=splitContourAtPoints(points, index,false);
-    rects.insert(rects.end(),res.begin(),res.end());
+    Vector<RotatedRect> res = splitContourAtPoints(points, index, false);
+    rects.insert(rects.end(), res.begin(), res.end());
     // Create masks for each contour to mask out that region from image.
     //Mat mask = Mat::zeros(m_frame.size(), CV_8UC1);
     //drawContours(mask, contours_poly, index, Scalar(255), CV_FILLED); // This is a OpenCV function
-/*
-    for (unsigned int i = 0; i < contours_poly[index].size(); i++ )
-        {
-            Point p = contours_poly[index][i];
-            // Separate the points into two groups
-            if (p.x < (roi.x + roi.width / 2))
-                {
-                    contours[0].push_back(p);
-                }
-            else
-                {
-                    contours[1].push_back(p);
-                }
-        }
+    /*
+        for (unsigned int i = 0; i < contours_poly[index].size(); i++ )
+            {
+                Point p = contours_poly[index][i];
+                // Separate the points into two groups
+                if (p.x < (roi.x + roi.width / 2))
+                    {
+                        contours[0].push_back(p);
+                    }
+                else
+                    {
+                        contours[1].push_back(p);
+                    }
+            }
 
-    for (unsigned int i = 0; i < 2; i++)
-        {
-            vector<Point> cont = contours[i];
-            RotatedRect rect = minAreaRect(cont);
-            Point2f rect_points[4];
-            rect.points(rect_points);
+        for (unsigned int i = 0; i < 2; i++)
+            {
+                vector<Point> cont = contours[i];
+                RotatedRect rect = minAreaRect(cont);
+                Point2f rect_points[4];
+                rect.points(rect_points);
 
-            int sizeX = 0, sizeY = 0, sizeR = 0;
-            Point shortSideMiddle;
-            Point longSideMiddle;
-            // Find rect sizes
-            for (int j = 0; j < 4; j++)
-                {
-                    //cout << "Point [x,y] = [" << rect_points[j].x << "," << rect_points[j].y << "]" << endl;
-                    sizeR = cv::sqrt(
-                                cv::pow((rect_points[j].x - rect_points[(j + 1) % 4].x), 2)
-                                + cv::pow(
-                                    (rect_points[j].y
-                                     - rect_points[(j + 1) % 4].y), 2));
-                    //cout << "Size:" << sizeR << endl;
-                    if (sizeX == 0)
-                        {
-                            sizeX = sizeR;
-                            shortSideMiddle.x = (rect_points[j].x
-                                                 + rect_points[(j + 1) % 4].x) / 2;
-                            shortSideMiddle.y = (rect_points[j].y
-                                                 + rect_points[(j + 1) % 4].y) / 2;
-                        }
-                    else if (sizeY == 0 && sizeR != sizeX)
-                        {
-                            sizeY = sizeR;
-                            longSideMiddle.x = (rect_points[j].x
-                                                + rect_points[(j + 1) % 4].x) / 2;
-                            longSideMiddle.y = (rect_points[j].y
-                                                + rect_points[(j + 1) % 4].y) / 2;
-                        }
-                    line(out, rect_points[j], rect_points[(j + 1) % 4], Scalar(255, 0, 0));
-                }
-            if (sizeX > sizeY)
-                {
-                    Point2f temp;
-                    sizeR = sizeX;
-                    sizeX = sizeY;
-                    sizeY = sizeR;
-                    temp = longSideMiddle;
-                    longSideMiddle = shortSideMiddle;
-                    shortSideMiddle = temp;
-                }
+                int sizeX = 0, sizeY = 0, sizeR = 0;
+                Point shortSideMiddle;
+                Point longSideMiddle;
+                // Find rect sizes
+                for (int j = 0; j < 4; j++)
+                    {
+                        //cout << "Point [x,y] = [" << rect_points[j].x << "," << rect_points[j].y << "]" << endl;
+                        sizeR = cv::sqrt(
+                                    cv::pow((rect_points[j].x - rect_points[(j + 1) % 4].x), 2)
+                                    + cv::pow(
+                                        (rect_points[j].y
+                                         - rect_points[(j + 1) % 4].y), 2));
+                        //cout << "Size:" << sizeR << endl;
+                        if (sizeX == 0)
+                            {
+                                sizeX = sizeR;
+                                shortSideMiddle.x = (rect_points[j].x
+                                                     + rect_points[(j + 1) % 4].x) / 2;
+                                shortSideMiddle.y = (rect_points[j].y
+                                                     + rect_points[(j + 1) % 4].y) / 2;
+                            }
+                        else if (sizeY == 0 && sizeR != sizeX)
+                            {
+                                sizeY = sizeR;
+                                longSideMiddle.x = (rect_points[j].x
+                                                    + rect_points[(j + 1) % 4].x) / 2;
+                                longSideMiddle.y = (rect_points[j].y
+                                                    + rect_points[(j + 1) % 4].y) / 2;
+                            }
+                        line(out, rect_points[j], rect_points[(j + 1) % 4], Scalar(255, 0, 0));
+                    }
+                if (sizeX > sizeY)
+                    {
+                        Point2f temp;
+                        sizeR = sizeX;
+                        sizeX = sizeY;
+                        sizeY = sizeR;
+                        temp = longSideMiddle;
+                        longSideMiddle = shortSideMiddle;
+                        shortSideMiddle = temp;
+                    }
 
-            PolySize polysize = { sizeX, sizeY, sizeR, shortSideMiddle, longSideMiddle };
-            rects.push_back(rect);
-            line_sizes.push_back(polysize);
+                PolySize polysize = { sizeX, sizeY, sizeR, shortSideMiddle, longSideMiddle };
+                rects.push_back(rect);
+                line_sizes.push_back(polysize);
 
-        }
-    //drawContours(mask, contours_poly, index, Scalar(255), CV_FILLED);
-    imshow("Smaller Rect", out);
+            }
+        //drawContours(mask, contours_poly, index, Scalar(255), CV_FILLED);
+        imshow("Smaller Rect", out);
 
-*/
+    */
     //Mat region;
     //Mat imageROI;
     //m_frame.copyTo(imageROI, mask);
 }
 
-std::vector<RotatedRect>LineDetector::splitContourAtPoints(std::vector<Point> points, int contourIndex,bool yAxis)
-  {
-    int numberOfParts=points.size()+1;
+std::vector<RotatedRect>LineDetector::splitContourAtPoints(std::vector<Point> points, int contourIndex, bool yAxis)
+{
+    int numberOfParts = points.size() + 1;
     std::vector<Point> contours[numberOfParts];
     std::vector<RotatedRect> recs;
 
     for (unsigned int i = 0; i < contours_poly[contourIndex].size (); i++)
-      {
-	Point p = contours_poly[contourIndex][i];
+        {
+            Point p = contours_poly[contourIndex][i];
 
 
-	for (int j = 0; j < points.size (); j++)
-	  {
-	    if (yAxis)
-	      {// Y axis, we expect the passed in points to be in reducing order with respect to y,i.e starting from the bottom of the screen
-		if (j==0 && p.y >= points[j].y)
-		  {
-		    contours[j].push_back (p);
-		    break;
-		  }
-		else if(j==points.size()-1 && p.y< points[j].y)
-		  {
-		    contours[j+1].push_back (p);
-		    break;
-		  }
-		else if (j > 0 && p.y < points[j - 1].y && p.y > points[j].y)
-		  {
-		    contours[j].push_back (p);
-		    break;
-		  }
-	      }
-	    else
-	      {	//X-axis,we expect the passed in points to be in increasing order with respect to x
-		if (j==0 && p.x <= points[j].x)
-		  {
-		    contours[j].push_back (p);
-		    break;
-		  }
-		else if(j==points.size()-1 && p.x > points[j].x)
-		  {
-		    contours[j+1].push_back (p);
-		    break;
-		  }
-		else if (j > 0 && p.x >points[j - 1].x && p.x <= points[j].x)
-		  {
-		    contours[j].push_back (p);
-		    break;
-		  }
-	      }
-	  }
-      }
+            for (int j = 0; j < points.size (); j++)
+                {
+                    if (yAxis)
+                        {
+                            // Y axis, we expect the passed in points to be in reducing order with respect to y,i.e starting from the bottom of the screen
+                            if (j == 0 && p.y >= points[j].y)
+                                {
+                                    contours[j].push_back (p);
+                                    break;
+                                }
+                            else if (j == points.size() - 1 && p.y < points[j].y)
+                                {
+                                    contours[j + 1].push_back (p);
+                                    break;
+                                }
+                            else if (j > 0 && p.y < points[j - 1].y && p.y > points[j].y)
+                                {
+                                    contours[j].push_back (p);
+                                    break;
+                                }
+                        }
+                    else
+                        {
+                            //X-axis,we expect the passed in points to be in increasing order with respect to x
+                            if (j == 0 && p.x <= points[j].x)
+                                {
+                                    contours[j].push_back (p);
+                                    break;
+                                }
+                            else if (j == points.size() - 1 && p.x > points[j].x)
+                                {
+                                    contours[j + 1].push_back (p);
+                                    break;
+                                }
+                            else if (j > 0 && p.x > points[j - 1].x && p.x <= points[j].x)
+                                {
+                                    contours[j].push_back (p);
+                                    break;
+                                }
+                        }
+                }
+        }
     for (unsigned int i = 0; i < numberOfParts; i++)
-      {
-	vector<Point> cont = contours[i];
-	RotatedRect rect = minAreaRect (cont);
-	PolySize polysize = createPolySize (rect);
-	recs.push_back (rect);
-	line_sizes.push_back (polysize);//TODO too many side effects in this function
+        {
+            vector<Point> cont = contours[i];
+            RotatedRect rect = minAreaRect (cont);
+            PolySize polysize = createPolySize (rect);
+            recs.push_back (rect);
+            line_sizes.push_back (polysize);//TODO too many side effects in this function
 
-      }
+        }
     return recs;
-  }
+}
 
-  PolySize LineDetector::createPolySize (const RotatedRect& rect)
-  {
+PolySize LineDetector::createPolySize (const RotatedRect &rect)
+{
     Point2f rect_points[4];
     rect.points (rect_points);
     int sizeX = 0, sizeY = 0, sizeR = 0;
@@ -491,48 +493,48 @@ std::vector<RotatedRect>LineDetector::splitContourAtPoints(std::vector<Point> po
     Point longSideMiddle;
     // Find rect sizes
     for (int j = 0; j < 4; j++)
-      {
-	cout << "Point [x,y] = [" << rect_points[j].x << "," << rect_points[j].y
-	    << "]" << endl;
-	sizeR = cv::sqrt (
-	    cv::pow ((rect_points[j].x - rect_points[(j + 1) % 4].x), 2)
-		+ cv::pow ((rect_points[j].y - rect_points[(j + 1) % 4].y), 2));
-	//cout << "Size:" << sizeR << endl;
-	if (sizeX == 0)
-	  {
-	    sizeX = sizeR;
-	    shortSideMiddle.x = (rect_points[j].x + rect_points[(j + 1) % 4].x)
-		/ 2;
-	    shortSideMiddle.y = (rect_points[j].y + rect_points[(j + 1) % 4].y)
-		/ 2;
-	  }
-	else if (sizeY == 0 && sizeR != sizeX)
-	  {
-	    sizeY = sizeR;
-	    longSideMiddle.x = (rect_points[j].x + rect_points[(j + 1) % 4].x)
-		/ 2;
-	    longSideMiddle.y = (rect_points[j].y + rect_points[(j + 1) % 4].y)
-		/ 2;
-	  }
-	//line(out, rect_points[j], rect_points[(j+1)%4], Scalar(255,0,0));
-      }
+        {
+            cout << "Point [x,y] = [" << rect_points[j].x << "," << rect_points[j].y
+                 << "]" << endl;
+            sizeR = cv::sqrt (
+                        cv::pow ((rect_points[j].x - rect_points[(j + 1) % 4].x), 2)
+                        + cv::pow ((rect_points[j].y - rect_points[(j + 1) % 4].y), 2));
+            //cout << "Size:" << sizeR << endl;
+            if (sizeX == 0)
+                {
+                    sizeX = sizeR;
+                    shortSideMiddle.x = (rect_points[j].x + rect_points[(j + 1) % 4].x)
+                                        / 2;
+                    shortSideMiddle.y = (rect_points[j].y + rect_points[(j + 1) % 4].y)
+                                        / 2;
+                }
+            else if (sizeY == 0 && sizeR != sizeX)
+                {
+                    sizeY = sizeR;
+                    longSideMiddle.x = (rect_points[j].x + rect_points[(j + 1) % 4].x)
+                                       / 2;
+                    longSideMiddle.y = (rect_points[j].y + rect_points[(j + 1) % 4].y)
+                                       / 2;
+                }
+            //line(out, rect_points[j], rect_points[(j+1)%4], Scalar(255,0,0));
+        }
     if (sizeX > sizeY)
-      {
-	Point2f temp;
-	sizeR = sizeX;
-	sizeX = sizeY;
-	sizeY = sizeR;
-	temp = longSideMiddle;
-	longSideMiddle = shortSideMiddle;
-	shortSideMiddle = temp;
-      }
+        {
+            Point2f temp;
+            sizeR = sizeX;
+            sizeX = sizeY;
+            sizeY = sizeR;
+            temp = longSideMiddle;
+            longSideMiddle = shortSideMiddle;
+            shortSideMiddle = temp;
+        }
 
     PolySize polysize =
-      { sizeX, sizeY, sizeR, shortSideMiddle, longSideMiddle };
+    { sizeX, sizeY, sizeR, shortSideMiddle, longSideMiddle };
 
     return polysize;
 
-  }
+}
 
 
 void LineDetector::classification()
@@ -1055,7 +1057,7 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
 
 void LineDetector::manageTrajectory(LinesToUse *ltu)
 {
-	cout << "__start manageTrajectory" << endl;
+    cout << "__start manageTrajectory" << endl;
     // The found lines are used to create a trajectory for the car's future movement
 
     cv::Mat out = m_frame.clone();
@@ -1090,7 +1092,7 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
                 }
             int lowestDashPointInLowestCut = ltu->dashedCurve[0].p1.y; // Observe that p1 is used
             int highestCut = cutPoints[cutPoints.size()];
-        	dashToUse = ltu->dashedCurve;
+            dashToUse = ltu->dashedCurve;
             // Add cut points to have cut points throughout the whole frame
             for (int i = 0; i < defaultCutPoints.size(); i++)
                 {
@@ -1115,9 +1117,10 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
         }
 
     // Debug
-    for(int i = 0; i < cutPoints.size(); i++){
-    	cout << "Cut Point: " << cutPoints[i] << endl; 
-    }
+    for (int i = 0; i < cutPoints.size(); i++)
+        {
+            cout << "Cut Point: " << cutPoints[i] << endl;
+        }
 
     // -- Split solid lines --
     bool splitRight = false;
@@ -1126,12 +1129,12 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
             // Prioritize to split right line if it is found
             if (ltu->foundR)
                 {
-                	splitRight = true;
+                    splitRight = true;
                     rightSplitted = splitSolidLines(cutPoints, ltu->rightLine);
                 }
 
-            if (ltu->foundL && (!splitRight || false)) 
-            	// When two goalLines is wanted, change false to true
+            if (ltu->foundL && (!splitRight || false))
+                // When two goalLines is wanted, change false to true
                 {
                     leftSplitted = splitSolidLines(cutPoints, ltu->leftLine);
                 }
@@ -1139,38 +1142,42 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
             // Fill potentially empty vector with None lines
             if (leftSplitted.size() == 0)
                 {
-                    for(int i = 0; i < rightSplitted.size(); i++){
-                    	leftSplitted.push_back(getNoneCustomLine());
-                    }
+                    for (int i = 0; i < rightSplitted.size(); i++)
+                        {
+                            leftSplitted.push_back(getNoneCustomLine());
+                        }
                 }
             if (rightSplitted.size() == 0)
                 {
-                    for(int i = 0; i < leftSplitted.size(); i++){
-                    	rightSplitted.push_back(getNoneCustomLine());
-                    }
+                    for (int i = 0; i < leftSplitted.size(); i++)
+                        {
+                            rightSplitted.push_back(getNoneCustomLine());
+                        }
                 }
         }
 
     // Debug output
-    for(int i = 0; i < rightSplitted.size(); i++){
-    	if(splitRight){
-    		line(out, rightSplitted[i].p1, rightSplitted[i].p2, Scalar(255, 0, 0));
-    	}
-    }
+    for (int i = 0; i < rightSplitted.size(); i++)
+        {
+            if (splitRight)
+                {
+                    line(out, rightSplitted[i].p1, rightSplitted[i].p2, Scalar(255, 0, 0));
+                }
+        }
     imshow("Splitted solid", out);
 
     // -- Create a vector of goal lines --
     std::vector<CustomLine> goalLines;
     for (int i = 0; i < ltu->dashedCurve.size(); i++)
         {
-    		EstimationData ed;
-    		ed.left = leftSplitted[i];
-    		ed.dash = dashToUse[i];
-    		ed.right = rightSplitted[i];
-        	if (i == 0)
-            	ed.yPosition = h;
+            EstimationData ed;
+            ed.left = leftSplitted[i];
+            ed.dash = dashToUse[i];
+            ed.right = rightSplitted[i];
+            if (i == 0)
+                ed.yPosition = h;
             else
-            	ed.yPosition = cutPoints[i-1];
+                ed.yPosition = cutPoints[i - 1];
 
             new_estimateLines(&ed);
             //goalLines.push_back(calculateGoalLine(ed));
@@ -1191,7 +1198,7 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
     dataToDriver.switchPoints = switchPoints;
     dataToDriver.goalLines = goalLines;
 
-	cout << "__end manageTrajectory" << endl;
+    cout << "__end manageTrajectory" << endl;
 }
 
 // Use victors idea and do not transform to bird eye
@@ -1214,14 +1221,14 @@ void LineDetector::new_estimateLines(EstimationData *ed)
     ed->isLeftEstimated = false;
     ed->isDashEstimated = false;
     ed->isRightEstimated = false;
-   	ed->foundGoal = false;
+    ed->foundGoal = false;
 
     bool foundL = !isNoneCustomLine(ed->left);
     bool foundD = !isNoneCustomLine(ed->dash);
     bool foundR = !isNoneCustomLine(ed->right);
 
-    if(!(foundL && foundD && foundR))
-    	ed->foundGoal = false;
+    if (!(foundL && foundD && foundR))
+        ed->foundGoal = false;
 
     //yPosition used to get the right roadwidth
 
@@ -1321,7 +1328,7 @@ void LineDetector::new_estimateLines(EstimationData *ed)
 
                 }
         }
-///////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////
     // if (foundD)
     //     {
     //         ed.dash = dash;
@@ -1357,7 +1364,7 @@ void LineDetector::new_estimateLines(EstimationData *ed)
     //     }
     // else if (foundR)
     //     {
-    //     	ed.other = right;
+    //      ed.other = right;
     //         // Estimate dash line
     //         //offset with half the size of road to the left
     //         calcRoadAngle = getRoadAngle(1, right.slope);
@@ -1620,43 +1627,46 @@ std::vector<Point> LineDetector::trajectorySwitchingPoints(std::vector<CustomLin
 // A wrapper for splitContourAtPoints
 std::vector<CustomLine> LineDetector::splitSolidLines(std::vector<int> cutAt, CustomLine solid)
 {
-	cout << "__start splitSolidLines" << endl;
-	std::vector<CustomLine> splittedSolid;
-	// TODO:
-	// Check whether is it necessary to split the solid line e.g. it is a straight line
+    cout << "__start splitSolidLines" << endl;
+    std::vector<CustomLine> splittedSolid;
+    // TODO:
+    // Check whether is it necessary to split the solid line e.g. it is a straight line
 
-	// Transform into Point vector
+    // Transform into Point vector
     std::vector<Point> cutPoints;
-    for(int i = 0; i < cutAt.size(); i++){
-    	Point p;
-    	p.y = cutAt[i];
-    	p.x = 0;
-    	cutPoints.push_back(p);
-    }
+    for (int i = 0; i < cutAt.size(); i++)
+        {
+            Point p;
+            p.y = cutAt[i];
+            p.x = 0;
+            cutPoints.push_back(p);
+        }
 
     std::vector<RotatedRect> rectangles = splitContourAtPoints(cutPoints, solid.polygonIndex, true);
 
     // Transform RotatedRect to Customlines
     for (int i = 0; i < rectangles.size(); i++)
-    {
-    	PolySize attr = createPolySize(rectangles[i]);
-    	splittedSolid.push_back(createLineFromRect(&rectangles[i], attr.sizeX, attr.sizeY, -1));
-    }
-	cout << "__end splitSolidLines" << endl;
+        {
+            PolySize attr = createPolySize(rectangles[i]);
+            splittedSolid.push_back(createLineFromRect(&rectangles[i], attr.sizeX, attr.sizeY, -1));
+        }
+    cout << "__end splitSolidLines" << endl;
     return splittedSolid;
 }
-CustomLine LineDetector::getNoneCustomLine(){
-	CustomLine none;
-	none.p1.x = 0;
-	none.p1.y = 0;
-	none.p2.x = 0;
-	none.p2.y = 0;
-	return none;
+CustomLine LineDetector::getNoneCustomLine()
+{
+    CustomLine none;
+    none.p1.x = 0;
+    none.p1.y = 0;
+    none.p2.x = 0;
+    none.p2.y = 0;
+    return none;
 }
-bool LineDetector::isNoneCustomLine(CustomLine aspirant){
-	if (aspirant.p1.x == 0 && aspirant.p1.y == 0 && aspirant.p2.x == 0 && aspirant.p2.y == 0)
-		return true;
-	return false;
+bool LineDetector::isNoneCustomLine(CustomLine aspirant)
+{
+    if (aspirant.p1.x == 0 && aspirant.p1.y == 0 && aspirant.p2.x == 0 && aspirant.p2.y == 0)
+        return true;
+    return false;
 }
 // The old estimateLines
 void LineDetector::estimateLines(LinesToUse *ltu)
