@@ -81,6 +81,7 @@ struct LinesToUse
     Vec4i dashLineVec;
     Vec4i leftLineVec;
     Vec4i rightLineVec;
+    bool isLeftEstimated;
     bool isDashEstimated;
     bool isRightEstimated;
     Lines *lines;
@@ -164,6 +165,12 @@ private:
     //Calculate the goal line etc.
     void calculateGoalLine(LinesToUse *ltu);
     
+    //Split  contour at given  the points
+    Vector<RotatedRect> splitContourAtPoints(Vector<Point> points,int contourIndex,bool horizontalSplit);
+
+    //creates a PolySize
+    PolySize createPolySize(const RotatedRect& rect);
+
     cv::Mat m_frame;
     cv::Mat m_frameCanny;
     Lines *m_lines;
