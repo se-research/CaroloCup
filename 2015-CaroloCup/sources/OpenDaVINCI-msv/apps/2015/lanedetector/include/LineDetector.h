@@ -57,13 +57,15 @@ struct IntermediateResult
 };
 
 struct EstimationData {
-    bool dashEstimated;
-    bool otherEstimated;
-    bool otherFlipped;
+    bool isLeftEstimated;
+    bool isDashEstimated;
+    bool isRightEstimated;
     bool foundGoal;
+    CustomLine left;
     CustomLine dash;
-    CustomLine other;
+    CustomLine right;
     int calcRoadSize;
+    int yPosition;
 };
 
 struct LinesToUse
@@ -139,10 +141,7 @@ private:
     int getRoadSize(int roadAngle);
     Point2f getWorldPoint(Point2i imgPoint);
     int getIntersectionWithBottom(CustomLine l) const;
-    CustomLine createLineFromRect(RotatedRect *rect, int sizeX, int sizeY);
-    std::vector<CustomLine> findCurve(std::vector<CustomLine> lines);
-	std::vector<Point> trajectorySwitchingPoints(std::vector<CustomLine> lines);
-    std::vector<Point> convertToBirdsEyeView(std::vector<Point> ps);
+    CustomLine createLineFromRect(RotatedRect *rect, int sizeX, int sizeY, int polygonIndex);
 
     //Find contours
     void getContours(cv::Mat &outputImg);
@@ -162,14 +161,21 @@ private:
 	void manageTrajectory(LinesToUse *ltu);
     //Estimate missing needed lines
     void estimateLines(LinesToUse *ltu);
+	void new_estimateLines(EstimationData *ed);
     //Calculate the goal line etc.
     void calculateGoalLine(LinesToUse *ltu);
     
     //Split  contour at given  the points
-    Vector<RotatedRect> splitContourAtPoints(vector<Point> points,int contourIndex,bool horizontalSplit);
+    std::vector<RotatedRect> splitContourAtPoints(vector<Point> points,int contourIndex,bool horizontalSplit);
 
     //creates a PolySize
     PolySize createPolySize(const RotatedRect& rect);
+
+    std::vector<CustomLine> findCurve(std::vector<CustomLine> lines);
+	std::vector<Point> trajectorySwitchingPoints(std::vector<CustomLine> lines);
+	std::vector<CustomLine> splitSolidLines(std::vector<int> cutAt, CustomLine solid);
+	CustomLine getNoneCustomLine();
+	bool isNoneCustomLine(CustomLine aspirant);
 
     cv::Mat m_frame;
     cv::Mat m_frameCanny;
