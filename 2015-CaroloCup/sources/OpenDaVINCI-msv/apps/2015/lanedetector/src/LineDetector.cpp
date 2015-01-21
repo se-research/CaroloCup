@@ -163,7 +163,7 @@ void LineDetector::findLines(cv::Mat &outputImg)
     calculateGoalLine(&ltu);
 
     // -- testing of manageTrajectory:
-    //manageTrajectory(&ltu);
+    manageTrajectory(&ltu);
     // -- end testing
 
 
@@ -351,7 +351,7 @@ void LineDetector::splitBigRectangles(int index)
     vector<Point> contours[2];
     cv::Mat out = m_frame.clone();
 
-    //@BM Testing
+
     Point p;
     p.x = roi.x + roi.width / 2;
     vector<Point> points;
@@ -495,6 +495,8 @@ std::vector<RotatedRect>LineDetector::splitContourAtPoints(std::vector<Point> po
     for (unsigned int i = 0; i < numberOfParts; i++)
         {
             vector<Point> cont = contours[i];
+            if(cont.size()<2)continue;//TODO there should be a better way
+
             RotatedRect rect = minAreaRect (cont);
             PolySize polysize = createPolySize (rect);
             recs.push_back (rect);
