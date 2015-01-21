@@ -3,6 +3,7 @@ Monitor your repository and pull on changes.
 
 Requirements :
 * python - 2.7.* 
-* Git_python - https://pythonhosted.org/GitPython/
+
+
 
 
