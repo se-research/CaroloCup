@@ -132,7 +132,6 @@ void Proxy::nextString(const string &s)
 	string iStr=s.substr(0,posIstr);
 	string uStr=s.substr(posIstr+1,posUstr-posIstr);
 	string wStr=s.substr(posUstr+1);
-
     if (iStr[0] == 'i') {
 
 		char firstInfra[2];
