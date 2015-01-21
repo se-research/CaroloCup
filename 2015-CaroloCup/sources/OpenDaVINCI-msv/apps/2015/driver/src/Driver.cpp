@@ -31,6 +31,7 @@ using namespace core::data::control;
 using namespace core::data::environment;
 
 int MinParkingDist = 500;
+int SafeDistance = 40;
 int Distance;
 int CurrentDistSpot;
 int CurrentDistSpot2;
@@ -39,7 +40,7 @@ int DesiredDistance1 = 100; //700 is required 550+150;
 int DesiredDistance2 = 470;
 int DesiredDistance3 = 490;
 int DesiredDistance4 = 130;
-int DesiredDistance5 = 80;
+int DesiredDistance5 = 50;
 int SpeedF1 = 6;
 int SpeedF2 = 6;
 int SpeedB1 = -7;
@@ -165,7 +166,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 			driving_speed = SpeedF2;
 			desiredSteeringWheelAngle = 0;
 			
-			if ((USFront < 20 && USFront > 2)){ 
+			if ((USFront < SafeDistance && USFront > 2)){ 
 				driving_state = NO_POSSIBLE_PARKING_PLACE;
 			  
 			}
@@ -182,7 +183,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 			//driving_speed = 1;
 			desiredSteeringWheelAngle = 0;
 			
-			if ((USFront < 20 && USFront > 2)){ 
+			if ((USFront < SafeDistance && USFront > 2)){ 
 				driving_state = NO_POSSIBLE_PARKING_PLACE;
 			  
 			}
@@ -199,7 +200,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 			cout << "\t POSSIBLE_SPOT" << endl;;
 			desiredSteeringWheelAngle = 0;
 			
-			if ((USFront < 20 && USFront > 2)){ 
+			if ((USFront < SafeDistance && USFront > 2)){ 
 				driving_state = NO_POSSIBLE_PARKING_PLACE;
 			  
 			}
@@ -231,7 +232,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 			driving_state = STOP_FOR_PARKING;
 			
 			CurrentDist = Distance;
-			if ((USFront < 20 && USFront > 2)){ 
+			if ((USFront < SafeDistance && USFront > 2)){ 
 				driving_state = NO_POSSIBLE_PARKING_PLACE;
 			  
 			}
@@ -253,7 +254,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 					
 			cout << "++++++++++ Stoping timer: " << time_taken << endl;
 			
-			if ((USFront < 20 && USFront > 2)){ 
+			if ((USFront < SafeDistance && USFront > 2)){ 
 				driving_state = NO_POSSIBLE_PARKING_PLACE;
 			  
 			}
@@ -354,10 +355,9 @@ void Driver::parking() {
 		driving_speed = SpeedF1;
 		desiredSteeringWheelAngle = -42;
 		cout << "\t\t========  FORWARD_RIGHT"  << endl;
-		if ((Distance > (CurrentDist3 + DesiredDistance4)) || (USFront < 10 && USFront > 2)) {
+		if ((Distance > (CurrentDist3 + DesiredDistance4)) || (USFront < 7 && USFront > 2)) {
 		  
-			parking_state = STOP_FOR_SEC;
-			driving_speed = 0;
+			parking_state = STOP_FOR_SEC;;
 			TimeStamp currentTime3;
 			start_timer2 = currentTime3.toMicroseconds() / 100000.0;
 			
@@ -370,6 +370,7 @@ void Driver::parking() {
 		break;
 		
 	case STOP_FOR_SEC: { 
+			driving_speed = 0;
 			cout << "\t STOP_FOR_SEC" << endl;
 			TimeStamp currentTime4;
 			time_taken2 = (currentTime4.toMicroseconds() / 100000.0)

@@ -127,9 +127,10 @@ void Proxy::setUp() {
 void Proxy::nextString(const string &s)
 {
 	log("Recieved Sensor Data ");
+	cout<<"data,"<<s<<endl;
 	int posIstr=s.find(':');
 	int posUstr=s.find(':',posIstr+1);
-	string iStr=s.substr(0,posIstr);
+	string iStr=s.substr(2,posIstr);
 	string uStr=s.substr(posIstr+1,posUstr-posIstr);
 	string wStr=s.substr(posUstr+1);
     if (iStr[0] == 'i') {
@@ -222,13 +223,14 @@ void Proxy::nextString(const string &s)
 
     if(wStr[0]=='w')
     {
-			char wheelEncoder[4];
+			char wheelEncoder[5];
 			wheelEncoder[0] = wStr[1];
 			wheelEncoder[1] = wStr[2];
 			wheelEncoder[2] = wStr[3];
 			wheelEncoder[3] = wStr[4];
+			wheelEncoder[4] = wStr[5];
 			int distanceTraveled;
-			distanceTraveled=converter(wheelEncoder,4);
+			distanceTraveled=converter(wheelEncoder,5);
 
 			{
 				Lock l(m_sensorBoardMutex);
