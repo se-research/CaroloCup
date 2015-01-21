@@ -163,7 +163,7 @@ void LineDetector::findLines(cv::Mat &outputImg)
     calculateGoalLine(&ltu);
 
     // -- testing of manageTrajectory:
-    manageTrajectory(&ltu);
+    //manageTrajectory(&ltu);
     // -- end testing
 
 
@@ -213,7 +213,6 @@ void LineDetector::findLines(cv::Mat &outputImg)
     // cout << "goalLine slope: " << goalLine.slope << " x: " << goalLine.p2.x << " y: " << goalLine.p2.y << endl;
     // line(out, goalLine.p1, goalLine.p2, Scalar(255, 0, 0));
     // imshow("Lines gotten from estimation", out);
-
 
     // -- end testing
 
