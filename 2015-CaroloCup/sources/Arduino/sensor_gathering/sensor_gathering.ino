@@ -151,4 +151,7 @@ void loop()
 
 void encoderISR(){
   distanceTravelledMilli += DISTANCE_PER_SEGMENT;
+  if(distanceTravelledMilli > 9999){
+    distanceTravelledMilli = 0;
+  }
 }

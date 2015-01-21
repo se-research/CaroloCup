@@ -406,7 +406,14 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 	}
 
 	cout << "Proxy: Captured " << captureCounter << " frames." << endl;
-	m_protocol.setSpeed(0); //stop the car when proxy is stopped
+	
+	//stop the car when proxy is stopped
+	if(m_useRealSpeed) {
+	  m_protocol.setWheelFrequency(0, false);
+	} else {
+	  m_protocol.setSpeed(0); 
+	}
+	m_protocol.setSteeringAngle(0);
 	serialPort->stop();
 	OPENDAVINCI_CORE_DELETE_POINTER(serialPort);
 	log("Proxy killed");
