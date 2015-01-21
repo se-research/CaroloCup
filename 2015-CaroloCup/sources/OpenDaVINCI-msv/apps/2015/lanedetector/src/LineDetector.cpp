@@ -275,7 +275,7 @@ void LineDetector::getRectangles()
 
             if (sizeX * sizeY > m_config.maxArea * 10000)
                 {
-                    //splitBigRectangles(i);
+                    splitBigRectangles(i);
                 }
             else
                 {
@@ -296,13 +296,19 @@ void LineDetector::splitBigRectangles(int index)
     vector<Point> contours[2];
     cv::Mat out = m_frame.clone();
 
-    //@BM Testing
+
     Point p;
     p.x=roi.x +roi.width / 2;
     vector<Point> points;
     points.push_back(p);
+    //TimeStamp t;
+    //long tim=t.toMicroseconds();
     Vector<RotatedRect> res=splitContourAtPoints(points, index,false);
+
     rects.insert(rects.end(),res.begin(),res.end());
+    //TimeStamp end;
+    //tim=end.toMicroseconds()-tim;
+    //cout<<"SPLITTING RECTANGLES "<<tim<<endl;
     // Create masks for each contour to mask out that region from image.
     //Mat mask = Mat::zeros(m_frame.size(), CV_8UC1);
     //drawContours(mask, contours_poly, index, Scalar(255), CV_FILLED); // This is a OpenCV function
