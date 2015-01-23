@@ -141,6 +141,7 @@ private:
     int getRoadSize(int roadAngle);
     Point2f getWorldPoint(Point2i imgPoint);
     int getIntersectionWithBottom(CustomLine l) const;
+    int getIntersectionWithTop(CustomLine l) const;
     CustomLine createLineFromRect(RotatedRect *rect, int sizeX, int sizeY, int polygonIndex);
 
     //Find contours
@@ -164,6 +165,7 @@ private:
 	void new_estimateLines(EstimationData *ed);
     //Calculate the goal line etc.
     void calculateGoalLine(LinesToUse *ltu);
+	CustomLine new_calculateGoalLine(EstimationData *ed);
     
     //Split  contour at given  the points
     std::vector<RotatedRect> splitContourAtPoints(vector<Point> points,int contourIndex,bool horizontalSplit);
