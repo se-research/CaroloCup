@@ -639,9 +639,9 @@ void LineDetector::filterAndMerge()
             //cout << "Equation [a,b]: [" << a << "," << b << "]" << endl;
             //cout << "Dashes" << endl;
             if ((solidLines[j].slope > MIN_ANGLE - 5
-                    && max(solidLines[j].p1.x, solidLines[j].p1.x) > w / 2)
+                    && max(solidLines[j].p1.x, solidLines[j].p2.x) > w / 2)
                     || (solidLines[j].slope < (-1) * (MIN_ANGLE - 5)
-                        && min(solidLines[j].p1.x, solidLines[j].p1.x) < w / 2))
+                        && min(solidLines[j].p1.x, solidLines[j].p2.x) < w / 2))
                 {
                     for (int l = 0; l < cntDash; l++)
                         {
