@@ -312,6 +312,7 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 	sp.setStringListener(this);
 	serialPort->setPartialStringReceiver(&sp);
 	serialPort->start();
+	
 
 	//setupSerial port for Actuators
 	ArduinoMegaProtocol m_protocol(getKeyValueConfiguration().getValue<string>("proxy.Actuator.SerialPort"),10);
@@ -330,6 +331,10 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 			Container c(Container::SHARED_IMAGE, si);
 			distribute(c);
 			captureCounter++;
+			stringstream logs;
+			logs<<"SharedImage Distributed Capture Counter:"<<captureCounter<<endl;
+			log(logs.str());
+			
 		}
 
 		// Get sensor data from IR/US, and distribute
@@ -337,6 +342,7 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 			Lock l(m_sensorBoardMutex);
 			Container sensorData(Container::USER_DATA_0, m_sensorBoardData);
 			distribute(sensorData);
+			log("Distributed Sensor data");
 		}
 
 		//Get driver data and send it to the arduino
@@ -375,7 +381,7 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 			}
 			else{
 				m_protocol.setSpeed(currentValues.speed);
-				logger<<"set speed to "<<currentValues.speed<<endl;
+				logs<<"set speed to "<<currentValues.speed<<endl;
 				log(logs.str());
 			}
 			previousValues.speed=(int)currentValues.speed;
@@ -392,13 +398,16 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 		if((previousValues.leftFlash != currentValues.leftFlash) || (previousValues.rightFlash != currentValues.rightFlash))
 		{
 			m_protocol.setIndicatorsStop();
+			log("Turn off indicator");
 			if(currentValues.rightFlash)
 			{
 				m_protocol.setIndicatorsRight();
+				log("Turn On right indicator");
 			}
 			if(currentValues.leftFlash)
 			{
 				m_protocol.setIndicatorsLeft();
+				log("Turn On left indicator");
 			}
 			previousValues.leftFlash = currentValues.leftFlash;
 			previousValues.rightFlash = currentValues.rightFlash;

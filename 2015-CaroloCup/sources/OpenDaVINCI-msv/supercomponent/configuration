@@ -32,8 +32,22 @@ supercomponent.pulseshift.shift = 10000 # (in microseconds) If the managed level
 #
 lanedetector.camera_id = 2  # select here the proper camera
 lanedetector.debug = 1      # set to 0 to disable any windows and further output
-# Config for lanedetector-inspection
-lanedetector.inspect_rec = file://recording.rec
+lanedetector.inspect_rec = file://recording.rec # Config for lanedetector-inspection
+# Choose what to inspect, where
+# getContours = 1
+# getRectangles = 2
+# classification = 3
+# filterAndMerge = 4
+# finalFilter = 5
+# finalResult = 6
+lanedetector.what_to_inspect = 6
+# Choose which windows to display. 0: no, 1: yes
+lanedetector.showRes_getContours = 1
+lanedetector.showRes_getRectangles = 1
+lanedetector.showRes_classification = 1
+lanedetector.showRes_filterAndMerge = 1
+lanedetector.showRes_finalFilter = 1
+lanedetector.showRes_finalResult = 1
 
 
 #
@@ -164,7 +178,7 @@ recintegrity.input = file:///dev/stdin
 # CONFIGURATION FOR PROXY
 #
 proxy.debug = 1
-proxy.useRecorder = 0 # 1 = record all captured data directly, 0 otherwise. 
+proxy.useRecorder = 1 # 1 = record all captured data directly, 0 otherwise. 
 proxy.recorder.output = file://recs/
 proxy.camera.name = WebCam
 proxy.camera.type = UEYE # OpenCV or UEYE
@@ -173,13 +187,13 @@ proxy.camera.width = 752 #752-UEYE, 640-OpenCV
 proxy.camera.height = 480
 proxy.camera.bpp = 1 #3- openCV, 1-UEYE
 
-Proxy.Actuator.UseRealSpeed=1
-proxy.Actuator.SerialPort=/dev/ttyACM0
+Proxy.Actuator.UseRealSpeed=0
+proxy.Actuator.SerialPort=/dev/ttyACM1
 
-proxy.Sensor.SerialPort=/dev/ttyACM1
+proxy.Sensor.SerialPort=/dev/ttyACM0
 proxy.Sensor.SerialSpeed=115200
 
-proxy.numberOfSensors=6
+proxy.numberOfSensors=8
 
 proxy.sensor0.id=0 #first infra
 proxy.sensor1.id=1 #second infra
@@ -187,6 +201,8 @@ proxy.sensor2.id=2 #third infra
 proxy.sensor3.id=3 #fourth infra
 proxy.sensor4.id=4 #first ultrasonic
 proxy.sensor5.id=5 #second ultrasonic
+proxy.sensor6.id=6 #wheel encoder
+proxy.sensor7.id=7 #light sensor
 
 
 
