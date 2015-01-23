@@ -60,6 +60,10 @@ namespace msv {
     private:
       virtual void setUp();
       virtual void tearDown();
+    float
+    calculateDesiredHeading (float oldLateralError);
+
+    void calculateErr(CustomLine ,CustomLine ,float *, double *);
 
       bool m_hasReceivedLaneDetectionData;
 
