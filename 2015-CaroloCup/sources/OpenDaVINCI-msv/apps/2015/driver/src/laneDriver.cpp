@@ -68,7 +68,7 @@ void laneDriver::tearDown()
     // This method will be call automatically _after_ return from body().
 }
 
-bool debug = false;
+bool debug = true;
 int increaseSpeed = 0;
 
 
@@ -111,6 +111,7 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
             stringstream speedStream, steeringAngleStream;
 
             float desSteering = m_desiredSteeringWheelAngle * 180 / M_PI;
+            cout<<"steeringAngle"<<desSteering<<endl;
 
             if (desSteering > 41) desSteering = 42;
             if (desSteering < -41) desSteering = -42;
@@ -150,8 +151,41 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
     return ModuleState::OKAY;
 }
 
+  float
+  laneDriver::calculateDesiredHeading (float oldLateralError)
+  {
+    float desiredHeading;
+    float theta = m_angularError / 180 * M_PI;
+    //Scale from pixels to meters
+    m_lateralError = m_lateralError / SCALE_FACTOR;
+    if (m_timestamp != 0)
+      {
+	TimeStamp now;
+	int32_t currTime = now.toMicroseconds ();
+	double sec = (currTime - m_timestamp) / (1000000.0);
+	m_intLateralError = m_intLateralError
+	    + m_speed * cos (theta) * m_lateralError * sec;
+	if ((m_intLateralError > 2 * m_lateralError && m_lateralError > 0)
+	    || (m_lateralError < 0 && m_intLateralError < 2 * m_lateralError))
+	  {
+	    m_intLateralError = 2 * m_lateralError;
+	  }
+	m_derLateralError = (m_lateralError - oldLateralError) / sec;
+	//cout << endl;
+	//cout << "  sec: " << sec;
+      }
+    TimeStamp now;
+    m_timestamp = now.toMicroseconds ();
+    //Simple proportional control law, propGain needs to be updated
+    desiredHeading = m_lateralError * m_propGain;
+    desiredHeading += m_intLateralError * m_intGain;
+    desiredHeading += m_derLateralError * m_derGain;
+    return desiredHeading;
+  }
+
 bool laneDriver::laneFollowing(LaneDetectionData *data)
 {
+    cout<<"enteredLaneFollowing"<<endl;
     int x1, x2, x3, x4, y1, y2, y3, y4;
     LaneDetectionData ldd = *data;
     // The two lines are delivered in a struct containing two Vec4i objects (vector of 4 integers)
@@ -186,6 +220,7 @@ bool laneDriver::laneFollowing(LaneDetectionData *data)
     if (( x1 == 0 && y1 == 0 && x2 == 0 && y2 == 0 ) &&
             ( x3 == 0 && y3 == 0 && x4 == 0 && y4 == 0 ))
         {
+            cout<<"I am here"<<endl;
             return false;
         }
 
@@ -197,18 +232,48 @@ bool laneDriver::laneFollowing(LaneDetectionData *data)
             cout << endl;
         }
 
-    float x_goal = lines.goalLine.p2.x;
-    float x_pl = lines.currentLine.p2.x;
-
     float oldLateralError = m_lateralError;
-    float a = tan(lines.goalLine.slope * M_PI / 180);
-    float b = lines.goalLine.p1.y - lines.goalLine.p1.x * a;
+    
+    calculateErr(lines.currentLine,lines.goalLine, &m_angularError, &m_lateralError);
+
+    m_desiredSteeringWheelAngle = calculateDesiredHeading (oldLateralError);
+    if (debug)
+        {
+            // cout << "  x_error: " << x_err;
+            cout << "  derLateral: " << m_derLateralError;
+            cout << "  intLateral: " << m_intLateralError;
+            cout << "  lateral: " << m_lateralError;
+            cout << "  orentation: " << m_angularError;
+            // cout << "  theta: " << theta;
+            cout << "  angle: " <<  m_desiredSteeringWheelAngle * 180 / M_PI;
+            cout << "  speed: " << m_speed;
+            cout << "  width " << scr_width;
+            cout << "  height: " << scr_height;
+            cout << endl;
+        }
+        cout<<"exit lane follwoing"<<endl;
+    return true;
+}
+
+// float predictHeading(int time,float currSpeed, float currHeading)
+// {
+//     return;
+
+// }
+
+void laneDriver::calculateErr(CustomLine currLine,CustomLine goalLine,float *angError, double *latError)
+{
+    float x_goal = goalLine.p2.x;
+    float x_pl = currLine.p2.x;
+    
+    float a = tan(goalLine.slope * M_PI / 180);
+    float b = goalLine.p1.y - goalLine.p1.x * a;
     int x_coord = -b / a;
     x_goal = (x_coord + x_goal) / 2;
     float theta_avg = M_PI / 2;
     if (abs(x_goal - x_pl) > 0.001)
         {
-            theta_avg = (0 - lines.currentLine.p2.y) / ((float)(x_goal - x_pl));
+            theta_avg = (0 - currLine.p2.y) / ((float)(x_goal - x_pl));
             theta_avg = atan(theta_avg);
         }
     if (theta_avg < 0)
@@ -220,7 +285,7 @@ bool laneDriver::laneFollowing(LaneDetectionData *data)
             theta_avg = theta_avg * 180 / M_PI;
         }
 
-    float theta_curr = lines.currentLine.slope;
+    float theta_curr = currLine.slope;
     if (debug)
         {
             cout << "Position: " << x_pl << endl;
@@ -228,54 +293,11 @@ bool laneDriver::laneFollowing(LaneDetectionData *data)
             cout << "Curr Orientation: " << theta_curr << endl;
             cout << "Goal Orientation: " << theta_avg << endl;
         }
-    m_angularError = theta_avg - theta_curr;
-    float theta = m_angularError / 180 * M_PI;
-    int x_err = x_goal - x_pl;
-    m_lateralError = x_err;
-
-    //Scale from pixels to meters
-    m_lateralError = m_lateralError / SCALE_FACTOR;
-
-    if (m_timestamp != 0)
-        {
-            TimeStamp now;
-            int32_t currTime = now.toMicroseconds();
-            double sec = (currTime - m_timestamp) / (1000000.0);
-            m_intLateralError = m_intLateralError + m_speed * cos(theta) * m_lateralError * sec;
-            if ((m_intLateralError > 2 * m_lateralError && m_lateralError > 0) || (m_lateralError < 0 && m_intLateralError < 2 * m_lateralError))
-                {
-                    m_intLateralError = 2 * m_lateralError;
-                }
-            m_derLateralError = (m_lateralError - oldLateralError) / sec;
-            //cout << endl;
-            //cout << "  sec: " << sec;
-        }
-
-    TimeStamp now;
-    m_timestamp = now.toMicroseconds();
-
-    //Simple proportional control law, propGain needs to be updated
-    m_desiredSteeringWheelAngle = m_lateralError * m_propGain;
-    m_desiredSteeringWheelAngle += m_intLateralError * m_intGain;
-    m_desiredSteeringWheelAngle += m_derLateralError * m_derGain;
-
-    if (debug)
-        {
-            cout << "  x_error: " << x_err;
-            cout << "  derLateral: " << m_derLateralError;
-            cout << "  intLateral: " << m_intLateralError;
-            cout << "  lateral: " << m_lateralError;
-            cout << "  orentation: " << m_angularError;
-            cout << "  theta: " << theta;
-            cout << "  angle: " <<  m_desiredSteeringWheelAngle * 180 / M_PI;
-            cout << "  speed: " << m_speed;
-            cout << "  width " << scr_width;
-            cout << "  height: " << scr_height;
-            cout << endl;
-        }
-    return true;
+    *angError = theta_avg - theta_curr;
+    *latError = x_goal - x_pl;
+    
+    return;
 }
-
 
 } // msv
 
