@@ -142,6 +142,7 @@ private:
     Point2f getWorldPoint(Point2i imgPoint);
     int getIntersectionWithBottom(CustomLine l) const;
     int getIntersectionWithTop(CustomLine l) const;
+	int getIntersectionWithY(CustomLine l, int y) const;
     CustomLine createLineFromRect(RotatedRect *rect, int sizeX, int sizeY, int polygonIndex);
 
     //Find contours
