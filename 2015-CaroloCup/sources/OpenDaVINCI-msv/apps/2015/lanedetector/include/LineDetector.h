@@ -145,6 +145,7 @@ private:
 	int getIntersectionWithY(CustomLine l, int y) const;
     CustomLine createLineFromRect(RotatedRect *rect, int sizeX, int sizeY, int polygonIndex);
 
+	Point getLowestOrHighestPoint(std::vector<Point> pts, bool getLowest);
     //Find contours
     void getContours(cv::Mat &outputImg);
     //Get all marked lines
