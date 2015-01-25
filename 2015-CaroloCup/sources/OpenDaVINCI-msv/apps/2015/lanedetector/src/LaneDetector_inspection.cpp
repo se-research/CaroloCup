@@ -164,10 +164,13 @@ void LaneDetector_inspection::processImage()
 
     showResult(road, neededPart);
 
+    msv::Lines lines = road.getLines();
+    msv::LaneDetectorDataToDriver dataToDriver = *(road.getDriverData());
+
     // if (lines != NULL)
     //  cout << "We have lines for frame " <<m_frame_count << endl;
     LaneDetectionData data;
-    // data.setLaneDetectionData(*lines);
+    data.setLaneDetectionData(lines, dataToDriver);
     data.setFrameCount(m_frame_count);
 
 

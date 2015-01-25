@@ -21,6 +21,7 @@ namespace msv
 using namespace std;
 using namespace cv;
 
+
 class CustomLine
 {
 public:
@@ -117,6 +118,35 @@ public:
     int stopLineHeight;
 };
 
+class LaneDetectorDataToDriver
+{
+public:
+    LaneDetectorDataToDriver () :
+        switchPointsLeftGoalLines(),
+        switchPointsRightGoalLines(),
+        leftGoalLines(),
+        rightGoalLines(),
+        currentLine(),
+        noTrajectory(true)
+    {}
+    LaneDetectorDataToDriver (vector<int> spl, vector<int> spr, vector<CustomLine> lgl, vector<CustomLine> rgl, CustomLine c, bool nothing):
+        switchPointsLeftGoalLines(spr),
+        switchPointsRightGoalLines(spl),
+        leftGoalLines(lgl),
+        rightGoalLines(rgl),
+        currentLine(c),
+        noTrajectory(nothing)
+    {}
+    virtual ~LaneDetectorDataToDriver () {}
+
+    vector<int> switchPointsLeftGoalLines;
+    vector<int> switchPointsRightGoalLines;
+    vector<CustomLine> leftGoalLines;
+    vector<CustomLine> rightGoalLines;
+    CustomLine currentLine;
+    bool noTrajectory;
+};
+
 /**
  * This is an example how you can send data from one component to another.
  */
@@ -148,13 +178,14 @@ public:
      * @return example data.
      */
     Lines getLaneDetectionData() const;
+   // LaneDetectorDataToDriver getDriverDataFromLaneDetector() const;
 
     /**
      * This method sets the example data.
      *
      * @param e Example data.
      */
-    void setLaneDetectionData(const Lines &e);
+    void setLaneDetectionData(const Lines &e, const LaneDetectorDataToDriver &dtd);
 
     uint32_t getFrameCount() const;
     void setFrameCount(const uint32_t &count);
@@ -171,6 +202,7 @@ private:
     uint32_t m_frame_count;
     Lines m_lines;
     string m_classification;// Inspection classification
+    LaneDetectorDataToDriver m_dataToDriver;
 };
 
 } // msv
