@@ -216,7 +216,7 @@ class PlayerModuleTest : public CxxTest::TestSuite,
             uint32_t numberOfElements = 0;
             while (numberOfElements != 5) {
                 numberOfElements = ptcl.getQueue().getSize();
-                Thread::usleep(10*1000*1000);
+                Thread::usleep(5*1000*1000);
             }
 
             pts.stop();
@@ -337,7 +337,7 @@ class PlayerModuleTest : public CxxTest::TestSuite,
             uint32_t numberOfElements = 0;
             while (numberOfElements != 5) {
                 numberOfElements = ptcl.getQueue().getSize();
-                Thread::usleep(10*1000*1000);
+                Thread::usleep(5*1000*1000);
             }
 
             pts.stop();
@@ -469,7 +469,7 @@ class PlayerModuleTest : public CxxTest::TestSuite,
             uint32_t numberOfElements = 0;
             while (numberOfElements != 5) {
                 numberOfElements = ptcl.getQueue().getSize();
-                Thread::usleep(10*1000*1000);
+                Thread::usleep(5*1000*1000);
             }
 
             pts.stop();
@@ -600,7 +600,7 @@ class PlayerModuleTest : public CxxTest::TestSuite,
             uint32_t numberOfElements = 0;
             while (!(numberOfElements > 10)) {
                 numberOfElements = ptcl.getQueue().getSize();
-                Thread::usleep(10*1000*1000);
+                Thread::usleep(5*1000*1000);
             }
 
             pts.stop();
@@ -744,7 +744,7 @@ class PlayerModuleTest : public CxxTest::TestSuite,
             pts.start();
 
             // Wait shortly.
-            Thread::usleep(10*1000*1000);
+            Thread::usleep(3*1000*1000);
 
             ////////////////////////////////////////////////////////////////////
             // Start player.

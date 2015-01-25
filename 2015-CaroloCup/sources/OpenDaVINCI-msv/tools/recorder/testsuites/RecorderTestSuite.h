@@ -113,41 +113,42 @@ class RecorderTest : public CxxTest::TestSuite,
 
             rts.start();
 
-            Thread::usleep(10000000);
+            Thread::usleep(3*1000*1000);
+
             // Send data.
             TimeStamp ts1(0, 1);
             Container c1(Container::TIMESTAMP, ts1);
             conference->send(c1);
 
-            Thread::usleep(100000);
+            Thread::usleep(100*1000);
 
             TimeStamp ts2(1, 2);
             Container c2(Container::TIMESTAMP, ts2);
             conference->send(c2);
 
-            Thread::usleep(100000);
+            Thread::usleep(100*1000);
 
             TimeStamp ts3(2, 3);
             Container c3(Container::TIMESTAMP, ts3);
             conference->send(c3);
 
-            Thread::usleep(100000);
+            Thread::usleep(100*1000);
 
             TimeStamp ts4(3, 4);
             Container c4(Container::TIMESTAMP, ts4);
             conference->send(c4);
 
-            Thread::usleep(100000);
+            Thread::usleep(100*1000);
 
             TimeStamp ts5(4, 5);
             Container c5(Container::TIMESTAMP, ts5);
             conference->send(c5);
 
-            Thread::usleep(100000);
+            Thread::usleep(100*1000);
 
             rts.stop();
 
-            Thread::usleep(100000);
+            Thread::usleep(100*1000);
 
             delete &(StreamFactory::getInstance());
 
@@ -259,56 +260,56 @@ class RecorderTest : public CxxTest::TestSuite,
 
             rts.start();
 
-            Thread::usleep(10000000);
+            Thread::usleep(3*1000*1000);
 
             // Send data.
             TimeStamp ts1(0, 1);
             Container c1(Container::TIMESTAMP, ts1);
             conference->send(c1);
 
-            Thread::usleep(100000);
+            Thread::usleep(100*1000);
 
             // Start recording.
             recorderCommand.setCommand(core::data::recorder::RecorderCommand::RECORD);
             Container cRC1(Container::RECORDER_COMMAND, recorderCommand);
             conference->send(cRC1);
 
-            Thread::usleep(100000);
+            Thread::usleep(100*1000);
 
             TimeStamp ts2(1, 2);
             Container c2(Container::TIMESTAMP, ts2);
             conference->send(c2);
 
-            Thread::usleep(100000);
+            Thread::usleep(100*1000);
 
             TimeStamp ts3(2, 3);
             Container c3(Container::TIMESTAMP, ts3);
             conference->send(c3);
 
-            Thread::usleep(100000);
+            Thread::usleep(100*1000);
 
             TimeStamp ts4(3, 4);
             Container c4(Container::TIMESTAMP, ts4);
             conference->send(c4);
 
-            Thread::usleep(100000);
+            Thread::usleep(100*1000);
 
             // Stop recording.
             recorderCommand.setCommand(core::data::recorder::RecorderCommand::STOP);
             Container cRC2(Container::RECORDER_COMMAND, recorderCommand);
             conference->send(cRC2);
 
-            Thread::usleep(100000);
+            Thread::usleep(100*1000);
 
             TimeStamp ts5(4, 5);
             Container c5(Container::TIMESTAMP, ts5);
             conference->send(c5);
 
-            Thread::usleep(100000);
+            Thread::usleep(100*1000);
 
             rts.stop();
 
-            Thread::usleep(100000);
+            Thread::usleep(100*1000);
 
             delete &(StreamFactory::getInstance());
 

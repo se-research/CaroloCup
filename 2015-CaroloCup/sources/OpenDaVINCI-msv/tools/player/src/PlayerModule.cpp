@@ -55,11 +55,14 @@ namespace player {
         // Number of memory segments.
         const uint32_t NUMBER_OF_SEGMENTS = getKeyValueConfiguration().getValue<uint32_t>("global.buffer.numberOfMemorySegments");
 
+        // Run player in asynchronous mode with data caching in background.
+        const bool THREADING = true;
+
         // Add FIFOQueue for controlling the player.
         addDataStoreFor(Container::PLAYER_COMMAND, m_playerControl);
 
         // Construct player.
-        Player player(url, autoRewind, MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS);
+        Player player(url, autoRewind, MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS, THREADING);
 
         // The next container to be sent.
         Container nextContainerToBeSent;

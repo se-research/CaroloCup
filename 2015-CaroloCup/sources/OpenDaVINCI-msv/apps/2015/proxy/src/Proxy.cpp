@@ -86,9 +86,10 @@ void Proxy::setUp() {
 		// Number of memory segments.
 		const uint32_t NUMBER_OF_SEGMENTS = getKeyValueConfiguration().getValue<
 				uint32_t>("global.buffer.numberOfMemorySegments");
-
-		m_recorder = new Recorder(recordingURL.str(), MEMORY_SEGMENT_SIZE,
-				NUMBER_OF_SEGMENTS);
+                // Run recorder in asynchronous mode to allow real-time recording in background.
+                const bool THREADING = true;
+ 
+                m_recorder = new Recorder(recordingURL.str(), MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS, THREADING);
 	}
 
 	// Create the camera grabber.
@@ -126,12 +127,12 @@ void Proxy::setUp() {
 void Proxy::nextString(const string &s)
 {
 	log("Recieved Sensor Data ");
+	cout<<"data,"<<s<<endl;
 	int posIstr=s.find(':');
 	int posUstr=s.find(':',posIstr+1);
-	string iStr=s.substr(0,posIstr);
+	string iStr=s.substr(2,posIstr);
 	string uStr=s.substr(posIstr+1,posUstr-posIstr);
 	string wStr=s.substr(posUstr+1);
-
     if (iStr[0] == 'i') {
 
 		char firstInfra[2];
@@ -222,13 +223,14 @@ void Proxy::nextString(const string &s)
 
     if(wStr[0]=='w')
     {
-			char wheelEncoder[4];
+			char wheelEncoder[5];
 			wheelEncoder[0] = wStr[1];
 			wheelEncoder[1] = wStr[2];
 			wheelEncoder[2] = wStr[3];
 			wheelEncoder[3] = wStr[4];
+			wheelEncoder[4] = wStr[5];
 			int distanceTraveled;
-			distanceTraveled=converter(wheelEncoder,4);
+			distanceTraveled=converter(wheelEncoder,5);
 
 			{
 				Lock l(m_sensorBoardMutex);
@@ -310,6 +312,7 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 	sp.setStringListener(this);
 	serialPort->setPartialStringReceiver(&sp);
 	serialPort->start();
+	
 
 	//setupSerial port for Actuators
 	ArduinoMegaProtocol m_protocol(getKeyValueConfiguration().getValue<string>("proxy.Actuator.SerialPort"),10);
@@ -328,6 +331,10 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 			Container c(Container::SHARED_IMAGE, si);
 			distribute(c);
 			captureCounter++;
+			stringstream logs;
+			logs<<"SharedImage Distributed Capture Counter:"<<captureCounter<<endl;
+			log(logs.str());
+			
 		}
 
 		// Get sensor data from IR/US, and distribute
@@ -335,6 +342,7 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 			Lock l(m_sensorBoardMutex);
 			Container sensorData(Container::USER_DATA_0, m_sensorBoardData);
 			distribute(sensorData);
+			log("Distributed Sensor data");
 		}
 
 		//Get driver data and send it to the arduino
@@ -373,7 +381,7 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 			}
 			else{
 				m_protocol.setSpeed(currentValues.speed);
-				logger<<"set speed to "<<currentValues.speed<<endl;
+				logs<<"set speed to "<<currentValues.speed<<endl;
 				log(logs.str());
 			}
 			previousValues.speed=(int)currentValues.speed;
@@ -390,13 +398,16 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 		if((previousValues.leftFlash != currentValues.leftFlash) || (previousValues.rightFlash != currentValues.rightFlash))
 		{
 			m_protocol.setIndicatorsStop();
+			log("Turn off indicator");
 			if(currentValues.rightFlash)
 			{
 				m_protocol.setIndicatorsRight();
+				log("Turn On right indicator");
 			}
 			if(currentValues.leftFlash)
 			{
 				m_protocol.setIndicatorsLeft();
+				log("Turn On left indicator");
 			}
 			previousValues.leftFlash = currentValues.leftFlash;
 			previousValues.rightFlash = currentValues.rightFlash;
@@ -405,7 +416,14 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 	}
 
 	cout << "Proxy: Captured " << captureCounter << " frames." << endl;
-	m_protocol.setSpeed(0); //stop the car when proxy is stopped
+	
+	//stop the car when proxy is stopped
+	if(m_useRealSpeed) {
+	  m_protocol.setWheelFrequency(0, false);
+	} else {
+	  m_protocol.setSpeed(0); 
+	}
+	m_protocol.setSteeringAngle(0);
 	serialPort->stop();
 	OPENDAVINCI_CORE_DELETE_POINTER(serialPort);
 	log("Proxy killed");

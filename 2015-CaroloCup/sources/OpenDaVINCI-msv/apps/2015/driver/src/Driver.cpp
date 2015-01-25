@@ -30,19 +30,28 @@ using namespace core::data;
 using namespace core::data::control;
 using namespace core::data::environment;
 
-int MinParkingDist = 480;
+int MinParkingDist = 500;
+int SafeDistance = 40;
 int Distance;
+int CurrentDistSpot;
+int CurrentDistSpot2;
 int CurrentDist;
 int DesiredDistance1 = 100; //700 is required 550+150;
-int DesiredDistance2 = 350;
-int DesiredDistance3 = 420;
-int DesiredDistance4 = 70;
-int DesiredDistance5 = 30;
+int DesiredDistance2 = 470;
+int DesiredDistance3 = 490;
+int DesiredDistance4 = 130;
+int DesiredDistance5 = 50;
+int SpeedF1 = 6;
+int SpeedF2 = 6;
+int SpeedB1 = -7;
+int SpeedB2 = -5;
 int CurrentDist1;
 int CurrentDist2;
 int CurrentDist3;
 int CurrentDist4;
 int CurrentDist5;
+int USFront;
+int USRear;
 int IRdis_SL;
 int IRdis_RL;
 int IRdis_RR;
@@ -67,14 +76,15 @@ void Driver::tearDown() {
 
 
 double start_timer;
+double start_timer2;
 double time_taken;
+double time_taken2;
 
 int driving_speed;			// Speed of the car
 int desiredSteeringWheelAngle;// Angle of the wheels
 
 // This method will do the main data processing job.
 ModuleState::MODULE_EXITCODE Driver::body() {
-
 	driving_state = DRIVE;
 	parking_state = BACKWARDS_RIGHT;
 	// Get configuration data.
@@ -86,16 +96,17 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 
 	TimeStamp start;
 	int gapWidth = 0;
+	//bool measuring = false;
 	
 
 	while (getModuleState() == ModuleState::RUNNING) {
 		// In the following, you find example for the various data sources that are available:
-
+    
 		// 1. Get most recent vehicle data:
 		Container containerVehicleData = getKeyValueDataStore().get(
 				Container::VEHICLEDATA);
 		VehicleData vd = containerVehicleData.getData<VehicleData>();
-		cerr << "Most recent vehicle data: '" << vd.toString() << "'" << endl;
+		// cerr << "Most recent vehicle data: '" << vd.toString() << "'" << endl;
 
 		// 2. Get most recent sensor board data:
 		Container containerSensorBoardData = getKeyValueDataStore().get(
@@ -109,47 +120,58 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 		Container containerUserButtonData = getKeyValueDataStore().get(
 				Container::USER_BUTTON);
 		UserButtonData ubd = containerUserButtonData.getData<UserButtonData>();
-		cerr << "Most recent user button data: '" << ubd.toString() << "'"
-				<< endl;
+		// cerr << "Most recent user button data: '" << ubd.toString() << "'"
+				// << endl;
 
 		// 4. Get most recent steering data as fill from lanedetector for example:
 		Container containerSteeringData = getKeyValueDataStore().get(
 				Container::USER_DATA_1);
 		SteeringData sd = containerSteeringData.getData<SteeringData>();
-		cerr << "Most recent steering data: '" << sd.toString() << "'" << endl;
+		// cerr << "Most recent steering data: '" << sd.toString() << "'" << endl;
 
 		//IRs
 		IRdis_SL = sbd.getDistance(0); // Side Left IR
 		IRdis_RL = sbd.getDistance(1); // Rear Left IR
 		IRdis_RR = sbd.getDistance(2); // Rear Right IR
 		IRdis_SR = sbd.getDistance(3); // Side Right IR
+		USFront = sbd.getDistance(4); // Front UltraSonic
+		USRear = sbd.getDistance(5); // Rear UltraSonic 
 		
 		//WheelEncoder
 		Distance = sbd.getDistance(6); // WheeelEncoder Data (mm)
 		
 		//Status
-		cout << " ===== Side Left Infrared reading: " << IRdis_SL << endl;
-		cout << " ===== Rear Left Infrared reading: " << IRdis_RL << endl;
-		cout << " ===== Rear Right Infrared reading: " << IRdis_RR << endl;
+// 		cout << " ===== Side Left Infrared reading: " << IRdis_SL << endl;
+ 		cout << " ===== Rear Left Infrared reading: " << IRdis_RL << endl;
+ 		cout << " ===== Rear Right Infrared reading: " << IRdis_RR << endl;
 		cout << " ===== Side Right Infrared reading: " << IRdis_SR << endl;
+		cout << " ===== Front UltraSonic reading: " << USFront << endl;
+		cout << " ===== Rear UltraSonic reading: " << USRear << endl;
 		cout << " ===== WheeelEncoder Data (mm): " << Distance << endl;
 		cout << " ===== Driving_Speed: " << driving_speed << endl;
 		cout << " ===== DesiredSteeringWheelAngle: " << desiredSteeringWheelAngle << endl;
-		cout << "Parking spot length: "<< gapWidth << endl;
-		cout << "CurrentDist1 "<< CurrentDist1 << endl;
-		cout << "CurrentDist2 "<< CurrentDist2 << endl;
-		cout << "CurrentDist3 "<< CurrentDist3 << endl;
-		cout << "CurrentDist4 "<< CurrentDist4 << endl;
-		cout << "CurrentDist5 "<< CurrentDist5 << endl;
-		
+		cout << " ===== Parking spot length: "<< gapWidth << endl;
+// 		cout << "CurrentDistSpot "<< CurrentDistSpot << endl;
+// 		cout << "CurrentDistSpot2 "<< CurrentDistSpot2 << endl;
+// 		cout << "CurrentDist1 "<< CurrentDist1 << endl;
+// 		cout << "CurrentDist2 "<< CurrentDist2 << endl;
+// 		cout << "CurrentDist3 "<< CurrentDist3 << endl;
+// 		cout << "CurrentDist4 "<< CurrentDist4 << endl;
+// 		cout << "CurrentDist5 "<< CurrentDist5 << endl;
+// 		
 		// Design your control algorithm here depending on the input data from above.
 		switch (driving_state) {
 		case DRIVE: {
-			cout << "In drive mode" << endl;
-			driving_speed = 1;
+			cout << "\t In drive mode" << endl;
+			driving_speed = SpeedF2;
 			desiredSteeringWheelAngle = 0;
-
-			if ((IRdis_SR < 20 && IRdis_SR > 2)){ 
+			
+			if ((USFront < SafeDistance && USFront > 2)){ 
+				driving_state = NO_POSSIBLE_PARKING_PLACE;
+			  
+			}
+			
+			if ((IRdis_SR < 25 && IRdis_SR > 2)){ 
 				driving_state = START_OBST;
 			  
 			}
@@ -157,52 +179,63 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 			break;
 
 		case START_OBST: {
-			cout << "START_OBST mode" << endl;
+			cout << "\t \t START_OBST mode" << endl;
 			//driving_speed = 1;
 			desiredSteeringWheelAngle = 0;
-			if ((IRdis_SR > 18 || IRdis_SR < 2)) {
+			
+			if ((USFront < SafeDistance && USFront > 2)){ 
+				driving_state = NO_POSSIBLE_PARKING_PLACE;
+			  
+			}
+
+			if ((IRdis_SR > 25 || IRdis_SR < 2)) {
 				driving_state = POSSIBLE_SPOT;
-				CurrentDist = Distance;
-// 				TimeStamp currentTime_strt1;
-// 				start = currentTime_strt1;
+				CurrentDistSpot = Distance;
 			}
 		}
 			break;
 
 		case POSSIBLE_SPOT: {
-			cout << "---- DIstance so far: " << Distance << endl;
-			cout << "---- POSSIBLE_SPOT" << endl;
-			//driving_speed = 1;
+// 			cout << "---- DIstance so far: " << Distance << endl;
+			cout << "\t POSSIBLE_SPOT" << endl;;
 			desiredSteeringWheelAngle = 0;
 			
-			if(IRdis_SR > 18 || IRdis_SR < 2){
-			 gapWidth += Distance - CurrentDist;
+			if ((USFront < SafeDistance && USFront > 2)){ 
+				driving_state = NO_POSSIBLE_PARKING_PLACE;
+			  
 			}
-			if(gapWidth > MinParkingDist){
-			  desiredSteeringWheelAngle = 0;
-			  driving_state = INITIALIZE_POS_FOR_PARKING; 
-			}
-			if(IRdis_SR < 18 && IRdis_SR > 2){
-			   gapWidth = 0; 
-			   driving_state = DRIVE;
+			
+			if(IRdis_SR < 25 && IRdis_SR > 2){
+			  gapWidth = Distance - CurrentDistSpot;
+			  //CurrentDistSpot2 = Distance;
+			 if(gapWidth > MinParkingDist){
+			   desiredSteeringWheelAngle=0;
+			   driving_state = INITIALIZE_POS_FOR_PARKING; 
+			 }else{
+			  driving_state = DRIVE; 
+			 }
 			}
 			
 			CurrentDist = Distance;
-			cout << "Found a possible spot" << endl;
-			cout << "CurrentDist (STOP_FOR_PARKING)"<< CurrentDist << endl;
-			cout << "Found a parking spot (STOP_FOR_PARKING)" << endl;
-			cout << "Parking spot length: "<< gapWidth << endl;
+// 			cout << "Found a possible spot" << endl;
+// 			cout << "CurrentDist (STOP_FOR_PARKING)"<< CurrentDist << endl;
+// 			cout << "Found a parking spot (STOP_FOR_PARKING)" << endl;
+			cout << "\t Parking spot length: "<< gapWidth << endl;
 		}
 			break;
 		case INITIALIZE_POS_FOR_PARKING: { 
 		 
-			cout << "Found a parking spot (Initialize_Pos_For_Parking)" << endl;
-			driving_speed = 2;
+			cout << "\t\tFound a parking spot (Initialize_Pos_For_Parking)" << endl;
+			driving_speed = SpeedF1;
 			TimeStamp currentTime;
 			start_timer = currentTime.toMicroseconds() / 100000.0;
 			driving_state = STOP_FOR_PARKING;
 			
 			CurrentDist = Distance;
+			if ((USFront < SafeDistance && USFront > 2)){ 
+				driving_state = NO_POSSIBLE_PARKING_PLACE;
+			  
+			}
 // 			if (Distance == (CurrentDist + DesiredDistance1)) {
 // 			  
 // 				driving_speed = 0;
@@ -213,19 +246,22 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 			break;
 
 		case STOP_FOR_PARKING: { 
-		  
+			
+			cout << "\t STOP_FOR_PARKING" << endl;
 			TimeStamp currentTime2;
 			time_taken = (currentTime2.toMicroseconds() / 100000.0)
 					- start_timer;
 					
 			cout << "++++++++++ Stoping timer: " << time_taken << endl;
-			CurrentDist = Distance;
-			if (time_taken > 3) {  //can this be reached ? because start_timer never started.
+			
+			if ((USFront < SafeDistance && USFront > 2)){ 
+				driving_state = NO_POSSIBLE_PARKING_PLACE;
+			  
+			}
+			if (time_taken > 3) {  
  				
 				//parking(vc, vd);
-				
 				CurrentDist1 = Distance;
-				driving_speed = 0;
 				driving_state = PARKING;
 				
 
@@ -239,6 +275,16 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 			parking();
 		}
 			break;
+			
+		case NO_POSSIBLE_PARKING_PLACE: {
+			
+			cout << "\t\t========  NO_POSSIBLE_PARKING_PLACE"  << endl;
+			driving_speed = 0;
+			
+		}
+			break;
+			
+			
 		default: {
 
 			cout << "Non of these states" << endl;
@@ -267,18 +313,19 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 		Container c(Container::VEHICLECONTROL, vc);
 		// Send container.
 		getConference().send(c);
+		
 	}
-
+	driving_speed = 0;
 	return ModuleState::OKAY;
-}
+	//driving_speed = 0;
+	}
 
 
 void Driver::parking() {
-	cout << "========:  parking()"  << endl;
-	cout << "========  CurrentDist" << CurrentDist << endl;
+	cout << "\t\t========:  parking()"  << endl;
 	switch (parking_state) {
 	case BACKWARDS_RIGHT: {
-		driving_speed = 2;
+		driving_speed = SpeedB2;
 		desiredSteeringWheelAngle = -42;
 	  	cout << "========  BACKWARDS_RIGHT"  << endl;
 		if (Distance > (CurrentDist1 + DesiredDistance2)) {
@@ -292,38 +339,65 @@ void Driver::parking() {
 		break;
 		
 	case BACKWARDS_LEFT: {
+		driving_speed = SpeedB1;
 		desiredSteeringWheelAngle = 42;
-		cout << "========  BACKWARDS_LEFT"  << endl;
-		if (Distance > (CurrentDist2 + DesiredDistance3)) {
+		cout << "\t========  BACKWARDS_LEFT"  << endl;
+		if ((Distance > (CurrentDist2 + DesiredDistance3)) || (USRear < 20 && USRear > 2)) {			
+			driving_speed = 0;
 			CurrentDist3 = Distance;
 			parking_state = FORWARD_RIGHT;
-			
 
 		} 
 	}
 		break;
 
 	case FORWARD_RIGHT: {
-		driving_speed = 1;
+		driving_speed = SpeedF1;
 		desiredSteeringWheelAngle = -42;
-		cout << "========  FORWARD_RIGHT"  << endl;
-		if (Distance > (CurrentDist3 + DesiredDistance4)) {
+		cout << "\t\t========  FORWARD_RIGHT"  << endl;
+		if ((Distance > (CurrentDist3 + DesiredDistance4)) || (USFront < 7 && USFront > 2)) {
 		  
-			CurrentDist4 = Distance;
-			parking_state = BACK_AGAIN;
+			parking_state = STOP_FOR_SEC;;
+			TimeStamp currentTime3;
+			start_timer2 = currentTime3.toMicroseconds() / 100000.0;
+			
+			
 			
 
 		} 
 	}
 
 		break;
+		
+	case STOP_FOR_SEC: { 
+			driving_speed = 0;
+			cout << "\t STOP_FOR_SEC" << endl;
+			TimeStamp currentTime4;
+			time_taken2 = (currentTime4.toMicroseconds() / 100000.0)
+					- start_timer2;
+					
+			cout << "++++++++++ Stoping timer: " << time_taken2 << endl;
+			if (time_taken2 > 4) {  //can this be reached ? because start_timer never started.
+ 				
+				//parking(vc, vd);
+				
+				CurrentDist4 = Distance;
+				parking_state = BACK_AGAIN;
+				
+
+			}
+			
+		}
+			break;
 
 	case BACK_AGAIN: {
-		driving_speed = 2;
-		cout << "========  BACK_AGAIN"  << endl;
-		if (Distance > (CurrentDist4 + DesiredDistance5)) {
-			CurrentDist5 = Distance;
+		driving_speed = SpeedB1;
+		desiredSteeringWheelAngle = 42;
+		cout << "\t========  BACK_AGAIN"  << endl;
+		if ((Distance > (CurrentDist4 + DesiredDistance5)) || (USRear < 10 && USRear > 2)){
 			parking_state = STOP;
+			driving_speed = 0;
+			desiredSteeringWheelAngle = 0;
 		}
 
 	}
@@ -331,9 +405,8 @@ void Driver::parking() {
 		break;
 
 	case STOP:{
-		driving_speed = 0;
-		cout << "========  STOP"  << endl;
-		desiredSteeringWheelAngle = 0;
+		
+		cout << "\t\t========  STOP"  << endl;
 
 		cout << "****  stop the car  ****" << endl;
 	}
