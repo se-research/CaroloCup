@@ -21,7 +21,7 @@ namespace tools {
         using namespace core::data;
         using namespace core::io;
 
-        Recorder::Recorder(const string &url, const uint32_t &memorySegmentSize, const uint32_t &numberOfSegments, const bool &threading) :
+        Recorder::Recorder(const string &url, const uint32_t &memorySegmentSize, const uint32_t &numberOfSegments) :
             m_fifo(),
             m_sharedDataListener(NULL),
             m_out(NULL),
@@ -36,7 +36,7 @@ namespace tools {
             m_outSharedMemoryFile = &(StreamFactory::getInstance().getOutputStream(urlSharedMemoryFile));
 
             // Create data store for shared memory.
-            m_sharedDataListener = new SharedDataListener(*m_outSharedMemoryFile, memorySegmentSize, numberOfSegments, threading);
+            m_sharedDataListener = new SharedDataListener(*m_outSharedMemoryFile, memorySegmentSize, numberOfSegments);
         }
 
         Recorder::~Recorder() {

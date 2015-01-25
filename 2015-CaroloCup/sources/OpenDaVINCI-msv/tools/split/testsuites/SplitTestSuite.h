@@ -17,6 +17,7 @@
 #include "core/base/ModuleState.h"
 #include "core/data/Container.h"
 #include "core/data/SharedData.h"
+#include "core/base/Thread.h"
 #include "core/data/TimeStamp.h"
 #include "core/io/ContainerConference.h"
 #include "core/io/ContainerConferenceFactory.h"
@@ -63,7 +64,7 @@ class SplitTestling : public Split {
 const uint32_t MEMORY_SEGMENT_SIZE = 100;
 
 // Number of memory segments can be set to a fixed value.
-const uint32_t NUMBER_OF_SEGMENTS = 1;
+const uint32_t NUMBER_OF_SEGMENTS = 20;
 
 /**
  * The actual testsuite starts here.
@@ -92,10 +93,8 @@ class SplitTest : public CxxTest::TestSuite,
         }
 
         void setUp() {
-            // Run recorder in synchronous mode.
-            const bool THREADING = false;
             const string file("file://A.rec");
-            Recorder recorder(file, MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS, THREADING);        
+            Recorder recorder(file, MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS);        
 
             {
                 core::SharedPointer<core::wrapper::SharedMemory> memServer = core::wrapper::SharedMemoryFactory::createSharedMemory("SharedMemoryServer", 50);
@@ -110,6 +109,8 @@ class SplitTest : public CxxTest::TestSuite,
                     c.setReceivedTimeStamp(TimeStamp(i,500));
                     recorder.store(c);
 
+                    Thread::usleep(500);
+
                     // Create shared memory.
                     memServer->lock();
                         stringstream sstr;
@@ -122,6 +123,8 @@ class SplitTest : public CxxTest::TestSuite,
                     Container c2(Container::SHARED_DATA, sd);
                     c2.setReceivedTimeStamp(TimeStamp(i,1000));
                     recorder.store(c2);
+
+                    Thread::usleep(1000);
                 }
             }
         }
@@ -143,7 +146,7 @@ class SplitTest : public CxxTest::TestSuite,
             stringstream sstr;
             sstr << "recorder.output = file://RecorderTest.rec" << endl
             << "global.buffer.memorySegmentSize = 1000" << endl
-            << "global.buffer.numberOfMemorySegments = 1" << endl
+            << "global.buffer.numberOfMemorySegments = 5" << endl
             << "recorder.remoteControl = 0" << endl;
 
             m_configuration = KeyValueConfiguration();
@@ -188,11 +191,9 @@ class SplitTest : public CxxTest::TestSuite,
 
             // Stop playback at EOF.
             const bool AUTO_REWIND = false;
-            // Run player in synchronous mode.
-            const bool THREADING = false;
             // Construct player.
             string file("file://A.rec_50-60.rec");
-            Player player(file, AUTO_REWIND, MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS, THREADING);
+            Player player(file, AUTO_REWIND, MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS);
 
             int32_t rangeBasis = 25;
             int32_t sharedMemorySegments = 0;
@@ -229,6 +230,9 @@ class SplitTest : public CxxTest::TestSuite,
                         TS_ASSERT(core::StringToolbox::equalsIgnoreCase(s, sstr2.str()));
                     memClient->unlock();
 
+                    // Allow playback threading in background.
+                    Thread::usleep(1000);
+
                     sharedMemorySegments++;
                 }
             }
@@ -253,7 +257,7 @@ class SplitTest : public CxxTest::TestSuite,
             stringstream sstr;
             sstr << "recorder.output = file://RecorderTest.rec" << endl
             << "global.buffer.memorySegmentSize = 1000" << endl
-            << "global.buffer.numberOfMemorySegments = 1" << endl
+            << "global.buffer.numberOfMemorySegments = 5" << endl
             << "recorder.remoteControl = 0" << endl;
 
             m_configuration = KeyValueConfiguration();

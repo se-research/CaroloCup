@@ -54,12 +54,12 @@ namespace tools {
 
                 virtual ~SharedDataWriter();
 
-                void recordEntries();
-
             private:
                 virtual void beforeStop();
 
                 virtual void run();
+
+                void recordEntries();
 
             private:
                 ostream &m_out;

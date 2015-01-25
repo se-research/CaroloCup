@@ -28,9 +28,7 @@ namespace context {
 
 		void RecordingContainer::setup() {
 			if (m_urlFileName != "") {
-                // We can use the sychronous recorder as we are running in a deterministic simulation anyways.
-                const bool THREADING = false;
-                m_recorder = new Recorder(m_urlFileName, m_memorySegmentSize, m_numberOfSegments, THREADING);
+                m_recorder = new Recorder(m_urlFileName, m_memorySegmentSize, m_numberOfSegments);
 			}
 		}
 

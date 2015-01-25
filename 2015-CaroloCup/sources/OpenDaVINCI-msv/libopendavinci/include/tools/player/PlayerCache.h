@@ -96,14 +96,6 @@ namespace tools {
                  */
                 void copyMemoryToSharedMemory(core::data::Container &c);
 
-                /**
-                 * This method is used to fill the internal cache. It must
-                 * be called regularly in the case that player is NOT running
-                 * in threading mode (in that case, PlayerCache runs in
-                 * background and does the job for you).
-                 */
-                void updateCache();
-
             private:
                 virtual void beforeStop();
 

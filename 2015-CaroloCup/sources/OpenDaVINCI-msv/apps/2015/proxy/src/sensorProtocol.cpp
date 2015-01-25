@@ -37,17 +37,15 @@ using namespace core::wrapper;
                   m_partialData.write(s.c_str(), s.length());
                   if(hasCompleteData()){
                     m_partialData.seekg(0, ios_base::beg);
-                     // cout<<"Recived New:"<<m_partialData.str()<<endl;
+                    // cout<<"Recived New:"<<m_partialData.str()<<endl;
                     int posFirst=m_partialData.str().find('.')+1;
                 	  int posSecond=m_partialData.str().find('.',posFirst);
                     int length=posSecond-posFirst;
-                	 // cout<<"pos:"<<pos<<endl;
-               	   // cout<<"length:"<<length<<endl;
-                  
-                  invokeStringListener(m_partialData.str().substr(posFirst,length));
+//                	  cout<<"pos:"<<pos<<endl;
+               	  // cout<<"length:"<<length<<endl;
+                  invokeStringListener(m_partialData.str().substr(posFirst+2,length));
                   // cout<<"m_par invoked:"<<m_partialData.str()<<endl;
                   m_partialData.str(m_partialData.str().substr(posSecond));
-                
                   // cout<<"remaining data:"<<m_partialData.str()<<endl;
                  
                 	  // After using str() to set the remaining string, the write pointer

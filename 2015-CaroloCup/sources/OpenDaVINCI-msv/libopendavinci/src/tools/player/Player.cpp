@@ -22,8 +22,7 @@ namespace tools {
         using namespace core::data;
         using namespace core::io;
 
-        Player::Player(const URL &url, const bool &autoRewind, const uint32_t &memorySegmentSize, const uint32_t &numberOfMemorySegments, const bool &threading) :
-            m_threading(threading),
+        Player::Player(const URL &url, const bool &autoRewind, const uint32_t &memorySegmentSize, const uint32_t &numberOfMemorySegments) :
             m_autoRewind(autoRewind),
             m_inFile(NULL),
             m_inSharedMemoryFile(NULL),
@@ -53,24 +52,19 @@ namespace tools {
 
             // Setup cache.
             m_playerCache = new PlayerCache(numberOfMemorySegments, memorySegmentSize, m_autoRewind, *m_inFile, m_inSharedMemoryFile);
-            if ( (m_playerCache != NULL) && (m_threading) ) {
-                m_playerCache->start();
+            m_playerCache->start();
 
-                // TODO: Check for corrupt player files.
-                // Here, we need to wait for two entries; otherwise, player will start to deliver
-                // containers while the recording file with the entries from the shared memory is
-                // not ready yet.
-                while (m_playerCache->getNumberOfEntries() < 2) {
-                    Thread::usleep(1000);
-                }
-            }
-            else {
-                m_playerCache->updateCache();
+            // TODO: Check for corrupt player files.
+            // Here, we need to wait for two entries; otherwise, player will start to deliver
+            // containers while the recording file with the entries from the shared memory is
+            // not ready yet.
+            while (m_playerCache->getNumberOfEntries() < 2) {
+                Thread::usleep(1000);
             }
         }
 
         Player::~Player() {
-            if ( (m_playerCache != NULL) && (m_threading) ) {
+            if (m_playerCache != NULL) {
                 m_playerCache->stop();
             }
 
@@ -79,11 +73,6 @@ namespace tools {
 
         Container Player::getNextContainerToBeSent() {
             Container retVal;
-
-            // Update cache in the sychronous case.
-            if ( (m_playerCache != NULL) && (!m_threading) ) {
-                m_playerCache->updateCache();
-            }
 
             // Check, if we are "at the beginning".
             if (m_seekToTheBeginning) {
@@ -159,14 +148,8 @@ namespace tools {
         void Player::rewind() {
             // Clear cache and wait for new data.
             m_playerCache->clearQueueRewindInputStreams();
-
-            if ( (m_playerCache != NULL) && (m_threading) ) {
-                while (m_playerCache->getNumberOfEntries() < 2) {
-                    Thread::usleep(1000);
-                }
-            }
-            else {
-                m_playerCache->updateCache();
+            while (m_playerCache->getNumberOfEntries() < 2) {
+                Thread::usleep(1000);
             }
 
             m_seekToTheBeginning = true;

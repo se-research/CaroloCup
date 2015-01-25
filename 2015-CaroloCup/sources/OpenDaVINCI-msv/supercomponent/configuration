@@ -193,7 +193,7 @@ proxy.Actuator.SerialPort=/dev/ttyACM1
 proxy.Sensor.SerialPort=/dev/ttyACM0
 proxy.Sensor.SerialSpeed=115200
 
-proxy.numberOfSensors=8
+proxy.numberOfSensors=6
 
 proxy.sensor0.id=0 #first infra
 proxy.sensor1.id=1 #second infra
@@ -201,8 +201,6 @@ proxy.sensor2.id=2 #third infra
 proxy.sensor3.id=3 #fourth infra
 proxy.sensor4.id=4 #first ultrasonic
 proxy.sensor5.id=5 #second ultrasonic
-proxy.sensor6.id=6 #wheel encoder
-proxy.sensor7.id=7 #light sensor
 
 
 

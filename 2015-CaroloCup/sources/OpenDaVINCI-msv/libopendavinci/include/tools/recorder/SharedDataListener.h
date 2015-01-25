@@ -54,13 +54,8 @@ namespace tools {
             public:
                 /**
                  * Constructor.
-                 *
-                 * @param out Stream to write data to.
-                 * @param memorySegmentSize Size of one memory segment.
-                 * @param numberOfMemorySegments Number of available memory segments.
-                 * @param threading Cf. constructor of Recorder.
                  */
-                SharedDataListener(ostream &out, const uint32_t &memorySegmentSize, const uint32_t &numberOfMemorySegments, const bool &threading);
+                SharedDataListener(ostream &out, const uint32_t &memorySegmentSize, const uint32_t &numberOfMemorySegments);
 
                 virtual ~SharedDataListener();
 
@@ -84,7 +79,6 @@ namespace tools {
                 bool copySharedMemoryToMemorySegment(const string &name, const core::data::Container &header);
 
             private:
-                bool m_threading;
                 SharedDataWriter *m_sharedDataWriter;
                 map<string, core::data::SharedData> m_mapOfAvailableSharedData;
                 map<string, core::data::image::SharedImage> m_mapOfAvailableSharedImages;
@@ -93,8 +87,6 @@ namespace tools {
 
                 core::base::FIFOQueue m_bufferIn;
                 core::base::FIFOQueue m_bufferOut;
-
-                uint32_t m_droppedSharedMemories;
 
                 map<string, core::SharedPointer<core::wrapper::SharedMemory> > m_sharedPointers;
 

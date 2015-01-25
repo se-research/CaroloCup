@@ -6,12 +6,10 @@
 
 #ifdef __linux__
 
-#include <errno.h>
 #include <termios.h> // POSIX terminal control definitions
 #include <linux/serial.h>
 #include <sys/ioctl.h>
 
-#include "core/base/Thread.h"
 #include "core/wrapper/ConcurrencyFactory.h"
 #include "core/wrapper/MutexFactory.h"
 #include "core/wrapper/POSIX/POSIXSerialPort.h"
@@ -67,7 +65,7 @@ namespace core {
                 m_open = true;
 
                 // Setup non-blocking reads.
-                ::fcntl(m_fileDescriptor, F_SETFL, FNDELAY); // Might cause problems with Arduino.
+                ::fcntl(m_fileDescriptor, F_SETFL, FNDELAY);
 
                 struct termios options;
                 if (tcgetattr(m_fileDescriptor, &options) != 0) {
@@ -83,34 +81,26 @@ namespace core {
                 options.c_cflag |= CREAD|CLOCAL;
 
                 // Set to raw input.
-//                options.c_lflag &= ~(ICANON|ECHO|ECHOE|ECHOK|ECHONL|ISIG);
-                options.c_lflag &= ~(ICANON|ECHO|ECHOE|ISIG); // Reduced for Arduino.
+                options.c_lflag &= ~(ICANON|ECHO|ECHOE|ECHOK|ECHONL|ISIG);
 
                 // Disable flow control.
                 options.c_cflag &= ~CRTSCTS;
                 options.c_iflag &= ~(IXON|IXOFF|IXANY);
 
                 // Setup misc stuff.
-//                options.c_iflag &= (~(INPCK|IGNPAR|PARMRK|ISTRIP|ICRNL|IXANY)); // Not needed for Arduino.
-
-                // Disable output processing.
+                options.c_iflag &= (~(INPCK|IGNPAR|PARMRK|ISTRIP|ICRNL|IXANY));
                 options.c_oflag &= (~OPOST);
+                options.c_cc[VMIN] = 0;
 
-                // Number of characters to wait until return from read.
-                options.c_cc[VMIN] = 0; // Some examples suggest 12 here.
-                // Wait time before return.
-                options.c_cc[VTIME] = 0;
-
-                // Not needed for Arduino.
-//                #ifdef _POSIX_VDISABLE
-//                    // Some systems allow for per-device disable-characters, so get the proper value for the configured device.
-//                    const long vdisable = ::fpathconf(m_fileDescriptor, _PC_VDISABLE);
-//                    options.c_cc[VINTR] = vdisable;
-//                    options.c_cc[VQUIT] = vdisable;
-//                    options.c_cc[VSTART] = vdisable;
-//                    options.c_cc[VSTOP] = vdisable;
-//                    options.c_cc[VSUSP] = vdisable;
-//                #endif
+                #ifdef _POSIX_VDISABLE
+                    // Some systems allow for per-device disable-characters, so get the proper value for the configured device.
+                    const long vdisable = ::fpathconf(m_fileDescriptor, _PC_VDISABLE);
+                    options.c_cc[VINTR] = vdisable;
+                    options.c_cc[VQUIT] = vdisable;
+                    options.c_cc[VSTART] = vdisable;
+                    options.c_cc[VSTOP] = vdisable;
+                    options.c_cc[VSUSP] = vdisable;
+                #endif
 
                 // Apply the new options for the port.
                 if (tcsetattr(m_fileDescriptor, TCSANOW, &options) != 0) {
@@ -150,10 +140,10 @@ namespace core {
                 }
 
                 // Change baud rate only if we are not using pseudo terminals.
-                // size_t isPTS = port.find_first_of("/dev/pts");
+                size_t isPTS = port.find_first_of("/dev/pts");
 
                 // Skip lines containing no key-value-pairs.
-                // if (isPTS == string::npos) {
+                if (isPTS == string::npos) {
                     if (!setBaudrate(baudRate)) {
                         stringstream s;
                         s << "Error while applying serial port options at " << __FILE__ << ": " << __LINE__;
@@ -162,13 +152,7 @@ namespace core {
 
                         throw s.str();
                     }
-                // }
-
-                // Wait a short while to let the Arduino come up.
-                core::base::Thread::usleep(1000*1000);
-
-                // Flush what's already in the buffer.                
-                tcflush(m_fileDescriptor, TCIFLUSH);
+                }
 
                 return (m_open = true);
             }
@@ -235,54 +219,44 @@ namespace core {
                     return false;
                 }
 
-                // Set baudrate.
-                cfsetispeed(&options, baud);
-                cfsetospeed(&options, baud);
-
-                if (tcsetattr(m_fileDescriptor, TCSANOW, &options) != 0) {
-                    return false;
-                }
+                serial_struct ser_info;
 
                 // Default is 38400.
-                // if (baud == 0) {
-                //     serial_struct ser_info;
-                //     int retVal = ::ioctl(m_fileDescriptor, TIOCGSERIAL, &ser_info);
-                //     if (retVal == 0) {
-                //         ser_info.flags &= ~ASYNC_SPD_MASK;
-                //         ser_info.flags |= ASYNC_SPD_CUST | ASYNC_LOW_LATENCY;
-                //         ser_info.custom_divisor = ser_info.baud_base / baudRate;
-                //         ser_info.reserved_char[0] = 0;
+                if (baud == 0) {
+                    if (::ioctl(m_fileDescriptor, TIOCGSERIAL, &ser_info) != 0) {
+                        return false;
+                    }
 
-                //         retVal = ::ioctl(m_fileDescriptor, TIOCSSERIAL, &ser_info);
-                //         if ((retVal != 0) && (errno != EINVAL)) {
-                //             return false;
-                //         }
-                //     }
-                //     else if ((retVal != 0) && (errno != EINVAL)) {
-                //         return false;
-                //     }
+                    ser_info.flags &= ~ASYNC_SPD_MASK;
+                    ser_info.flags |= ASYNC_SPD_CUST | ASYNC_LOW_LATENCY;
+                    ser_info.custom_divisor = ser_info.baud_base / baudRate;
 
-                // }
-                // else {
-                //     // Not all drivers support TIOCGSERIAL, so ignore the retval.
-                //     serial_struct ser_info;
-                //     int retVal = ::ioctl(m_fileDescriptor, TIOCGSERIAL, &ser_info);
-                //     if (retVal == 0) {
-                //         ser_info.flags &= ~ASYNC_SPD_MASK;
-                //         ser_info.custom_divisor = 0;
+                    cfsetspeed(&options, B38400);
+                    if (tcsetattr(m_fileDescriptor, TCSANOW, &options) != 0) {
+                        return false;
+                    }
 
-                //         // retVal = ::ioctl(m_fileDescriptor, TIOCSSERIAL, &ser_info);
-                //         if ((retVal != 0) && (errno != EINVAL)) {
-                //             cout<<"retval"<<retVal<<endl;
-                //             cout<<"fd1"<<endl;
-                //             return false;
-                //         }
-                //     }
-                //     else if ((retVal != 0) && (errno != EINVAL)) {
-                //         cout<<"fd2"<<endl;
-                //         return false;
-                //     }
-                // }
+                    if (::ioctl(m_fileDescriptor, TIOCSSERIAL, &ser_info) != 0) {
+                        return false;
+                    }
+                }
+                else {
+                    cfsetspeed(&options, baud);
+                    if (tcsetattr(m_fileDescriptor, TCSANOW, &options) != 0) {
+                        return false;
+                    }
+
+                    if (::ioctl(m_fileDescriptor, TIOCGSERIAL, &ser_info) != 0) {
+                        return false;
+                    }
+                    else {
+                        ser_info.flags &= ~ASYNC_SPD_CUST;
+                        ser_info.custom_divisor = 0;
+                        if (ioctl(m_fileDescriptor, TIOCSSERIAL, &ser_info) != 0) {
+                            return false;
+                        }
+                    }
+                }
 
                 return true;
             }

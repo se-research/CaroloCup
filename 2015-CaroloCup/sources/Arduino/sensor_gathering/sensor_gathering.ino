@@ -138,8 +138,8 @@ void loop()
   char uStr[13];
   
   sprintf(uStr, "u%3d,%3d", uf,ub);
-  char wStr[6];
-  sprintf(wStr, "w%5d.",distanceTravelledMilli);
+  char wStr[5];
+  sprintf(wStr, "w%4d.",distanceTravelledMilli);
   
 
   Serial.print(irStr);
@@ -151,7 +151,4 @@ void loop()
 
 void encoderISR(){
   distanceTravelledMilli += DISTANCE_PER_SEGMENT;
-  if(distanceTravelledMilli > 99999){
-    distanceTravelledMilli = 0;
-  }
 }

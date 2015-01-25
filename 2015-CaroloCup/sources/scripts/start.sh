@@ -15,7 +15,7 @@ stty -F $serialPort raw speed 9600
 
 #Loop
 cd $home
-while read -n10 line # -n 10 (Touch screen), -n 1 (Button )
+while read -n10 line
 do
    echo $line
    if [[ $line == "0" ]]; then

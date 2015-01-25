@@ -29,15 +29,13 @@ namespace tools {
         using namespace core::io;
         using namespace tools;
 
-        SharedDataListener::SharedDataListener(ostream &out, const uint32_t &memorySegmentSize, const uint32_t &numberOfMemorySegments, const bool &threading) :
-            m_threading(threading),
+        SharedDataListener::SharedDataListener(ostream &out, const uint32_t &memorySegmentSize, const uint32_t &numberOfMemorySegments) :
             m_sharedDataWriter(NULL),
 		    m_mapOfAvailableSharedData(),
 		    m_mapOfAvailableSharedImages(),
             m_mapOfMemories(),
             m_bufferIn(),
             m_bufferOut(),
-            m_droppedSharedMemories(0),
             m_sharedPointers(),
             m_out(out) {
 
@@ -55,13 +53,13 @@ namespace tools {
             cout << "done." << endl;
 
             m_sharedDataWriter = new SharedDataWriter(m_out, m_mapOfMemories, m_bufferIn, m_bufferOut);
-            if ( (m_sharedDataWriter != NULL) && (m_threading) ) {
+            if (m_sharedDataWriter != NULL) {
                 m_sharedDataWriter->start();
             }
         }
 
         SharedDataListener::~SharedDataListener() {
-            if ( (m_sharedDataWriter != NULL) && (m_threading) ) {
+            if (m_sharedDataWriter != NULL) {
                 m_sharedDataWriter->stop();
             }
             OPENDAVINCI_CORE_DELETE_POINTER(m_sharedDataWriter);
@@ -128,8 +126,6 @@ namespace tools {
         }
 
         void SharedDataListener::add(const Container &container) {
-            bool hasCopied = false;
-
             if (container.getDataType() == Container::SHARED_DATA) {
                 SharedData sd = const_cast<Container&>(container).getData<SharedData>();
 
@@ -146,7 +142,7 @@ namespace tools {
 
                     cout << "done." << endl;
                 }
-                hasCopied = copySharedMemoryToMemorySegment(sd.getName(), container);
+                copySharedMemoryToMemorySegment(sd.getName(), container);
             }
 
             if (container.getDataType() == Container::SHARED_IMAGE) {
@@ -165,17 +161,10 @@ namespace tools {
 
                     cout << "done." << endl;
                 }
-                hasCopied = copySharedMemoryToMemorySegment(si.getName(), container);
+                copySharedMemoryToMemorySegment(si.getName(), container);
             }
 
-            m_droppedSharedMemories = m_droppedSharedMemories + (!hasCopied ? 1 : 0);
-
-            // If we are not running in threading mode, we need to trigger the disk dump manually.
-            if ( (m_sharedDataWriter != NULL) && (!m_threading) ) {
-                m_sharedDataWriter->recordEntries();
-            }
-
-            cout << "IN: " << m_bufferIn.getSize() << ", " << "OUT: " << m_bufferOut.getSize() << ", " << "DROPPED: " << m_droppedSharedMemories << endl;
+            cout << "IN/OUT: " << m_bufferIn.getSize() << "/" << m_bufferOut.getSize() << endl;
         }
 
         void SharedDataListener::clear() {}

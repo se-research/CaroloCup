@@ -28,10 +28,8 @@ namespace context {
 
 		void PlaybackContainer::setup() {
 			if (m_urlFileName != "") {
-                // We can use the sychronous player as we are running in a deterministic simulation anyways.
-                const bool THREADING = false;
                 const bool AUTO_REWIND = false;
-                m_player = new Player(m_urlFileName, AUTO_REWIND, m_memorySegmentSize, m_numberOfSegments, THREADING);
+                m_player = new Player(m_urlFileName, AUTO_REWIND, m_memorySegmentSize, m_numberOfSegments);
 			}
 		}
 

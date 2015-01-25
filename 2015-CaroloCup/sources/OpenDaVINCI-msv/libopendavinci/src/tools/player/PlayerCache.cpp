@@ -57,9 +57,6 @@ namespace tools {
                 m_bufferIn.enter(c);
             }
             cout << "done." << endl;
-
-            // Start over.
-            clearQueueRewindInputStreams();
         }
 
         PlayerCache::~PlayerCache() {
@@ -121,31 +118,31 @@ namespace tools {
             rewindInputStreams();
         }
 
-        void PlayerCache::updateCache() {
-            // Do only fill cache if not in currently rewinding.
-            Lock l(m_modifyCacheMutex);
-
-            // Read further data ONLY IFF the cache has free slots AND the buffer for shared memory segments is not completely filled.
-            const uint32_t numberOfEntries = m_queue.getSize();
-            while ( (numberOfEntries < m_cacheSize) && (!m_bufferIn.isEmpty()) ) {
-                bool bufferFilled = fillCache();
-                if (!bufferFilled) {
-                    if (m_autoRewind) {
-                        // Rewind streams without clearing the current cache.
-                        rewindInputStreams();
-                    }
-                    break;
-                }
-            }
-        }
-
         void PlayerCache::beforeStop() {}
 
         void PlayerCache::run() {
+            // Start over.
+            clearQueueRewindInputStreams();
+
             serviceReady();
 
             while (isRunning()) {
-                updateCache();
+                // Do only fill caches if not in currently rewinding.
+                Lock l(m_modifyCacheMutex);
+                {
+                    // Read further data ONLY IFF the cache has free slots AND the buffer for shared memory segments is not completely filled.
+                    const uint32_t numberOfEntries = m_queue.getSize();
+                    while ( (numberOfEntries < m_cacheSize) && (!m_bufferIn.isEmpty()) ) {
+                        bool bufferFilled = fillCache();
+                        if (!bufferFilled) {
+                            if (m_autoRewind) {
+                                // Rewind streams without clearing the current cache.
+                                rewindInputStreams();
+                            }
+                            break;
+                        }
+                    }
+                }
 
                 Thread::usleep(1000);
             }
