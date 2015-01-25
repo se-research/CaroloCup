@@ -159,9 +159,9 @@ void LineDetector::findLines(cv::Mat &outputImg)
 
     characteristicFiltering(&ltu);
 
-    //estimateLines(&ltu);
+    estimateLines(&ltu);
 
-    //calculateGoalLine(&ltu);
+    calculateGoalLine(&ltu);
 
     // -- testing of manageTrajectory:
     manageTrajectory(&ltu);
@@ -1188,6 +1188,7 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
                     cout << "No lines found, trajectory will not be derived." << endl;
                 }
             
+            finalOutput.noTrajectory = true;
             dataToDriver = new LaneDetectorDataToDriver(); // Empty call will set noTrajectory = true
             return;
         }
@@ -1303,6 +1304,9 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
 
     // -- Create a vector of goal lines --
     std::vector<CustomLine> rightGoalLines, leftGoalLines;
+    std::vector<bool> estimatedLeft (dashToUse.size() + 1, false);
+    std::vector<bool> estimatedDash (dashToUse.size() + 1, false);
+    std::vector<bool> estimatedRight (dashToUse.size() + 1, false);
     for (int i = 0; i < dashToUse.size(); i++)
         {
             EstimationData ed;
@@ -1317,9 +1321,30 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
 
             provideGoalLine(&ed, &gld);
             if (m_debug){
+                if (ed.isLeftEstimated)
+                    {
+                        estimatedLeft[i] = true;
+                        ed.left.p2.x = getIntersectionWithTop(ed.left);
+                        leftSplitted.push_back(ed.left);
+                    }
                 if (ed.isDashEstimated)
                     {
-                        ed.dash.p2.x = getIntersectionWithTop(ed.right);
+                        estimatedDash[i] = true;
+                        ed.dash.p2.x = getIntersectionWithTop(ed.dash);
+                        dashToUse.push_back(ed.dash);
+                    }
+                if (ed.isRightEstimated)
+                    {
+                        estimatedRight[i] = true;
+                        ed.right.p2.x = getIntersectionWithTop(ed.right);
+                        rightSplitted.push_back(ed.right);
+                    }
+            }
+
+            if (m_debug){
+                if (ed.isDashEstimated)
+                    {
+                        ed.dash.p2.x = getIntersectionWithTop(ed.dash);
                         if (picture)
                             line(goal, ed.dash.p1, ed.dash.p2, Scalar(0, 255, 0), 1, CV_AA);
                     }
@@ -1331,7 +1356,7 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
                     }
                 if (ed.isLeftEstimated)
                     {
-                        ed.left.p2.x = getIntersectionWithTop(ed.right);
+                        ed.left.p2.x = getIntersectionWithTop(ed.left);
                         if (picture)
                             line(goal, ed.left.p1, ed.left.p2, Scalar(255, 0, 0), 1, CV_AA);
                     }
@@ -1400,6 +1425,23 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
     // Make a bspline curve to give instead of the goalLines
 
     dataToDriver = new LaneDetectorDataToDriver(switchPointsLeftGoalLines, switchPointsRightGoalLines, leftGoalLines, rightGoalLines, currentLine, false);
+
+    // Provide debug data
+    if (m_debug){
+        finalOutput.cutPoints = cutPoints;
+        finalOutput.left = leftSplitted;
+        finalOutput.dash = dashToUse;
+        finalOutput.right = rightSplitted;
+        finalOutput.estimatedLeft =  estimatedLeft;
+        finalOutput.estimatedDash =  estimatedDash;
+        finalOutput.estimatedRight =  estimatedRight;
+        finalOutput.switchPointsLeftGoalLines = switchPointsLeftGoalLines;
+        finalOutput.switchPointsRightGoalLines = switchPointsRightGoalLines;
+        finalOutput.leftGoalLines = leftGoalLines;
+        finalOutput.rightGoalLines = rightGoalLines;
+        finalOutput.currentLine = currentLine;
+        finalOutput.noTrajectory = false;
+    }
 
     if (m_debug){
         if (picture){
@@ -2900,5 +2942,8 @@ LaneDetectorDataToDriver *LineDetector::getDriverData()
     return dataToDriver;
 }
 
+FinalOutput *LineDetector::getResult_createTrajectory(){
+    return &finalOutput;
+}
 
 }

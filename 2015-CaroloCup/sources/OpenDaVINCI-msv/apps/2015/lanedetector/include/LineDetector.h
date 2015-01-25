@@ -6,7 +6,6 @@
 #define ROAD_GOAL 0.5
 #define ROAD_ANGLE 85
 #define MID_DASH_ANGLE -47
-#define CUT_POINTS 3 // manageTracetory()
 
 #include <queue>
 #include "opencv2/opencv.hpp"
@@ -90,9 +89,16 @@ struct LinesToUse
 };
 
 // Container for information to give to the driver from LaneDetection
-struct DataToDriver {
-    vector<int> switchPointsRightGoalLines;
+struct FinalOutput {
+	vector<int> cutPoints;
+    vector<CustomLine> left;
+    vector<CustomLine> dash;
+    vector<CustomLine> right;
+    vector<bool> estimatedLeft;
+    vector<bool> estimatedDash;
+    vector<bool> estimatedRight;
     vector<int> switchPointsLeftGoalLines;
+    vector<int> switchPointsRightGoalLines;
     vector<CustomLine> leftGoalLines;
     vector<CustomLine> rightGoalLines;
     CustomLine currentLine;
@@ -130,6 +136,7 @@ public:
     IntermediateResult *getResult_finalFilter();
     LinesToUse *getResult_calculateGoalLine();
 	LaneDetectorDataToDriver *getDriverData();
+	FinalOutput *getResult_createTrajectory();
 
 private:
     LineDetector(const LineDetector &);
@@ -218,6 +225,7 @@ private:
     LinesToUse ltu;
     Lines result_getLines;
     LaneDetectorDataToDriver *dataToDriver;
+    FinalOutput finalOutput;
 };
 
 }

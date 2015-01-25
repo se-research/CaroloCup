@@ -81,6 +81,7 @@ private:
     bool showRes_filterAndMerge;
     bool showRes_finalFilter;
     bool showRes_finalResult;
+    bool showRes_createTrajectory;
 
     void showResult(LineDetector &road, Mat &f);
     void showResult_getContours(IntermediateResult_getContours *res, LineDetector &road, Mat &f);
@@ -89,6 +90,7 @@ private:
     void showResult_filterAndMerge(IntermediateResult *res, LineDetector &road, Mat &f);
     void showResult_finalFilter(IntermediateResult *res, LineDetector &road, Mat &f);
     void showResult_finalResult(LinesToUse *res, LineDetector &road, Mat &f);
+	void showResult_createTrajectory(FinalOutput *res, LineDetector &road, Mat &f);
 
     void addInspectionInfo(LineDetector &road, Mat &frame);
 
