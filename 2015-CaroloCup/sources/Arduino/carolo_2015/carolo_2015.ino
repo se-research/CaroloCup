@@ -104,10 +104,10 @@ void loop()
   //time = millis();
   if(run) {
     myMotor.writeMicroseconds(speed);
-    Serial.print("speed: ");
-    Serial.println(speed);
-    Serial.print("angle: ");
-    Serial.println(90);
+    //Serial.print("speed: ");
+    //Serial.println(speed);
+    //Serial.print("angle: ");
+    //Serial.println(90);
     speed = 0;
     run = false;
   }
@@ -176,11 +176,11 @@ void loop()
             if(readbyte == 'r') {
               reverse = -1;
               speed = 1240;
-              Serial.println("Reverse");
+             // Serial.println("Reverse");
             } else if(readbyte == 'f') {
               reverse = 1;
               speed = 1520;
-              Serial.println("Forward");
+             // Serial.println("Forward");
             }
           } else if (readbyte == '-') {
             applyCruiseCtrl = false;
@@ -200,7 +200,7 @@ void loop()
           } else if(readbyte >= '0' && readbyte <= '9' && isDirSet) {
             //applyCruiseCtrl = true;
             setFreq = setFreq * 10 + (readbyte - '0');
-            Serial.println(setFreq);
+            //Serial.println(setFreq);
           }
         }
         if (first && readbyte == 'f') {
@@ -235,7 +235,7 @@ void loop()
       if(fullMsgRecv) {
         //Process data
         if(motor) {
-          Serial.println(speed);
+         // Serial.println(speed);
           revertBackSpeed = true;
           if(speed >= 0 && speed < nofSpeed) {
             speed = speeds[speed];
@@ -272,8 +272,8 @@ void loop()
   }
   else {
     multiplier = 1;
-    Serial.println(angle);
-    Serial.println(speed);
+   // Serial.println(angle);
+    //Serial.println(speed);
     controlMotor();
     controlSteering();
   }
@@ -295,8 +295,8 @@ void loop()
     //Serial.println(freq);
     int goalSpeed = setFreq;
     int error = goalSpeed - 10*carSpeed;
-    Serial.print("Error: ");
-    Serial.println(error);
+    //Serial.print("Error: ");
+    //Serial.println(error);
     if(abs(error) < 35 && abs(error) > 1) {
       error = error - 1;
       //int errorSign = error < 0 ? -1 : +1;
@@ -343,8 +343,8 @@ void loop()
 }
 
 void controlMotor() {
-  Serial.print("speed: ");
-  Serial.println(speed);
+  //Serial.print("speed: ");
+  //Serial.println(speed);
   myMotor.writeMicroseconds(speed);
   if(speed < BRAKE_SPEED_MAX && speed > BRAKE_SPEED_MIN) {
     brakeLeds(true);
@@ -355,10 +355,10 @@ void controlMotor() {
 }
 
 void controlSteering() {
-  Serial.print("angle: ");
+  //Serial.print("angle: ");
   int inpAngle = angle;
   angle = 90 + angle * multiplier;
-  Serial.println(angle);
+  //Serial.println(angle);
   mySteering.write(angle);
 }
 
