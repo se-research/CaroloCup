@@ -1187,50 +1187,56 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
 
     // -- Derive cutpoints for the solid line and match which dash to use to which
     // part of the cutted solid line --
-    if (ltu->foundD && (ltu->foundR || ltu->foundL))
+    if (ltu->foundD)
         {
-            for (int i = 0; i < ltu->dashedCurve.size(); i++)
-                {
-                    cout << "ltu->dashedCurve[" << i << "] slope: " << ltu->dashedCurve[i].slope << " x: " << ltu->dashedCurve[i].p1.x << " y: " << ltu->dashedCurve[i].p1.y << endl;
-                    cout << "ltu->dashedCurve[" << i << "] slope: " << ltu->dashedCurve[i].slope << " x: " << ltu->dashedCurve[i].p2.x << " y: " << ltu->dashedCurve[i].p2.y << endl;
-
-                    int cutP = ltu->dashedCurve[i].p2.y;
-                    if (cutP > defaultCutPoints[0])
-                        cutPoints.push_back(defaultCutPoints[0]);
-                    else
-                        cutPoints.push_back(cutP);
-                }
-            int lowestDashPointInLowestCut = ltu->dashedCurve[0].p1.y; // Observe that p1 is used
-            int highestCut = cutPoints[cutPoints.size() - 1];
             dashToUse = ltu->dashedCurve;
 
-            cout << "lowestDashPointInLowestCut: " << lowestDashPointInLowestCut << endl;
-            cout << "highestCut: " << highestCut << endl;
-            // Add cut points to have cut points throughout the whole frame
-            for (int i = 0; i < defaultCutPoints.size(); i++)
+            if (ltu->foundR || ltu->foundL)
+                // If we got a solid, set up cut points for splitting it
                 {
-                    if (highestCut - 50 > defaultCutPoints[i])
+                    for (int i = 0; i < ltu->dashedCurve.size(); i++)
                         {
-                            cutPoints.push_back(defaultCutPoints[i]);
-                            dashToUse.push_back(getNoneCustomLine());
-                        }
-                    else if (lowestDashPointInLowestCut + 30 < defaultCutPoints[i])
-                        {
-                            cutPoints.insert(cutPoints.begin(), defaultCutPoints[i]);
-                            // It is assumed that it is safe to use the same dash line eq. to
-                            // calculate the goalLine more closer to the car.
-                            // TODO: Verify assumption.
-                            dashToUse.insert(dashToUse.begin(), CustomLine(dashToUse[0]));
-                        }
-                }
-            dashToUse.push_back(getNoneCustomLine());
+                            cout << "ltu->dashedCurve[" << i << "] slope: " << ltu->dashedCurve[i].slope << " x: " << ltu->dashedCurve[i].p1.x << " y: " << ltu->dashedCurve[i].p1.y << endl;
+                            cout << "ltu->dashedCurve[" << i << "] slope: " << ltu->dashedCurve[i].slope << " x: " << ltu->dashedCurve[i].p2.x << " y: " << ltu->dashedCurve[i].p2.y << endl;
 
-            for (int i = 0; i < cutPoints.size(); i++)
-                {
-                    cout << "Cut Point: " << cutPoints[i] << endl;
+                            int cutP = ltu->dashedCurve[i].p2.y;
+                            if (cutP > defaultCutPoints[0])
+                                cutPoints.push_back(defaultCutPoints[0]);
+                            else
+                                cutPoints.push_back(cutP);
+                        }
+                    int lowestDashPointInLowestCut = ltu->dashedCurve[0].p1.y; // Observe that p1 is used
+                    int highestCut = cutPoints[cutPoints.size() - 1];
+
+                    cout << "lowestDashPointInLowestCut: " << lowestDashPointInLowestCut << endl;
+                    cout << "highestCut: " << highestCut << endl;
+                    // Add cut points to have cut points throughout the whole frame
+                    for (int i = 0; i < defaultCutPoints.size(); i++)
+                        {
+                            if (highestCut - 50 > defaultCutPoints[i])
+                                {
+                                    cutPoints.push_back(defaultCutPoints[i]);
+                                    dashToUse.push_back(getNoneCustomLine());
+                                }
+                            else if (lowestDashPointInLowestCut + 30 < defaultCutPoints[i])
+                                {
+                                    cutPoints.insert(cutPoints.begin(), defaultCutPoints[i]);
+                                    // It is assumed that it is safe to use the same dash line eq. to
+                                    // calculate the goalLine more closer to the car.
+                                    // TODO: Verify assumption.
+                                    dashToUse.insert(dashToUse.begin(), CustomLine(dashToUse[0]));
+                                }
+                        }
+                    dashToUse.push_back(getNoneCustomLine());
+
+                    for (int i = 0; i < cutPoints.size(); i++)
+                        {
+                            cout << "Cut Point: " << cutPoints[i] << endl;
+                        }
                 }
         }
-    else
+    else if (ltu->foundR || ltu->foundL)
+        // If we got no dash lines but we got a solid, provide cut points for spliting the solid line.
         {
             cutPoints = defaultCutPoints;
             for (int i = 0; i < defaultCutPoints.size() + 1; i++)
@@ -1587,7 +1593,8 @@ void LineDetector::new_estimateLines(EstimationData *ed)
 // I want this very generic. given two lines it calculates a goalLine
 
 CustomLine LineDetector::new_calculateGoalLine(EstimationData *ed)
-{    
+{
+    cout << "__start new_calculateGoalLine" << endl;
     ltu.lines = new Lines(ltu.leftLineVec, ltu.dashLineVec, ltu.rightLineVec);
 
     CustomLine goalLine, other;
@@ -1712,6 +1719,7 @@ CustomLine LineDetector::new_calculateGoalLine(EstimationData *ed)
         {
             cout << "CASE: NONE " << endl;
         }
+        cout << "__end new_calculateGoalLine" << endl;
     //mylog.close();
     return goalLine;
 }

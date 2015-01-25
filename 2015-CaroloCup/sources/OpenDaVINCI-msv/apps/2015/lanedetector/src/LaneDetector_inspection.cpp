@@ -203,7 +203,7 @@ void LaneDetector_inspection::processImage()
 
     //Inspection part. move to function later
     string classification;
-    int skip_to_frame = 390;  // Use this variable to fast-forward to a specific frame
+    int skip_to_frame = 1;  // Use this variable to fast-forward to a specific frame
     if (m_frame_count < skip_to_frame)
         {
             classification = "N/A";
