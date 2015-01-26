@@ -53,8 +53,9 @@ LineDetector::LineDetector(const Mat &f, const Config &cfg, const bool debug,
     offset = 2 * h / 16 - 1;
     /// Detect edges using Threshold
     threshold(m_frame, m_frame, cfg.th1, 255, CV_THRESH_BINARY);
+    cvtColor(m_frame, m_frame_color, CV_GRAY2BGR);
 
-    //Find dash and solid lines
+    // Run lineDetector and provide goalLines for the driver
     findLines(outputImg);
     cout << "Id:" << id << endl;
 }
@@ -158,9 +159,9 @@ void LineDetector::findLines(cv::Mat &outputImg)
 
     characteristicFiltering(&ltu);
 
-    //estimateLines(&ltu);
+    estimateLines(&ltu);
 
-    //calculateGoalLine(&ltu);
+    calculateGoalLine(&ltu);
 
     // -- testing of manageTrajectory:
    // manageTrajectory(&ltu);
@@ -172,6 +173,7 @@ void LineDetector::findLines(cv::Mat &outputImg)
     // cv::Mat out = m_frame.clone();
     // bool go = false;
     // EstimationData ed;
+    // GoalLineData gld;
 
     // ed.yPosition = h;
     // ed.left = getNoneCustomLine();
@@ -190,7 +192,7 @@ void LineDetector::findLines(cv::Mat &outputImg)
     //         //ed.right = ltu.rightLine;
     //     }
 
-    // new_estimateLines(&ed);
+    // provideGoalLine(&ed, &gld);
     // if(ed.left.p2.x == 0 && ed.left.p2.y == 0){
     //     ed.left.p2.x = getIntersectionWithTop(ed.left);
     // }
@@ -208,10 +210,14 @@ void LineDetector::findLines(cv::Mat &outputImg)
     // line(out, ed.dash.p1, ed.dash.p2, Scalar(255, 0, 0));
     // line(out, ed.right.p1, ed.right.p2, Scalar(255, 0, 0));
 
-    // CustomLine goalLine = new_calculateGoalLine(&ed);
-    // cout << "goalLine slope: " << goalLine.slope << " x: " << goalLine.p1.x << " y: " << goalLine.p1.y << endl;
-    // cout << "goalLine slope: " << goalLine.slope << " x: " << goalLine.p2.x << " y: " << goalLine.p2.y << endl;
-    // line(out, goalLine.p1, goalLine.p2, Scalar(255, 0, 0));
+    // cout << "rightGoalLine slope: " << gld.rightGoalLine.slope << " x: " << gld.rightGoalLine.p1.x << " y: " << gld.rightGoalLine.p1.y << endl;
+    // cout << "rightGoalLine slope: " << gld.rightGoalLine.slope << " x: " << gld.rightGoalLine.p2.x << " y: " << gld.rightGoalLine.p2.y << endl;
+    // line(out, gld.rightGoalLine.p1, gld.rightGoalLine.p2, Scalar(150, 0, 0));
+
+    // cout << "leftGoalLine slope: " << gld.leftGoalLine.slope << " x: " << gld.leftGoalLine.p1.x << " y: " << gld.leftGoalLine.p1.y << endl;
+    // cout << "leftGoalLine slope: " << gld.leftGoalLine.slope << " x: " << gld.leftGoalLine.p2.x << " y: " << gld.leftGoalLine.p2.y << endl;
+    // line(out, gld.leftGoalLine.p1, gld.leftGoalLine.p2, Scalar(150, 0, 0));
+
     // imshow("Lines gotten from estimation", out);
 
     // -- end testing
@@ -1233,11 +1239,20 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
 
 void LineDetector::manageTrajectory(LinesToUse *ltu)
 {
-    cout << "__start manageTrajectory" << endl;
+    // Activate debug pictures
+    bool picture = true;
+    
+    if (m_debug)
+        cout << "__start manageTrajectory" << endl;
+
     // The found lines are used to create a trajectory for the car's future movement
 
-    cv::Mat out = m_frame.clone();
-    cv::Mat goal = m_frame.clone();
+    cv::Mat out;
+    cv::Mat goal;
+    if (picture){
+        out = m_frame_color.clone();
+        goal = m_frame_color.clone();
+    }
 
     if (!(ltu->foundL || ltu->foundD || ltu->foundR))
         {
@@ -1245,7 +1260,9 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
                 {
                     cout << "No lines found, trajectory will not be derived." << endl;
                 }
-            dataToDriver.noTrajectory = true;
+            
+            finalOutput.noTrajectory = true;
+            dataToDriver = new LaneDetectorDataToDriver(); // Empty call will set noTrajectory = true
             return;
         }
     std::vector<int> defaultCutPoints;
@@ -1256,7 +1273,6 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
     std::vector<CustomLine> leftSplitted;
     std::vector<CustomLine> rightSplitted;
     std::vector<CustomLine> dashToUse;
-    dataToDriver.noTrajectory = false;
 
     // -- Derive cutpoints for the solid line and match which dash to use to which
     // part of the cutted solid line --
@@ -1269,9 +1285,6 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
                 {
                     for (int i = 0; i < ltu->dashedCurve.size(); i++)
                         {
-                            cout << "ltu->dashedCurve[" << i << "] slope: " << ltu->dashedCurve[i].slope << " x: " << ltu->dashedCurve[i].p1.x << " y: " << ltu->dashedCurve[i].p1.y << endl;
-                            cout << "ltu->dashedCurve[" << i << "] slope: " << ltu->dashedCurve[i].slope << " x: " << ltu->dashedCurve[i].p2.x << " y: " << ltu->dashedCurve[i].p2.y << endl;
-
                             int cutP = ltu->dashedCurve[i].p2.y;
                             if (cutP > defaultCutPoints[0])
                                 cutPoints.push_back(defaultCutPoints[0]);
@@ -1281,8 +1294,6 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
                     int lowestDashPointInLowestCut = ltu->dashedCurve[0].p1.y; // Observe that p1 is used
                     int highestCut = cutPoints[cutPoints.size() - 1];
 
-                    cout << "lowestDashPointInLowestCut: " << lowestDashPointInLowestCut << endl;
-                    cout << "highestCut: " << highestCut << endl;
                     // Add cut points to have cut points throughout the whole frame
                     for (int i = 0; i < defaultCutPoints.size(); i++)
                         {
@@ -1302,10 +1313,12 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
                         }
                     dashToUse.push_back(getNoneCustomLine());
 
-                    for (int i = 0; i < cutPoints.size(); i++)
-                        {
-                            cout << "Cut Point: " << cutPoints[i] << endl;
-                        }
+                    if (m_debug){
+                        for (int i = 0; i < cutPoints.size(); i++)
+                            {
+                                cout << "Cut Point: " << cutPoints[i] << endl;
+                            }
+                    }
                 }
         }
     else if (ltu->foundR || ltu->foundL)
@@ -1351,22 +1364,26 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
                     rightSplitted.push_back(getNoneCustomLine());
                 }
         }
-    cout << "rightSplitted.size()" << rightSplitted.size() << " leftSplitted.size(): " << leftSplitted.size() << " dashToUse: " << dashToUse.size() << endl;
 
-    // Debug output
-    for (int i = 0; i < rightSplitted.size(); i++)
-        {
-            line(out, rightSplitted[i].p1, rightSplitted[i].p2, Scalar(255, 0, 0));
-            line(out, leftSplitted[i].p1, leftSplitted[i].p2, Scalar(255, 0, 0));
+    if (picture){
+        for (int i = 0; i < rightSplitted.size(); i++)
+            {
+                line(out, rightSplitted[i].p1, rightSplitted[i].p2, Scalar(255, 0, 0), 2, CV_AA);
+                line(out, leftSplitted[i].p1, leftSplitted[i].p2, Scalar(0, 255, 0), 2, CV_AA);
 
-        }
-    imshow("Splitted solid", out);
+            }
+        imshow("Splitted solid", out);
+    }
 
     // -- Create a vector of goal lines --
-    std::vector<CustomLine> goalLines;
+    std::vector<CustomLine> rightGoalLines, leftGoalLines;
+    std::vector<bool> estimatedLeft (dashToUse.size() + 1, false);
+    std::vector<bool> estimatedDash (dashToUse.size() + 1, false);
+    std::vector<bool> estimatedRight (dashToUse.size() + 1, false);
     for (int i = 0; i < dashToUse.size(); i++)
         {
             EstimationData ed;
+            GoalLineData gld;
             ed.left = leftSplitted[i];
             ed.dash = dashToUse[i];
             ed.right = rightSplitted[i];
@@ -1375,60 +1392,137 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
             else
                 ed.yPosition = cutPoints[i - 1];
 
-            new_estimateLines(&ed);
-            if (ed.isDashEstimated)
-                {
-                    ed.dash.p2.x = getIntersectionWithTop(ed.right);
-                    line(goal, ed.dash.p1, ed.dash.p2, Scalar(120, 0, 0));
-                }
-            if (ed.isRightEstimated)
-                {
-                    ed.right.p2.x = getIntersectionWithTop(ed.right);
-                    line(goal, ed.right.p1, ed.right.p2, Scalar(120, 0, 0));
-                }
-            if (ed.isLeftEstimated)
-                {
-                    ed.left.p2.x = getIntersectionWithTop(ed.right);
-                    line(goal, ed.left.p1, ed.left.p2, Scalar(120, 0, 0));
-                }
-            goalLines.push_back(new_calculateGoalLine(&ed));
+            provideGoalLine(&ed, &gld);
+            if (m_debug){
+                if (ed.isLeftEstimated)
+                    {
+                        estimatedLeft[i] = true;
+                        ed.left.p2.x = getIntersectionWithTop(ed.left);
+                        leftSplitted.push_back(ed.left);
+                    }
+                if (ed.isDashEstimated)
+                    {
+                        estimatedDash[i] = true;
+                        ed.dash.p2.x = getIntersectionWithTop(ed.dash);
+                        dashToUse.push_back(ed.dash);
+                    }
+                if (ed.isRightEstimated)
+                    {
+                        estimatedRight[i] = true;
+                        ed.right.p2.x = getIntersectionWithTop(ed.right);
+                        rightSplitted.push_back(ed.right);
+                    }
+            }
+
+            if (m_debug){
+                if (ed.isDashEstimated)
+                    {
+                        ed.dash.p2.x = getIntersectionWithTop(ed.dash);
+                        if (picture)
+                            line(goal, ed.dash.p1, ed.dash.p2, Scalar(0, 255, 0), 1, CV_AA);
+                    }
+                if (ed.isRightEstimated)
+                    {
+                        ed.right.p2.x = getIntersectionWithTop(ed.right);
+                        if (picture)
+                            line(goal, ed.right.p1, ed.right.p2, Scalar(0, 0, 255), 1, CV_AA);
+                    }
+                if (ed.isLeftEstimated)
+                    {
+                        ed.left.p2.x = getIntersectionWithTop(ed.left);
+                        if (picture)
+                            line(goal, ed.left.p1, ed.left.p2, Scalar(255, 0, 0), 1, CV_AA);
+                    }
+            }
+            rightGoalLines.push_back(gld.rightGoalLine);
+            leftGoalLines.push_back(gld.leftGoalLine);
         }
 
-    // Debug
-    for (int i = 0; i < goalLines.size(); i++)
-        {
-            cout << "rightSplitted[" << i << "] slope: " << rightSplitted[i].slope << " x: " << rightSplitted[i].p1.x << " y: " << rightSplitted[i].p1.y << endl;
-            cout << "rightSplitted[" << i << "] slope: " << rightSplitted[i].slope << " x: " << rightSplitted[i].p2.x << " y: " << rightSplitted[i].p2.y << endl;
-            line(goal, rightSplitted[i].p1, rightSplitted[i].p2, Scalar(255, 0, 0));
+    if (m_debug){
+        for (int i = 0; i < rightGoalLines.size(); i++)
+            {
+                cout << "rightSplitted[" << i << "] slope: " << rightSplitted[i].slope << " x: " << rightSplitted[i].p1.x << " y: " << rightSplitted[i].p1.y << endl;
+                cout << "rightSplitted[" << i << "] slope: " << rightSplitted[i].slope << " x: " << rightSplitted[i].p2.x << " y: " << rightSplitted[i].p2.y << endl;
 
-            cout << "dashToUse[" << i << "] slope: " << dashToUse[i].slope << " x: " << dashToUse[i].p1.x << " y: " << dashToUse[i].p1.y << endl;
-            cout << "dashToUse[" << i << "] slope: " << dashToUse[i].slope << " x: " << dashToUse[i].p2.x << " y: " << dashToUse[i].p2.y << endl;
-            line(goal, dashToUse[i].p1, dashToUse[i].p2, Scalar(255, 0, 0));
+                cout << "dashToUse[" << i << "] slope: " << dashToUse[i].slope << " x: " << dashToUse[i].p1.x << " y: " << dashToUse[i].p1.y << endl;
+                cout << "dashToUse[" << i << "] slope: " << dashToUse[i].slope << " x: " << dashToUse[i].p2.x << " y: " << dashToUse[i].p2.y << endl;
 
-            cout << "leftSplitted[" << i << "] slope: " << leftSplitted[i].slope << " x: " << leftSplitted[i].p1.x << " y: " << leftSplitted[i].p1.y << endl;
-            cout << "leftSplitted[" << i << "] slope: " << leftSplitted[i].slope << " x: " << leftSplitted[i].p2.x << " y: " << leftSplitted[i].p2.y << endl;
-            line(goal, leftSplitted[i].p1, leftSplitted[i].p2, Scalar(255, 0, 0));
+                cout << "leftSplitted[" << i << "] slope: " << leftSplitted[i].slope << " x: " << leftSplitted[i].p1.x << " y: " << leftSplitted[i].p1.y << endl;
+                cout << "leftSplitted[" << i << "] slope: " << leftSplitted[i].slope << " x: " << leftSplitted[i].p2.x << " y: " << leftSplitted[i].p2.y << endl;
 
-            line(goal, goalLines[i].p1, goalLines[i].p2, Scalar(255, 0, 0));
+                cout << "rightGoalLines[" << i << "] slope: " << rightGoalLines[i].slope << " x: " << rightGoalLines[i].p1.x << " y: " << rightGoalLines[i].p1.y << endl;
+                cout << "rightGoalLines[" << i << "] slope: " << rightGoalLines[i].slope << " x: " << rightGoalLines[i].p2.x << " y: " << rightGoalLines[i].p2.y << endl;
 
-        }
-    imshow("Data to driver", goal);
+                cout << "leftGoalLines[" << i << "] slope: " << leftGoalLines[i].slope << " x: " << leftGoalLines[i].p1.x << " y: " << leftGoalLines[i].p1.y << endl;
+                cout << "leftGoalLines[" << i << "] slope: " << leftGoalLines[i].slope << " x: " << leftGoalLines[i].p2.x << " y: " << leftGoalLines[i].p2.y << endl;
+                cout << "---" << endl;
+
+                if (picture){
+                    line(goal, rightSplitted[i].p1, rightSplitted[i].p2, Scalar(0, 0, 255), 2, CV_AA);
+                    line(goal, dashToUse[i].p1, dashToUse[i].p2, Scalar(0, 255, 0), 2, CV_AA);
+                    line(goal, leftSplitted[i].p1, leftSplitted[i].p2, Scalar(255, 0, 0), 2, CV_AA);
+                    line(goal, rightGoalLines[i].p1, rightGoalLines[i].p2, Scalar(153, 106, 0), 2, CV_AA);
+                    line(goal, leftGoalLines[i].p1, leftGoalLines[i].p2, Scalar(153, 0, 76), 2, CV_AA);
+                }
+            }        
+    }
+    // Create current line
+    //Assume this position as the car position
+    Point position;
+    position.x = w / 2;
+    position.y = h;
+    Point heading;
+    heading.x = w / 2;
+    heading.y = 0;
+    //Create car orientation vector
+    CustomLine currentLine;
+    currentLine.p1 = heading;
+    currentLine.p2 = position;
+    currentLine.slope = getLineSlope(heading, position);
+
     // -- find the intersection points of the goal lines --
-    std::vector<int> switchPoints;
+    std::vector<int> switchPointsRightGoalLines, switchPointsLeftGoalLines;
 
-    for (int i = 1; i < goalLines.size() + 1; i++)
+    for (int i = 1; i < rightGoalLines.size() + 1; i++)
         {
             // find the intersection point between line i-1 and i
             // switchPoints.push_back(trajectorySwitchingPoints(goalLines[i - 1], goalLines[i]));
+
+            // Easy fix:
+            switchPointsRightGoalLines = cutPoints;
+            switchPointsLeftGoalLines = cutPoints;
         }
 
     // For now we give the switchPoints and goalLines to driver
     // TODO:
     // Make a bspline curve to give instead of the goalLines
-    dataToDriver.switchPoints = switchPoints;
-    dataToDriver.goalLines = goalLines;
 
-    cout << "__end manageTrajectory" << endl;
+    dataToDriver = new LaneDetectorDataToDriver(switchPointsLeftGoalLines, switchPointsRightGoalLines, leftGoalLines, rightGoalLines, currentLine, false);
+
+    // Provide debug data
+    if (m_debug){
+        finalOutput.cutPoints = cutPoints;
+        finalOutput.left = leftSplitted;
+        finalOutput.dash = dashToUse;
+        finalOutput.right = rightSplitted;
+        finalOutput.estimatedLeft =  estimatedLeft;
+        finalOutput.estimatedDash =  estimatedDash;
+        finalOutput.estimatedRight =  estimatedRight;
+        finalOutput.switchPointsLeftGoalLines = switchPointsLeftGoalLines;
+        finalOutput.switchPointsRightGoalLines = switchPointsRightGoalLines;
+        finalOutput.leftGoalLines = leftGoalLines;
+        finalOutput.rightGoalLines = rightGoalLines;
+        finalOutput.currentLine = currentLine;
+        finalOutput.noTrajectory = false;
+    }
+
+    if (m_debug){
+        if (picture){
+            line(goal, currentLine.p1, currentLine.p2, Scalar(255, 255, 0), 2, CV_AA);                
+            imshow("Data to driver", goal);            
+        }
+        cout << "__end manageTrajectory" << endl;        
+    }
 }
 
 // Use victors idea and do not transform to bird eye
@@ -1440,6 +1534,168 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
 
 //              return p;
 // }
+
+// INFO
+// This function is the "new_new" estimationLines used when deriving a trajectory.
+// Only provides data for right lane goal line calculations.
+
+void LineDetector::provideGoalLine(EstimationData *ed, GoalLineData *gld)
+{
+    int calcRoadAngle;
+    ed->isLeftEstimated = false;
+    ed->isDashEstimated = false;
+    ed->isRightEstimated = false;
+    ed->foundGoal = false;
+    float roadSizeAdjustment = 1 - (300 - (float(ed->yPosition))) / 350;
+
+    bool foundL = !isNoneCustomLine(ed->left);
+    bool foundD = !isNoneCustomLine(ed->dash);
+    bool foundR = !isNoneCustomLine(ed->right);
+
+    if (m_debug){
+        cout << "__start provideGoalLine" << endl;
+        cout << "ed->yPosition: " << ed->yPosition << endl;
+        cout << "roadSizeAdjustment: " << roadSizeAdjustment << endl;
+        cout << "foundL: " << foundL << " foundD: " << foundD << " foundR: " << foundR << endl;
+    }
+
+
+    //yPosition used to get the right roadwidth
+
+    // If we got two lines, we do not need to estimate any lines
+    if (foundD)
+        {
+            calcRoadAngle = getRoadAngle(2, ed->dash.slope);
+            ed->calcRoadSize = getRoadSize(calcRoadAngle) * roadSizeAdjustment;
+
+            if (foundL && foundR)
+                {
+                    // Calculate both goal lines
+                    gld->rightGoalLine = simple_calculateGoalLine(ed->dash, ed->right, ed);
+                    gld->leftGoalLine = simple_calculateGoalLine(ed->left, ed->dash, ed);
+                }
+            else if (foundR)
+                {
+                    // Calculate right goal line
+                    gld->rightGoalLine = simple_calculateGoalLine(ed->dash, ed->right, ed);
+                    // Shift calculation result to get left goal line
+                    gld->leftGoalLine = gld->rightGoalLine;
+                    gld->leftGoalLine.p2.x -= ed->calcRoadSize;
+                    gld->leftGoalLine.slope = getLineSlope(gld->leftGoalLine.p2, gld->leftGoalLine.p1);
+                }
+            else if (foundL)
+                {
+                    // Calculate left goal line
+                    gld->leftGoalLine = simple_calculateGoalLine(ed->left, ed->dash, ed);
+                    // Shift calculation result to get right goal line
+                    gld->rightGoalLine = gld->leftGoalLine;
+                    gld->rightGoalLine.p2.x += ed->calcRoadSize;
+                    gld->rightGoalLine.slope = getLineSlope(gld->rightGoalLine.p2, gld->rightGoalLine.p1);
+                }
+            else
+                {
+                    // Only dash found
+                    // Estimate either left line and/or right line.
+                    // Here I choose to estimate right line
+                    cout << "Found only dash, estimating right" << endl;
+                    int expectedRightLineX = getIntersectionWithY(ed->dash, ed->yPosition) + ed->calcRoadSize;
+                    float expectedRightLineAngle = 180 - abs(ed->dash.slope)
+                                                   - calcRoadAngle;
+                    if (expectedRightLineAngle > 90)
+                        {
+                            expectedRightLineAngle = expectedRightLineAngle - 180;
+                        }
+                    ed->right.slope = expectedRightLineAngle;
+                    ed->right.p1.x = expectedRightLineX;
+                    ed->right.p1.y = h;
+                    ed->isRightEstimated = true;
+
+                    // Calculate right goal line
+                    gld->rightGoalLine = simple_calculateGoalLine(ed->dash, ed->right, ed);
+                    // Shift calculation result to get left goal line
+                    gld->leftGoalLine = gld->rightGoalLine;
+                    gld->leftGoalLine.p2.x -= ed->calcRoadSize;
+                    gld->leftGoalLine.slope = getLineSlope(gld->leftGoalLine.p2, gld->leftGoalLine.p1);
+                }
+        }
+    else if (foundL && foundR)
+        {
+            ed->calcRoadSize = ed->right.p1.x - ed->left.p1.x;
+            gld->leftGoalLine = simple_calculateGoalLine(ed->left, ed->right, ed);
+            // Shift calculation result to get right goal line
+            // Shift calculation result to get left goal line
+            gld->rightGoalLine = gld->leftGoalLine;
+            gld->leftGoalLine.p2.x -= ed->calcRoadSize / 2;
+            gld->leftGoalLine.slope = getLineSlope(gld->leftGoalLine.p2, gld->leftGoalLine.p1);
+            gld->rightGoalLine.p2.x += ed->calcRoadSize / 2;
+            gld->rightGoalLine.slope = getLineSlope(gld->rightGoalLine.p2, gld->rightGoalLine.p1);
+
+        }
+    else if (foundR)
+        {
+            cout << "Found only right, estimating dash" << endl;
+            // Estimate dash:
+            calcRoadAngle = getRoadAngle(1, ed->right.slope);
+            ed->calcRoadSize = getRoadSize(calcRoadAngle) * roadSizeAdjustment;
+            int expectedDashLineX = getIntersectionWithY(ed->right, ed->yPosition) - ed->calcRoadSize;
+
+            float expectedDashLineAngle =  abs(ed->right.slope)
+                                           + calcRoadAngle;
+            cout << "expectedDashLineAngle: " << expectedDashLineAngle << endl;
+            cout << "calcRoadAngle: " << calcRoadAngle << endl;
+            cout << "ed->calcRoadSize: " << ed->calcRoadSize << endl;
+            cout << "expectedDashLineX: " << expectedDashLineX << endl;
+            cout << "abs(ed->right.slope): " << abs(ed->right.slope) << endl;
+            if (expectedDashLineAngle > 90)
+                {
+                    expectedDashLineAngle = expectedDashLineAngle - 180;
+                }
+            cout << "expectedDashLineAngle: " << expectedDashLineAngle << endl;
+
+            ed->dash.slope = expectedDashLineAngle;
+            ed->dash.p1.x = expectedDashLineX;
+            ed->dash.p1.y = ed->yPosition;
+            ed->isDashEstimated = true;
+            // Calculate right goal line
+            gld->rightGoalLine = simple_calculateGoalLine(ed->dash, ed->right, ed);
+            // Shift calculation result to get left goal line
+            gld->leftGoalLine = gld->rightGoalLine;
+            gld->leftGoalLine.p2.x -= ed->calcRoadSize;
+            gld->leftGoalLine.slope = getLineSlope(gld->leftGoalLine.p2, gld->leftGoalLine.p1);
+
+        }
+    else if (foundL)
+        {
+            // Estimate dash:
+            cout << "Found only left, estimating dash" << endl;
+            calcRoadAngle = getRoadAngle(3, ed->left.slope);
+            ed->calcRoadSize = getRoadSize(calcRoadAngle) * roadSizeAdjustment;
+            int expectedDashLineX = getIntersectionWithY(ed->left, ed->yPosition) + ed->calcRoadSize;
+            float expectedDashLineAngle =  abs(ed->left.slope)
+                                           + calcRoadAngle;
+            cout << "expectedDashLineAngle: " << expectedDashLineAngle << endl;
+            cout << "calcRoadAngle: " << calcRoadAngle << endl;
+            cout << "expectedDashLineX: " << expectedDashLineX << endl;
+            cout << "abs(ed->left.slope): " << abs(ed->left.slope) << endl;
+            if (expectedDashLineAngle > 90)
+                {
+                    expectedDashLineAngle = expectedDashLineAngle - 180;
+                }
+
+            cout << "expectedDashLineAngle: " << expectedDashLineAngle << endl;
+            ed->dash.slope = expectedDashLineAngle;
+            ed->dash.p1.x = expectedDashLineX;
+            ed->dash.p1.y = h;
+            ed->isDashEstimated = true;
+            // Calculation left goal line
+            gld->leftGoalLine = simple_calculateGoalLine(ed->left, ed->dash, ed);
+            // Shift calculation result to get right goal line
+            gld->rightGoalLine = gld->leftGoalLine;
+            gld->rightGoalLine.p2.x += ed->calcRoadSize;
+            gld->rightGoalLine.slope = getLineSlope(gld->rightGoalLine.p2, gld->rightGoalLine.p1);
+        }
+    cout << "__end provideGoalLine" << endl;
+}
 
 // INFO
 // This function is the "new" estimationLines used when deriving a trajectory.
@@ -1579,91 +1835,108 @@ void LineDetector::new_estimateLines(EstimationData *ed)
 
                 }
         }
-
     cout << "__end new_estimateLines" << endl;
-    ///////////////////////////////////////////////////////
-    // if (foundD)
-    //     {
-    //         ed.dash = dash;
-    //         if (foundR && foundL)
-    //             {
-    //                 ed.other = right;
-
-    //                 // No estimations needed
-    //                 // Provide data to calculateGoalLine(..)
-    //                 calcRoadAngle = getRoadAngle(2, dash.slope);
-    //                 ed.calcRoadSize = getRoadSize(calcRoadAngle);
-
-    //             }
-    //         else if (foundL)
-    //             {
-    //                 // Estimate right line from dashed line
-    //                 //offset with half the size of road to the right
-    //                 calcRoadAngle = getRoadAngle(2, dash.slope);
-    //                 ed.calcRoadSize = getRoadSize(calcRoadAngle);
-    //                 int expectedRightLineX = currentDashGoalX + ed.calcRoadSize;
-    //                 float expectedRightLineAngle = 180 - abs(dash.slope)
-    //                                                - calcRoadAngle;
-    //                 if (expectedRightLineAngle > 90)
-    //                     {
-    //                         expectedRightLineAngle = expectedRightLineAngle - 180;
-    //                     }
-    //                 ed.other.slope = expectedRightLineAngle;
-    //                 ed.other.p1.x = expectedRightLineX;
-    //                 ed.other.p1.y = h;
-    //                 ed.otherEstimated = true;
-    //             }
-    //         ed.foundGoal = true;
-    //     }
-    // else if (foundR)
-    //     {
-    //      ed.other = right;
-    //         // Estimate dash line
-    //         //offset with half the size of road to the left
-    //         calcRoadAngle = getRoadAngle(1, right.slope);
-    //         ed.calcRoadSize = getRoadSize(calcRoadAngle);
-    //         int expectedDashLineX = currentRightGoalX - ed.calcRoadSize;
-    //         float expectedDashLineAngle = 180 - abs(right.slope)
-    //                                       - calcRoadAngle;
-    //         if (expectedDashLineAngle > 90)
-    //             {
-    //                 expectedDashLineAngle = expectedDashLineAngle - 180;
-    //             }
-
-    //         dash.slope = expectedDashLineAngle;
-    //         dash.p1.x = expectedDashLineX;
-    //         dash.p1.y = h;
-    //         ed.dashEstimated = true;
-    //         ed.foundGoal = true;
-
-    //     }
-    // else if (foundL)
-    //     {
-    //         // Estimate dash line and use left line instead of right line
-    //         //offset with one and a half the size of road to the right
-    //         calcRoadAngle = getRoadAngle(3, left.slope);
-    //         ed.calcRoadSize = getRoadSize(calcRoadAngle);
-    //         int expectedDashLineX = currentLeftGoalX + ed.calcRoadSize;
-    //         float expectedDashLineAngle = 180 - abs(left.slope)
-    //                                       - calcRoadAngle;
-    //         if (expectedDashLineAngle > 90)
-    //             {
-    //                 expectedDashLineAngle = expectedDashLineAngle - 180;
-    //             }
-
-    //         dash.slope = expectedDashLineAngle;
-    //         dash.p1.x = expectedDashLineX;
-    //         dash.p1.y = h;
-    //         ed.dashEstimated = true;
-    //         ed.otherFlipped = true;
-    //         ed.foundGoal = true;
-    //     }
 }
 
 
 // INFO
-// This function is the "new" calculateGoalLine used when deriving a trajectory
+// This function is the "new_new" calculateGoalLine used when deriving a trajectory
 // I want this very generic. given two lines it calculates a goalLine
+
+CustomLine LineDetector::simple_calculateGoalLine(CustomLine fst, CustomLine snd, EstimationData *ed)
+{
+    cout << "__start simple_calculateGoalLine" << endl;
+
+    CustomLine goalLine;
+    Point vp;
+    Point goalP;
+
+    //Set goal height
+    goalP.y = ed->yPosition;
+    int currRoadSize = ed->calcRoadSize; // STRANGE, why is this used?
+
+    // Get the line equation for fst line
+    float da = tan(fst.slope * M_PI / 180);
+    float db = fst.p1.y - fst.p1.x * da;
+    int fstGoalX = (goalP.y - db) / da; // Local var needed, the line may be estimated
+
+    // Get the line equation for the snd line
+    float a = tan(snd.slope * M_PI / 180);
+    float b = snd.p1.y - snd.p1.x * a;
+    int sndGoalX = (goalP.y - b) / a; // Local var needed, the line may be estimated
+
+    //Calculate vanishing point
+    //if (da != a) { To avoid float-equal warning
+    if (fabs(da - a) > 0.001)
+        {
+            vp.x = (b - db) / (da - a);
+        }
+    else
+        {
+            // Use some default value???
+        }
+    vp.y = da * vp.x + db;
+
+    cout << "vp (" << vp.x << "," << vp.y << ")" << endl;
+
+    int roadSz = (sndGoalX - fstGoalX);
+    if (ed->isDashEstimated || ed->isRightEstimated || ed->isLeftEstimated)
+        {
+            goalP.x = fstGoalX + ed->calcRoadSize * ROAD_GOAL;
+        }
+    else
+        {
+            goalP.x = fstGoalX + roadSz * ROAD_GOAL;//(fstGoalX + otherGoalX)/2;//fstGoalX + ROAD_SIZE/2;
+        }
+
+    cout << "goalP (" << goalP.x << "," << goalP.y << ")" << endl;
+    // ----- Debug stuff follows
+
+    int fstCenterX = (fst.p1.x + fst.p2.x) / 2; // Only for debug
+    int fstCenterY = (fst.p1.y + fst.p2.y) / 2; // Only for debug
+    if (m_debug)
+        {
+            cout << "fst center: " << fstCenterX << "," << fstCenterY << endl;
+            //cout << da << "*dx + " << db << endl;
+            cout << "fst line X: " << fstGoalX << endl;
+        }
+
+    //mylog << ltu.fstLine.slope << "," << fstCenterX << "," << fstCenterY << "," << roadSz << "," << (180 - abs(ltu.fstLine.slope) - abs(ltu.rightLine.slope)) << endl;
+    if (m_debug)
+        {
+            cout << "Road size: " << roadSz << endl;
+            cout << "Road angle prediction: " << calcRoadAngle << endl;
+            cout << "Road size prediction: " << ed->calcRoadSize << endl;
+            cout << "Road angle: "
+                 << (180 - abs(fst.slope)
+                     - abs(ed->right.slope)) << endl;
+            cout << "snd line X: " << sndGoalX << endl;
+        }
+    //-----------------------
+    // Set up goal line
+    //-----------------------
+
+    //If we have a goal set the position
+    if (m_debug)
+        {
+            cout << "Road size diff: " << abs(currRoadSize - ed->calcRoadSize) << endl;
+        }
+    if (abs(currRoadSize - ed->calcRoadSize) < 0.5 * currRoadSize) // Strange, this will always be true
+        {
+            //Set your goal
+            goalLine.p1 = vp;
+            goalLine.p2 = goalP;
+            goalLine.slope = getLineSlope(vp, goalP);
+        }
+    else
+        {
+            cout << "Road size diff to high, no goalLine will be provided " << endl;
+            goalLine = getNoneCustomLine();
+        }
+    cout << "__end simple_calculateGoalLine" << endl;
+
+    return goalLine;
+}
 
 CustomLine LineDetector::new_calculateGoalLine(EstimationData *ed)
 {
@@ -1739,8 +2012,7 @@ CustomLine LineDetector::new_calculateGoalLine(EstimationData *ed)
     int dashCenterY = (ed->dash.p1.y + ed->dash.p2.y) / 2; // Only for debug
     if (m_debug)
         {
-            cout << "Dash center: " << dashCenterX << "," << dashCenterY
-                 << endl;
+            cout << "Dash center: " << dashCenterX << "," << dashCenterY << endl;
             //cout << da << "*dx + " << db << endl;
             cout << "Dash line X: " << dashGoalX << endl;
         }
@@ -1755,7 +2027,6 @@ CustomLine LineDetector::new_calculateGoalLine(EstimationData *ed)
                  << (180 - abs(ed->dash.slope)
                      - abs(ed->right.slope)) << endl;
             cout << "Right line X: " << otherGoalX << endl;
-            cout << "CASE: Dash and right" << endl;
         }
     //-----------------------
     // Set up goal line
@@ -1792,7 +2063,7 @@ CustomLine LineDetector::new_calculateGoalLine(EstimationData *ed)
         {
             cout << "CASE: NONE " << endl;
         }
-        cout << "__end new_calculateGoalLine" << endl;
+    cout << "__end new_calculateGoalLine" << endl;
     //mylog.close();
     return goalLine;
 }
@@ -1910,8 +2181,13 @@ std::vector<Point> LineDetector::trajectorySwitchingPoints(std::vector<CustomLin
 // A wrapper for splitContourAtPoints
 std::vector<CustomLine> LineDetector::splitSolidLines(std::vector<int> cutAt, CustomLine solid)
 {
-    cout << "__start splitSolidLines" << endl;
-    cv::Mat out = m_frame.clone();
+    bool printouts = true;
+    cv::Mat out;
+
+    if (printouts){
+        cout << "__start splitSolidLines" << endl;
+        out = m_frame.clone();
+    }
     std::vector<CustomLine> splittedSolid;
 
     // Check whether is it necessary to split the solid line e.g. it is a straight line
@@ -1930,17 +2206,15 @@ std::vector<CustomLine> LineDetector::splitSolidLines(std::vector<int> cutAt, Cu
             p.y = cutAt[i];
             p.x = 0;
             cutPoints.push_back(p);
-            cout << "Cut Point: " << cutPoints[i] << endl;
 
-            // Debug
-            Point q = p;
-            q.x = 800;
-            line(out, p, q, Scalar(255, 0, 0));
+             if (printouts){
+                Point q = p;
+                q.x = 800;
+                line(out, p, q, Scalar(255, 0, 0));
+            }
         }
 
     std::vector<RotatedRect> rectangles = splitContourAtPoints(cutPoints, solid.polygonIndex, true);
-
-    cout << "rectangles.size(): " << rectangles.size() << endl;
 
     // Transform RotatedRect to Customlines
     for (int i = 0; i < rectangles.size(); i++)
@@ -1950,15 +2224,16 @@ std::vector<CustomLine> LineDetector::splitSolidLines(std::vector<int> cutAt, Cu
             Point2f rect_points[4];
             rectangles[i].points(rect_points);
 
-            // Debug
-            for (int j = 0; j < 4; j++)
-                {
-                    line(out, rect_points[j], rect_points[(j + 1) % 4], Scalar(255, 0, 0));
-                }
-
+            if (printouts){
+                for (int j = 0; j < 4; j++)
+                    {
+                        line(out, rect_points[j], rect_points[(j + 1) % 4], Scalar(255, 0, 0));
+                    }
+            }
             if (rect_points[0] == none && rect_points[1] == none)
                 {
-                    cout << "None rect. point[0]: " << rect_points[0] << endl;
+                    if (printouts)
+                        cout << "None rect. point[0]: " << rect_points[0] << endl;
                     splittedSolid.push_back(getNoneCustomLine());
                 }
             else
@@ -1970,17 +2245,18 @@ std::vector<CustomLine> LineDetector::splitSolidLines(std::vector<int> cutAt, Cu
                     rectCenter.y = rectangles[i].center.y;
                     rectangles[i].angle = getLineSlope(attr.shortSideMiddle, rectCenter);
                     splittedSolid.push_back(createLineFromRect(&rectangles[i], attr.sizeX, attr.sizeY, -1));
-
-                    cout << "rectangles[" << i << "].angle: " << rectangles[i].angle << endl;
-                    cout << "sizeX: " << attr.sizeX << " sizeY: " << attr.sizeY << endl;
                 }
-
-            cout << "splittedSolid[" << i << "] slope: " << splittedSolid[i].slope << " x: " << splittedSolid[i].p1.x << " y: " << splittedSolid[i].p1.y << endl;
-            cout << "splittedSolid[" << i << "] slope: " << splittedSolid[i].slope << " x: " << splittedSolid[i].p2.x << " y: " << splittedSolid[i].p2.y << endl;
+            if (printouts){
+                cout << "splittedSolid[" << i << "] slope: " << splittedSolid[i].slope << " x: " << splittedSolid[i].p1.x << " y: " << splittedSolid[i].p1.y << endl;
+                cout << "splittedSolid[" << i << "] slope: " << splittedSolid[i].slope << " x: " << splittedSolid[i].p2.x << " y: " << splittedSolid[i].p2.y << endl;                
+            }
 
         }
-    imshow("Most recent splitted rect", out);
-    cout << "__end splitSolidLines" << endl;
+
+    if (printouts){
+        imshow("Most recent splitted rect", out);
+        cout << "__end splitSolidLines" << endl;        
+    }
     return splittedSolid;
 }
 CustomLine LineDetector::getNoneCustomLine()
@@ -2279,20 +2555,24 @@ void LineDetector::calculateGoalLine(LinesToUse *ltu)
 
 std::vector<CustomLine> LineDetector::findCurve(std::vector<CustomLine> lines)
 {
+    bool printouts = false;
+    if (printouts) 
+        cout << "__running findCurves" << endl;
     // This function is used to merge the dashes to one curve, or
     // used to be sure that you have found the dashes.
     std::vector<CustomLine> curve;
     if (lines.size() < 2)
         {
-            cout << "findCurve need at least 2 lines. returning" << endl;
+            if (printouts)
+                cout << "findCurve need at least 2 lines. returning" << endl;
             return curve;
         }
-    cout << "__running findCurves" << endl;
-
-    for (int j = 0; j < lines.size(); j++)
-        {
-            cout << "Dash line. p1(" << lines[j].p1.x << "," << lines[j].p1.y << ") p2(" << lines[j].p2.x << "," << lines[j].p2.y << ")" << endl;
-        }
+    if (printouts){
+        for (int j = 0; j < lines.size(); j++)
+            {
+                cout << "Dash line. p1(" << lines[j].p1.x << "," << lines[j].p1.y << ") p2(" << lines[j].p2.x << "," << lines[j].p2.y << ")" << endl;
+            }
+    }
     for (int j = 1; j < lines.size(); j++)
         {
             // The snd dash has to be above the fst one
@@ -2321,20 +2601,23 @@ std::vector<CustomLine> LineDetector::findCurve(std::vector<CustomLine> lines)
                     float slopeDiffToLine0 = abs(slopeInBetween - slopeA);
                     float slopeDiffToLineJ = abs(slopeInBetween - slopeB);
 
-
-                    cout << "slopeA: " << slopeA;
-                    cout << " slopeB: " << slopeB;
-                    cout << " slopeInBetween: " << slopeInBetween << endl;
-                    cout << " slopeDiffLines: " << slopeDiffLines;
-                    cout << " slopeDiffToLine0: " << slopeDiffToLine0;
-                    cout << " slopeDiffToLineJ: " << slopeDiffToLineJ << endl;
+                    if (printouts){
+                        cout << "slopeA: " << slopeA;
+                        cout << " slopeB: " << slopeB;
+                        cout << " slopeInBetween: " << slopeInBetween << endl;
+                        cout << " slopeDiffLines: " << slopeDiffLines;
+                        cout << " slopeDiffToLine0: " << slopeDiffToLine0;
+                        cout << " slopeDiffToLineJ: " << slopeDiffToLineJ << endl;
+                    }
 
                     if ((slopeDiffLines < 60) && (slopeDiffToLine0 < slopeDiffLines + 10) &&
                             (slopeDiffToLineJ < slopeDiffLines + 10))
                         {
-                            cout << "curve found";
-                            cout << "(" << lines[j].p1.x << "," << lines[j].p1.y << ") ";
-                            cout << "(" << lines[j].p2.x << "," << lines[j].p2.y << ") " << endl;
+                            if (printouts){
+                                cout << "curve found";
+                                cout << "(" << lines[j].p1.x << "," << lines[j].p1.y << ") ";
+                                cout << "(" << lines[j].p2.x << "," << lines[j].p2.y << ") " << endl;
+                            }
 
                             curve.push_back(lines[j]);
 
@@ -2354,30 +2637,37 @@ std::vector<CustomLine> LineDetector::findCurve(std::vector<CustomLine> lines)
                                 }
                             else
                                 {
-                                    cout << "__longest curve found. returning" << endl;
+                                    if (printouts)
+                                        cout << "__longest curve found. returning" << endl;
                                     return curve;
                                 }
                         }
                 }
         }
-    cout << "__No curve found, returning." << endl;
+    if (printouts)
+        cout << "__No curve found, returning." << endl;
     return curve;
 }
 
 CustomLine LineDetector::createLineFromRect(RotatedRect *rect, int sizeX, int sizeY, int polygonIndex)
 {
-    cout << "__start createLineFromRect" << endl;
+    bool printouts = false;
+    if (printouts)
+        cout << "__start createLineFromRect" << endl;
+
     Point2f rect_points[4];
     rect->points (rect_points);
-    for (int j = 0; j < 4; j++)
-        {
-            cout << "Point [x,y] = [" << rect_points[j].x << "," << rect_points[j].y << "]" << endl;
-        }
+
+    if (printouts){
+        cout << "Sizes: " << sizeX << " " << sizeY << endl;;
+        for (int j = 0; j < 4; j++)
+                cout << "Point [x,y] = [" << rect_points[j].x << "," << rect_points[j].y << "]" << endl;
+    }
+
     CustomLine l;
     Point pt1, pt2;
     l.polygonIndex = polygonIndex;
     //cout << "[centerx, centery] = [" << rect->center.x << "," << rect->center.y << "]" << endl;
-    cout << "Sizes: " << sizeX << " " << sizeY << endl;;
     if (rect->angle < 90)
         {
             float angle = rect->angle * M_PI / 180;
@@ -2404,7 +2694,8 @@ CustomLine LineDetector::createLineFromRect(RotatedRect *rect, int sizeX, int si
     l.p1 = pt1;
     l.p2 = pt2;
     l.slope = rect->angle;
-    cout << "__end createLineFromRect" << endl;
+    if (printouts)
+        cout << "__end createLineFromRect" << endl;
     return l;
 }
 
@@ -2719,5 +3010,13 @@ LinesToUse *LineDetector::getResult_calculateGoalLine()
     return &ltu;
 }
 
+LaneDetectorDataToDriver *LineDetector::getDriverData()
+{
+    return dataToDriver;
+}
+
+FinalOutput *LineDetector::getResult_createTrajectory(){
+    return &finalOutput;
+}
 
 }

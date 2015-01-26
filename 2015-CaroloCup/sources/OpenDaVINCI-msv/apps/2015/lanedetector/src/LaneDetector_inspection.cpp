@@ -163,13 +163,17 @@ void LaneDetector_inspection::processImage()
     LineDetector road(neededPart, cfg, debug, 1);
 
     showResult(road, neededPart);
+    cout << "1"<<endl;
+    msv::Lines lines = road.getLines();
+    cout << "1"<<endl;
+    msv::LaneDetectorDataToDriver dataToDriver = *(road.getDriverData());
 
+    cout << "1"<<endl;
     // if (lines != NULL)
     //  cout << "We have lines for frame " <<m_frame_count << endl;
     LaneDetectionData data;
-    // data.setLaneDetectionData(*lines);
+    data.setLaneDetectionData(lines, dataToDriver);
     data.setFrameCount(m_frame_count);
-
 
     //some more mess
     TimeStamp currentTime_strt7;
@@ -307,6 +311,7 @@ ModuleState::MODULE_EXITCODE LaneDetector_inspection::body()
     showRes_filterAndMerge = kv.getValue<bool>("lanedetector.showRes_filterAndMerge");
     showRes_finalFilter = kv.getValue<bool>("lanedetector.showRes_finalFilter");
     showRes_finalResult = kv.getValue<bool>("lanedetector.showRes_finalResult");
+    showRes_createTrajectory = kv.getValue<bool>("lanedetector.showRes_createTrajectory");
     what_to_inspect = kv.getValue<uint32_t>("lanedetector.what_to_inspect");
 
     // If AUTO_REWIND is true, the file will be played endlessly.
@@ -368,6 +373,7 @@ void LaneDetector_inspection::showResult(LineDetector &road, Mat &f)
     IntermediateResult *res_filterAndMerge = road.getResult_filterAndMerge();
     IntermediateResult *res_finalFilter = road.getResult_finalFilter();
     LinesToUse *res_finalResult = road.getResult_calculateGoalLine();
+    FinalOutput *res_createTrajectory = road.getResult_createTrajectory();
 
     // Show result windows
     if (showRes_getContours)
@@ -387,6 +393,9 @@ void LaneDetector_inspection::showResult(LineDetector &road, Mat &f)
 
     if (showRes_finalResult)
         showResult_finalResult(res_finalResult, road, f);
+
+    if (showRes_createTrajectory)
+        showResult_createTrajectory(res_createTrajectory, road, f);
 
     // Create window to display text results
     cv::Mat txtRes = cv::Mat::zeros(500, 330, CV_8UC3);
@@ -685,6 +694,90 @@ void LaneDetector_inspection::showResult_finalResult(LinesToUse *res, LineDetect
         }
     frame.release();
 }
+void LaneDetector_inspection::showResult_createTrajectory(FinalOutput *res, LineDetector &road, Mat &f)
+{
+
+    Mat frame;
+    cvtColor(f, frame, CV_GRAY2BGR);
+
+    // TODO: display switchPoints
+
+    if (m_debug)
+        {
+            cout << "__START: createTrajectory" << endl;
+        }
+    if (res->noTrajectory == true){
+            cout << "Nothing in..." << endl;
+
+        }else{
+            for (int i = 0; i < res->rightGoalLines.size(); i++){
+                if (res->estimatedLeft[i])
+                    line(frame, res->left[i].p1, res->left[i].p2, Scalar(255, 0, 0), 1, CV_AA);
+                else
+                    line(frame, res->left[i].p1, res->left[i].p2, Scalar(255, 0, 0), 2, CV_AA);
+
+                if (res->estimatedRight[i])
+                    line(frame, res->right[i].p1, res->right[i].p2, Scalar(0, 0, 255), 1, CV_AA);
+                else
+                    line(frame, res->right[i].p1, res->right[i].p2, Scalar(0, 0, 255), 2, CV_AA);
+
+                if (res->estimatedDash[i])
+                    line(frame, res->dash[i].p1, res->dash[i].p2, Scalar(0, 255, 0), 1, CV_AA);
+                else
+                    line(frame, res->dash[i].p1, res->dash[i].p2, Scalar(0, 255, 0), 2, CV_AA);
+
+                line(frame, res->rightGoalLines[i].p1, res->rightGoalLines[i].p2, Scalar(153, 106, 0), 2, CV_AA);
+                line(frame, res->leftGoalLines[i].p1, res->leftGoalLines[i].p2, Scalar(153, 0, 76), 2, CV_AA);
+            }
+            line(frame, res->currentLine.p1, res->currentLine.p2, Scalar(153, 0, 76), 2, CV_AA);
+
+            for (int i = 0; i < res->cutPoints.size(); i++){
+                Point p;
+                p.y = res->cutPoints[i];
+                p.x = 0;
+                Point q = p;
+                q.x = 800;
+                line(frame, p, q, Scalar(255, 255, 255), 1, CV_AA);
+            }
+
+        if (m_debug)
+            {
+            for (int i = 0; i < res->cutPoints.size(); i++){
+                cout << "cutPoint: " << res->cutPoints[i] << endl;
+            }
+            for (int i = 0; i < res->rightGoalLines.size(); i++)
+                {
+                    cout << "left[" << i << "] slope: " << res->left[i].slope << " p1(" << res->left[i].p1.x << "," << res->left[i].p1.y;
+                    cout << ") p2(" << res->left[i].p2.x << "," << res->left[i].p2.y << ")" << endl;
+
+                    cout << "Dashed[" << i << "] slope: " << res->dash[i].slope << " p1(" << res->dash[i].p1.x << "," << res->dash[i].p1.y;
+                    cout << ") p2(" << res->dash[i].p2.x << "," << res->dash[i].p2.y << ")" << endl;
+
+                    cout << "right[" << i << "] slope: " << res->right[i].slope << " p1(" << res->right[i].p1.x << "," << res->right[i].p1.y;
+                    cout << ") p2(" << res->right[i].p2.x << "," << res->right[i].p2.y << ")" << endl;
+
+
+                    cout << "leftGoalLines[" << i << "] slope: " << res->leftGoalLines[i].slope << " p1(" << res->leftGoalLines[i].p1.x << "," << res->leftGoalLines[i].p1.y;
+                    cout << ") p2(" << res->leftGoalLines[i].p2.x << "," << res->leftGoalLines[i].p2.y << ")" << endl;
+
+                    cout << "rightGoalLines[" << i << "] slope: " << res->rightGoalLines[i].slope << " p1(" << res->rightGoalLines[i].p1.x << "," << res->rightGoalLines[i].p1.y;
+                    cout << ") p2(" << res->rightGoalLines[i].p2.x << "," << res->rightGoalLines[i].p2.y << ")" << endl;
+
+                    cout << "---" << endl;
+                }
+            }
+        }
+    if (what_to_inspect == 7)
+        addInspectionInfo(road, frame);
+
+    imshow("Result from createTrajectory", frame);
+    if (m_debug)
+        {
+            cout << "__END: createTrajectory" << endl;
+        }
+    frame.release();
+}
+
 void LaneDetector_inspection::addInspectionInfo(LineDetector &road, Mat &frame)
 {
 

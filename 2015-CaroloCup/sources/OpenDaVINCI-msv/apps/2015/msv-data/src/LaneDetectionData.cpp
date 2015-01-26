@@ -22,12 +22,13 @@ namespace msv {
 	using namespace cv;
 
 	LaneDetectionData::LaneDetectionData() :
-		m_frame_count(0),m_lines(Vec4i(0,0,0,0),Vec4i(0,0,0,0),Vec4i(0,0,0,0)),m_classification() {
+		m_frame_count(0),m_lines(Vec4i(0,0,0,0),Vec4i(0,0,0,0),Vec4i(0,0,0,0)),m_classification(),m_dataToDriver() {
        }
 
 	LaneDetectionData::LaneDetectionData(const LaneDetectionData &obj) :
 			SerializableData(),m_frame_count(obj.m_frame_count),
-			m_lines(obj.m_lines),m_classification(obj.m_classification) {}
+			m_lines(obj.m_lines),m_classification(obj.m_classification),
+			m_dataToDriver(obj.m_dataToDriver) {}
 
 	LaneDetectionData::~LaneDetectionData() {}
 
@@ -42,8 +43,9 @@ namespace msv {
 		return m_lines;
 	}
 
-	void LaneDetectionData::setLaneDetectionData(const Lines &lines) {
+	void LaneDetectionData::setLaneDetectionData(const Lines &lines, const LaneDetectorDataToDriver &dataToDriver) {
 		m_lines = lines;
+		m_dataToDriver = dataToDriver;
 	}
 
 	uint32_t LaneDetectionData::getFrameCount() const {

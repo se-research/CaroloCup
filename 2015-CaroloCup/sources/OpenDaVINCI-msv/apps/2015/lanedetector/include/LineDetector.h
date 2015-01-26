@@ -6,7 +6,6 @@
 #define ROAD_GOAL 0.5
 #define ROAD_ANGLE 85
 #define MID_DASH_ANGLE -47
-#define CUT_POINTS 3 // manageTracetory()
 
 #include <queue>
 #include "opencv2/opencv.hpp"
@@ -89,10 +88,26 @@ struct LinesToUse
     Lines *lines;
 };
 
-struct DataToDriver {
-    vector<int> switchPoints;
-    vector<CustomLine> goalLines;
+// Container for information to give to the driver from LaneDetection
+struct FinalOutput {
+	vector<int> cutPoints;
+    vector<CustomLine> left;
+    vector<CustomLine> dash;
+    vector<CustomLine> right;
+    vector<bool> estimatedLeft;
+    vector<bool> estimatedDash;
+    vector<bool> estimatedRight;
+    vector<int> switchPointsLeftGoalLines;
+    vector<int> switchPointsRightGoalLines;
+    vector<CustomLine> leftGoalLines;
+    vector<CustomLine> rightGoalLines;
+    CustomLine currentLine;
     bool noTrajectory;
+};
+
+struct GoalLineData {
+	CustomLine rightGoalLine;
+	CustomLine leftGoalLine;
 };
 
 class LineDetector
@@ -120,6 +135,8 @@ public:
     IntermediateResult *getResult_filterAndMerge();
     IntermediateResult *getResult_finalFilter();
     LinesToUse *getResult_calculateGoalLine();
+	LaneDetectorDataToDriver *getDriverData();
+	FinalOutput *getResult_createTrajectory();
 
 private:
     LineDetector(const LineDetector &);
@@ -168,6 +185,9 @@ private:
     //Calculate the goal line etc.
     void calculateGoalLine(LinesToUse *ltu);
 	CustomLine new_calculateGoalLine(EstimationData *ed);
+
+	void provideGoalLine(EstimationData *ed, GoalLineData *gld);
+	CustomLine simple_calculateGoalLine(CustomLine fst, CustomLine snd, EstimationData *ed);
     
     //Split  contour at given  the points
     std::vector<RotatedRect> splitContourAtPoints(vector<Point> points,int contourIndex,bool horizontalSplit);
@@ -182,6 +202,7 @@ private:
 	bool isNoneCustomLine(CustomLine aspirant);
 
     cv::Mat m_frame;
+    cv::Mat m_frame_color;
     cv::Mat m_frameCanny;
     Lines *m_lines;
     const bool m_debug;
@@ -203,7 +224,8 @@ private:
     IntermediateResult result_finalFilter;
     LinesToUse ltu;
     Lines result_getLines;
-    DataToDriver dataToDriver;
+    LaneDetectorDataToDriver *dataToDriver;
+    FinalOutput finalOutput;
 };
 
 }
