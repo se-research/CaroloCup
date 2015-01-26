@@ -164,7 +164,7 @@ void LineDetector::findLines(cv::Mat &outputImg)
     calculateGoalLine(&ltu);
 
     // -- testing of manageTrajectory:
-    manageTrajectory(&ltu);
+   // manageTrajectory(&ltu);
     // -- end testing
 
 
@@ -332,12 +332,41 @@ void LineDetector::getRectangles()
                     shortSideMiddle = temp;
                 }
 
-            // if (sizeX * sizeY > m_config.maxArea * 10000)
-            //     {
-            //         splitBigRectangles(i);
-            //     }
+             if (sizeX * sizeY > m_config.maxArea * 10000)
+                 {
+                    //splitBigRectangles(i);//dropping this approach for now as splitting comes with its own challenges
+/*        	    //1.We check the angle of the rect
+
+        	       //we convert the angle so that we always measure the angle between the the vertical line and the longest side
+        	       //of the the rectangle.In this case when the long side is laying flat then the angle is 90 degress if the shorter
+        	       //side is the one laying flat then its 0
+        	       float angle=0;
+        	       if(rect.size.width < rect.size.height){
+        		   angle= rect.angle+180;
+        	           }else{
+        	               angle=rect.angle+90;
+        	           }
+        	       cout<< "ANGLE OF RECT "<<angle<<endl;
+        	       cout<<"Width "<<rect.size.width<<endl;
+        	       cout<<"height "<<rect.size.height<<endl;
+        	       cout<<"screen width "<<w<<endl;
+        	       if(angle > 80.0 && angle < 110.0){
+        		   cout<<"JUST THE RIGHT ANGLE!"<<endl;
+        		   //investigate further
+        		   //if we have object avoidance we check how much white is in this rectangle
+        		   //otherwise we assume is has to be an intersection we then determine how far off we are
+        		   if (rect.size.width> w/2 || rect.size.height > w/2){//we may also check for height as rotated rect has some
+        		       //weird map of what width and what's height depending on the orientation
+        		       cout<<"INTERSECTION POTENTIAL!"<<endl;
+        		       //I think intersection detection should be stateful and not frame by frame
+
+        		   }
+        	       }
+*/
+
+                 }
             // else
-            //     {
+             //    {
             rects.push_back(rect);
             PolySize polysize = { sizeX, sizeY, sizeR, shortSideMiddle, longSideMiddle };
             line_sizes.push_back(polysize);
@@ -683,6 +712,50 @@ void LineDetector::classification()
                         }
                     intersectionOn = true;
                     foundIntersection = true;
+
+
+
+
+            //////////////////////////////////////////////
+            //New intersection handling
+            //1.We check the angle of the rect
+
+	    //we convert the angle so that we always measure the angle between the the vertical line and the longest side
+	    //of the the rectangle.In this case when the long side is laying flat then the angle is 90 degress if the shorter
+	    //side is the one laying flat then its 0
+	    float angle = 0;
+	    if (rect.size.width < rect.size.height)
+	      {
+		angle = rect.angle + 180;
+	      }
+	    else
+	      {
+		angle = rect.angle + 90;
+	      }
+
+	    if (angle > 80.0 && angle < 110.0)
+	      {
+
+		//investigate further
+		//if we have object avoidance we check how much white is in this rectangle
+		//otherwise we assume is has to be an intersection we then determine how far off we are
+		if (rect.size.width > w / 2 || rect.size.height > w / 2)
+		  {      //we may also check for height as rotated rect has some
+		    //weird map of what width and what's height depending on the orientation
+		    cout << "INTERSECTION POTENTIAL!" << endl;
+		    cout << "ANGLE OF RECT " << angle << endl;
+		    cout << "Width " << rect.size.width << endl;
+		    cout << "height " << rect.size.height << endl;
+
+		    //I think intersection detection should be stateful and not frame by frame
+
+
+		  }
+	      }
+
+	    ///////////////////////////////////////////////////////////////////////////////////
+
+
                 }
         }
 
