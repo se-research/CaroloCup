@@ -4,7 +4,7 @@ home=/home/odroid/CaroloCup/2014-CaroloCup/Legendary/project/scripts
 bin=/opt/msv/bin/
 caroloCup=$bin/2013/DIT-168/project-template/
 pidfile=${0}.pid
-serialPort=/dev/ttyACM0
+serialPort=/dev/ttyACM2
 started=0
 
 # Port setting
@@ -15,7 +15,7 @@ stty -F $serialPort raw speed 9600
 
 #Loop
 cd $home
-while read -n10 line # -n 10 (Touch screen), -n 1 (Button )
+while read -n1 line # -n 10 (Touch screen), -n 1 (Button )
 do
    echo $line
    if [[ $line == "0" ]]; then
@@ -57,14 +57,19 @@ do
 	    cp configuration2 configuration
 	    killall supercomponent
 	    # Start the proceses
-	    nohup ${bin}/supercomponent --cid=111 --freq=20 &
-	    echo "$!" > $pidfile
-
-	    nohup ${caroloCup}/Sensors --cid=111 --freq=40 &
+	    cd /opt/msv/bin/
+	    echo "Starting"
+	    nohup ./supercomponent --cid=222 &
 	    echo "$!" >> $pidfile
+	    echo "Supercomponent started"
 
-	    nohup ${caroloCup}/2013-CaroloCup-driver --cid=111 --freq=40 &
+	    nohup ./2013/DIT-168/project-template/proxy --cid=222 --freq=60 &
 	    echo "$!" >> $pidfile
+	    echo "Proxy started"
+
+	    nohup ./2013/DIT-168/project-template/driver --cid=222 --freq=40 &
+	    echo "$!" >> $pidfile
+	    echo "Driver started"
 	    started=1
     fi
    fi

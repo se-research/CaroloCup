@@ -54,17 +54,17 @@ void loop(){
         ;
   }
   if(digitalRead(upLeft)){
-	Serial.print("1");  	//Sends STOP signal
+	Serial.print("0");  	//Sends STOP signal
   }
   if(digitalRead(downLeft)){
   	// menuLevel++;
   }
   if(menuLevel == 0){
   	if(digitalRead(upRight)){
-  		Serial.print("2"); //LaneFollowing
+  		Serial.print("1"); //LaneFollowing
   }
   	if(digitalRead(downRight)){
-		Serial.print("3"); //Parking
+		Serial.print("2"); //Parking
   }
 }
   if(menuLevel > 1 || menuLevel < 0){
