@@ -36,8 +36,8 @@ void loop(){
 		  lcd.print("SCENARIOS:");
 		  lcd.setCursor(0,1);
 		  lcd.print("< STOP");   
-		  lcd.setCursor(4,1);     
-		  lcd.print("LANEFOLLOWING >");
+		  lcd.setCursor(7,1);     
+		  lcd.print("LANEFOLLOW >");
 		  lcd.setCursor(10,3);           
 		  lcd.print("PARKING >");
         break;
@@ -54,17 +54,17 @@ void loop(){
         ;
   }
   if(digitalRead(upLeft)){
-  	menuLevel ++;
+	Serial.print("1");  	//Sends STOP signal
   }
   if(digitalRead(downLeft)){
-  	Serial.print("0");	//Sends STOP signal
+  	// menuLevel++;
   }
   if(menuLevel == 0){
   	if(digitalRead(upRight)){
-  		Serial.print("1"); //LaneFollowing
+  		Serial.print("2"); //LaneFollowing
   }
   	if(digitalRead(downRight)){
-		Serial.print("2"); //Parking
+		Serial.print("3"); //Parking
   }
 }
   if(menuLevel > 1 || menuLevel < 0){

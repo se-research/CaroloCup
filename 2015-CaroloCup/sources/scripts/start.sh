@@ -15,10 +15,10 @@ stty -F $serialPort raw speed 9600
 
 #Loop
 cd $home
-while read -n10 line # -n 10 (Touch screen), -n 1 (Button )
+while read -n1 line # -n 10 (Touch screen), -n 1 (Button )
 do
    echo $line
-   if [[ $line == "0" ]]; then
+   if [[ $line == "1" ]]; then
     if [[ $started == 1 ]]; then
 	    echo "STOP"
 	    # Stop and kill the processes
@@ -28,7 +28,7 @@ do
 	    done
 	    started=0
     fi
-  elif [[ $line == "1" ]]; then
+  elif [[ $line == "2" ]]; then
     if [[ $started == 0 ]]; then
 	    echo "START LANEFOLLOWING"
 #cp configuration1 configuration
@@ -50,8 +50,8 @@ do
 	    started=1
     fi
 
-    # Change back to 2 for parking
-  elif [[ $line == "20" ]]; then
+    # Change back to 3 for parking
+  elif [[ $line == "3" ]]; then
     if [[ $started == 0 ]]; then
 	    echo "START PARKING"
 	    cp configuration2 configuration
