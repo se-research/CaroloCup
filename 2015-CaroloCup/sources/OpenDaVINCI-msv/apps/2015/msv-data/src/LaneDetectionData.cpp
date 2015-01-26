@@ -42,6 +42,9 @@ namespace msv {
 	Lines LaneDetectionData::getLaneDetectionData() const {
 		return m_lines;
 	}
+	LaneDetectorDataToDriver LaneDetectionData::getLaneDetectionDataDriver() const {
+			return m_dataToDriver;
+		}
 
 	void LaneDetectionData::setLaneDetectionData(const Lines &lines, const LaneDetectorDataToDriver &dataToDriver) {
 		m_lines = lines;
