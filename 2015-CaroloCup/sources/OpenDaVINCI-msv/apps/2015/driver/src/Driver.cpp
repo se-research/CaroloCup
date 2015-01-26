@@ -31,6 +31,7 @@ using namespace core::data::control;
 using namespace core::data::environment;
 
 int MinParkingDist = 500;
+int MaxParkingDist = 650;
 int SafeDistance = 40;
 int Distance;
 int CurrentDistSpot;
@@ -39,12 +40,12 @@ int CurrentDist;
 int DesiredDistance1 = 100; //700 is required 550+150;
 int DesiredDistance2 = 470;
 int DesiredDistance3 = 490;
-int DesiredDistance4 = 130;
-int DesiredDistance5 = 50;
+int DesiredDistance4 = 90;
+int DesiredDistance5 = 30;
 int SpeedF1 = 6;
 int SpeedF2 = 6;
 int SpeedB1 = -7;
-int SpeedB2 = -5;
+int SpeedB2 = -4;
 int CurrentDist1;
 int CurrentDist2;
 int CurrentDist3;
@@ -79,6 +80,9 @@ double start_timer;
 double start_timer2;
 double time_taken;
 double time_taken2;
+double start_timerB;
+double time_takenB;
+
 
 int driving_speed;			// Speed of the car
 int desiredSteeringWheelAngle;// Angle of the wheels
@@ -113,8 +117,8 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 				Container::USER_DATA_0);
 		SensorBoardData sbd =
 				containerSensorBoardData.getData<SensorBoardData>();
-		cout << "Most recent sensor board data: '" << sbd.toString() << "'"
-				<< endl;
+// 		cout << "Most recent sensor board data: '" << sbd.toString() << "'"
+// 				<< endl;
 
 		// 3. Get most recent user button data:
 		Container containerUserButtonData = getKeyValueDataStore().get(
@@ -168,12 +172,10 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 			
 			if ((USFront < SafeDistance && USFront > 2)){ 
 				driving_state = NO_POSSIBLE_PARKING_PLACE;
-			  
 			}
-			
-			if ((IRdis_SR < 25 && IRdis_SR > 2)){ 
+			if ((IRdis_SR < 23 && IRdis_SR > 2)){ 
 				driving_state = START_OBST;
-			  
+			
 			}
 		}
 			break;
@@ -188,7 +190,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 			  
 			}
 
-			if ((IRdis_SR > 25 || IRdis_SR < 2)) {
+			if ((IRdis_SR > 23 || IRdis_SR < 2)) {
 				driving_state = POSSIBLE_SPOT;
 				CurrentDistSpot = Distance;
 			}
@@ -205,10 +207,10 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 			  
 			}
 			
-			if(IRdis_SR < 25 && IRdis_SR > 2){
+			if(IRdis_SR < 23 && IRdis_SR > 2){
 			  gapWidth = Distance - CurrentDistSpot;
 			  //CurrentDistSpot2 = Distance;
-			 if(gapWidth > MinParkingDist){
+			 if((gapWidth > MinParkingDist) || (gapWidth > MaxParkingDist)){
 			   desiredSteeringWheelAngle=0;
 			   driving_state = INITIALIZE_POS_FOR_PARKING; 
 			 }else{
@@ -249,8 +251,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 			
 			cout << "\t STOP_FOR_PARKING" << endl;
 			TimeStamp currentTime2;
-			time_taken = (currentTime2.toMicroseconds() / 100000.0)
-					- start_timer;
+			time_taken = (currentTime2.toMicroseconds() / 100000.0) - start_timer;
 					
 			cout << "++++++++++ Stoping timer: " << time_taken << endl;
 			
@@ -258,11 +259,12 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 				driving_state = NO_POSSIBLE_PARKING_PLACE;
 			  
 			}
-			if (time_taken > 3) {  
+			if (time_taken > 2) {  
  				
 				//parking(vc, vd);
 				CurrentDist1 = Distance;
 				driving_state = PARKING;
+				driving_speed = 0;
 				
 
 			}
@@ -326,7 +328,7 @@ void Driver::parking() {
 	switch (parking_state) {
 	case BACKWARDS_RIGHT: {
 		driving_speed = SpeedB2;
-		desiredSteeringWheelAngle = -42;
+		desiredSteeringWheelAngle = -40;
 	  	cout << "========  BACKWARDS_RIGHT"  << endl;
 		if (Distance > (CurrentDist1 + DesiredDistance2)) {
 			parking_state = BACKWARDS_LEFT;
@@ -339,52 +341,60 @@ void Driver::parking() {
 		break;
 		
 	case BACKWARDS_LEFT: {
+		
 		driving_speed = SpeedB1;
-		desiredSteeringWheelAngle = 42;
+		desiredSteeringWheelAngle = 40;
 		cout << "\t========  BACKWARDS_LEFT"  << endl;
-		if ((Distance > (CurrentDist2 + DesiredDistance3)) || (USRear < 20 && USRear > 2)) {			
-			driving_speed = 0;
-			CurrentDist3 = Distance;
-			parking_state = FORWARD_RIGHT;
+		if ((Distance > (CurrentDist2 + DesiredDistance3)) || (USRear < 25 && USRear > 2)) {			
+			TimeStamp currentTimeB;
+			start_timerB = currentTimeB.toMicroseconds() / 100000.0;
+			parking_state = WAIT_2;
 
 		} 
 	}
 		break;
+	
+	case WAIT_2: { 
+	      driving_speed = 0;
+	      cout << "\t WAIT_2" << endl;
+	      TimeStamp currentTimeB2;
+	      time_takenB = (currentTimeB2.toMicroseconds() / 100000.0) - start_timerB;
+			      
+	      cout << "++++++++++ Stoping timer: " << time_taken2 << endl;
+	      if (time_takenB > 3) {  
+		      cout << "++++++===== Stoping timerB: " << time_takenB << endl;
+		      CurrentDist3 = Distance;
+		      parking_state = FORWARD_RIGHT;	
+			}
+	}
+			break;
 
 	case FORWARD_RIGHT: {
 		driving_speed = SpeedF1;
-		desiredSteeringWheelAngle = -42;
+		desiredSteeringWheelAngle = -40;
 		cout << "\t\t========  FORWARD_RIGHT"  << endl;
-		if ((Distance > (CurrentDist3 + DesiredDistance4)) || (USFront < 7 && USFront > 2)) {
-		  
-			parking_state = STOP_FOR_SEC;;
+		if ((Distance > (CurrentDist3 + DesiredDistance4)) || (USFront < 12 && USFront > 2)) {
+		  //(Distance > (CurrentDist3 + DesiredDistance4)) || 
+			parking_state = WAIT_3;
 			TimeStamp currentTime3;
 			start_timer2 = currentTime3.toMicroseconds() / 100000.0;
-			
-			
-			
-
 		} 
 	}
 
 		break;
 		
-	case STOP_FOR_SEC: { 
-			driving_speed = 0;
-			cout << "\t STOP_FOR_SEC" << endl;
-			TimeStamp currentTime4;
-			time_taken2 = (currentTime4.toMicroseconds() / 100000.0)
-					- start_timer2;
-					
-			cout << "++++++++++ Stoping timer: " << time_taken2 << endl;
-			if (time_taken2 > 4) {  //can this be reached ? because start_timer never started.
- 				
-				//parking(vc, vd);
-				
-				CurrentDist4 = Distance;
-				parking_state = BACK_AGAIN;
-				
-
+	case WAIT_3: { 
+	      driving_speed = 0;
+	      
+	      cout << "\t WAIT_3" << endl;
+	      TimeStamp currentTime4;
+	      time_taken2 = (currentTime4.toMicroseconds() / 100000.0)- start_timer2;
+			      
+	      cout << "++++++++++ Stoping timerF1: " << time_taken2 << endl;
+	      if (time_taken2 > 4) { 
+	      
+		      CurrentDist4 = Distance;
+		      parking_state = BACK_AGAIN;
 			}
 			
 		}
@@ -392,9 +402,9 @@ void Driver::parking() {
 
 	case BACK_AGAIN: {
 		driving_speed = SpeedB1;
-		desiredSteeringWheelAngle = 42;
+		desiredSteeringWheelAngle = 40;
 		cout << "\t========  BACK_AGAIN"  << endl;
-		if ((Distance > (CurrentDist4 + DesiredDistance5)) || (USRear < 10 && USRear > 2)){
+		if ((Distance > (CurrentDist4 + DesiredDistance5)) || (USRear < 15 && USRear > 2)){
 			parking_state = STOP;
 			driving_speed = 0;
 			desiredSteeringWheelAngle = 0;
