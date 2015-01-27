@@ -1260,22 +1260,22 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
     if (ltu->foundD)
         {
             dashToUse = ltu->dashedCurve;
+            // Set up cut points for splitting it and specify where the goal lines shall start at
+            for (int i = 0; i < ltu->dashedCurve.size(); i++)
+                {
+                    int cutP = ltu->dashedCurve[i].p2.y;
+                    if (cutP > defaultCutPoints[0])
+                        cutPoints.push_back(defaultCutPoints[0]);
+                    else
+                        cutPoints.push_back(cutP);
+                }
 
             if (ltu->foundR || ltu->foundL)
-                // If we got a solid, set up cut points for splitting it
+                // Add cut points to have cut points throughout the whole frame
                 {
-                    for (int i = 0; i < ltu->dashedCurve.size(); i++)
-                        {
-                            int cutP = ltu->dashedCurve[i].p2.y;
-                            if (cutP > defaultCutPoints[0])
-                                cutPoints.push_back(defaultCutPoints[0]);
-                            else
-                                cutPoints.push_back(cutP);
-                        }
                     int lowestDashPointInLowestCut = ltu->dashedCurve[0].p1.y; // Observe that p1 is used
                     int highestCut = cutPoints[cutPoints.size() - 1];
 
-                    // Add cut points to have cut points throughout the whole frame
                     for (int i = 0; i < defaultCutPoints.size(); i++)
                         {
                             if (highestCut - 50 > defaultCutPoints[i])
@@ -1380,23 +1380,24 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
             provideGoalLine(&ed, &gld);
 		cout << "------------___-----!!!----" << endl;
             if (m_debug){
+                // Used by landetection-inspection
                 if (ed.isLeftEstimated)
                     {
                         estimatedLeft[i] = true;
                         ed.left.p2.x = getIntersectionWithTop(ed.left);
-                        leftSplitted.push_back(ed.left);
+                        leftSplitted[i] = ed.left;
                     }
                 if (ed.isDashEstimated)
                     {
                         estimatedDash[i] = true;
                         ed.dash.p2.x = getIntersectionWithTop(ed.dash);
-                        dashToUse.push_back(ed.dash);
+                        dashToUse[i] = ed.dash;
                     }
                 if (ed.isRightEstimated)
                     {
                         estimatedRight[i] = true;
                         ed.right.p2.x = getIntersectionWithTop(ed.right);
-                        rightSplitted.push_back(ed.right);
+                        rightSplitted[i] = ed.right;
                     }
             }
 		cout << "------------___---------" << endl;
@@ -1446,16 +1447,11 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
                 cout << "---" << endl;
 
                 if (picture){
-		    if(getDist(rightSplitted.p1,rightSplitted.p2) < 1000)
                         line(goal, rightSplitted[i].p1, rightSplitted[i].p2, Scalar(0, 0, 255), 2, CV_AA);
-		    if(getDist(dashToUse.p1,dashToUse.p2) < 1000)
-                       line(goal, dashToUse[i].p1, dashToUse[i].p2, Scalar(0, 255, 0), 2, CV_AA);
-		    if(getDist(leftSplitted.p1,leftSplitted.p2) < 1000)
-                       line(goal, leftSplitted[i].p1, leftSplitted[i].p2, Scalar(255, 0, 0), 2, CV_AA);
-		    if(getDist(rightGoalLines.p1,rightGoalLines.p2) < 1000)
-                       line(goal, rightGoalLines[i].p1, rightGoalLines[i].p2, Scalar(153, 106, 0), 2, CV_AA);
-		    if(getDist(leftGoalLines.p1,leftGoalLines.p2) < 1000)
-                       line(goal, leftGoalLines[i].p1, leftGoalLines[i].p2, Scalar(153, 0, 76), 2, CV_AA);
+                        line(goal, dashToUse[i].p1, dashToUse[i].p2, Scalar(0, 255, 0), 2, CV_AA);
+                        line(goal, leftSplitted[i].p1, leftSplitted[i].p2, Scalar(255, 0, 0), 2, CV_AA);
+                        line(goal, rightGoalLines[i].p1, rightGoalLines[i].p2, Scalar(153, 106, 0), 2, CV_AA);
+                        line(goal, leftGoalLines[i].p1, leftGoalLines[i].p2, Scalar(153, 0, 76), 2, CV_AA);
                 }
             }        
     }
