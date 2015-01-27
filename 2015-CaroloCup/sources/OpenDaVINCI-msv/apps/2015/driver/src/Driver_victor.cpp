@@ -209,20 +209,8 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 				TimeStamp currentTime3;
 				start_timer = currentTime3.toMicroseconds() / 1000.0;
 			}
-
-			if(IRdis_SR < 23 && IRdis_SR > 2){
-			  gapWidth = Distance - CurrentDistSpot;
-			  //CurrentDistSpot2 = Distance;
-			 if((gapWidth > MinParkingDist) || (gapWidth > MaxParkingDist)){
-			   desiredSteeringWheelAngle=0;
-			   driving_state = INITIALIZE_POS_FOR_PARKING; 
-			 }else{
-			  driving_state = DRIVE; 
-			 }
-			}
 			
 			CurrentDist = Distance;
-			cout << "\t Parking spot length: "<< gapWidth << endl;
 		}
 			break;
 			
