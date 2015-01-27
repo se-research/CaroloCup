@@ -1380,7 +1380,6 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
             provideGoalLine(&ed, &gld);
 		cout << "------------___-----!!!----" << endl;
             if (m_debug){
-                // Used by landetection-inspection
                 if (ed.isLeftEstimated)
                     {
                         estimatedLeft[i] = true;
@@ -1398,27 +1397,6 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
                         estimatedRight[i] = true;
                         ed.right.p2.x = getIntersectionWithTop(ed.right);
                         rightSplitted[i] = ed.right;
-                    }
-            }
-		cout << "------------___---------" << endl;
-            if (m_debug){
-                if (ed.isDashEstimated)
-                    {
-                        ed.dash.p2.x = getIntersectionWithTop(ed.dash);
-                        if (picture)
-                            line(goal, ed.dash.p1, ed.dash.p2, Scalar(0, 255, 0), 1, CV_AA);
-                    }
-                if (ed.isRightEstimated)
-                    {
-                        ed.right.p2.x = getIntersectionWithTop(ed.right);
-                        if (picture)
-                            line(goal, ed.right.p1, ed.right.p2, Scalar(0, 0, 255), 1, CV_AA);
-                    }
-                if (ed.isLeftEstimated)
-                    {
-                        ed.left.p2.x = getIntersectionWithTop(ed.left);
-                        if (picture)
-                            line(goal, ed.left.p1, ed.left.p2, Scalar(255, 0, 0), 1, CV_AA);
                     }
             }
 		cout << "------------___---------" << endl;
@@ -1447,13 +1425,37 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
                 cout << "---" << endl;
 
                 if (picture){
-                        line(goal, rightSplitted[i].p1, rightSplitted[i].p2, Scalar(0, 0, 255), 2, CV_AA);
-                        line(goal, dashToUse[i].p1, dashToUse[i].p2, Scalar(0, 255, 0), 2, CV_AA);
-                        line(goal, leftSplitted[i].p1, leftSplitted[i].p2, Scalar(255, 0, 0), 2, CV_AA);
+                    for (int i = 0; i < rightGoalLines.size(); i++){
+                        if (estimatedLeft[i])
+                            line(goal, leftSplitted[i].p1, leftSplitted[i].p2, Scalar(255, 0, 0), 1, CV_AA);
+                        else
+                            line(goal, leftSplitted[i].p1, leftSplitted[i].p2, Scalar(255, 0, 0), 2, CV_AA);
+
+                        if (estimatedRight[i])
+                            line(goal, rightSplitted[i].p1, rightSplitted[i].p2, Scalar(0, 0, 255), 1, CV_AA);
+                        else
+                            line(goal, rightSplitted[i].p1, rightSplitted[i].p2, Scalar(0, 0, 255), 2, CV_AA);
+
+                        if (estimatedDash[i])
+                            line(goal, dashToUse[i].p1, dashToUse[i].p2, Scalar(0, 255, 0), 1, CV_AA);
+                        else
+                            line(goal, dashToUse[i].p1, dashToUse[i].p2, Scalar(0, 255, 0), 2, CV_AA);
+
                         line(goal, rightGoalLines[i].p1, rightGoalLines[i].p2, Scalar(153, 106, 0), 2, CV_AA);
                         line(goal, leftGoalLines[i].p1, leftGoalLines[i].p2, Scalar(153, 0, 76), 2, CV_AA);
+                    }
                 }
             }        
+    }
+    if (picture){
+        for (int i = 0; i < cutPoints.size(); i++){
+            Point p;
+            p.y = cutPoints[i];
+            p.x = 0;
+            Point q = p;
+            q.x = 800;
+            line(goal, p, q, Scalar(255, 255, 255), 1, CV_AA);
+        }
     }
 		cout << "------------___---------" << endl;
     // Create current line
@@ -1511,7 +1513,7 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
 		cout << "------------#####&&--------" << endl;
     if (m_debug){
         if (picture){
-            line(goal, currentLine.p1, currentLine.p2, Scalar(255, 255, 0), 2, CV_AA);                
+            line(goal, currentLine.p1, currentLine.p2, Scalar(255, 0, 255), 2, CV_AA);               
             imshow("Data to driver", goal);            
         }
         cout << "__end manageTrajectory" << endl;        
