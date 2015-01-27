@@ -32,20 +32,20 @@ using namespace core::data::environment;
 
 int MinParkingDist = 500;
 int MaxParkingDist = 650;
-int SafeDistance = 40;
+int SafeDistance = 30;
 int Distance;
 int CurrentDistSpot;
 int CurrentDistSpot2;
 int CurrentDist;
 int DesiredDistance1 = 100; //700 is required 550+150;
-int DesiredDistance2 = 470;
+int DesiredDistance2 = 530;
 int DesiredDistance3 = 490;
 int DesiredDistance4 = 90;
 int DesiredDistance5 = 30;
-int SpeedF1 = 6;
-int SpeedF2 = 6;
-int SpeedB1 = -7;
-int SpeedB2 = -4;
+int SpeedF1 = 5;
+int SpeedF2 = 5;
+int SpeedB1 = -4;
+int SpeedB2 = -7;
 int CurrentDist1;
 int CurrentDist2;
 int CurrentDist3;
@@ -145,6 +145,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 		Distance = sbd.getDistance(6); // WheeelEncoder Data (mm)
 		
 		//Status
+		cout << " ===== Rear IRs difference: " << abs (IRdis_RL - IRdis_RR) << endl;
 // 		cout << " ===== Side Left Infrared reading: " << IRdis_SL << endl;
  		cout << " ===== Rear Left Infrared reading: " << IRdis_RL << endl;
  		cout << " ===== Rear Right Infrared reading: " << IRdis_RR << endl;
@@ -259,7 +260,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 				driving_state = NO_POSSIBLE_PARKING_PLACE;
 			  
 			}
-			if (time_taken > 2) {  
+			if (time_taken > 3) {  
  				
 				//parking(vc, vd);
 				CurrentDist1 = Distance;
@@ -334,8 +335,6 @@ void Driver::parking() {
 			parking_state = BACKWARDS_LEFT;
 			CurrentDist2 = Distance;
 			
-			
-
 		} 
 	}
 		break;
@@ -345,7 +344,7 @@ void Driver::parking() {
 		driving_speed = SpeedB1;
 		desiredSteeringWheelAngle = 40;
 		cout << "\t========  BACKWARDS_LEFT"  << endl;
-		if ((Distance > (CurrentDist2 + DesiredDistance3)) || (USRear < 25 && USRear > 2)) {			
+		if ((Distance > (CurrentDist2 + DesiredDistance3)) || (USRear < 20 && USRear > 2)) {			
 			TimeStamp currentTimeB;
 			start_timerB = currentTimeB.toMicroseconds() / 100000.0;
 			parking_state = WAIT_2;
@@ -391,20 +390,22 @@ void Driver::parking() {
 	      time_taken2 = (currentTime4.toMicroseconds() / 100000.0)- start_timer2;
 			      
 	      cout << "++++++++++ Stoping timerF1: " << time_taken2 << endl;
-	      if (time_taken2 > 4) { 
-	      
-		      CurrentDist4 = Distance;
+	      if (time_taken2 > 4) 
+		      { 
+	      	      CurrentDist4 = Distance;
 		      parking_state = BACK_AGAIN;
+		      
 			}
 			
 		}
 			break;
 
 	case BACK_AGAIN: {
-		driving_speed = SpeedB1;
+		driving_speed = -1;
 		desiredSteeringWheelAngle = 40;
 		cout << "\t========  BACK_AGAIN"  << endl;
-		if ((Distance > (CurrentDist4 + DesiredDistance5)) || (USRear < 15 && USRear > 2)){
+		if (((abs (IRdis_RL - IRdis_RR)) < 1) && (USRear < 20 && USRear > 2)){
+		  //(Distance > (CurrentDist4 + DesiredDistance5)
 			parking_state = STOP;
 			driving_speed = 0;
 			desiredSteeringWheelAngle = 0;

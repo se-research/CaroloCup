@@ -4,64 +4,87 @@
  * This software is open source. Please see COPYING and AUTHORS for further information.
  */
 
-#ifndef DRIVER_VICTOR_H_
-#define DRIVER_VICTOR_H_
+#ifndef DRIVER_H_
+#define DRIVER_H_
 
 #include "core/base/ConferenceClientModule.h"
+#include "core/data/control/VehicleControl.h"
+#include "core/data/environment/VehicleData.h"
 
 namespace msv {
 
-    using namespace std;
+using namespace std;
+using namespace core::data::control;
+using namespace core::data::environment;
+enum DRIVING_STATE {
+	FORWARD = 0,
+	WAIT1 = 1,
+	BACKWARDS = 2,
+	WAIT2 = 3,
+	STOP = 4,
+	PARKING = 5,
+	NO_POSSIBLE_PARKING_PLACE = 6
 
-    /**
-     * This class is a skeleton to send driving commands to Hesperia-light's vehicle driving dynamics simulation.
-     */
-    class Driver_victor : public core::base::ConferenceClientModule {
-        private:
-            /**
-             * "Forbidden" copy constructor. Goal: The compiler should warn
-             * already at compile time for unwanted bugs caused by any misuse
-             * of the copy constructor.
-             *
-             * @param obj Reference to an object of this class.
-             */
-            Driver_victor(const Driver_victor &/*obj*/);
+};
 
-            /**
-             * "Forbidden" assignment operator. Goal: The compiler should warn
-             * already at compile time for unwanted bugs caused by any misuse
-             * of the assignment operator.
-             *
-             * @param obj Reference to an object of this class.
-             * @return Reference to this instance.
-             */
-            Driver_victor& operator=(const Driver_victor &/*obj*/);
+// enum PARKINGSTATE {
+// 	BACKWARDS_RIGHT = 0,
+// 	BACKWARDS_LEFT = 1,
+// 	WAIT_2 = 2,
+// 	FORWARD_RIGHT = 3,
+// 	WAIT_3 = 4,
+// 	BACK_AGAIN = 5,
+// 	STOP = 6
+// };
 
-        public:
-            /**
-             * Constructor.
-             *
-             * @param argc Number of command line arguments.
-             * @param argv Command line arguments.
-             */
-            Driver_victor(const int32_t &argc, char **argv);
+/**
+ * This class is a skeleton to send driving commands to Hesperia-light's vehicle driving dynamics simulation.
+ */
+class Driver: public core::base::ConferenceClientModule {
+private:
+	/**
+	 * "Forbidden" copy constructor. Goal: The compiler should warn
+	 * already at compile time for unwanted bugs caused by any misuse
+	 * of the copy constructor.
+	 *
+	 * @param obj Reference to an object of this class.
+	 */
+	Driver(const Driver &/*obj*/);
+
+	/**
+	 * "Forbidden" assignment operator. Goal: The compiler should warn
+	 * already at compile time for unwanted bugs caused by any misuse
+	 * of the assignment operator.
+	 *
+	 * @param obj Reference to an object of this class.
+	 * @return Reference to this instance.
+	 */
+	Driver& operator=(const Driver &/*obj*/);
+
+public:
+	/**
+	 * Constructor.
+	 *
+	 * @param argc Number of command line arguments.
+	 * @param argv Command line arguments.
+	 */
+	Driver(const int32_t &argc, char **argv);
+
+	virtual ~Driver();
+
+	core::base::ModuleState::MODULE_EXITCODE body();
+
+private:
+
+	DRIVING_STATE driving_state;
+	PARKINGSTATE parking_state;
 
 
-            virtual ~Driver_victor();
+	virtual void setUp();
 
-            core::base::ModuleState::MODULE_EXITCODE body();
-
-        private:
-            virtual void setUp();
-	    
-	    int carstate;			// What the car is doing at the moment. 3 = parking
-	    int interval;			// Used for timer to define how long time to do something
-	    int parkingState;			// Used for different steps during parking
-	    double speed;			// Speed of the car
-	    double steering;			// Angle of the wheels
-	    
-            virtual void tearDown();
-    };
+	virtual void tearDown();
+	void parking();
+};
 
 } // msv
 
