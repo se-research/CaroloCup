@@ -1025,6 +1025,7 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
                                 }
                             // set currentDashGoalX
                             ltu->dashLine = ltu->dashedCurve[0];
+                            cout << "Dash diff: " << abs(getIntersectionWithBottom(ltu->dashLine) - currentDashGoalX) << " <? " << calcRoadSize * 0.8 << endl;
                             currentDashGoalX = getIntersectionWithBottom(ltu->dashLine);
                             ltu->dashLineVec = Vec4i(ltu->dashLine.p1.x, ltu->dashLine.p1.y,
                                                      ltu->dashLine.p2.x, ltu->dashLine.p2.y);
@@ -1212,12 +1213,6 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
         currentRightGoalX = 0;
     if (!ltu->foundL)
         currentLeftGoalX = 0;
-
-    // TODO: Actually use the current?GoalX.
-    // Now they just cause us problems, so I(jonas) reset them
-    currentDashGoalX = 0;
-    currentRightGoalX = 0;
-    currentLeftGoalX = 0;
 
     cout << "currentLeftGoalX: " << currentLeftGoalX << endl;
     cout << "currentDashGoalX: " << currentDashGoalX << endl;
@@ -1696,7 +1691,11 @@ void LineDetector::provideGoalLine(EstimationData *ed, GoalLineData *gld)
             gld->rightGoalLine.p2.x += ed->calcRoadSize;
             gld->rightGoalLine.slope = getLineSlope(gld->rightGoalLine.p2, gld->rightGoalLine.p1);
         }
+
+    // Set the global variable used i charasteristicFiltering
+    calcRoadSize = ed->calcRoadSize;
     cout << "__end provideGoalLine" << endl;
+
 }
 
 // INFO
