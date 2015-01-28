@@ -22,6 +22,12 @@ using namespace std;
 using namespace cv;
 
 
+enum RoadState{
+  NOT_SET,
+  NORMAL,
+  INTERSECTION
+};
+
 class CustomLine
 {
 public:
@@ -86,7 +92,9 @@ public:
         width(0),
         height(0),
         startLineHeight(0),
-        stopLineHeight(0)
+        stopLineHeight(0),
+	roadState(NOT_SET),
+	confidenceLevel(0)
     {}
     virtual ~Lines () {}
     void setGoalLine(const CustomLine &goal)
@@ -100,6 +108,10 @@ public:
     void setCurrentLine(const CustomLine &curr)
     {
         currentLine = curr;
+    }
+
+    void setRoadState(RoadState state){
+	roadState=state;
     }
 
     Vec4i leftLine;
@@ -116,6 +128,9 @@ public:
     int height;
     int startLineHeight;
     int stopLineHeight;
+    RoadState roadState;
+    int confidenceLevel;
+
 };
 
 class LaneDetectorDataToDriver

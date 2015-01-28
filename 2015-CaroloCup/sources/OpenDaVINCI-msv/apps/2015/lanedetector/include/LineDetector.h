@@ -226,6 +226,8 @@ private:
     Lines result_getLines;
     LaneDetectorDataToDriver *dataToDriver;
     FinalOutput finalOutput;
+    RoadState roadState;
+    int confidenceLevel;
 };
 
 }
