@@ -76,7 +76,9 @@ public:
         width(0),
         height(0),
         startLineHeight(0),
-        stopLineHeight(0)
+        stopLineHeight(0),
+	roadState(NOT_SET),
+	confidenceLevel(0)
     {}
     Lines (Vec4i l, Vec4i d, Vec4i r) :
         leftLine(l) ,
