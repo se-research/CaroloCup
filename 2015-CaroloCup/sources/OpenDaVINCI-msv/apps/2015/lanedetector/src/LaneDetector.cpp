@@ -186,7 +186,12 @@ void LaneDetector::processImage()
     Mat neededPart = m_frame(cv::Rect(1, 2 * height / 16 - 1, width - 1, 10 * height / 16 - 1));
 
     LineDetector road(neededPart, cfg, debug, 1);
-    msv::Lines lines = road.getLines();
+
+    // Start fix. This code deactivates the old estimateLines and calculatesGoalLine()
+    //msv::Lines lines = road.getLines();
+    msv::Lines lines = *(new Lines());
+    // End fix.
+
     msv::LaneDetectorDataToDriver dataToDriver = *(road.getDriverData());
 
     if (&lines != NULL)

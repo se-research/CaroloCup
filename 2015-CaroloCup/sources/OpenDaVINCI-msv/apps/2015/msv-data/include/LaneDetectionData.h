@@ -193,6 +193,8 @@ public:
      * @return example data.
      */
     Lines getLaneDetectionData() const;
+
+   LaneDetectorDataToDriver getLaneDetectionDataDriver() const;
    // LaneDetectorDataToDriver getDriverDataFromLaneDetector() const;
 
     /**

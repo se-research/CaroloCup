@@ -163,12 +163,14 @@ void LaneDetector_inspection::processImage()
     LineDetector road(neededPart, cfg, debug, 1);
 
     showResult(road, neededPart);
-    cout << "1"<<endl;
-    msv::Lines lines = road.getLines();
-    cout << "1"<<endl;
+
+    // Start fix. This code deactivates the old estimateLines and calculatesGoalLine()
+    //msv::Lines lines = road.getLines();
+    msv::Lines lines = *(new Lines());
+    // End fix.
+
     msv::LaneDetectorDataToDriver dataToDriver = *(road.getDriverData());
 
-    cout << "1"<<endl;
     // if (lines != NULL)
     //  cout << "We have lines for frame " <<m_frame_count << endl;
     LaneDetectionData data;
@@ -729,7 +731,7 @@ void LaneDetector_inspection::showResult_createTrajectory(FinalOutput *res, Line
                 line(frame, res->rightGoalLines[i].p1, res->rightGoalLines[i].p2, Scalar(153, 106, 0), 2, CV_AA);
                 line(frame, res->leftGoalLines[i].p1, res->leftGoalLines[i].p2, Scalar(153, 0, 76), 2, CV_AA);
             }
-            line(frame, res->currentLine.p1, res->currentLine.p2, Scalar(153, 0, 76), 2, CV_AA);
+            line(frame, res->currentLine.p1, res->currentLine.p2, Scalar(255, 0, 255), 2, CV_AA);
 
             for (int i = 0; i < res->cutPoints.size(); i++){
                 Point p;
