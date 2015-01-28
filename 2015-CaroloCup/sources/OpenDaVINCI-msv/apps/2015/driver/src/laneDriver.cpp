@@ -86,15 +86,39 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
     while (getModuleState() == ModuleState::RUNNING)
         {
 
+            cout << "trajector1" << endl;
             LaneDetectionData ldd;
+            cout << "trajector2" << endl;
             Container conUserData1 = getKeyValueDataStore().get(Container::USER_DATA_1);
 
+            cout << "trajector3" << endl;
             if ((conUserData1.getReceivedTimeStamp().getSeconds() + conUserData1.getReceivedTimeStamp().getFractionalMicroseconds()) < 1)
                 {
-                    cout << "Waiting..." << endl;
+                    cout << "New lap. Waiting..." << endl;
                 }
 
+            cout << "trajector4" << endl;
             ldd = conUserData1.getData<LaneDetectionData>();
+            cout << "trajector5" << endl;
+            LaneDetectorDataToDriver trajectoryData = ldd.getLaneDetectionDataDriver();
+
+            cout << "trajectoryData.rightGoalLines.size() " << trajectoryData.rightGoalLines.size() << " trajectoryData.leftGoalLines.size() " << trajectoryData.leftGoalLines.size() << " trajectoryData.noTrajectory " << trajectoryData.noTrajectory << endl;
+
+            for (uint i = 0; i < trajectoryData.rightGoalLines.size(); i++)
+                {
+                    cout << "rightGoalLines[" << i << "] slope: " << trajectoryData.rightGoalLines[i].slope << " p1(" << trajectoryData.rightGoalLines[i].p1.x << "," << trajectoryData.rightGoalLines[i].p1.y;
+                    cout << ") p2(" << trajectoryData.rightGoalLines[i].p2.x << "," << trajectoryData.rightGoalLines[i].p2.y << ")" << endl;
+                }
+            for (uint i = 0; i < trajectoryData.leftGoalLines.size(); i++)
+                {
+                    cout << "leftGoalLines[" << i << "] slope: " << trajectoryData.leftGoalLines[i].slope << " p1(" << trajectoryData.leftGoalLines[i].p1.x << "," << trajectoryData.leftGoalLines[i].p1.y;
+                    cout << ") p2(" << trajectoryData.leftGoalLines[i].p2.x << "," << trajectoryData.leftGoalLines[i].p2.y << ")" << endl;
+                }
+
+            cout << "currentLine slope: " << trajectoryData.currentLine.slope << " p1(" << trajectoryData.currentLine.p1.x << "," << trajectoryData.currentLine.p1.y;
+            cout << ") p2(" << trajectoryData.currentLine.p2.x << "," << trajectoryData.currentLine.p2.y << ")" << endl;
+
+            cout << "---" << endl;
 
             m_propGain = 4.5;//4.5;//2.05;
             m_intGain = 0.5;//1.0;//8.39; //8.39;
@@ -190,6 +214,27 @@ bool laneDriver::laneFollowing(LaneDetectionData *data)
     LaneDetectionData ldd = *data;
     // The two lines are delivered in a struct containing two Vec4i objects (vector of 4 integers)
     Lines lines = ldd.getLaneDetectionData();
+
+    LaneDetectorDataToDriver trajectoryData = ldd.getLaneDetectionDataDriver();
+
+    cout << "trajectoryData.rightGoalLines.size() " << trajectoryData.rightGoalLines.size() << " trajectoryData.leftGoalLines.size() " << trajectoryData.leftGoalLines.size() << " trajectoryData.noTrajectory " << trajectoryData.noTrajectory << endl;
+
+    for (uint i = 0; i < trajectoryData.rightGoalLines.size(); i++)
+        {
+            cout << "rightGoalLines[" << i << "] slope: " << trajectoryData.rightGoalLines[i].slope << " p1(" << trajectoryData.rightGoalLines[i].p1.x << "," << trajectoryData.rightGoalLines[i].p1.y;
+            cout << ") p2(" << trajectoryData.rightGoalLines[i].p2.x << "," << trajectoryData.rightGoalLines[i].p2.y << ")" << endl;
+        }
+    for (uint i = 0; i < trajectoryData.leftGoalLines.size(); i++)
+        {
+            cout << "leftGoalLines[" << i << "] slope: " << trajectoryData.leftGoalLines[i].slope << " p1(" << trajectoryData.leftGoalLines[i].p1.x << "," << trajectoryData.leftGoalLines[i].p1.y;
+            cout << ") p2(" << trajectoryData.leftGoalLines[i].p2.x << "," << trajectoryData.leftGoalLines[i].p2.y << ")" << endl;
+        }
+
+    cout << "currentLine slope: " << trajectoryData.currentLine.slope << " p1(" << trajectoryData.currentLine.p1.x << "," << trajectoryData.currentLine.p1.y;
+    cout << ") p2(" << trajectoryData.currentLine.p2.x << "," << trajectoryData.currentLine.p2.y << ")" << endl;
+
+    cout << "---" << endl;
+
     if (lines.dashedLine[0] == 0 && lines.dashedLine[1] == 0 && lines.dashedLine[2] == 0 && lines.dashedLine[3] == 0)
         {
             m_leftLine = lines.leftLine;
