@@ -696,13 +696,9 @@ void LineDetector::classification()
                     intersectionOn = true;
                     foundIntersection = true;
 
-
-
-
             //////////////////////////////////////////////
-            //New intersection handling
+            //New intersection handling when there is a stop line
             //1.We check the angle of the rect
-
 	    //we convert the angle so that we always measure the angle between the the vertical line and the longest side
 	    //of the the rectangle.In this case when the long side is laying flat then the angle is 90 degress if the shorter
 	    //side is the one laying flat then its 0
@@ -718,26 +714,33 @@ void LineDetector::classification()
 
 	    if (angle > 80.0 && angle < 110.0)
 	      {
-
+		confidenceLevel=1;
 		//investigate further
 		//if we have object avoidance we check how much white is in this rectangle
 		//otherwise we assume is has to be an intersection we then determine how far off we are
 		if (rect.size.width > w / 2 || rect.size.height > w / 2)
 		  {      //we also check for height as rotated rect has some
 		    //weird map of what width and what's height depending on the orientation
-		    cout << "INTERSECTION POTENTIAL!" << endl;
-		    cout << "ANGLE OF RECT " << angle << endl;
-		    cout << "Width " << rect.size.width << endl;
-		    cout << "height " << rect.size.height << endl;
-
-		    Point2f center=rect.center;
-		    cout<<"CENTER "<<center;
+		    confidenceLevel=2;
 		    //I think intersection detection should be stateful and not frame by frame
 		    roadState=INTERSECTION;
+		    if(m_debug){
+			cout << "INTERSECTION POTENTIAL!" << endl;
+			cout << "ANGLE OF RECT " << angle << endl;
+			cout << "Width " << rect.size.width << endl;
+			cout << "height " << rect.size.height << endl;
+		    }
+		    float intersecRectLimit=255;//we need to tweak this appropriately,maybe make it a screen config variable
+		    cout<<endl;
+		    Point2f center=rect.center;
+		    if(center.y >intersecRectLimit){
+			if(m_debug)
+			  cout<<"INTERSECTION NOW"<<center<<endl;
+			confidenceLevel=CONFIDENCE_LEVEL_MAX;//We are very sure!!
+		    }
 
 		  }
 	      }
-
 	    ///////////////////////////////////////////////////////////////////////////////////
 
 

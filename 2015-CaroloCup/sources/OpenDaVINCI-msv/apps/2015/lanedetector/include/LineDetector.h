@@ -6,6 +6,7 @@
 #define ROAD_GOAL 0.5
 #define ROAD_ANGLE 85
 #define MID_DASH_ANGLE -47
+#define CONFIDENCE_LEVEL_MAX 5
 
 #include <queue>
 #include "opencv2/opencv.hpp"
