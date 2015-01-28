@@ -26,8 +26,10 @@ namespace msv {
        }
 
 	LaneDetectionData::LaneDetectionData(const LaneDetectionData &obj) :
-			SerializableData(),m_frame_count(obj.m_frame_count),
-			m_lines(obj.m_lines),m_classification(obj.m_classification),
+			SerializableData(),
+			m_frame_count(obj.m_frame_count),
+			m_lines(obj.m_lines),
+			m_classification(obj.m_classification),
 			m_dataToDriver(obj.m_dataToDriver) {}
 
 	LaneDetectionData::~LaneDetectionData() {}
@@ -36,6 +38,7 @@ namespace msv {
 		m_lines = obj.m_lines;
 		m_frame_count=obj.m_frame_count;
 		m_classification=obj.m_classification;
+		m_dataToDriver=obj.m_dataToDriver;
 		return (*this);
 	}
 
@@ -111,6 +114,9 @@ namespace msv {
 		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL7('c', 'l', 'a', 's', 's', 'i', 'f') >::RESULT,
 						m_classification);
 
+		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL7('d', 'a', 't', 'a', 't', 'o', 'd') >::RESULT,
+						(void*)&m_dataToDriver, sizeof(m_dataToDriver));
+
 		return out;
 	}
 
@@ -126,6 +132,9 @@ namespace msv {
 
 		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL7('c', 'l', 'a', 's', 's', 'i', 'f') >::RESULT,
 						m_classification);
+
+		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL7('d', 'a', 't', 'a', 't', 'o', 'd') >::RESULT,
+						(void*)&m_dataToDriver, sizeof(m_dataToDriver));
 
 		return in;
 	}

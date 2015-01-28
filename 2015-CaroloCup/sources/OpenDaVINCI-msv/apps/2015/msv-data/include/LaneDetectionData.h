@@ -194,8 +194,7 @@ public:
      */
     Lines getLaneDetectionData() const;
 
-   LaneDetectorDataToDriver getLaneDetectionDataDriver() const;
-   // LaneDetectorDataToDriver getDriverDataFromLaneDetector() const;
+    LaneDetectorDataToDriver getLaneDetectionDataDriver() const;
 
     /**
      * This method sets the example data.
