@@ -14,7 +14,7 @@
 #define WHEEL_DIAMETER            65.4
 #define PI                        3.141592
 #define WHEEL_CIRCUMFERENCE       WHEEL_DIAMETER * PI
-#define WHEEL_ENCODER_SEGMENTS    10
+#define WHEEL_ENCODER_SEGMENTS    22
 #define DISTANCE_PER_SEGMENT      (float)WHEEL_CIRCUMFERENCE / WHEEL_ENCODER_SEGMENTS
 #define WHEEL_ENCODER_PIN         0
 
@@ -33,7 +33,8 @@ int steeringPin = 9;
 int stopLed1 = 22;
 int stopLed2 = 29;
 int stopLed3 = 23;
-int blueLed = 40;
+int blueLed = 41;
+int greLed=40;
 
 int rearLeftLed = 24;
 int frontLeftLed = 43;
@@ -93,14 +94,14 @@ void setup()
 
   time = 0;
   
-  attachInterrupt(WHEEL_ENCODER_PIN, countRotations, FALLING);
+  attachInterrupt(WHEEL_ENCODER_PIN, countRotations, CHANGE);
   pinMode(2, INPUT);
   pinMode(3, INPUT);
   // initialize serial communication
   Serial.begin(115200);
   Serial.println("initialized");
 
-  pinMode(blueLed, OUTPUT);
+  pinMode(greLed, OUTPUT);
   pinMode(stopLed1, OUTPUT);
   pinMode(stopLed2, OUTPUT);
   pinMode(stopLed3, OUTPUT);
@@ -116,10 +117,10 @@ void loop()
   //time = millis();
   if(run) {
     myMotor.writeMicroseconds(speed);
-    Serial.print("speed: ");
-    Serial.println(speed);
-    Serial.print("angle: ");
-    Serial.println(90);
+    //Serial.print("speed: ");
+    //Serial.println(speed);
+    //Serial.print("angle: ");
+    //Serial.println(90);
     speed = 0;
     run = false;
   }
@@ -146,6 +147,7 @@ void loop()
           motor = true;
           first = false;
           speed = 0;
+          
         }
         
         //Steering command
@@ -187,16 +189,20 @@ void loop()
             }
             if(readbyte == 'r') {
               reverse = -1;
-              speed = 1240;
+              if(speed < MIN_REVERSE_SPEED || speed > BRAKE_SPEED_MIN) {
+                  speed = 1250;
+              }
               Serial.println("Reverse");
             } else if(readbyte == 'f') {
               reverse = 1;
-              speed = INIT_MOTOR_SPEED;
+              if(speed < INIT_MOTOR_SPEED || speed > MAX_MOTOR_SPEED) {
+                  speed = 1530;
+              }
               Serial.println("Forward");
             }
           } else if (readbyte == '-') {
             applyCruiseCtrl = false;
-            Serial.println(reverse);
+            //Serial.println(reverse);
             if(reverse == 1) {
               speed = 1300;
               controlMotor();
@@ -215,7 +221,7 @@ void loop()
           } else if(readbyte >= '0' && readbyte <= '9' && isDirSet) {
             //applyCruiseCtrl = true;
             setFreq = setFreq * 10 + (readbyte - '0');
-            Serial.println(setFreq);
+            //Serial.println(setFreq);
           }
         }
         if (first && readbyte == 'f') {
@@ -250,9 +256,10 @@ void loop()
       if(fullMsgRecv) {
         //Process data
         if(motor) {
-          Serial.println(speed);
+          //Serial.println(speed);
           revertBackSpeed = true;
           if(speed >= 0 && speed < nofSpeed) {
+          
             speed = speeds[speed];
             if(speed > MIN_MOTOR_SPEED && speed < MAX_MOTOR_SPEED) {
                 controlMotor();
@@ -287,8 +294,8 @@ void loop()
   }
   else {
     multiplier = 1;
-    Serial.println(angle);
-    Serial.println(speed);
+    //Serial.println(angle);
+    //Serial.println(speed);
     controlMotor();
     controlSteering();
   }
@@ -312,7 +319,7 @@ void loop()
     int error = goalSpeed - 10*carSpeed;
     Serial.print("Error: ");
     Serial.println(error);
-    if(abs(error) < 35 && abs(error) > 1) {
+    if(abs(error)<35 && abs(error) > 1) {
       error = error - 1;
       //int errorSign = error < 0 ? -1 : +1;
       /*if (abs(error) > 12) {
@@ -337,9 +344,9 @@ void loop()
       }
   
       if(reverse == 1) {
-        speed = constrain(speed, 1520, MAX_MOTOR_SPEED);
+        speed = constrain(speed, 1530, MAX_MOTOR_SPEED);
       } else {
-        speed = constrain(speed, MIN_REVERSE_SPEED, 1290);
+        speed = constrain(speed, MIN_REVERSE_SPEED, 1250);
       }
     }
     //Serial.print("Speed :");
@@ -375,13 +382,18 @@ void controlMotor() {
   else {
     brakeLeds(false);
   }
+    if (speed == 0) {
+                digitalWrite(greLed, HIGH);
+            }else {
+                digitalWrite(greLed, LOW); 
+             }
 }
 
 void controlSteering() {
-  Serial.print("angle: ");
+  //Serial.print("angle: ");
   int inpAngle = angle;
   angle = 90 + angle * multiplier;
-  Serial.println(angle);
+  //Serial.println(angle);
   mySteering.write(angle);
 }
 

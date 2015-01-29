@@ -24,6 +24,7 @@ int irRightSide = 3;                 // analog pin used to connect the sharp sen
 int infraCount = 0;
 int uf = -1;
 int ub = -1;
+int led = 13;
 
 int val = 0,cm = 0;                  // variable to store the values from sensor(initially zero)
 
@@ -40,6 +41,7 @@ void setup()
 {
   Serial.begin(115200);
   Wire.begin();
+  pinMode(led, OUTPUT);
   
   
   attachInterrupt(WHEEL_ENCODER_PIN, encoderISR, CHANGE);
@@ -95,7 +97,7 @@ void loop()
   Wire.write(byte(0x05));      // Write the minimum value 
   Wire.endTransmission();      // stop transmitting
   // wait for readings to happen
-  delay(8);   // datasheet suggests at least 65 milliseconds
+  delay(20);   // datasheet suggests at least 65 milliseconds
   
 
   ////////////////////////////////
@@ -133,8 +135,14 @@ void loop()
 
     ub = reading;
     }
+      if (uf < 30) {
+        digitalWrite(led, HIGH);
+    }else {
+    digitalWrite(led, LOW); 
+    }
   }
-
+  
+  
   char uStr[13];
   
   sprintf(uStr, "u%3d,%3d", uf,ub);
