@@ -171,23 +171,6 @@ void LaneDetector_inspection::processImage()
 
     msv::LaneDetectorDataToDriver dataToDriver = *(road.getDriverData());
 
-    cout << "dataToDriver.rightGoalLines.size() " << dataToDriver.rightGoalLines.size() << " dataToDriver.leftGoalLines.size() " << dataToDriver.leftGoalLines.size() << " dataToDriver.noTrajectory " << dataToDriver.noTrajectory << endl;
-
-    for (int i = 0; i < dataToDriver.rightGoalLines.size(); i++)
-        {
-            cout << "rightGoalLines[" << i << "] slope: " << dataToDriver.rightGoalLines[i].slope << " p1(" << dataToDriver.rightGoalLines[i].p1.x << "," << dataToDriver.rightGoalLines[i].p1.y;
-            cout << ") p2(" << dataToDriver.rightGoalLines[i].p2.x << "," << dataToDriver.rightGoalLines[i].p2.y << ")" << endl;
-        }
-    for (int i = 0; i < dataToDriver.leftGoalLines.size(); i++)
-        {
-            cout << "leftGoalLines[" << i << "] slope: " << dataToDriver.leftGoalLines[i].slope << " p1(" << dataToDriver.leftGoalLines[i].p1.x << "," << dataToDriver.leftGoalLines[i].p1.y;
-            cout << ") p2(" << dataToDriver.leftGoalLines[i].p2.x << "," << dataToDriver.leftGoalLines[i].p2.y << ")" << endl;
-        }
-
-    cout << "currentLine slope: " << dataToDriver.currentLine.slope << " p1(" << dataToDriver.currentLine.p1.x << "," << dataToDriver.currentLine.p1.y;
-    cout << ") p2(" << dataToDriver.currentLine.p2.x << "," << dataToDriver.currentLine.p2.y << ")" << endl;
-
-    cout << "---" << endl;
         
     // if (lines != NULL)
     //  cout << "We have lines for frame " <<m_frame_count << endl;

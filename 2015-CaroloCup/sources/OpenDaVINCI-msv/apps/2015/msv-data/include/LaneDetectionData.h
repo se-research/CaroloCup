@@ -139,27 +139,47 @@ class LaneDetectorDataToDriver
 {
 public:
     LaneDetectorDataToDriver () :
-        switchPointsLeftGoalLines(),
-        switchPointsRightGoalLines(),
-        leftGoalLines(),
-        rightGoalLines(),
+        switchPointsLeftGoalLines0(),
+        switchPointsRightGoalLines0(),
+	switchPointsLeftGoalLines1(),
+        switchPointsRightGoalLines1(),
+        leftGoalLines0(),
+        rightGoalLines0(),
+	leftGoalLines1(),
+        rightGoalLines1(),
+	leftGoalLines2(),
+        rightGoalLines2(),
         currentLine(),
         noTrajectory(true)
     {}
     LaneDetectorDataToDriver (vector<int> spl, vector<int> spr, vector<CustomLine> lgl, vector<CustomLine> rgl, CustomLine c, bool nothing):
-        switchPointsLeftGoalLines(spr),
-        switchPointsRightGoalLines(spl),
-        leftGoalLines(lgl),
-        rightGoalLines(rgl),
+        switchPointsLeftGoalLines0(spl[0]),
+	switchPointsRightGoalLines0(spr[0]),	
+	switchPointsLeftGoalLines1(spl[1]),
+        switchPointsRightGoalLines1(spr[1]),
+        leftGoalLines0(lgl[0]),
+	rightGoalLines0(rgl[0]),
+        leftGoalLines1(lgl[1]),
+	rightGoalLines1(rgl[1]),
+        leftGoalLines2(lgl[2]),
+        rightGoalLines2(rgl[2]),
         currentLine(c),
         noTrajectory(nothing)
     {}
     virtual ~LaneDetectorDataToDriver () {}
 
-    vector<int> switchPointsLeftGoalLines;
-    vector<int> switchPointsRightGoalLines;
-    vector<CustomLine> leftGoalLines;
-    vector<CustomLine> rightGoalLines;
+    int switchPointsLeftGoalLines0;
+    int switchPointsRightGoalLines0;
+    int switchPointsLeftGoalLines1;
+    int switchPointsRightGoalLines1;
+    CustomLine leftGoalLines0;
+    CustomLine rightGoalLines0;
+    CustomLine leftGoalLines1;
+    CustomLine rightGoalLines1;
+    CustomLine leftGoalLines2;
+    CustomLine rightGoalLines2;
+    CustomLine leftGoalLines3;
+    CustomLine rightGoalLines3;		
     CustomLine currentLine;
     bool noTrajectory;
 };

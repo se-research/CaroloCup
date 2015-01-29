@@ -86,39 +86,17 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
     while (getModuleState() == ModuleState::RUNNING)
         {
 
-            cout << "trajector1" << endl;
+           
             LaneDetectionData ldd;
-            cout << "trajector2" << endl;
             Container conUserData1 = getKeyValueDataStore().get(Container::USER_DATA_1);
 
-            cout << "trajector3" << endl;
             if ((conUserData1.getReceivedTimeStamp().getSeconds() + conUserData1.getReceivedTimeStamp().getFractionalMicroseconds()) < 1)
                 {
                     cout << "New lap. Waiting..." << endl;
                 }
 
-            cout << "trajector4" << endl;
+            
             ldd = conUserData1.getData<LaneDetectionData>();
-            cout << "trajector5" << endl;
-            LaneDetectorDataToDriver trajectoryData = ldd.getLaneDetectionDataDriver();
-
-            cout << "trajectoryData.rightGoalLines.size() " << trajectoryData.rightGoalLines.size() << " trajectoryData.leftGoalLines.size() " << trajectoryData.leftGoalLines.size() << " trajectoryData.noTrajectory " << trajectoryData.noTrajectory << endl;
-
-            for (uint i = 0; i < trajectoryData.rightGoalLines.size(); i++)
-                {
-                    cout << "rightGoalLines[" << i << "] slope: " << trajectoryData.rightGoalLines[i].slope << " p1(" << trajectoryData.rightGoalLines[i].p1.x << "," << trajectoryData.rightGoalLines[i].p1.y;
-                    cout << ") p2(" << trajectoryData.rightGoalLines[i].p2.x << "," << trajectoryData.rightGoalLines[i].p2.y << ")" << endl;
-                }
-            for (uint i = 0; i < trajectoryData.leftGoalLines.size(); i++)
-                {
-                    cout << "leftGoalLines[" << i << "] slope: " << trajectoryData.leftGoalLines[i].slope << " p1(" << trajectoryData.leftGoalLines[i].p1.x << "," << trajectoryData.leftGoalLines[i].p1.y;
-                    cout << ") p2(" << trajectoryData.leftGoalLines[i].p2.x << "," << trajectoryData.leftGoalLines[i].p2.y << ")" << endl;
-                }
-
-            cout << "currentLine slope: " << trajectoryData.currentLine.slope << " p1(" << trajectoryData.currentLine.p1.x << "," << trajectoryData.currentLine.p1.y;
-            cout << ") p2(" << trajectoryData.currentLine.p2.x << "," << trajectoryData.currentLine.p2.y << ")" << endl;
-
-            cout << "---" << endl;
 
             m_propGain = 4.5;//4.5;//2.05;
             m_intGain = 0.5;//1.0;//8.39; //8.39;
@@ -210,32 +188,16 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
 bool laneDriver::laneFollowing(LaneDetectionData *data)
 {
     cout<<"enteredLaneFollowing"<<endl;
-    int x1, x2, x3, x4, y1, y2, y3, y4;
+  //  int x1, x2, x3, x4, y1, y2, y3, y4;
     LaneDetectionData ldd = *data;
     // The two lines are delivered in a struct containing two Vec4i objects (vector of 4 integers)
     Lines lines = ldd.getLaneDetectionData();
 
     LaneDetectorDataToDriver trajectoryData = ldd.getLaneDetectionDataDriver();
 
-    cout << "trajectoryData.rightGoalLines.size() " << trajectoryData.rightGoalLines.size() << " trajectoryData.leftGoalLines.size() " << trajectoryData.leftGoalLines.size() << " trajectoryData.noTrajectory " << trajectoryData.noTrajectory << endl;
+   
 
-    for (uint i = 0; i < trajectoryData.rightGoalLines.size(); i++)
-        {
-            cout << "rightGoalLines[" << i << "] slope: " << trajectoryData.rightGoalLines[i].slope << " p1(" << trajectoryData.rightGoalLines[i].p1.x << "," << trajectoryData.rightGoalLines[i].p1.y;
-            cout << ") p2(" << trajectoryData.rightGoalLines[i].p2.x << "," << trajectoryData.rightGoalLines[i].p2.y << ")" << endl;
-        }
-    for (uint i = 0; i < trajectoryData.leftGoalLines.size(); i++)
-        {
-            cout << "leftGoalLines[" << i << "] slope: " << trajectoryData.leftGoalLines[i].slope << " p1(" << trajectoryData.leftGoalLines[i].p1.x << "," << trajectoryData.leftGoalLines[i].p1.y;
-            cout << ") p2(" << trajectoryData.leftGoalLines[i].p2.x << "," << trajectoryData.leftGoalLines[i].p2.y << ")" << endl;
-        }
-
-    cout << "currentLine slope: " << trajectoryData.currentLine.slope << " p1(" << trajectoryData.currentLine.p1.x << "," << trajectoryData.currentLine.p1.y;
-    cout << ") p2(" << trajectoryData.currentLine.p2.x << "," << trajectoryData.currentLine.p2.y << ")" << endl;
-
-    cout << "---" << endl;
-
-    if (lines.dashedLine[0] == 0 && lines.dashedLine[1] == 0 && lines.dashedLine[2] == 0 && lines.dashedLine[3] == 0)
+    /*if (lines.dashedLine[0] == 0 && lines.dashedLine[1] == 0 && lines.dashedLine[2] == 0 && lines.dashedLine[3] == 0)
         {
             m_leftLine = lines.leftLine;
         }
@@ -243,16 +205,16 @@ bool laneDriver::laneFollowing(LaneDetectionData *data)
         {
             m_leftLine = lines.dashedLine;
         }
-    m_rightLine = lines.rightLine;
+    m_rightLine = lines.rightLine;*/
 
     // Temporary solution to stop the car if a stop line is detected
     //if (lines.stopLineHeight != -1)
     //{
     //    m_speed = 0;
     //}
-    int scr_width = lines.width;
-    int scr_height = lines.height;
-
+   // int scr_width = lines.width;
+    //int scr_height = lines.height;
+/*
     x1 = m_leftLine[0];
     y1 = m_leftLine[1];
     x2 = m_leftLine[2];
@@ -261,11 +223,11 @@ bool laneDriver::laneFollowing(LaneDetectionData *data)
     y3 = m_rightLine[1];
     x4 = m_rightLine[2];
     y4 = m_rightLine[3];
+*/
 
-    if (( x1 == 0 && y1 == 0 && x2 == 0 && y2 == 0 ) &&
-            ( x3 == 0 && y3 == 0 && x4 == 0 && y4 == 0 ))
+    if (trajectoryData.noTrajectory)
         {
-            cout<<"I am here"<<endl;
+            cout<<"No trajectory"<<endl;
             return false;
         }
 
@@ -279,7 +241,7 @@ bool laneDriver::laneFollowing(LaneDetectionData *data)
 
     float oldLateralError = m_lateralError;
     
-    calculateErr(lines.currentLine,lines.goalLine, &m_angularError, &m_lateralError);
+    calculateErr(trajectoryData.currentLine,trajectoryData.rightGoalLines0, &m_angularError, &m_lateralError);
 
     m_desiredSteeringWheelAngle = calculateDesiredHeading (oldLateralError);
     if (debug)
@@ -292,8 +254,7 @@ bool laneDriver::laneFollowing(LaneDetectionData *data)
             // cout << "  theta: " << theta;
             cout << "  angle: " <<  m_desiredSteeringWheelAngle * 180 / M_PI;
             cout << "  speed: " << m_speed;
-            cout << "  width " << scr_width;
-            cout << "  height: " << scr_height;
+           
             cout << endl;
         }
         cout<<"exit lane follwoing"<<endl;
