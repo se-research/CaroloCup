@@ -34,7 +34,8 @@ enum PARKINGSTATE {
 	FORWARD_RIGHT = 3,
 	WAIT_3 = 4,
 	BACK_AGAIN = 5,
-	STOP = 6
+	STOP = 6,
+	DONE = 7
 };
 
 /**
