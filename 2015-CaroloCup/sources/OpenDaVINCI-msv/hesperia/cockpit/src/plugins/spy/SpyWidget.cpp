@@ -27,8 +27,7 @@
 #include "core/data/TimeStamp.h"
 #include "core/data/control/VehicleControl.h"
 
-#include "UserButtonData.h"
-#include "SensorBoardData.h"
+#include "GeneratedHeaders_msv.h"
 #include "plugins/spy/SpyWidget.h"
 
 namespace cockpit {

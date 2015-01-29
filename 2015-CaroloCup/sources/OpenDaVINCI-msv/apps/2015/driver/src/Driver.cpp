@@ -16,10 +16,7 @@
 #include "core/data/environment/VehicleData.h"
 
 // Data structures from msv-data library:
-#include "SteeringData.h"
-#include "SensorBoardData.h"
-#include "UserButtonData.h"
-
+#include "GeneratedHeaders_msv.h"
 #include "Driver.h"
 
 namespace msv {

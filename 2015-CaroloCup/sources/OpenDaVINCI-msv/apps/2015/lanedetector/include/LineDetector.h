@@ -11,7 +11,7 @@
 #include <queue>
 #include "opencv2/opencv.hpp"
 #include "LineDetectorTypes.h"
-#include "LaneDetectionData.h"
+#include "GeneratedHeaders_msv.h"
 #include <numeric>
 
 using namespace cv;
@@ -19,6 +19,11 @@ using namespace std;
 
 namespace msv
 {
+	enum RoadState {
+		NORMAL = 1,
+		INTERSECTION = 2,
+		NOT_SET = 0,
+	};
 
 struct Config
 {
@@ -227,7 +232,6 @@ private:
     Lines result_getLines;
     LaneDetectorDataToDriver *dataToDriver;
     FinalOutput finalOutput;
-    RoadState roadState;
     int confidenceLevel;
 };
 

@@ -8,7 +8,7 @@
 #define DRIVER_H_2
 
 #include "core/base/ConferenceClientModule.h"
-#include "LaneDetectionData.h"
+#include "GeneratedHeaders_msv.h"
 #include "opencv2/opencv.hpp"
 
 
@@ -41,7 +41,7 @@ namespace msv {
        */
       laneDriver& operator=(const laneDriver &/*obj*/);
 
-      bool laneFollowing(LaneDetectionData* data);
+      bool laneFollowing(LaneDetectorData* data);
     
 
     public:
@@ -65,7 +65,7 @@ namespace msv {
 
     void calculateErr(CustomLine ,CustomLine ,float *, double *);
 
-      bool m_hasReceivedLaneDetectionData;
+      bool m_hasReceivedLaneDetectorData;
 
       // Define control parameters
       float m_controlGains[3];	//For feedback linearization controller
@@ -83,9 +83,9 @@ namespace msv {
 
       int32_t m_timestamp;
 
-      Vec4i m_leftLine;
-      Vec4i m_rightLine;
-      Vec4i m_dashedLine;
+      MyVec4i m_leftLine;
+      MyVec4i m_rightLine;
+      MyVec4i m_dashedLine;
   };
 
 } // carolocup

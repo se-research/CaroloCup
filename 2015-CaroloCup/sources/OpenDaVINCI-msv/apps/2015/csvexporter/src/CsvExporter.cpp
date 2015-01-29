@@ -8,7 +8,7 @@
 #include "core/io/ContainerConference.h"
 #include "core/io/URL.h"
 #include "core/io/StreamFactory.h"
-#include "LaneDetectionData.h"
+#include "GeneratedHeaders_msv.h"
 #include "CsvExporter.h"
 
 namespace msv{
@@ -46,7 +46,7 @@ namespace msv{
 	ModuleState::MODULE_EXITCODE CsvExporter::body(){
 
 		addDataStoreFor(m_fifo);
-		LaneDetectionData laneData;
+		LaneDetectorData laneData;
 		Lines lines;
 		cout<< "waiting for data....."<< endl;
 		while (getModuleState() == ModuleState::RUNNING) {
@@ -54,8 +54,8 @@ namespace msv{
 			    Container c = m_fifo.leave();
 			    if(c.getDataType()==Container::USER_DATA_1){
 
-			    	laneData = c.getData<LaneDetectionData> ();
-			    	lines=laneData.getLaneDetectionData();
+			    	laneData = c.getData<LaneDetectorData> ();
+			    	lines=laneData.getLaneDetectorData();
 
 
 			    	if (m_out != NULL) {

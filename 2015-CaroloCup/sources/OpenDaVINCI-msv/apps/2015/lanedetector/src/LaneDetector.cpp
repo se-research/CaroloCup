@@ -20,8 +20,6 @@
 #include "tools/player/Player.h"
 
 // Data structures from msv-data library:
-#include "SteeringData.h"
-
 #include "LaneDetector.h"
 
 namespace msv
@@ -161,16 +159,16 @@ bool LaneDetector::readSharedImage(Container &c)
 
 void drawLines(msv::Lines *lines, Mat *dst, int offset)
 {
-    Line dashed = lines->dashedLine;
-    Line solidRight = lines->rightLine;
-    Line solidLeft = lines->leftLine;
+    Line dashed = Vec4i(lines->dashedLine.x,lines->dashedLine.y,lines->dashedLine.z,lines->dashedLine.w);
+    Line solidRight = Vec4i(lines->rightLine.x,lines->rightLine.y,lines->rightLine.z,lines->rightLine.w);
+    Line solidLeft = Vec4i(lines->leftLine.x,lines->leftLine.y,lines->leftLine.z,lines->leftLine.w);
 
     line( *dst, Point(dashed[0], dashed[1] + offset), Point(dashed[2], dashed[3] + offset), Scalar(0, 255, 0), 3, CV_AA);
     line( *dst, Point(solidRight[0], solidRight[1] + offset), Point(solidRight[2], solidRight[3] + offset), Scalar(255, 0, 0), 3, CV_AA);
     line( *dst, Point(solidLeft[0], solidLeft[1] + offset), Point(solidLeft[2], solidLeft[3] + offset), Scalar(0, 0, 255), 3, CV_AA);
-    line( *dst, lines->goalLine.p1, lines->goalLine.p2, 255, 3, CV_AA);
-    line( *dst, lines->goalLineLeft.p1, lines->goalLineLeft.p2, 124,3,CV_AA);
-    line( *dst, lines->currentLine.p1, lines->currentLine.p2, 0, 3, CV_AA);
+    line( *dst, Point(lines->goalLine.p1.x,lines->goalLine.p1.y), Point(lines->goalLine.p2.x,lines->goalLine.p2.y), 255, 3, CV_AA);
+    line( *dst, Point(lines->goalLineLeft.p1.x,lines->goalLineLeft.p1.y), Point(lines->goalLineLeft.p2.x,lines->goalLineLeft.p2.y), 124,3,CV_AA);
+    line( *dst, Point(lines->currentLine.p1.x,lines->currentLine.p1.y), Point(lines->currentLine.p2.x,lines->currentLine.p2.y), 0, 3, CV_AA);
 }
 
 // You should start your work in this method.
@@ -197,8 +195,9 @@ void LaneDetector::processImage()
 
     if (&lines != NULL)
         cout << "We have lines for frame " << m_frame_count << endl;
-    LaneDetectionData data;
-    data.setLaneDetectionData(lines, dataToDriver);
+    LaneDetectorData data;
+    data.setM_lines(lines);
+    data.setM_dataToDriver(dataToDriver);
     data.setFrameCount(m_frame_count);
     Container con(Container::USER_DATA_1, data);
 
@@ -221,7 +220,7 @@ void LaneDetector::processImage()
 
     cout << "-------lanedetector--stop----" << endl;
 
-	msv::LaneDetectorDataToDriver dtd = data.getLaneDetectionDataDriver();
+	msv::LaneDetectorDataToDriver dtd = data.getLaneDetectorDataDriver();
 
     cout << "-------lanedetector--start----" << endl;
     cout << "dtd.rightGoalLines.size() " << dtd.rightGoalLines.size() << " dtd.leftGoalLines.size() " << dtd.leftGoalLines.size() << " dtd.noTrajectory " << dtd.noTrajectory << endl;

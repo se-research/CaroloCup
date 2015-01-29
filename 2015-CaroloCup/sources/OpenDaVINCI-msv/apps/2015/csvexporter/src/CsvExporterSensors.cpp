@@ -8,7 +8,7 @@
 #include "core/io/ContainerConference.h"
 #include "core/io/URL.h"
 #include "core/io/StreamFactory.h"
-#include "SensorBoardData.h"
+#include "GeneratedHeaders_msv.h"
 #include "CsvExporterSensor.h"
 
 namespace msv

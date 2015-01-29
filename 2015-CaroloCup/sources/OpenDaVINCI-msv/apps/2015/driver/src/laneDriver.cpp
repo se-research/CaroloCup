@@ -38,7 +38,7 @@ using namespace core::data::environment;
 // Constructor
 laneDriver::laneDriver(const int32_t &argc, char **argv) :
     ConferenceClientModule(argc, argv, "Driver") ,
-    m_hasReceivedLaneDetectionData(false) ,
+    m_hasReceivedLaneDetectorData(false) ,
     m_angularError(0) ,
     m_speed(0) ,
     m_lateralError(0) ,
@@ -50,9 +50,9 @@ laneDriver::laneDriver(const int32_t &argc, char **argv) :
     m_derGain(0.23) ,
     SCALE_FACTOR (752 / 0.41) ,
     m_timestamp(0) ,
-    m_leftLine(Vec4i(0, 0, 0, 0)) ,
-    m_rightLine(Vec4i(0, 0, 0, 0)) ,
-    m_dashedLine(Vec4i(0, 0, 0, 0)) {}
+    m_leftLine() ,
+    m_rightLine() ,
+    m_dashedLine() {}
 
 // Destructor
 laneDriver::~laneDriver() {}
@@ -87,7 +87,7 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
         {
 
             cout << "trajector1" << endl;
-            LaneDetectionData ldd;
+            LaneDetectorData ldd;
             cout << "trajector2" << endl;
             Container conUserData1 = getKeyValueDataStore().get(Container::USER_DATA_1);
 
@@ -98,9 +98,9 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
                 }
 
             cout << "trajector4" << endl;
-            ldd = conUserData1.getData<LaneDetectionData>();
+            ldd = conUserData1.getData<LaneDetectorData>();
             cout << "trajector5" << endl;
-            LaneDetectorDataToDriver trajectoryData = ldd.getLaneDetectionDataDriver();
+            LaneDetectorDataToDriver trajectoryData = ldd.getLaneDetectorDataDriver();
 
             cout << "trajectoryData.rightGoalLines.size() " << trajectoryData.rightGoalLines.size() << " trajectoryData.leftGoalLines.size() " << trajectoryData.leftGoalLines.size() << " trajectoryData.noTrajectory " << trajectoryData.noTrajectory << endl;
 
@@ -207,15 +207,15 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
     return desiredHeading;
   }
 
-bool laneDriver::laneFollowing(LaneDetectionData *data)
+bool laneDriver::laneFollowing(LaneDetectorData *data)
 {
     cout<<"enteredLaneFollowing"<<endl;
     int x1, x2, x3, x4, y1, y2, y3, y4;
-    LaneDetectionData ldd = *data;
+    LaneDetectorData ldd = *data;
     // The two lines are delivered in a struct containing two Vec4i objects (vector of 4 integers)
-    Lines lines = ldd.getLaneDetectionData();
+    Lines lines = ldd.getLaneDetectorData();
 
-    LaneDetectorDataToDriver trajectoryData = ldd.getLaneDetectionDataDriver();
+    LaneDetectorDataToDriver trajectoryData = ldd.getLaneDetectorDataDriver();
 
     cout << "trajectoryData.rightGoalLines.size() " << trajectoryData.rightGoalLines.size() << " trajectoryData.leftGoalLines.size() " << trajectoryData.leftGoalLines.size() << " trajectoryData.noTrajectory " << trajectoryData.noTrajectory << endl;
 
@@ -235,7 +235,7 @@ bool laneDriver::laneFollowing(LaneDetectionData *data)
 
     cout << "---" << endl;
 
-    if (lines.dashedLine[0] == 0 && lines.dashedLine[1] == 0 && lines.dashedLine[2] == 0 && lines.dashedLine[3] == 0)
+    if (lines.dashedLine.x == 0 && lines.dashedLine.y == 0 && lines.dashedLine.z == 0 && lines.dashedLine.w == 0)
         {
             m_leftLine = lines.leftLine;
         }
@@ -253,14 +253,14 @@ bool laneDriver::laneFollowing(LaneDetectionData *data)
     int scr_width = lines.width;
     int scr_height = lines.height;
 
-    x1 = m_leftLine[0];
-    y1 = m_leftLine[1];
-    x2 = m_leftLine[2];
-    y2 = m_leftLine[3];
-    x3 = m_rightLine[0];
-    y3 = m_rightLine[1];
-    x4 = m_rightLine[2];
-    y4 = m_rightLine[3];
+    x1 = m_leftLine.x;
+    y1 = m_leftLine.y;
+    x2 = m_leftLine.z;
+    y2 = m_leftLine.w;
+    x3 = m_rightLine.x;
+    y3 = m_rightLine.y;
+    x4 = m_rightLine.z;
+    y4 = m_rightLine.w;
 
     if (( x1 == 0 && y1 == 0 && x2 == 0 && y2 == 0 ) &&
             ( x3 == 0 && y3 == 0 && x4 == 0 && y4 == 0 ))

@@ -14,7 +14,7 @@
 #include "core/data/TimeStamp.h"
 #include "tools/recorder/Recorder.h"
 #include "ArduinoMegaProtocol.h"
-#include "SensorBoardData.h"
+#include "GeneratedHeaders_msv.h"
 
 #include "Camera.h"
 

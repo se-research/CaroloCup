@@ -11,7 +11,7 @@ INCLUDE_DIRECTORIES (${libopendavinci_SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES (include)
 
 # Recipe for building "msv-data".
-FILE(GLOB_RECURSE msv-data-sources "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+FILE(GLOB_RECURSE msv-data-sources "${CMAKE_CURRENT_SOURCE_DIR}/src/generated/msv/*.cpp")
 ADD_LIBRARY (msv-data STATIC ${msv-data-sources})
 
 # Recipe for installing "msv-data".
