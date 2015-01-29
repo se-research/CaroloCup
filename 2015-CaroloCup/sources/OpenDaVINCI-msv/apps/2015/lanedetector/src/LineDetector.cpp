@@ -42,7 +42,7 @@ float minXI, minYI, YI;
 LineDetector::LineDetector(const Mat &f, const Config &cfg, const bool debug,
                            const int id) :
     m_frame(), m_frameCanny(), m_lines(NULL), m_debug(debug), m_lastSolidRightTop(), detectedLines(), m_config(
-        cfg),roadState(NOT_SET),confidenceLevel(0)
+        cfg),roadState(NORMAL),confidenceLevel(0)
 {
     m_frame = f.clone();
     Mat outputImg = f.clone();
@@ -635,7 +635,7 @@ PolySize LineDetector::createPolySize (const RotatedRect &rect)
 
 void LineDetector::classification()
 {
-    roadState = NOT_SET;
+    roadState = NORMAL;
     confidenceLevel=0;
     int sizeX;
     int sizeY;
@@ -852,6 +852,7 @@ void LineDetector::finalFilter()
         {
             //cout << "Switch off: " << minXI << "," << YI << "," << maxDashY << "==========================================================================================" << endl;
             intersectionOn = false;
+            roadState = NORMAL;
         }
 }
 

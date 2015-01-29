@@ -39,6 +39,7 @@ using namespace core::data::environment;
 laneDriver::laneDriver(const int32_t &argc, char **argv) :
     ConferenceClientModule(argc, argv, "Driver") ,
     m_hasReceivedLaneDetectionData(false) ,
+	after_intersection(false),
     m_angularError(0) ,
     m_speed(0) ,
     m_lateralError(0) ,
@@ -102,7 +103,36 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
             m_intGain = 0.5;//1.0;//8.39; //8.39;
             m_derGain = 0.23;//0.23;
 
-            bool res = laneFollowing(&ldd);
+            //Check for intersection
+            // This algo needs to be changed to work according
+            // to the distance travelled in the intersection,
+            // instead of the time.
+            bool res = false;
+
+            if( ldd.getLaneDetectionDataDriver().roadState == NORMAL && !after_intersection){
+            	cout<< "NOrmal state" << endl;
+            	res = laneFollowing(&ldd);
+            }else if( ldd.getLaneDetectionDataDriver().roadState == INTERSECTION && ldd.getLaneDetectionDataDriver().confidenceLevel >= 1){
+            	cout << "Found Intersection..." << endl;
+                after_intersection = true;
+                TimeStamp t_start;
+                m_timestamp = t_start.toMicroseconds();
+
+            }else if(after_intersection){
+            	TimeStamp t_stop;
+            	double timeStep_total = (t_stop.toMicroseconds() - m_timestamp) / 1000.0;
+            	cout << "TIme: "<< timeStep_total << endl;
+            	if(timeStep_total > 2000.0){ //Cross intersect for 2 seconds
+            		res = laneFollowing(&ldd);
+            		after_intersection = false;
+            	}else{
+            		cout << "Crossing Intersection..." << endl;
+            	}
+            }else{
+            	cout << "U not supposed to be here: " << ldd.getLaneDetectionDataDriver().roadState
+            			<< "=>" << after_intersection << endl;
+            }
+
 
             if (!res)
                 {
@@ -225,11 +255,10 @@ bool laneDriver::laneFollowing(LaneDetectionData *data)
     y4 = m_rightLine[3];
 */
 
-    if (trajectoryData.noTrajectory)
-        {
-            cout<<"No trajectory"<<endl;
-            return false;
-        }
+    if (trajectoryData.noTrajectory){
+    	cout<<"No trajectory"<<endl;
+        return false;
+    }
 
     if (debug)
         {

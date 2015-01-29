@@ -193,8 +193,11 @@ void LaneDetector::processImage()
     // End fix.
 
     msv::LaneDetectorDataToDriver dataToDriver = *(road.getDriverData());
-    lines.setCurrentLine(dataToDriver.currentLine);
+    dataToDriver.setRoadState(road.getRoadState());
+    dataToDriver.setConfidence(road.getConfidenceLevel());
 
+    lines.setCurrentLine(dataToDriver.currentLine);
+    cout << "State: "<< road.getRoadState() << "Confidence: " << road.getConfidenceLevel() << endl;
     if (&lines != NULL)
         cout << "We have lines for frame " << m_frame_count << endl;
     LaneDetectionData data;

@@ -120,6 +120,12 @@ public:
     Lines getLines();
     int detectStartLine(int dist);
     int detectStopLine(int dist);
+    RoadState getRoadState(){
+    	return roadState;
+    }
+    int getConfidenceLevel(){
+    	return confidenceLevel;
+    }
 
     long time_taken_contour;
     long time_taken_find_lines;

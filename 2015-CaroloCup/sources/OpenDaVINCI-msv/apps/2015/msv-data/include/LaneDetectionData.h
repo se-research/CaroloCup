@@ -76,10 +76,8 @@ public:
         width(0),
         height(0),
         startLineHeight(0),
-        stopLineHeight(0),
-	roadState(NOT_SET),
-	confidenceLevel(0)
-    {}
+        stopLineHeight(0)
+	{}
     Lines (Vec4i l, Vec4i d, Vec4i r) :
         leftLine(l) ,
         rightLine(r) ,
@@ -94,10 +92,8 @@ public:
         width(0),
         height(0),
         startLineHeight(0),
-        stopLineHeight(0),
-	roadState(NOT_SET),
-	confidenceLevel(0)
-    {}
+        stopLineHeight(0)
+	{}
     virtual ~Lines () {}
     void setGoalLine(const CustomLine &goal)
     {
@@ -112,9 +108,7 @@ public:
         currentLine = curr;
     }
 
-    void setRoadState(RoadState state){
-	roadState=state;
-    }
+
 
     Vec4i leftLine;
     Vec4i rightLine;
@@ -130,8 +124,7 @@ public:
     int height;
     int startLineHeight;
     int stopLineHeight;
-    RoadState roadState;
-    int confidenceLevel;
+
 
 };
 
@@ -150,7 +143,9 @@ public:
 	leftGoalLines2(),
         rightGoalLines2(),
         currentLine(),
-        noTrajectory(true)
+		roadState(NORMAL),
+		confidenceLevel(0),
+		noTrajectory(true)
     {}
     LaneDetectorDataToDriver (vector<int> spl, vector<int> spr, vector<CustomLine> lgl, vector<CustomLine> rgl, CustomLine c, bool nothing):
         switchPointsLeftGoalLines0(spl[0]),
@@ -164,10 +159,18 @@ public:
         leftGoalLines2(lgl[2]),
         rightGoalLines2(rgl[2]),
         currentLine(c),
-        noTrajectory(nothing)
+		roadState(NORMAL),
+		confidenceLevel(0),
+		noTrajectory(nothing)
     {}
     virtual ~LaneDetectorDataToDriver () {}
 
+    void setRoadState(RoadState state){
+    	roadState=state;
+        }
+    void setConfidence(int conf){
+    	confidenceLevel = conf;
+    }
     int switchPointsLeftGoalLines0;
     int switchPointsRightGoalLines0;
     int switchPointsLeftGoalLines1;
@@ -181,6 +184,8 @@ public:
     CustomLine leftGoalLines3;
     CustomLine rightGoalLines3;		
     CustomLine currentLine;
+    RoadState roadState;
+    int confidenceLevel;
     bool noTrajectory;
 };
 
