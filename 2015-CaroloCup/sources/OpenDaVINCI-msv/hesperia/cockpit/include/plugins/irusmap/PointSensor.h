@@ -18,7 +18,7 @@
 
 #include "QtIncludes.h"
 
-#include "SensorBoardData.h"
+#include "GeneratedHeaders_msv.h"
 
 namespace cockpit {
 
@@ -70,7 +70,7 @@ namespace cockpit {
 
                     void drawFOV(QPainter &painter) const;
 
-                    void drawMatchingDistances(QPainter &painter, const msv::SensorBoardData &sbd) const;
+                    void drawMatchingDistances(QPainter &painter, msv::SensorBoardData &sbd);
 
                     const string getName() const;
 

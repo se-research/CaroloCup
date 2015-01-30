@@ -17,7 +17,7 @@
 
 #include "QtIncludes.h"
 
-#include "SensorBoardData.h"
+#include "GeneratedHeaders_msv.h"
 
 namespace cockpit {
 

@@ -21,7 +21,7 @@
 
 #include "QtIncludes.h"
 
-#include "UserButtonData.h"
+#include "GeneratedHeaders_msv.h"
 
 #include "plugins/PlugIn.h"
 

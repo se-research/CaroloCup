@@ -33,7 +33,7 @@ ENDIF("${PANDABOARD}" STREQUAL "YES")
 # Include directories from core.
 INCLUDE_DIRECTORIES (${libopendavinci_SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES (${libhesperia_SOURCE_DIR}/include)
-INCLUDE_DIRECTORIES (${CMAKE_CURRENT_SOURCE_DIR}/../../apps/2015/msv-data/include)
+INCLUDE_DIRECTORIES (${2013-DIT-168-project-template-msv-data_SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES (include)
 
 # Recipe for generating MOC files.
@@ -41,8 +41,6 @@ FILE(GLOB_RECURSE cockpit-headers "${CMAKE_CURRENT_SOURCE_DIR}/include" *.h)
 QT4_WRAP_CPP(cockpit-headers-moc ${cockpit-headers})
 
 # Recipe for building "cockpit".
-FILE(GLOB_RECURSE MSVDATA "${CMAKE_CURRENT_SOURCE_DIR}/../../apps/2015/msv-data/src/*.cpp")
-
 FILE(GLOB_RECURSE cockpit-sources "${CMAKE_CURRENT_SOURCE_DIR}/src" *.cpp)
 
 # Translations.
@@ -60,9 +58,9 @@ QT4_CREATE_TRANSLATION(QM_FILES ${FILES_TO_TRANSLATE} ${myapp_TRANSLATIONS})
 QT4_ADD_TRANSLATION(QM ${myapp_TRANSLATIONS})
 
 # Build the binary.
-ADD_LIBRARY (cockpitlib STATIC ${cockpit-sources} ${MSVDATA} ${cockpit-headers-moc})
+ADD_LIBRARY (cockpitlib STATIC ${cockpit-sources} ${cockpit-headers-moc})
 ADD_EXECUTABLE (cockpit "${CMAKE_CURRENT_SOURCE_DIR}/apps/MainModule.cpp" ${QM})
-TARGET_LINK_LIBRARIES (cockpit cockpitlib hesperia ${OPENDAVINCI_LIBS} ${LIBS}) 
+TARGET_LINK_LIBRARIES (cockpit cockpitlib hesperia ${MSVDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS}) 
 
 # Recipe for installing "cockpit".
 INSTALL(TARGETS cockpit RUNTIME DESTINATION bin) 
@@ -79,7 +77,7 @@ IF(CXXTEST_FOUND)
         LIST(GET testsuite-list "${lastItem}" testsuite-short)
 
         CXXTEST_ADD_TEST(${testsuite-short}-TestSuite ${testsuite-short}-TestSuite.cpp ${testsuite})
-        TARGET_LINK_LIBRARIES(${testsuite-short}-TestSuite cockpitlib hesperia ${OPENDAVINCI_LIBS} ${LIBS})
+        TARGET_LINK_LIBRARIES(${testsuite-short}-TestSuite cockpitlib hesperia ${MSVDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS})
     ENDFOREACH()
 ENDIF(CXXTEST_FOUND)
 

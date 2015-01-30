@@ -10,15 +10,13 @@ PROJECT (irus)
 INCLUDE_DIRECTORIES (${libopendavinci_SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES (${libhesperia_SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES (include)
-INCLUDE_DIRECTORIES (${CMAKE_CURRENT_SOURCE_DIR}/../../apps/2015/msv-data/include)
+INCLUDE_DIRECTORIES (${2013-DIT-168-project-template-msv-data_SOURCE_DIR}/include)
 
 # Recipe for building "irus".
-FILE(GLOB_RECURSE MSVDATA "${CMAKE_CURRENT_SOURCE_DIR}/../../apps/2015/msv-data/src/*.cpp")
-
 FILE(GLOB_RECURSE irus-sources "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
-ADD_LIBRARY (iruslib STATIC ${MSVDATA} ${irus-sources})
+ADD_LIBRARY (iruslib STATIC ${irus-sources})
 ADD_EXECUTABLE (irus "${CMAKE_CURRENT_SOURCE_DIR}/apps/irus.cpp")
-TARGET_LINK_LIBRARIES (irus iruslib hesperia ${OPENDAVINCI_LIBS} ${LIBS}) 
+TARGET_LINK_LIBRARIES (irus iruslib hesperia ${MSVDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS}) 
 
 # Recipe for installing "irus".
 INSTALL(TARGETS irus RUNTIME DESTINATION bin)

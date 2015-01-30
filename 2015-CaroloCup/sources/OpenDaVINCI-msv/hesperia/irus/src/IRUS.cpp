@@ -35,7 +35,7 @@
 #include "IRUS.h"
 
 // MSV: Include header for the data structure for data from the sensorboard.
-#include "SensorBoardData.h"
+#include "GeneratedHeaders_msv.h"
 
 namespace irus {
 

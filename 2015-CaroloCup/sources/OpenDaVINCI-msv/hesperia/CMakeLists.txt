@@ -11,6 +11,7 @@ IF (NOT ("${PANDABOARD}" STREQUAL "YES" OR "${ODROID}" STREQUAL "YES"))
     # hesperia depends on OpenCV.
     SET (OpenCV_LIBS opencv_core opencv_imgproc opencv_highgui)
     SET (LIBS ${LIBS} ${OpenCV_LIBS})
+    SET (MSVDATA_LIBS msv-data)
 
     ADD_SUBDIRECTORY (camgen)
     ADD_SUBDIRECTORY (cockpit)

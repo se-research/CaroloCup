@@ -73,7 +73,7 @@ namespace cockpit {
                 painter.drawLine(old.getX() * 1000, old.getY() * 1000, B.getX() * 1000, B.getY() * 1000);
             }
 
-            void PointSensor::drawMatchingDistances(QPainter &painter, const msv::SensorBoardData &sbd) const {
+            void PointSensor::drawMatchingDistances(QPainter &painter, msv::SensorBoardData &sbd) {
                 double d = sbd.getDistance(m_id);
                 if (d > 0) {
                     double totalRot = m_rotZ * Constants::DEG2RAD;

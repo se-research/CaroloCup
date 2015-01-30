@@ -21,7 +21,7 @@
 #include "core/data/Container.h"
 #include "core/io/ContainerListener.h"
 
-#include "SensorBoardData.h"
+#include "GeneratedHeaders_msv.h"
 
 #include "QtIncludes.h"
 

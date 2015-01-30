@@ -23,7 +23,7 @@
 #include "plugins/PlugIn.h"
 #include "plugins/irusmap/PointSensor.h"
 
-#include "SensorBoardData.h"
+#include "GeneratedHeaders_msv.h"
 
 namespace cockpit {
 
