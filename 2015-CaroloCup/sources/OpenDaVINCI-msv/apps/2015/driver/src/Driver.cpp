@@ -38,13 +38,13 @@ int CurrentDistSpot;
 int CurrentDistSpot2;
 int CurrentDist;
 int DesiredDistance1 = 100; //700 is required 550+150;
-int DesiredDistance2 = 530;
-int DesiredDistance3 = 490;
+int DesiredDistance2 = 650;
+int DesiredDistance3 = 480;
 int DesiredDistance4 = 90;
 int DesiredDistance5 = 30;
-int SpeedF1 = 5;
-int SpeedF2 = 5;
-int SpeedB1 = -4;
+int SpeedF1 = 4;
+int SpeedF2 = 6;
+int SpeedB1 = -3;
 int SpeedB2 = -7;
 int CurrentDist1;
 int CurrentDist2;
@@ -139,7 +139,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 		SteeringData sd = containerSteeringData.getData<SteeringData>();
 		// cerr << "Most recent steering data: '" << sd.toString() << "'" << endl;
 
-		//IRs
+		//Sensors
 		IRdis_SL = sbd.getDistance(0); // Side Left IR
 		IRdis_RL = sbd.getDistance(1); // Rear Left IR
 		IRdis_RR = sbd.getDistance(2); // Rear Right IR
@@ -180,7 +180,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 			if ((USFront < SafeDistance && USFront > 2)){ 
 				driving_state = NO_POSSIBLE_PARKING_PLACE;
 			}
-			if ((IRdis_SR < 23 && IRdis_SR > 2)){ 
+			if ((IRdis_SR < 25 && IRdis_SR > 2)){ 
 				driving_state = START_OBST;
 			
 			}
@@ -197,7 +197,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 			  
 			}
 
-			if ((IRdis_SR > 23 || IRdis_SR < 2)) {
+			if ((IRdis_SR > 25 || IRdis_SR < 2)) {
 				driving_state = POSSIBLE_SPOT;
 				CurrentDistSpot = Distance;
 			}
@@ -215,10 +215,10 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 			  
 			}
 			
-			if(IRdis_SR < 23 && IRdis_SR > 2){
+			if(IRdis_SR < 25 && IRdis_SR > 2){
 			  gapWidth = Distance - CurrentDistSpot;
 			  //CurrentDistSpot2 = Distance;
-			 if((gapWidth > MinParkingDist) || (gapWidth > MaxParkingDist)){
+			 if((gapWidth > MinParkingDist) && (gapWidth < MaxParkingDist)){
 			   desiredSteeringWheelAngle=0;
 			   driving_state = INITIALIZE_POS_FOR_PARKING; 
 			 }else{
@@ -270,7 +270,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 				driving_state = NO_POSSIBLE_PARKING_PLACE;
 			  
 			}
-			if (time_taken > 300) {  
+			if (time_taken > 400) {  
  				
 				//parking(vc, vd);
 				CurrentDist1 = Distance;
@@ -332,7 +332,6 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 	}
 	driving_speed = 0;
 	return ModuleState::OKAY;
-	//driving_speed = 0;
 	}
 
 
@@ -358,7 +357,7 @@ void Driver::parking() {
 		driving_speed = SpeedB1;
 		desiredSteeringWheelAngle = 40;
 		cout << "\t========  BACKWARDS_LEFT"  << endl;
-		if ((Distance > (CurrentDist2 + DesiredDistance3)) || (USRear < 20 && USRear > 2)) {			
+		if ((Distance > (CurrentDist2 + DesiredDistance3)) || (IRdis_RL < 13 && IRdis_RL > 2) ) {			
 			TimeStamp currentTimeB;
 			start_timerB = currentTimeB.toMicroseconds() / 1000.0;
 			parking_state = WAIT_2;
@@ -415,13 +414,13 @@ void Driver::parking() {
 			break;
 
 	case BACK_AGAIN: {
-		driving_speed = -1;
+		driving_speed = SpeedB1;
 		desiredSteeringWheelAngle = 40;
 		cout << "\t========  BACK_AGAIN"  << endl;
-		if (((abs (IRdis_RL - IRdis_RR)) < 1) && (USRear < 20 && USRear > 2)){
+		if (((abs (IRdis_RL - IRdis_RR)) < 1) && ((IRdis_RL < 15 && IRdis_RL > 2) || (IRdis_RR < 15 && IRdis_RR > 2))){
 		  //(Distance > (CurrentDist4 + DesiredDistance5)
 			parking_state = STOP;
-			driving_speed = 0;
+			driving_speed = 3;
 			desiredSteeringWheelAngle = 0;
 			TimeStamp currentTime5;
 			start_timerIndicator = currentTime5.toMicroseconds() / 1000.0;
@@ -447,9 +446,10 @@ void Driver::parking() {
 		}
 	}
 	case DONE:{
-		
+		rightIndicator = false;
+		leftIndicator = false;
 		cout << "\t\t========  DONE"  << endl;
-		
+		driving_speed = 0;
 	}
 
 		break;

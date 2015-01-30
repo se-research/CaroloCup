@@ -77,7 +77,7 @@ public:
 private:
 
 	DRIVING_STATE driving_state;
-	PARKINGSTATE parking_state;
+	//PARKINGSTATE parking_state;
 
 
 	virtual void setUp();
