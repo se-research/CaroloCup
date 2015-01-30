@@ -211,12 +211,12 @@ void loop()
               //speed = INIT_MOTOR_SPEED;
               //controlMotor();
             } else {
-              speed = 1500;
+              speed = 1900;
               controlMotor();
-              delay(10);
+              delay(50);
               carSpeed = 0;
-             // speed = INIT_MOTOR_SPEED;
-             // controlMotor();
+              speed = INIT_MOTOR_SPEED;
+              controlMotor();
             }
           } else if(readbyte >= '0' && readbyte <= '9' && isDirSet) {
             //applyCruiseCtrl = true;

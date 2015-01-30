@@ -7,6 +7,7 @@
 #define BRAKE_SPEED_MAX 1541
 #define BRAKE_SPEED_MIN 1299
 #define INIT_MOTOR_SPEED 1520
+#define MIN_REVERSE_SPEED 1100
 
 // This is our motor.
 Servo myMotor;
@@ -67,6 +68,7 @@ int takenOverSpeed = 1520;
 int revertBackSpeed = false;
 boolean fullMsgRecv = false;
 boolean isDirSet = false;
+int cntBrake = 0;
 
 void setup()
 {
@@ -184,27 +186,33 @@ void loop()
             }
             if(readbyte == 'r') {
               reverse = -1;
-              speed = 1240;
+              if(speed < MIN_REVERSE_SPEED || speed > BRAKE_SPEED_MIN) {
+                  speed = 1270;
+              }
               Serial.println("Reverse");
             } else if(readbyte == 'f') {
               reverse = 1;
-              speed = 1520;
+              if(speed < INIT_MOTOR_SPEED || speed > MAX_MOTOR_SPEED) {
+                  speed = 1547;
+              }
               Serial.println("Forward");
             }
           } else if (readbyte == '-') {
             applyCruiseCtrl = false;
             if(reverse == 1) {
-              speed = 1100;
+              speed = 1320;
               controlMotor();
               delay(10);
-              speed = 1520;
-              controlMotor();
+              carSpeed = 0;
+              //speed = 1520;
+              //controlMotor();
             } else {
               speed = 1900;
               controlMotor();
-              delay(10);
+              delay(50);
               speed = 1520;
               controlMotor();
+              carSpeed = 0;
             }
           } else if(readbyte >= '0' && readbyte <= '9' && isDirSet) {
             //applyCruiseCtrl = true;
@@ -332,7 +340,7 @@ void loop()
       if(reverse == 1) {
         speed = constrain(speed, 1547, 1580);
       } else {
-        speed = constrain(speed, 1200, 1270);
+        speed = constrain(speed, 1100, 1270);
       }
     }
     //Serial.print("Speed :");
@@ -346,6 +354,14 @@ void loop()
   //}
   //Serial.print("Car speed:");
   //Serial.println(carSpeed);
+  if(speed == 1320) {
+    cntBrake++;
+  }
+  if(cntBrake > 100){
+    speed = 1500;
+    cntBrake = 0;
+    controlMotor();
+  }
   delay(10);
   //Serial.println((millis()-time));
 }

@@ -420,7 +420,7 @@ void Driver::parking() {
 		if (((abs (IRdis_RL - IRdis_RR)) < 1) && ((IRdis_RL < 15 && IRdis_RL > 2) || (IRdis_RR < 15 && IRdis_RR > 2))){
 		  //(Distance > (CurrentDist4 + DesiredDistance5)
 			parking_state = STOP;
-			driving_speed = 3;
+			driving_speed = 0;
 			desiredSteeringWheelAngle = 0;
 			TimeStamp currentTime5;
 			start_timerIndicator = currentTime5.toMicroseconds() / 1000.0;
