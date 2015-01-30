@@ -19,11 +19,11 @@ using namespace std;
 
 namespace msv
 {
-	enum RoadState {
-		NORMAL = 1,
-		INTERSECTION = 2,
-		NOT_SET = 0,
-	};
+//	enum RoadState {
+//		NORMAL = 1,
+//		INTERSECTION = 2,
+//		NOT_SET = 0,
+//	};
 
 struct Config
 {
@@ -232,6 +232,7 @@ private:
     Lines result_getLines;
     LaneDetectorDataToDriver *dataToDriver;
     FinalOutput finalOutput;
+    Lines::RoadState roadState;
     int confidenceLevel;
 };
 

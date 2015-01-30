@@ -19,8 +19,7 @@
 
 #include "tools/player/Player.h"
 
-// Data structures from msv-data library:
-#include "SteeringData.h"
+#include "GeneratedHeaders_msv.h"
 
 #include "LaneDetector_inspection.h"
 
@@ -191,9 +190,9 @@ void LaneDetector_inspection::processImage()
         
     // if (lines != NULL)
     //  cout << "We have lines for frame " <<m_frame_count << endl;
-    LaneDetectionData data;
-    data.setLaneDetectionData(lines, dataToDriver);
-    data.setFrameCount(m_frame_count);
+//    LaneDetectionData data;
+//    data.setLaneDetectionData(lines, dataToDriver);
+//    data.setFrameCount(m_frame_count);
 
     //some more mess
     TimeStamp currentTime_strt7;
@@ -268,16 +267,16 @@ void LaneDetector_inspection::processImage()
                         }
                 }
         }
-    data.setClassification(classification);
+//    data.setClassification(classification);
     cout << "classification : " + classification << endl;
     // end of inspection part --Need to make in nicer way --
 
     //seding all data to csv
-    Container con(Container::USER_DATA_1, data);
+//    Container con(Container::USER_DATA_1, data);
 
     // Send the data:
     //cout << "Send..." << endl;
-    getConference().send(con);
+//    getConference().send(con);
 
 
     m_frame.release();

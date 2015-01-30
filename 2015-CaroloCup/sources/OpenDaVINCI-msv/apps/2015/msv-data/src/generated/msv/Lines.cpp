@@ -78,25 +78,25 @@ namespace msv {
 		return (*this);
 	}
 	
-	MyVec4i Lines::getLeftLine() const {
+	Vec4i Lines::getLeftLine() const {
 		return leftLine;
 	}
 	
-	void Lines::setLeftLine(const MyVec4i &val) {
+	void Lines::setLeftLine(const Vec4i &val) {
 		leftLine = val;
 	}
-	MyVec4i Lines::getRightLine() const {
+	Vec4i Lines::getRightLine() const {
 		return rightLine;
 	}
 	
-	void Lines::setRightLine(const MyVec4i &val) {
+	void Lines::setRightLine(const Vec4i &val) {
 		rightLine = val;
 	}
-	MyVec4i Lines::getDashedLine() const {
+	Vec4i Lines::getDashedLine() const {
 		return dashedLine;
 	}
 	
-	void Lines::setDashedLine(const MyVec4i &val) {
+	void Lines::setDashedLine(const Vec4i &val) {
 		dashedLine = val;
 	}
 	CustomLine Lines::getGoalLine() const {
@@ -194,9 +194,9 @@ namespace msv {
 	const string Lines::toString() const {
 		stringstream s;
 	
-		s << "LeftLine: " << getLeftLine().toString() << " ";
-		s << "RightLine: " << getRightLine().toString() << " ";
-		s << "DashedLine: " << getDashedLine().toString() << " ";
+		s << "LeftLine: " << getLeftLine() << " ";
+		s << "RightLine: " << getRightLine() << " ";
+		s << "DashedLine: " << getDashedLine() << " ";
 		s << "GoalLine: " << getGoalLine().toString() << " ";
 		s << "GoalLineLeft: " << getGoalLineLeft().toString() << " ";
 		s << "CurrentLine: " << getCurrentLine().toString() << " ";
@@ -230,11 +230,11 @@ namespace msv {
 		Serializer &s = sf.getSerializer(out);
 	
 		s.write(CRC32 < CharList<'l', CharList<'e', CharList<'f', CharList<'t', CharList<'L', CharList<'i', CharList<'n', CharList<'e', NullType> > > > > > > >  >::RESULT,
-				leftLine);
+				(void*)&leftLine, sizeof(leftLine));
 		s.write(CRC32 < CharList<'r', CharList<'i', CharList<'g', CharList<'h', CharList<'t', CharList<'L', CharList<'i', CharList<'n', CharList<'e', NullType> > > > > > > > >  >::RESULT,
-				rightLine);
+				(void*)&rightLine, sizeof(rightLine));
 		s.write(CRC32 < CharList<'d', CharList<'a', CharList<'s', CharList<'h', CharList<'e', CharList<'d', CharList<'L', CharList<'i', CharList<'n', CharList<'e', NullType> > > > > > > > > >  >::RESULT,
-				dashedLine);
+				(void*)&dashedLine, sizeof(dashedLine));
 		s.write(CRC32 < CharList<'g', CharList<'o', CharList<'a', CharList<'l', CharList<'L', CharList<'i', CharList<'n', CharList<'e', NullType> > > > > > > >  >::RESULT,
 				goalLine);
 		s.write(CRC32 < CharList<'g', CharList<'o', CharList<'a', CharList<'l', CharList<'L', CharList<'i', CharList<'n', CharList<'e', CharList<'L', CharList<'e', CharList<'f', CharList<'t', NullType> > > > > > > > > > > >  >::RESULT,
@@ -271,11 +271,11 @@ namespace msv {
 		Deserializer &d = sf.getDeserializer(in);
 	
 		d.read(CRC32 < CharList<'l', CharList<'e', CharList<'f', CharList<'t', CharList<'L', CharList<'i', CharList<'n', CharList<'e', NullType> > > > > > > >  >::RESULT,
-				leftLine);
+				(void*)&leftLine, sizeof(leftLine));
 		d.read(CRC32 < CharList<'r', CharList<'i', CharList<'g', CharList<'h', CharList<'t', CharList<'L', CharList<'i', CharList<'n', CharList<'e', NullType> > > > > > > > >  >::RESULT,
-				rightLine);
+				(void*)&rightLine, sizeof(rightLine));
 		d.read(CRC32 < CharList<'d', CharList<'a', CharList<'s', CharList<'h', CharList<'e', CharList<'d', CharList<'L', CharList<'i', CharList<'n', CharList<'e', NullType> > > > > > > > > >  >::RESULT,
-				dashedLine);
+				(void*)&dashedLine, sizeof(dashedLine));
 		d.read(CRC32 < CharList<'g', CharList<'o', CharList<'a', CharList<'l', CharList<'L', CharList<'i', CharList<'n', CharList<'e', NullType> > > > > > > >  >::RESULT,
 				goalLine);
 		d.read(CRC32 < CharList<'g', CharList<'o', CharList<'a', CharList<'l', CharList<'L', CharList<'i', CharList<'n', CharList<'e', CharList<'L', CharList<'e', CharList<'f', CharList<'t', NullType> > > > > > > > > > > >  >::RESULT,

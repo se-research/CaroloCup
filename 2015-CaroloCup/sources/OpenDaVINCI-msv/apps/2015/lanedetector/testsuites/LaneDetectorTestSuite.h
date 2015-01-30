@@ -15,7 +15,7 @@
 #include "core/wrapper/SharedMemory.h"
 #include "core/wrapper/SharedMemoryFactory.h"
 
-#include "SensorBoardData.h"
+#include "GeneratedHeaders_msv.h"
 
 // Include local header files.
 #include "../include/LaneDetector.h"

@@ -5,21 +5,17 @@
  *      Author: ashfaq
  */
 #include "sensorProtocol.h"
-#include "core/wrapper/MutexFactory.h"
+#include "core/base/Lock.h"
 
 
 namespace msv{
 using namespace std;
-using namespace core::wrapper;
+using namespace core::base;
 	sensorProtocol::sensorProtocol() :
             m_stringListenerMutex(),
             m_stringListener(NULL),
             m_partialData()
         {
-            m_stringListenerMutex = auto_ptr<Mutex>(MutexFactory::createMutex());
-            if (m_stringListenerMutex.get() == NULL) {
-                throw std::string("(SerialPort) Error creating mutex for string listener.");
-            }
         }
 
 	sensorProtocol::~sensorProtocol() {
@@ -27,9 +23,8 @@ using namespace core::wrapper;
         }
 
         void sensorProtocol::setStringListener(StringListener* listener) {
-            m_stringListenerMutex->lock();
-                m_stringListener = listener;
-            m_stringListenerMutex->unlock();
+            Lock l(m_stringListenerMutex);
+            m_stringListener = listener;
         }
 
 
@@ -68,11 +63,10 @@ using namespace core::wrapper;
                }
 
                void sensorProtocol::invokeStringListener(const string& data) {
-                   m_stringListenerMutex->lock();
+                    Lock l(m_stringListenerMutex);
                        if (m_stringListener != NULL) {
                            m_stringListener->nextString(data);
                        }
-                   m_stringListenerMutex->unlock();
                }
 
 }

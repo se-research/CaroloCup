@@ -20,7 +20,7 @@
 #include "context/base/PlaybackContainer.h"
 #include "vehiclecontext/VehicleRuntimeControl.h"
 
-#include "LaneDetectionData.h"
+//#include "LaneDetectionData.h"
 
 #include "LaneDetector.h"
 
@@ -56,11 +56,11 @@ class CSVExport : public SystemReportingComponent {
             for (uint32_t i = 0; i < SIZE; i++) {
                 Container c = getFIFO().leave();
                 if (c.getDataType() == Container::USER_DATA_1) {
-            		LaneDetectionData data = c.getData<LaneDetectionData>();
+//            		LaneDetectionData data = c.getData<LaneDetectionData>();
 
-                    cerr << "(CSVExporter) Extracting '" << data.toString() << "'." << endl;
+//                    cerr << "(CSVExporter) Extracting '" << data.toString() << "'." << endl;
 
-                    (*m_out) << data.toString() << endl;
+//                    (*m_out) << data.toString() << endl;
 
     		        m_out->flush();
                 }

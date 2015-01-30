@@ -10,18 +10,17 @@
 // core/platform.h must be included to setup platform-dependent header files and configurations.
 #include "core/platform.h"
 
+#include "opencv2/opencv.hpp"
 
 #include "core/data/SerializableData.h"
 
-#include "generated/msv/MyVec4i.h"
-#include "generated/msv/MyVec4i.h"
-#include "generated/msv/MyVec4i.h"
 #include "generated/msv/CustomLine.h"
 #include "generated/msv/CustomLine.h"
 #include "generated/msv/CustomLine.h"
 
 namespace msv {
 	using namespace std;
+	using namespace cv;
 	
 	class Lines : public core::data::SerializableData {
 		public:
@@ -55,38 +54,38 @@ namespace msv {
 			/**
 			 * @return leftLine.
 			 */
-			MyVec4i getLeftLine() const;
+			Vec4i getLeftLine() const;
 			
 			/**
 			 * This method sets leftLine.
 			 *
 			 * @param val Value for leftLine.
 			 */
-			void setLeftLine(const MyVec4i &val);
+			void setLeftLine(const Vec4i &val);
 		public:
 			/**
 			 * @return rightLine.
 			 */
-			MyVec4i getRightLine() const;
+			Vec4i getRightLine() const;
 			
 			/**
 			 * This method sets rightLine.
 			 *
 			 * @param val Value for rightLine.
 			 */
-			void setRightLine(const MyVec4i &val);
+			void setRightLine(const Vec4i &val);
 		public:
 			/**
 			 * @return dashedLine.
 			 */
-			MyVec4i getDashedLine() const;
+			Vec4i getDashedLine() const;
 			
 			/**
 			 * This method sets dashedLine.
 			 *
 			 * @param val Value for dashedLine.
 			 */
-			void setDashedLine(const MyVec4i &val);
+			void setDashedLine(const Vec4i &val);
 		public:
 			/**
 			 * @return goalLine.
@@ -252,11 +251,11 @@ namespace msv {
 	
 		
 		
-			MyVec4i leftLine;
+			Vec4i leftLine;
 		
-			MyVec4i rightLine;
+			Vec4i rightLine;
 		
-			MyVec4i dashedLine;
+			Vec4i dashedLine;
 		
 			CustomLine goalLine;
 		

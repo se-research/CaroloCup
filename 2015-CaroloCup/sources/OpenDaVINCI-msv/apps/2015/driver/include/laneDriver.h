@@ -83,9 +83,9 @@ namespace msv {
 
       int32_t m_timestamp;
 
-      MyVec4i m_leftLine;
-      MyVec4i m_rightLine;
-      MyVec4i m_dashedLine;
+      Vec4i m_leftLine;
+      Vec4i m_rightLine;
+      Vec4i m_dashedLine;
   };
 
 } // carolocup

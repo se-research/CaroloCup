@@ -13,11 +13,14 @@
 
 #include "core/data/SerializableData.h"
 
-#include "generated/msv/MyPoint.h"
-#include "generated/msv/MyPoint.h"
+//#include "generated/msv/MyPoint.h"
+//#include "generated/msv/MyPoint.h"
+
+#include "opencv2/opencv.hpp"
 
 namespace msv {
 	using namespace std;
+	using namespace cv;
 	
 	class CustomLine : public core::data::SerializableData {
 		public:
@@ -39,31 +42,37 @@ namespace msv {
 			 * @return Reference to this instance.
 			 */
 			CustomLine& operator=(const CustomLine &obj);
-	
+
+        public:
+            bool operator < (const CustomLine& other ) const {
+                return max(p1.y,p2.y) > max(other.p1.y, other.p2.y);
+                //return slope < other.slope;
+            }
+
 		public:
 			/**
 			 * @return p1.
 			 */
-			MyPoint getP1() const;
+			Point getP1() const;
 			
 			/**
 			 * This method sets p1.
 			 *
 			 * @param val Value for p1.
 			 */
-			void setP1(const MyPoint &val);
+			void setP1(const Point &val);
 		public:
 			/**
 			 * @return p2.
 			 */
-			MyPoint getP2() const;
+			Point getP2() const;
 			
 			/**
 			 * This method sets p2.
 			 *
 			 * @param val Value for p2.
 			 */
-			void setP2(const MyPoint &val);
+			void setP2(const Point &val);
 		public:
 			/**
 			 * @return slope.
@@ -96,9 +105,9 @@ namespace msv {
 			virtual const string toString() const;
 	
 		
-			MyPoint p1;
+			Point p1;
 		
-			MyPoint p2;
+			Point p2;
 		
 			float slope;
 		

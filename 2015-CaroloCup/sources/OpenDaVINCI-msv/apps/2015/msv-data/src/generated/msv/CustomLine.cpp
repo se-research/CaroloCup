@@ -42,18 +42,18 @@ namespace msv {
 		return (*this);
 	}
 	
-	MyPoint CustomLine::getP1() const {
+	Point CustomLine::getP1() const {
 		return p1;
 	}
 	
-	void CustomLine::setP1(const MyPoint &val) {
+	void CustomLine::setP1(const Point &val) {
 		p1 = val;
 	}
-	MyPoint CustomLine::getP2() const {
+	Point CustomLine::getP2() const {
 		return p2;
 	}
 	
-	void CustomLine::setP2(const MyPoint &val) {
+	void CustomLine::setP2(const Point &val) {
 		p2 = val;
 	}
 	float CustomLine::getSlope() const {
@@ -74,8 +74,8 @@ namespace msv {
 	const string CustomLine::toString() const {
 		stringstream s;
 	
-		s << "P1: " << getP1().toString() << " ";
-		s << "P2: " << getP2().toString() << " ";
+		s << "P1: (" << getP1().x << ";" << getP1().y << ") ";
+		s << "P2: (" << getP2().x << ";" << getP2().y << ") ";
 		s << "Slope: " << getSlope() << " ";
 		s << "PolygonIndex: " << getPolygonIndex() << " ";
 	
@@ -88,9 +88,9 @@ namespace msv {
 		Serializer &s = sf.getSerializer(out);
 	
 		s.write(CRC32 < CharList<'p', CharList<'1', NullType> >  >::RESULT,
-				p1);
+				(void*)&p1, sizeof(p1));
 		s.write(CRC32 < CharList<'p', CharList<'2', NullType> >  >::RESULT,
-				p2);
+				(void*)&p2, sizeof(p2));
 		s.write(CRC32 < CharList<'s', CharList<'l', CharList<'o', CharList<'p', CharList<'e', NullType> > > > >  >::RESULT,
 				slope);
 		s.write(CRC32 < CharList<'p', CharList<'o', CharList<'l', CharList<'y', CharList<'g', CharList<'o', CharList<'n', CharList<'I', CharList<'n', CharList<'d', CharList<'e', CharList<'x', NullType> > > > > > > > > > > >  >::RESULT,
@@ -104,9 +104,9 @@ namespace msv {
 		Deserializer &d = sf.getDeserializer(in);
 	
 		d.read(CRC32 < CharList<'p', CharList<'1', NullType> >  >::RESULT,
-				p1);
+				(void*)&p1, sizeof(p1));
 		d.read(CRC32 < CharList<'p', CharList<'2', NullType> >  >::RESULT,
-				p2);
+				(void*)&p2, sizeof(p2));
 		d.read(CRC32 < CharList<'s', CharList<'l', CharList<'o', CharList<'p', CharList<'e', NullType> > > > >  >::RESULT,
 				slope);
 		d.read(CRC32 < CharList<'p', CharList<'o', CharList<'l', CharList<'y', CharList<'g', CharList<'o', CharList<'n', CharList<'I', CharList<'n', CharList<'d', CharList<'e', CharList<'x', NullType> > > > > > > > > > > >  >::RESULT,

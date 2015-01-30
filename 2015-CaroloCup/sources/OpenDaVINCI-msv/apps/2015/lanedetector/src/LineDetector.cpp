@@ -42,7 +42,7 @@ float minXI, minYI, YI;
 LineDetector::LineDetector(const Mat &f, const Config &cfg, const bool debug,
                            const int id) :
     m_frame(), m_frameCanny(), m_lines(NULL), m_debug(debug), m_lastSolidRightTop(), detectedLines(), m_config(
-        cfg),roadState(NOT_SET),confidenceLevel(0)
+        cfg),roadState(Lines::NOT_SET),confidenceLevel(0)
 {
     m_frame = f.clone();
     Mat outputImg = f.clone();
@@ -635,7 +635,7 @@ PolySize LineDetector::createPolySize (const RotatedRect &rect)
 
 void LineDetector::classification()
 {
-    roadState = NOT_SET;
+    roadState = Lines::NOT_SET;
     confidenceLevel=0;
     int sizeX;
     int sizeY;
@@ -723,7 +723,7 @@ void LineDetector::classification()
 		    //weird map of what width and what's height depending on the orientation
 		    confidenceLevel=2;
 		    //I think intersection detection should be stateful and not frame by frame
-		    roadState=INTERSECTION;
+		    roadState= Lines::INTERSECTION;
 		    if(m_debug){
 			cout << "INTERSECTION POTENTIAL!" << endl;
 			cout << "ANGLE OF RECT " << angle << endl;
@@ -959,7 +959,9 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
                                 {
                                     for (int k = 0; k < cntDashed; k++)
                                         {
-                                            if (curve[j] == dashedLines[k])
+//                                            if (curve[j] == dashedLines[k])
+                                            if ( ( (fabs(curve[j].getP1().x - dashedLines[k].getP1().x) < 1e-2) && (fabs(curve[j].getP1().y - dashedLines[k].getP1().y) < 1e-2) ) &&
+( (fabs(curve[j].getP2().x - dashedLines[k].getP2().x) < 1e-2) && (fabs(curve[j].getP2().y - dashedLines[k].getP2().y) < 1e-2) ) )
                                                 {
                                                     cout << "remove used dash: p1(" << curve[j].p1.x << "," << curve[j].p1.y << ") p2(" << curve[j].p2.x << "," << curve[j].p2.y << ") " << endl;
                                                     dashedLines.erase(dashedLines.begin() + k);
@@ -1476,7 +1478,7 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
 
 		cout << "----------!!!!!!---------" << endl;
     // -- find the intersection points of the goal lines --
-    std::vector<int> switchPointsRightGoalLines, switchPointsLeftGoalLines;
+    std::vector<int32_t> switchPointsRightGoalLines, switchPointsLeftGoalLines;
 
     for (int i = 1; i < rightGoalLines.size() + 1; i++)
         {
@@ -1493,7 +1495,15 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
     // Make a bspline curve to give instead of the goalLines
 
 		cout << "------------#####--------" << endl;
-    dataToDriver = new LaneDetectorDataToDriver(switchPointsLeftGoalLines, switchPointsRightGoalLines, leftGoalLines, rightGoalLines, currentLine, false);
+//    dataToDriver = new LaneDetectorDataToDriver(switchPointsLeftGoalLines, switchPointsRightGoalLines, leftGoalLines, rightGoalLines, currentLine, false);
+    dataToDriver = new LaneDetectorDataToDriver();
+    dataToDriver->setListOfSwitchPointsLeftGoalLines(switchPointsLeftGoalLines);
+    dataToDriver->setListOfSwitchPointsRightGoalLines(switchPointsRightGoalLines);
+    dataToDriver->setleftGoalLines(leftGoalLines);
+    dataToDriver->setrightGoalLines(rightGoalLines);
+    dataToDriver->setCurrentLine(currentLine);
+    dataToDriver->setNoTrajectory(false);
+
 
     // Provide debug data
     if (m_debug){
@@ -1942,7 +1952,10 @@ CustomLine LineDetector::simple_calculateGoalLine(CustomLine fst, CustomLine snd
 CustomLine LineDetector::new_calculateGoalLine(EstimationData *ed)
 {
     cout << "__start new_calculateGoalLine" << endl;
-    ltu.lines = new Lines(ltu.leftLineVec, ltu.dashLineVec, ltu.rightLineVec);
+    ltu.lines = new Lines();
+    ltu.lines->setLeftLine(ltu.leftLineVec);
+    ltu.lines->setDashedLine(ltu.dashLineVec);
+    ltu.lines->setRightLine(ltu.rightLineVec);
 
     CustomLine goalLine, other;
     Point vp;
@@ -2393,7 +2406,11 @@ void LineDetector::calculateGoalLine(LinesToUse *ltu)
     // Set up current heading line and goal line
     //-----------------------
 
-    ltu->lines = new Lines(ltu->leftLineVec, ltu->dashLineVec, ltu->rightLineVec);
+//    ltu->lines = new Lines(ltu->leftLineVec, ltu->dashLineVec, ltu->rightLineVec);
+    ltu->lines = new Lines();
+    ltu->lines->setLeftLine(ltu->leftLineVec);
+    ltu->lines->setDashedLine(ltu->dashLineVec);
+    ltu->lines->setRightLine(ltu->rightLineVec);
     // Check whether to run the function
     if (!(ltu->foundGoal))
         {

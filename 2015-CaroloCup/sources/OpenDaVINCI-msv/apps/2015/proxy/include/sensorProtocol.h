@@ -13,7 +13,7 @@
 
 #include <sstream>
 
-#include "core/wrapper/Mutex.h"
+#include "core/base/Mutex.h"
 #include "core/wrapper/AbstractProtocol.h"
 #include "core/wrapper/StringObserver.h"
 #include "core/wrapper/StringSender.h"
@@ -65,7 +65,7 @@ namespace msv {
                  */
                 void invokeStringListener(const string& data);
 
-                std::auto_ptr<Mutex> m_stringListenerMutex;
+                core::base::Mutex m_stringListenerMutex;
                 StringListener *m_stringListener;
 
                 stringstream m_partialData;

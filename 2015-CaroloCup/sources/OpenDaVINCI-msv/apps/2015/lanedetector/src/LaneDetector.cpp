@@ -159,9 +159,9 @@ bool LaneDetector::readSharedImage(Container &c)
 
 void drawLines(msv::Lines *lines, Mat *dst, int offset)
 {
-    Line dashed = Vec4i(lines->dashedLine.x,lines->dashedLine.y,lines->dashedLine.z,lines->dashedLine.w);
-    Line solidRight = Vec4i(lines->rightLine.x,lines->rightLine.y,lines->rightLine.z,lines->rightLine.w);
-    Line solidLeft = Vec4i(lines->leftLine.x,lines->leftLine.y,lines->leftLine.z,lines->leftLine.w);
+    Line dashed = Vec4i(lines->dashedLine[0],lines->dashedLine[1],lines->dashedLine[2],lines->dashedLine[3]);
+    Line solidRight = Vec4i(lines->rightLine[0],lines->rightLine[1],lines->rightLine[2],lines->rightLine[3]);
+    Line solidLeft = Vec4i(lines->leftLine[0],lines->leftLine[1],lines->leftLine[2],lines->leftLine[3]);
 
     line( *dst, Point(dashed[0], dashed[1] + offset), Point(dashed[2], dashed[3] + offset), Scalar(0, 255, 0), 3, CV_AA);
     line( *dst, Point(solidRight[0], solidRight[1] + offset), Point(solidRight[2], solidRight[3] + offset), Scalar(255, 0, 0), 3, CV_AA);
