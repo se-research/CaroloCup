@@ -688,20 +688,31 @@ void LineDetector::classification()
                                 }
                         }
                     YI = rectCenter.y;
-                    if (m_debug)
-                        {
-                            cout << "Intersection x: " << minXI << ", Intersection y: "
-                                 << minYI << ", Center y: " << rectCenter.y << endl;
-                        }
-                    intersectionOn = true;
-                    foundIntersection = true;
 
+                    //intersectionOn = true;
+                    //foundIntersection = true;
+                    float angle_thr = 5;
+                    float height_thr = 150;
+                    cout << "Possible INTERSECTION" << endl;
+
+                    if( abs(rect.angle) < angle_thr && rectCenter.y > height_thr ){
+                    	roadState=INTERSECTION;
+                    	confidenceLevel=CONFIDENCE_LEVEL_MAX;
+                    	intersectionOn = true;
+                    	foundIntersection = true;
+                    	cout << "INTERSECTION!!!" << endl;
+                    	 if (m_debug) {
+                    		 cout << "Intersection x: " << minXI << ", Intersection y: "<< minYI
+                    				 << "\n Angle: " << rect.angle << "Center y: " << rectCenter.y << endl;
+                    	 }
+                    }
             //////////////////////////////////////////////
             //New intersection handling when there is a stop line
             //1.We check the angle of the rect
 	    //we convert the angle so that we always measure the angle between the the vertical line and the longest side
 	    //of the the rectangle.In this case when the long side is laying flat then the angle is 90 degress if the shorter
 	    //side is the one laying flat then its 0
+                    /*
 	    float angle = 0;
 	    if (rect.size.width < rect.size.height)
 	      {
@@ -742,7 +753,7 @@ void LineDetector::classification()
 		  }
 	      }
 	    ///////////////////////////////////////////////////////////////////////////////////
-
+		*/
 
                 }
         }
@@ -847,10 +858,13 @@ void LineDetector::finalFilter()
                     maxDashY = max(dashLines[i].p1.y, dashLines[i].p2.y);
                 }
         }
-
-    if ((cntSolid > 0 && cntDash > 1 && maxDashY < (9 * h / 10)) || YI < 120)
-        {
-            //cout << "Switch off: " << minXI << "," << YI << "," << maxDashY << "==========================================================================================" << endl;
+    //cout << "MaxDashY"	<< maxDashY
+    //		<< "\nScreen section" << (9 * h / 10) << endl;
+    //if ((cntSolid > 0 && cntDash > 1 && maxDashY < (9 * h / 10)) || YI < 120)
+    if (cntSolid > 0 && cntDash > 1 && maxDashY > (9 * h / 10) && intersectionOn) {
+            cout << "=========================================================================================="
+            	<<  "Intersection off "
+            	<< "MaxDashY"	<< maxDashY  << endl;
             intersectionOn = false;
             roadState = NORMAL;
         }
@@ -1408,6 +1422,7 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
 		cout << "------------_2__---------" << endl;
         }
 
+
     if (m_debug){
         for (int i = 0; i < rightGoalLines.size(); i++)
             {
@@ -1450,6 +1465,7 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
                 }
             }        
     }
+
     if (picture){
         for (int i = 0; i < cutPoints.size(); i++){
             Point p;
@@ -1461,6 +1477,7 @@ void LineDetector::manageTrajectory(LinesToUse *ltu)
         }
     }
 		cout << "------------___---------" << endl;
+
     // Create current line
     //Assume this position as the car position
     Point position;
