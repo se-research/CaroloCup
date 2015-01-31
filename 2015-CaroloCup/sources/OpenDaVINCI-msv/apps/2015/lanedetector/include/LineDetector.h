@@ -132,6 +132,8 @@ public:
     long time_taken_classification;
     long time_taken_filter_merge;
     long time_taken_final_filter;
+    long time_taken_characteristicFiltering;
+    long time_taken_createTrajectory;
 
     Clusters *getClusters(); // Attila: Only debugging
 
@@ -185,7 +187,7 @@ private:
     //Filer the lines w.r.t. road characteristics
     void characteristicFiltering(LinesToUse *ltu);
     // Creates a trajectory for the driver
-	void manageTrajectory(LinesToUse *ltu);
+	void createTrajectory(LinesToUse *ltu);
     //Estimate missing needed lines
     void estimateLines(LinesToUse *ltu);
 	void new_estimateLines(EstimationData *ed);

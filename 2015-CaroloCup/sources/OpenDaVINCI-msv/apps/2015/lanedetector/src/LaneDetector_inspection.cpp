@@ -478,7 +478,10 @@ void LaneDetector_inspection::showResult(LineDetector &road, Mat &f)
     // ----characteristicFiltering() -----
 
     rB += rS;
-    cv::putText(txtRes, "6 - characteristicFiltering() ", cv::Point(0, rB),
+    convert.str("");
+    convert << road.time_taken_characteristicFiltering;
+    text = convert.str() + " - characteristicFiltering()";
+    cv::putText(txtRes, text, cv::Point(0, rB),
                 FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
 
     rB += rS;
@@ -525,10 +528,13 @@ void LaneDetector_inspection::showResult(LineDetector &road, Mat &f)
     cv::putText(txtRes, convert.str(), cv::Point(270, rB),
                 FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
 
-    // ----calculateGoalLine() -----
+    // ----createTrajectory() -----
 
     rB += rS;
-    cv::putText(txtRes, "7 - calculateGoalLine() ", cv::Point(0, rB),
+    convert.str("");
+    convert << road.time_taken_createTrajectory;
+    text = convert.str() + " - createTrajectory()";
+    cv::putText(txtRes, text, cv::Point(1, rB),
                 FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
 
     imshow("Text results", txtRes);

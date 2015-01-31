@@ -187,6 +187,9 @@ void LaneDetector::processImage()
 
     LineDetector road(neededPart, cfg, debug, 1);
 
+    if (debug)
+    	showResult(road, neededPart);
+
     // Start fix. This code deactivates the old estimateLines and calculatesGoalLine()
     //msv::Lines lines = road.getLines();
     msv::Lines lines = *(new Lines());
@@ -231,30 +234,32 @@ void LaneDetector::processImage()
             cout << "avg_time: " << avg_time << "ms" << endl;
         }
 
-    if (lines.goalLine.p1.x == 0 && lines.goalLine.p1.y == 0
-            && lines.goalLine.p2.x == 0 && lines.goalLine.p2.y == 0
-            && lines.currentLine.p2.x == 0 && lines.currentLine.p2.y == 0)
-        {
-            cout << "Nothing in..." << endl;
-        }
-    else
-        {
-            drawLines(&lines, &neededPart, 0);
-        }
+    // The following lines are about getting data from Lines => legacy stuff
 
-    if (debug)
-        {
-            cout << "VP [x, y] : [" << lines.goalLine.p1.x << ", "
-                 << lines.goalLine.p1.y << "]" << endl;
-            cout << "Goal [x, y] : [" << lines.goalLine.p2.x << ", "
-                 << lines.goalLine.p2.y << "]" << endl;
-            cout << "GoalLineLeft p1:"<<lines.goalLineLeft.p1.x<<","<<lines.goalLineLeft.p1.y<<endl;
-            cout << "GoalLineLeft p2:"<<lines.goalLineLeft.p2.x<<","<<lines.goalLineLeft.p2.y<<endl;
-            cout << "Position [x, y] : [" << lines.currentLine.p2.x << ", "
-                 << lines.currentLine.p2.y << "]" << endl;
+    // if (lines.goalLine.p1.x == 0 && lines.goalLine.p1.y == 0
+    //         && lines.goalLine.p2.x == 0 && lines.goalLine.p2.y == 0
+    //         && lines.currentLine.p2.x == 0 && lines.currentLine.p2.y == 0)
+    //     {
+    //         cout << "Nothing in..." << endl;
+    //     }
+    // else
+    //     {
+    //         drawLines(&lines, &neededPart, 0);
+    //     }
 
-            imshow("Result", neededPart);
-        }
+    // if (debug)
+    //     {
+    //         cout << "VP [x, y] : [" << lines.goalLine.p1.x << ", "
+    //              << lines.goalLine.p1.y << "]" << endl;
+    //         cout << "Goal [x, y] : [" << lines.goalLine.p2.x << ", "
+    //              << lines.goalLine.p2.y << "]" << endl;
+    //         cout << "GoalLineLeft p1:"<<lines.goalLineLeft.p1.x<<","<<lines.goalLineLeft.p1.y<<endl;
+    //         cout << "GoalLineLeft p2:"<<lines.goalLineLeft.p2.x<<","<<lines.goalLineLeft.p2.y<<endl;
+    //         cout << "Position [x, y] : [" << lines.currentLine.p2.x << ", "
+    //              << lines.currentLine.p2.y << "]" << endl;
+
+    //         imshow("Result", neededPart);
+    //     }
 
     neededPart.release();
     m_frame.release();
@@ -346,6 +351,167 @@ ModuleState::MODULE_EXITCODE LaneDetector::body()
     waitKey(20);
     return ModuleState::OKAY;
 }
+// All the showResult_* functions assumes that data is put in the sub result structs in LineDetector.
 
+void LaneDetector::showResult(LineDetector &road, Mat &f)
+{
+    // Fetch pointers to result data
+    FinalOutput *res_createTrajectory = road.getResult_createTrajectory();
+
+    // Show final result window
+    showResult_createTrajectory(res_createTrajectory, road, f);
+
+    // Create window to display text results
+    cv::Mat txtRes = cv::Mat::zeros(150, 300, CV_8UC3);
+
+    ostringstream convert;
+    int rB = 0; // Pixel where the row starts at
+    int rS = 15; // The row interleaving in pixels
+    string text;
+
+    // ----getContours() -----
+
+    rB += rS;
+    convert.str("");
+    convert << road.time_taken_contour;
+    text = convert.str() + " - getContours()";
+    cv::putText(txtRes, text, cv::Point(1, rB),
+                FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
+
+    // ----getRectangles() -----
+
+    rB += rS;
+    convert.str("");
+    convert << road.time_taken_find_lines;
+    text = convert.str() + " - getRectangles()";
+    cv::putText(txtRes, text, cv::Point(1, rB),
+                FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
+
+    // ----classification() -----
+
+    rB += rS;
+    convert.str("");
+    convert << road.time_taken_classification;
+    text = convert.str() + " - classification()";
+    cv::putText(txtRes, text, cv::Point(1, rB),
+                FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
+
+    // ----filterAndMerge() -----
+    rB += rS;
+    convert.str("");
+    convert << road.time_taken_filter_merge;
+    text = convert.str() + " - filterAndMerge()";
+    cv::putText(txtRes, text, cv::Point(1, rB),
+                FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
+
+
+
+    // ----finalFilter() -----
+    rB += rS;
+    convert.str("");
+    convert << road.time_taken_final_filter;
+    text = convert.str() + " - finalFilter()";
+    cv::putText(txtRes, text, cv::Point(1, rB),
+                FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
+
+
+    // ----characteristicFiltering() -----
+
+    rB += rS;
+    convert.str("");
+    convert << road.time_taken_characteristicFiltering;
+    text = convert.str() + " - characteristicFiltering()";
+    cv::putText(txtRes, text, cv::Point(0, rB),
+                FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
+
+    // ----createTrajectory() -----
+
+    rB += rS;
+    convert.str("");
+    convert << road.time_taken_createTrajectory;
+    text = convert.str() + " - createTrajectory()";
+    cv::putText(txtRes, text, cv::Point(1, rB),
+                FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
+
+    imshow("Text results", txtRes);
+}
+void LaneDetector::showResult_createTrajectory(FinalOutput *res, LineDetector &road, Mat &f)
+{
+
+    Mat frame = f.clone();
+
+    if (debug)
+        {
+            cout << "__START: createTrajectory" << endl;
+        }
+    if (res->noTrajectory == true){
+            cout << "Nothing in..." << endl;
+
+        }else{
+            for (int i = 0; i < res->rightGoalLines.size(); i++){
+                if (res->estimatedLeft[i])
+                    line(frame, res->left[i].p1, res->left[i].p2, Scalar(255, 0, 0), 1, CV_AA);
+                else
+                    line(frame, res->left[i].p1, res->left[i].p2, Scalar(255, 0, 0), 2, CV_AA);
+
+                if (res->estimatedRight[i])
+                    line(frame, res->right[i].p1, res->right[i].p2, Scalar(0, 0, 255), 1, CV_AA);
+                else
+                    line(frame, res->right[i].p1, res->right[i].p2, Scalar(0, 0, 255), 2, CV_AA);
+
+                if (res->estimatedDash[i])
+                    line(frame, res->dash[i].p1, res->dash[i].p2, Scalar(0, 255, 0), 1, CV_AA);
+                else
+                    line(frame, res->dash[i].p1, res->dash[i].p2, Scalar(0, 255, 0), 2, CV_AA);
+
+                line(frame, res->rightGoalLines[i].p1, res->rightGoalLines[i].p2, Scalar(153, 106, 0), 2, CV_AA);
+                line(frame, res->leftGoalLines[i].p1, res->leftGoalLines[i].p2, Scalar(153, 0, 76), 2, CV_AA);
+            }
+            line(frame, res->currentLine.p1, res->currentLine.p2, Scalar(255, 0, 255), 2, CV_AA);
+
+            for (int i = 0; i < res->cutPoints.size(); i++){
+                Point p;
+                p.y = res->cutPoints[i];
+                p.x = 0;
+                Point q = p;
+                q.x = 800;
+                line(frame, p, q, Scalar(255, 255, 255), 1, CV_AA);
+            }
+
+        if (debug)
+            {
+            for (int i = 0; i < res->cutPoints.size(); i++){
+                cout << "cutPoint: " << res->cutPoints[i] << endl;
+            }
+            for (int i = 0; i < res->rightGoalLines.size(); i++)
+                {
+                    cout << "left[" << i << "] slope: " << res->left[i].slope << " p1(" << res->left[i].p1.x << "," << res->left[i].p1.y;
+                    cout << ") p2(" << res->left[i].p2.x << "," << res->left[i].p2.y << ")" << endl;
+
+                    cout << "Dashed[" << i << "] slope: " << res->dash[i].slope << " p1(" << res->dash[i].p1.x << "," << res->dash[i].p1.y;
+                    cout << ") p2(" << res->dash[i].p2.x << "," << res->dash[i].p2.y << ")" << endl;
+
+                    cout << "right[" << i << "] slope: " << res->right[i].slope << " p1(" << res->right[i].p1.x << "," << res->right[i].p1.y;
+                    cout << ") p2(" << res->right[i].p2.x << "," << res->right[i].p2.y << ")" << endl;
+
+
+                    cout << "leftGoalLines[" << i << "] slope: " << res->leftGoalLines[i].slope << " p1(" << res->leftGoalLines[i].p1.x << "," << res->leftGoalLines[i].p1.y;
+                    cout << ") p2(" << res->leftGoalLines[i].p2.x << "," << res->leftGoalLines[i].p2.y << ")" << endl;
+
+                    cout << "rightGoalLines[" << i << "] slope: " << res->rightGoalLines[i].slope << " p1(" << res->rightGoalLines[i].p1.x << "," << res->rightGoalLines[i].p1.y;
+                    cout << ") p2(" << res->rightGoalLines[i].p2.x << "," << res->rightGoalLines[i].p2.y << ")" << endl;
+
+                    cout << "---" << endl;
+                }
+            }
+        }
+
+    imshow("Result from createTrajectory", frame);
+    if (debug)
+        {
+            cout << "__END: createTrajectory" << endl;
+        }
+    frame.release();
+}
 } // msv
 

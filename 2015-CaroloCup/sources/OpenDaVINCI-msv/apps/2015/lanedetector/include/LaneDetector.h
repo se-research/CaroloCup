@@ -75,6 +75,9 @@ private:
     Mat m_frame;
     uint32_t m_frame_count;
 
+	void showResult(LineDetector &road, Mat &f);
+	void showResult_createTrajectory(FinalOutput *res, LineDetector &road, Mat &f);
+	
     virtual void setUp();
 
     virtual void tearDown();
