@@ -122,11 +122,11 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
             	TimeStamp t_stop;
             	double timeStep_total = (t_stop.toMicroseconds() - m_timestamp) / 1000.0;
             	cout << "TIme: "<< timeStep_total << endl;
-            	if(timeStep_total > 3000.0){ //Cross intersect for 3 seconds
+            	if(timeStep_total > 2000.0){ //Cross intersect for 3 seconds
             		res = laneFollowing(&ldd);
             		after_intersection = false;
             	}else{
-            		vc.setSteeringWheelAngle(int16_t(0));
+            		vc.setSteeringWheelAngle(int16_t(5));
             		cout << "Crossing Intersection..." << endl;
             	}
             }else{
