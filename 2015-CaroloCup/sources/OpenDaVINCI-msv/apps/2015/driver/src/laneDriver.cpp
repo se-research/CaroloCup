@@ -84,10 +84,14 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
     VehicleControl vc;
 
     float last_steer = 0;
+    double t_base;
+    int steer_change = 1;
+    int steer_change_timing = 200;
+    bool steer_sign;
+    int inters_max_steer;
+    int inters_min_steer;
     while (getModuleState() == ModuleState::RUNNING)
         {
-
-           
             LaneDetectionData ldd;
             Container conUserData1 = getKeyValueDataStore().get(Container::USER_DATA_1);
 
@@ -96,7 +100,6 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
                     cout << "New lap. Waiting..." << endl;
                 }
 
-            
             ldd = conUserData1.getData<LaneDetectionData>();
 
             m_propGain = 4.5;//4.5;//2.05;
@@ -109,6 +112,7 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
             // instead of the time.
             bool res = false;
 
+
             if( ldd.getLaneDetectionDataDriver().roadState == NORMAL && !after_intersection){
             	cout<< "NOrmal state" << endl;
             	res = laneFollowing(&ldd);
@@ -119,26 +123,55 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
                 after_intersection = true;
                 TimeStamp t_start;
                 m_timestamp = t_start.toMicroseconds();
+                t_base=m_timestamp;
+                last_steer = 0;
+                if(last_steer < 0){
+                	steer_sign = false;
+                	inters_max_steer = abs(last_steer)/2;
+                	vc.setSteeringWheelAngle(int16_t(0));
+                	Container c(Container::VEHICLECONTROL, vc);
+                	getConference().send(c);
+                }
+                else{
+                	steer_sign = true;
+                	inters_min_steer = (-1)*(last_steer/2);
+                	vc.setSteeringWheelAngle(int16_t(0));
+                	Container c(Container::VEHICLECONTROL, vc);
+                	getConference().send(c);
+                }
 
             }else if(after_intersection){
             	TimeStamp t_stop;
+            	double timeStep_now=(t_stop.toMicroseconds() - t_base) / 1000.0;
+
             	double timeStep_total = (t_stop.toMicroseconds() - m_timestamp) / 1000.0;
             	cout << "TIme: "<< timeStep_total << endl;
-            	if(timeStep_total > 3000.0){ //Cross intersect for 3 seconds
+            	if(timeStep_total > 2000.0){ //Cross intersect for 3 seconds
             		res = laneFollowing(&ldd);
             		after_intersection = false;
             	}else{
-            		if( last_steer < 0){
-            			cout<< "Steering: " << abs(last_steer)/2 << endl;
-            			vc.setSteeringWheelAngle(int16_t(abs(last_steer)/2));
-            		}else{
-            			cout<< "Steering: " << (-1)*last_steer/2 << endl;
-            			vc.setSteeringWheelAngle(int16_t((-1)*last_steer/2));
+            		if(timeStep_now > steer_change_timing){
+            			t_base=t_stop.toMicroseconds();
+            			if( steer_sign){ //positive steering
+            				cout<< "Steering: " << last_steer - steer_change << endl;
+            				while(last_steer >= inters_min_steer){
+            					vc.setSteeringWheelAngle(int16_t(last_steer - steer_change));
+            					last_steer = last_steer - steer_change;
+            				}
+            			}else{ // negative steering
+            				cout<< "Steering: " << last_steer + steer_change << endl;
+            				while(last_steer <= inters_max_steer){
+            					vc.setSteeringWheelAngle(int16_t(last_steer + steer_change));
+            					last_steer = last_steer + steer_change;
+            				}
+            			}
             		}
+
             		Container c(Container::VEHICLECONTROL, vc);
             		getConference().send(c);
             		cout << "Crossing Intersection..." << endl;
             	}
+
             }else{
             	cout << "U not supposed to be here: " << ldd.getLaneDetectionDataDriver().roadState
             			<< "=>" << after_intersection << endl;
