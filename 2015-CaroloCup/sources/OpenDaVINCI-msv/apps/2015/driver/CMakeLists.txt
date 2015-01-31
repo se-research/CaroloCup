@@ -24,9 +24,18 @@ ADD_LIBRARY (ldriverlib STATIC ${ldriver-sources})
 ADD_EXECUTABLE (lanedriver "${CMAKE_CURRENT_SOURCE_DIR}/apps/laneDriver_module.cpp")
 TARGET_LINK_LIBRARIES (lanedriver ldriverlib ${MSVDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS})
 
+# Recipe for building "obstacledriver".
+
+FILE(GLOB_RECURSE ldriver-sources "${CMAKE_CURRENT_SOURCE_DIR}/src/obstacleDriver.cpp")
+ADD_LIBRARY (odriverlib STATIC ${ldriver-sources})
+ADD_EXECUTABLE (obstacledriver "${CMAKE_CURRENT_SOURCE_DIR}/apps/obstacleDriver_module.cpp")
+TARGET_LINK_LIBRARIES (obstacledriver odriverlib ${MSVDATA_LIBS} ${OPENDAVINCI_LIBS} ${LIBS})
+
+
 # Recipe for installing "driver".
 INSTALL(TARGETS driver RUNTIME DESTINATION bin/2013/DIT-168/project-template) 
 INSTALL(TARGETS lanedriver RUNTIME DESTINATION bin/2013/DIT-168/project-template) 
+INSTALL(TARGETS obstacledriver RUNTIME DESTINATION bin/2013/DIT-168/project-template) 
 
 # Enable CxxTest for all available testsuites.
 IF(CXXTEST_FOUND)
