@@ -2197,12 +2197,12 @@ std::vector<CustomLine> LineDetector::splitSolidLines(std::vector<int> cutAt, Cu
     std::vector<CustomLine> splittedSolid;
 
     // Check whether is it necessary to split the solid line e.g. it is a straight line
-    if (line_sizes[solid.polygonIndex].sizeX < 30)  // pixel width of the solid line's rectangle
-        {
-            // Return vector with replicated solid lines
-            std::vector<CustomLine> unCutSolid (cutAt.size() + 1, solid);
-            return unCutSolid;
-        }
+    // if (line_sizes[solid.polygonIndex].sizeX < 30)  // pixel width of the solid line's rectangle
+    //     {
+    //         // Return vector with replicated solid lines
+    //         std::vector<CustomLine> unCutSolid (cutAt.size() + 1, solid);
+    //         return unCutSolid;
+    //     }
 
     // Transform into Point vector
     std::vector<Point> cutPoints;
@@ -2606,18 +2606,20 @@ std::vector<CustomLine> LineDetector::findCurve(std::vector<CustomLine> lines)
                     float slopeDiffLines = abs(slopeA - slopeB);
                     float slopeDiffToLine0 = abs(slopeInBetween - slopeA);
                     float slopeDiffToLineJ = abs(slopeInBetween - slopeB);
+                    float distInBetween = getDist(lines[0].p2, lines[j].p1);
 
                     if (printouts){
                         cout << "slopeA: " << slopeA;
                         cout << " slopeB: " << slopeB;
                         cout << " slopeInBetween: " << slopeInBetween << endl;
+                        cout << " distInBetween: " << distInBetween << endl;
                         cout << " slopeDiffLines: " << slopeDiffLines;
                         cout << " slopeDiffToLine0: " << slopeDiffToLine0;
                         cout << " slopeDiffToLineJ: " << slopeDiffToLineJ << endl;
                     }
 
                     if ((slopeDiffLines < 60) && (slopeDiffToLine0 < slopeDiffLines + 20) &&
-                            (slopeDiffToLineJ < slopeDiffLines + 20))
+                            (slopeDiffToLineJ < slopeDiffLines + 20) && (distInBetween < 150))
                         {
                             if (printouts){
                                 cout << "curve found";
