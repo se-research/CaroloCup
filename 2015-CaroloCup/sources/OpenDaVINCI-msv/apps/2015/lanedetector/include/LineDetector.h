@@ -2,7 +2,7 @@
 #define LINEDETECTOR_H_
 
 #define MIN_ANGLE 15
-#define ROAD_SIZE 650//770
+#define ROAD_SIZE 685//770
 #define ROAD_GOAL 0.5
 #define ROAD_ANGLE 85
 #define MID_DASH_ANGLE -47
@@ -109,6 +109,15 @@ struct FinalOutput {
 struct GoalLineData {
 	CustomLine rightGoalLine;
 	CustomLine leftGoalLine;
+};
+
+struct RoadAngle_RoadSize_debug {
+	int nmbOfRounds;
+    vector<CustomLine> lineUsed;
+    vector<int> whichLine;
+    vector<int> roadAngle;
+    vector<int> roadSize;
+    vector<int> yPosition;
 };
 
 class LineDetector
@@ -237,6 +246,7 @@ private:
     FinalOutput finalOutput;
     RoadState roadState;
     int confidenceLevel;
+    RoadAngle_RoadSize_debug rrd;
 };
 
 }

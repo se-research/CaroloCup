@@ -706,20 +706,21 @@ void LaneDetector_inspection::showResult_finalResult(LinesToUse *res, LineDetect
 Point LaneDetector_inspection::pad(int* top, int* left, cv::Point& p)
 {   
     Point padded;
-    padded.x = p.x + *top;
-    padded.y = p.y + *left;
+    padded.x = p.x + *left;
+    padded.y = p.y + *top;
     return padded;
 }
 void LaneDetector_inspection::showResult_createTrajectory(FinalOutput *res, LineDetector &road, Mat &f)
 {
     int top = 100;
     int bottom = 100;
-    int left = 100;
-    int right = 100;
+    int left = 400;
+    int right = 400;
     Mat frame, src;
     cvtColor(f, src, CV_GRAY2BGR);
-    namedWindow("Result from createTrajectory", CV_WINDOW_AUTOSIZE);
-    copyMakeBorder( src, frame, top, bottom, left, right, BORDER_CONSTANT, Scalar(100, 100, 100));
+    namedWindow("Result from createTrajectory", WINDOW_NORMAL);
+    copyMakeBorder( src, frame, top, bottom, left, right, BORDER_CONSTANT, Scalar(30, 30, 30));
+    resizeWindow("Result from createTrajectory", 1300, 400);
 
     // TODO: display switchPoints
 
@@ -739,7 +740,7 @@ void LaneDetector_inspection::showResult_createTrajectory(FinalOutput *res, Line
 
                 if (res->estimatedRight[i])
                     line(frame, pad(&top,&left,res->right[i].p1), pad(&top,&left,res->right[i].p2), Scalar(0, 0, 255), 1, CV_AA);
- else
+                else
                     line(frame, pad(&top,&left,res->right[i].p1), pad(&top,&left,res->right[i].p2), Scalar(0, 0, 255), 2, CV_AA);
 
                 if (res->estimatedDash[i])
@@ -747,17 +748,17 @@ void LaneDetector_inspection::showResult_createTrajectory(FinalOutput *res, Line
                 else
                     line(frame, pad(&top,&left,res->dash[i].p1), pad(&top,&left,res->dash[i].p2), Scalar(0, 255, 0), 2, CV_AA);
 
-                line(frame, pad(&top,&left,res->rightGoalLines[i].p1), pad(&top,&left,res->rightGoalLines[i].p2), Scalar(153, 106, 0), 2, CV_AA);
-                line(frame, pad(&top,&left,res->leftGoalLines[i].p1), pad(&top,&left,res->leftGoalLines[i].p2), Scalar(153, 0, 76), 2, CV_AA);
+                line(frame, pad(&top,&left,res->rightGoalLines[i].p1), pad(&top,&left,res->rightGoalLines[i].p2), Scalar(153, 0, 76), 2, CV_AA);
+                line(frame, pad(&top,&left,res->leftGoalLines[i].p1), pad(&top,&left,res->leftGoalLines[i].p2), Scalar(0, 128, 255), 2, CV_AA);
             }
-            line(frame, pad(&top,&left,res->currentLine.p1), pad(&top,&left,res->currentLine.p2), Scalar(255, 0, 255), 2, CV_AA);
+            line(frame, pad(&top,&left,res->currentLine.p1), pad(&top,&left,res->currentLine.p2), Scalar(255, 128, 0), 2, CV_AA);
 
             for (int i = 0; i < res->cutPoints.size(); i++){
                 Point p;
                 p.y = res->cutPoints[i];
                 p.x = 0;
                 Point q = p;
-                q.x = 800;
+                q.x = 752;
                 line(frame, pad(&top,&left,p), pad(&top,&left,q), Scalar(255, 255, 255), 1, CV_AA);
             }
 
