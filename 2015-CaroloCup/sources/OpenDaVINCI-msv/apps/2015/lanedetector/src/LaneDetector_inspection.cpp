@@ -703,11 +703,23 @@ void LaneDetector_inspection::showResult_finalResult(LinesToUse *res, LineDetect
         }
     frame.release();
 }
+Point LaneDetector_inspection::pad(int* top, int* left, cv::Point& p)
+{   
+    Point padded;
+    padded.x = p.x + *top;
+    padded.y = p.y + *left;
+    return padded;
+}
 void LaneDetector_inspection::showResult_createTrajectory(FinalOutput *res, LineDetector &road, Mat &f)
 {
-
-    Mat frame;
-    cvtColor(f, frame, CV_GRAY2BGR);
+    int top = 100;
+    int bottom = 100;
+    int left = 100;
+    int right = 100;
+    Mat frame, src;
+    cvtColor(f, src, CV_GRAY2BGR);
+    namedWindow("Result from createTrajectory", CV_WINDOW_AUTOSIZE);
+    copyMakeBorder( src, frame, top, bottom, left, right, BORDER_CONSTANT, Scalar(100, 100, 100));
 
     // TODO: display switchPoints
 
@@ -721,24 +733,24 @@ void LaneDetector_inspection::showResult_createTrajectory(FinalOutput *res, Line
         }else{
             for (int i = 0; i < res->rightGoalLines.size(); i++){
                 if (res->estimatedLeft[i])
-                    line(frame, res->left[i].p1, res->left[i].p2, Scalar(255, 0, 0), 1, CV_AA);
+                    line(frame, pad(&top,&left,res->left[i].p1), pad(&top,&left,res->left[i].p2), Scalar(255, 0, 0), 1, CV_AA);
                 else
-                    line(frame, res->left[i].p1, res->left[i].p2, Scalar(255, 0, 0), 2, CV_AA);
+                    line(frame, pad(&top,&left,res->left[i].p1), pad(&top,&left,res->left[i].p2), Scalar(255, 0, 0), 2, CV_AA);
 
                 if (res->estimatedRight[i])
-                    line(frame, res->right[i].p1, res->right[i].p2, Scalar(0, 0, 255), 1, CV_AA);
-                else
-                    line(frame, res->right[i].p1, res->right[i].p2, Scalar(0, 0, 255), 2, CV_AA);
+                    line(frame, pad(&top,&left,res->right[i].p1), pad(&top,&left,res->right[i].p2), Scalar(0, 0, 255), 1, CV_AA);
+ else
+                    line(frame, pad(&top,&left,res->right[i].p1), pad(&top,&left,res->right[i].p2), Scalar(0, 0, 255), 2, CV_AA);
 
                 if (res->estimatedDash[i])
-                    line(frame, res->dash[i].p1, res->dash[i].p2, Scalar(0, 255, 0), 1, CV_AA);
+                    line(frame, pad(&top,&left,res->dash[i].p1), pad(&top,&left,res->dash[i].p2), Scalar(0, 255, 0), 1, CV_AA);
                 else
-                    line(frame, res->dash[i].p1, res->dash[i].p2, Scalar(0, 255, 0), 2, CV_AA);
+                    line(frame, pad(&top,&left,res->dash[i].p1), pad(&top,&left,res->dash[i].p2), Scalar(0, 255, 0), 2, CV_AA);
 
-                line(frame, res->rightGoalLines[i].p1, res->rightGoalLines[i].p2, Scalar(153, 106, 0), 2, CV_AA);
-                line(frame, res->leftGoalLines[i].p1, res->leftGoalLines[i].p2, Scalar(153, 0, 76), 2, CV_AA);
+                line(frame, pad(&top,&left,res->rightGoalLines[i].p1), pad(&top,&left,res->rightGoalLines[i].p2), Scalar(153, 106, 0), 2, CV_AA);
+                line(frame, pad(&top,&left,res->leftGoalLines[i].p1), pad(&top,&left,res->leftGoalLines[i].p2), Scalar(153, 0, 76), 2, CV_AA);
             }
-            line(frame, res->currentLine.p1, res->currentLine.p2, Scalar(255, 0, 255), 2, CV_AA);
+            line(frame, pad(&top,&left,res->currentLine.p1), pad(&top,&left,res->currentLine.p2), Scalar(255, 0, 255), 2, CV_AA);
 
             for (int i = 0; i < res->cutPoints.size(); i++){
                 Point p;
@@ -746,7 +758,7 @@ void LaneDetector_inspection::showResult_createTrajectory(FinalOutput *res, Line
                 p.x = 0;
                 Point q = p;
                 q.x = 800;
-                line(frame, p, q, Scalar(255, 255, 255), 1, CV_AA);
+                line(frame, pad(&top,&left,p), pad(&top,&left,q), Scalar(255, 255, 255), 1, CV_AA);
             }
 
         if (m_debug)
