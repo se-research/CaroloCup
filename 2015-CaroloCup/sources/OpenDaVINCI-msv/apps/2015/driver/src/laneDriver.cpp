@@ -83,7 +83,7 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
 
     VehicleControl vc;
 
-
+    float last_steer = 0;
     while (getModuleState() == ModuleState::RUNNING)
         {
 
@@ -105,14 +105,16 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
 
             //Check for intersection
             // This algo needs to be changed to work according
-            // to the distance travelled in the intersection,
+            // to the distance traveled in the intersection,
             // instead of the time.
             bool res = false;
 
             if( ldd.getLaneDetectionDataDriver().roadState == NORMAL && !after_intersection){
             	cout<< "NOrmal state" << endl;
             	res = laneFollowing(&ldd);
-            }else if( ldd.getLaneDetectionDataDriver().roadState == INTERSECTION && ldd.getLaneDetectionDataDriver().confidenceLevel >= 1){
+            }else if(ldd.getLaneDetectionDataDriver().roadState == INTERSECTION && ldd.getLaneDetectionDataDriver().confidenceLevel == 2 && !after_intersection){
+            	cout<< "Slow down the car" << endl;
+            }else if( ldd.getLaneDetectionDataDriver().roadState == INTERSECTION && ldd.getLaneDetectionDataDriver().confidenceLevel == 5 && !after_intersection){
             	cout << "Found Intersection..." << endl;
                 after_intersection = true;
                 TimeStamp t_start;
@@ -122,11 +124,19 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
             	TimeStamp t_stop;
             	double timeStep_total = (t_stop.toMicroseconds() - m_timestamp) / 1000.0;
             	cout << "TIme: "<< timeStep_total << endl;
-            	if(timeStep_total > 2000.0){ //Cross intersect for 3 seconds
+            	if(timeStep_total > 3000.0){ //Cross intersect for 3 seconds
             		res = laneFollowing(&ldd);
             		after_intersection = false;
             	}else{
-            		vc.setSteeringWheelAngle(int16_t(5));
+            		if( last_steer < 0){
+            			cout<< "Steering: " << abs(last_steer)/2 << endl;
+            			vc.setSteeringWheelAngle(int16_t(abs(last_steer)/2));
+            		}else{
+            			cout<< "Steering: " << (-1)*last_steer/2 << endl;
+            			vc.setSteeringWheelAngle(int16_t((-1)*last_steer/2));
+            		}
+            		Container c(Container::VEHICLECONTROL, vc);
+            		getConference().send(c);
             		cout << "Crossing Intersection..." << endl;
             	}
             }else{
@@ -144,6 +154,7 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
             stringstream speedStream, steeringAngleStream;
 
             float desSteering = m_desiredSteeringWheelAngle * 180 / M_PI;
+            last_steer = desSteering;
             cout<<"steeringAngle"<<desSteering<<endl;
 
             if (desSteering > 41) desSteering = 42;
