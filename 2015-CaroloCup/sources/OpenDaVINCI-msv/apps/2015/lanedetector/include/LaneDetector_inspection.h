@@ -93,6 +93,7 @@ private:
 	void showResult_createTrajectory(FinalOutput *res, LineDetector &road, Mat &f);
 
     void addInspectionInfo(LineDetector &road, Mat &frame);
+	Point pad(int* top, int* left, cv::Point& p);
 
     void drawLines(msv::Lines *lines, Mat *dst, int offset);
     void print_lines(IntermediateResult *res, Mat &f);

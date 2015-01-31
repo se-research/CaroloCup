@@ -29,7 +29,9 @@ bool overtakingNow = false;
 bool overtakingDone = false;
 bool obstacleDetected = false;
 
+
 int arr[5][5], cirK = 0;
+
 
 namespace msv
 {
@@ -273,8 +275,10 @@ namespace msv
   obstacleDriver::movingAvg (int sensorVal, int pos)
   {
     float out = 0;
+
     arr[pos][cirK] = sensorVal;
     cirK = (cirK + 1) % 5;
+
     for (int i = 0; i < 5; i++)
       {
 	out += arr[pos][i];
