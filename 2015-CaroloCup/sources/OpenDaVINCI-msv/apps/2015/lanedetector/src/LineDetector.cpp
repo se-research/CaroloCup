@@ -38,6 +38,7 @@ int currentRightGoalX = 0;
 int currentLeftGoalX = 0;
 int calcRoadSize, calcRoadAngle;
 float minXI, minYI, YI;
+long startTime;
 
 LineDetector::LineDetector(const Mat &f, const Config &cfg, const bool debug,
                            const int id) :
@@ -78,7 +79,6 @@ Lines LineDetector::getLines()
 void LineDetector::findLines(cv::Mat &outputImg)
 {
 
-    long startTime;
     if (m_debug)
         {
             TimeStamp currentTime;
@@ -1275,62 +1275,83 @@ void LineDetector::createTrajectory(LinesToUse *ltu)
         }
     std::vector<int> defaultCutPoints;
     defaultCutPoints.push_back(180);
-    defaultCutPoints.push_back(100);
-    defaultCutPoints.push_back(50);
+    //defaultCutPoints.push_back(100);
+    //defaultCutPoints.push_back(50);
     std::vector<int> cutPoints;
     std::vector<CustomLine> leftSplitted;
     std::vector<CustomLine> rightSplitted;
     std::vector<CustomLine> dashToUse;
 
-    // -- Derive cutpoints for the solid line and match which dash to use to which
+    // -- Derive cutpoints for the solid line and match which dash to use to which (arbitrary many goal lines)
     // part of the cutted solid line --
-    if (ltu->foundD)
-        {
-            dashToUse = ltu->dashedCurve;
-            // Set up cut points for splitting it and specify where the goal lines shall start at
-            for (int i = 0; i < ltu->dashedCurve.size(); i++)
-                {
-                    int cutP = ltu->dashedCurve[i].p2.y;
-                    if (cutP > defaultCutPoints[0])
-                        cutPoints.push_back(defaultCutPoints[0]);
-                    else
-                        cutPoints.push_back(cutP);
-                }
+    // if (ltu->foundD)
+    //     {
+    //         dashToUse = ltu->dashedCurve;
+    //         // Set up cut points for splitting it and specify where the goal lines shall start at
+    //         for (int i = 0; i < ltu->dashedCurve.size(); i++)
+    //             {
+    //                 int cutP = ltu->dashedCurve[i].p2.y;
+    //                 if (cutP > defaultCutPoints[0])
+    //                     cutPoints.push_back(defaultCutPoints[0]);
+    //                 else
+    //                     cutPoints.push_back(cutP);
+    //             }
 
-            if (ltu->foundR || ltu->foundL)
-                // Add cut points to have cut points throughout the whole frame
-                {
-                    int lowestDashPointInLowestCut = ltu->dashedCurve[0].p1.y; // Observe that p1 is used
-                    int highestCut = cutPoints[cutPoints.size() - 1];
+    //         if (ltu->foundR || ltu->foundL)
+    //             // Add cut points to have cut points throughout the whole frame
+    //             {
+    //                 int lowestDashPointInLowestCut = ltu->dashedCurve[0].p1.y; // Observe that p1 is used
+    //                 int highestCut = cutPoints[cutPoints.size() - 1];
 
-                    for (int i = 0; i < defaultCutPoints.size(); i++)
-                        {
-                            if (highestCut - 50 > defaultCutPoints[i])
-                                {
-                                    cutPoints.push_back(defaultCutPoints[i]);
-                                    dashToUse.push_back(getNoneCustomLine());
-                                }
-                            else if (lowestDashPointInLowestCut + 30 < defaultCutPoints[i])
-                                {
-                                    cutPoints.insert(cutPoints.begin(), defaultCutPoints[i]);
-                                    // It is assumed that it is safe to use the same dash line eq. to
-                                    // calculate the goalLine more closer to the car.
-                                    // TODO: Verify assumption.
-                                    dashToUse.insert(dashToUse.begin(), CustomLine(dashToUse[0]));
-                                }
-                        }
-                    dashToUse.push_back(getNoneCustomLine());
-                }
+    //                 for (int i = 0; i < defaultCutPoints.size(); i++)
+    //                     {
+    //                         if (highestCut - 50 > defaultCutPoints[i])
+    //                             {
+    //                                 cutPoints.push_back(defaultCutPoints[i]);
+    //                                 dashToUse.push_back(getNoneCustomLine());
+    //                             }
+    //                         else if (lowestDashPointInLowestCut + 30 < defaultCutPoints[i])
+    //                             {
+    //                                 cutPoints.insert(cutPoints.begin(), defaultCutPoints[i]);
+    //                                 // It is assumed that it is safe to use the same dash line eq. to
+    //                                 // calculate the goalLine more closer to the car.
+    //                                 // TODO: Verify assumption.
+    //                                 dashToUse.insert(dashToUse.begin(), CustomLine(dashToUse[0]));
+    //                             }
+    //                     }
+    //                 dashToUse.push_back(getNoneCustomLine());
+    //             }
+    //     }
+    // else if (ltu->foundR || ltu->foundL)
+    //     // If we got no dash lines but we got a solid, provide cut points for spliting the solid line.
+    //     {
+    //         cutPoints = defaultCutPoints;
+    //         for (int i = 0; i < defaultCutPoints.size() + 1; i++)
+    //             {
+    //                 dashToUse.push_back(getNoneCustomLine());
+    //             }
+    //     }
+
+    //simpified cut point derivation that will ensure that we get maximum of two goal lines  
+    if(ltu->foundD){
+        int size = ltu->dashedCurve.size();
+        dashToUse.push_back((ltu->dashedCurve)[0]);
+        int cutP = ltu->dashedCurve[0].p2.y;
+        if (cutP > defaultCutPoints[0])
+            cutPoints.push_back(defaultCutPoints[0]);
+        else
+            cutPoints.push_back(cutP);
+
+        if(size > 1){
+            dashToUse.push_back((ltu->dashedCurve)[1]);
+        }else{
+            dashToUse.push_back(getNoneCustomLine());
         }
-    else if (ltu->foundR || ltu->foundL)
-        // If we got no dash lines but we got a solid, provide cut points for spliting the solid line.
-        {
-            cutPoints = defaultCutPoints;
-            for (int i = 0; i < defaultCutPoints.size() + 1; i++)
-                {
-                    dashToUse.push_back(getNoneCustomLine());
-                }
-        }
+    }else{
+        cutPoints.push_back(defaultCutPoints[0]);
+        dashToUse.push_back(getNoneCustomLine());
+        dashToUse.push_back(getNoneCustomLine());
+    }
 
     // -- Split solid lines --
     bool splitRight = false;
