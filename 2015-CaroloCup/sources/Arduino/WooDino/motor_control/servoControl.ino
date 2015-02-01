@@ -192,13 +192,13 @@ void loop()
               if(speed < MIN_REVERSE_SPEED || speed > BRAKE_SPEED_MIN) {
                   speed = 1250;
               }
-              Serial.println("Reverse");
+             // Serial.println("Reverse");
             } else if(readbyte == 'f') {
               reverse = 1;
               if(speed < INIT_MOTOR_SPEED || speed > MAX_MOTOR_SPEED) {
                   speed = 1530;
               }
-              Serial.println("Forward");
+            //  Serial.println("Forward");
             }
           } else if (readbyte == '-') {
             applyCruiseCtrl = false;
@@ -317,8 +317,8 @@ void loop()
     //Serial.println(freq);
     int goalSpeed = setFreq;
     int error = goalSpeed - 10*carSpeed;
-    Serial.print("Error: ");
-    Serial.println(error);
+   // Serial.print("Error: ");
+  //  Serial.println(error);
     if(abs(error)<35 && abs(error) > 1) {
       error = error - 1;
       //int errorSign = error < 0 ? -1 : +1;
@@ -373,8 +373,8 @@ void loop()
 }
 
 void controlMotor() {
-  Serial.print("speed: ");
-  Serial.println(speed);
+  //Serial.print("speed: ");
+//  Serial.println(speed);
   myMotor.writeMicroseconds(speed);
   if(speed < BRAKE_SPEED_MAX && speed > BRAKE_SPEED_MIN) {
     brakeLeds(true);
@@ -392,7 +392,7 @@ void controlMotor() {
 void controlSteering() {
   //Serial.print("angle: ");
   int inpAngle = angle;
-  angle = 90 + angle * multiplier;
+  angle = 90 + angle * multiplier * -1;
   //Serial.println(angle);
   mySteering.write(angle);
 }
