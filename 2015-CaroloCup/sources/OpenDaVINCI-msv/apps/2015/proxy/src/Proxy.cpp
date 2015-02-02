@@ -9,6 +9,7 @@
 #include <cmath>
 #include <string>
 
+#include "core/base/Thread.h"
 #include "core/base/KeyValueConfiguration.h"
 #include "core/data/Container.h"
 #include "core/data/TimeStamp.h"
@@ -424,7 +425,9 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 	  m_protocol.setSpeed(0); 
 	}
 	m_protocol.setSteeringAngle(0);
+	sp.setStringListener(NULL);
 	serialPort->stop();
+	core::base::Thread::usleep(1000*1000);
 	OPENDAVINCI_CORE_DELETE_POINTER(serialPort);
 	log("Proxy killed");
 	return ModuleState::OKAY;
