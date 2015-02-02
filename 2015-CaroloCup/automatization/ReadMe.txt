@@ -1,8 +1,13 @@
+README for automation file.
 
-Monitor your repository and pull on changes.
+How to use it:
+!!! Make sure you have *.rec and *.rec.mem files in the run directory (/opt/msv/bin/2013/DIT-168/project-template) 
+python automation.py -r <recording_file> -c <ground_truth_file> or
+python automation.py --recording <recording_file> --csvfile <ground_truth_file>'
 
-Requirements :
-* python - 2.7.* 
-* Git_python - https://pythonhosted.org/GitPython/
+example: python automation.py -r RightLaneMissing.rec -c RightLaneMissing.csv
+
+recording file and ground truth file has to be in the run directory
+which is by default : "/opt/msv/bin/2013/DIT-168/project-template"
 
 
