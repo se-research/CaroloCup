@@ -1282,6 +1282,11 @@ void LineDetector::createTrajectory(LinesToUse *ltu)
     std::vector<CustomLine> rightSplitted;
     std::vector<CustomLine> dashToUse;
 
+    //////////////////
+    // The code (commented out) below provides at least two cut points up to as many cut points as there is dashes found.
+    // The function also stores the found dashes in the vector dashToUse that is later used as input to goalLine calculations.
+    // If no dashes are found, the default cut points are used and dashToUse is filled with dummy lines.
+    //////////////////
     // -- Derive cutpoints for the solid line and match which dash to use to which (arbitrary many goal lines)
     // part of the cutted solid line --
     // if (ltu->foundD)
@@ -1332,7 +1337,12 @@ void LineDetector::createTrajectory(LinesToUse *ltu)
     //             }
     //     }
 
-    //simpified cut point derivation that will ensure that we get maximum of two goal lines  
+    //////////////////
+    // The code below is a REALLY simple version of the code above; this provides maximum of one cut point.
+    // The function also stores maximum two found dashes in the vector dashToUse that is later used as input to goalLine calculations.
+    // If no dashes are found, the default cut points are used and dashToUse is filled with dummy lines.
+    // This code result in that createTrajectory(..) will output at most two goalLines.
+    //////////////////
     if(ltu->foundD){
         int size = ltu->dashedCurve.size();
         dashToUse.push_back((ltu->dashedCurve)[0]);
@@ -1353,7 +1363,10 @@ void LineDetector::createTrajectory(LinesToUse *ltu)
         dashToUse.push_back(getNoneCustomLine());
     }
 
-    // -- Split solid lines --
+    //////////////////
+    // The code below splits the found solid lines at the derived cut points.
+    // If the solid line was not found, dummy lines (None lines) is inserted. 
+    //////////////////
     bool splitRight = false;
     if (ltu->foundR || ltu->foundL)
         {
@@ -1370,7 +1383,6 @@ void LineDetector::createTrajectory(LinesToUse *ltu)
                     leftSplitted = splitSolidLines(cutPoints, ltu->leftLine);
                 }
         }
-
     // Fill potentially empty vector with None lines
     if (leftSplitted.size() == 0)
         {
@@ -1390,7 +1402,11 @@ void LineDetector::createTrajectory(LinesToUse *ltu)
     // used for debug of getRoadSize and getRoadAngle
     rrd.nmbOfRounds = 0;
 
-    // -- Create a vector of goal lines --
+    //////////////////
+    // This for loop creates the goalLines, one for each iteration.
+    // The three lines (left, dash, right) associated to a specific cut is fed to provideGoalLine(..).
+    // Remember that those can potentially be dummy lines.
+    //////////////////
     std::vector<CustomLine> rightGoalLines, leftGoalLines;
     std::vector<bool> estimatedLeft (dashToUse.size(), false);
     std::vector<bool> estimatedDash (dashToUse.size(), false);
@@ -1467,8 +1483,9 @@ void LineDetector::createTrajectory(LinesToUse *ltu)
     // }
     // imshow("used for debug of getRoadSize and getRoadAngle", frame);
 
-    // Create current line
-    //Assume this position as the car position
+    //////////////////
+    // Here is the currentLine derived, which states the car's current position and heading. 
+    //////////////////
     Point position;
     position.x = w / 2;
     position.y = h;
@@ -1481,26 +1498,39 @@ void LineDetector::createTrajectory(LinesToUse *ltu)
     currentLine.p2 = position;
     currentLine.slope = getLineSlope(heading, position);
 
-    // -- find the intersection points of the goal lines --
+    //////////////////
+    // Here is the switchpoints between two consecutive goalLines derived. 
+    // I.e. in which interval a goalLine can be seen as valid.
+    // Due to execution time limitations the cutPoints are simply given. The idea is to use
+    // trajectorySwitchingPoints(..) that finds out these points in a more complex fasion.
+    // PS. trajectorySwitchingPoints(..) needs to be tweaked to work as we want. (was used for 
+    // something else before)
+    //////////////////
     std::vector<int> switchPointsRightGoalLines, switchPointsLeftGoalLines;
 
-    for (int i = 1; i < rightGoalLines.size() + 1; i++)
-        {
-            // find the intersection point between line i-1 and i
+    // for (int i = 1; i < rightGoalLines.size() + 1; i++)
+    //     {
+            // find the intersection point between goalLine i-1 and i
             // switchPoints.push_back(trajectorySwitchingPoints(goalLines[i - 1], goalLines[i]));
 
-        }
-
+        // }
     // Easy fix:
     switchPointsRightGoalLines = cutPoints;
     switchPointsLeftGoalLines = cutPoints;
-    // For now we give the switchPoints and goalLines to driver
-    // TODO:
-    // Make a bspline curve to give instead of the goalLines
 
+    //////////////////
+    // From the switch points, we can use curve fitting to derive a curve that 
+    // goes through the switch points. But that is not implemented.
+    //////////////////
+
+    //////////////////
+    // Create a object that the laneDetector can send to driver.
+    //////////////////
     dataToDriver = new LaneDetectorDataToDriver(switchPointsLeftGoalLines, switchPointsRightGoalLines, leftGoalLines, rightGoalLines, currentLine, false);
 
-    // Provide debug data
+    //////////////////
+    // Debug data is provided that is used by lanedetector and lanedetector-inspection modules.
+    //////////////////
     if (m_debug){
         finalOutput.cutPoints = cutPoints;
         finalOutput.left = leftSplitted;
@@ -2209,7 +2239,9 @@ std::vector<Point> LineDetector::trajectorySwitchingPoints(std::vector<CustomLin
     return points;
 }
 
+//////////////////
 // A wrapper for splitContourAtPoints
+//////////////////
 std::vector<CustomLine> LineDetector::splitSolidLines(std::vector<int> cutAt, CustomLine solid)
 {
     bool printouts = false; // Gives debug text and window
@@ -2229,7 +2261,9 @@ std::vector<CustomLine> LineDetector::splitSolidLines(std::vector<int> cutAt, Cu
     //         return unCutSolid;
     //     }
 
-    // Transform into Point vector
+    //////////////////
+    // Transform the cut point int vector into a Point vector
+    //////////////////
     std::vector<Point> cutPoints;
     for (int i = 0; i < cutAt.size(); i++)
         {
@@ -2245,9 +2279,14 @@ std::vector<CustomLine> LineDetector::splitSolidLines(std::vector<int> cutAt, Cu
             }
         }
 
+    //////////////////
+    // Cut the provided solid line
+    //////////////////
     std::vector<RotatedRect> rectangles = splitContourAtPoints(cutPoints, solid.polygonIndex, true);
 
-    // Transform RotatedRect to Customlines
+    //////////////////
+    // Transform the vector of RotatedRect into Customlines
+    //////////////////
     for (int i = 0; i < rectangles.size(); i++)
         {
             // Check if it was possible to make a certain cut
@@ -2261,6 +2300,7 @@ std::vector<CustomLine> LineDetector::splitSolidLines(std::vector<int> cutAt, Cu
                         line(out, rect_points[j], rect_points[(j + 1) % 4], Scalar(255, 0, 0));
                     }
             }
+            // Check if a valid RotatedRect was provided
             if (rect_points[0] == none && rect_points[1] == none)
                 {
                     if (printouts)
