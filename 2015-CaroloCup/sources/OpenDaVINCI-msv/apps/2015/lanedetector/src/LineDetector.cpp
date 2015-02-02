@@ -1275,8 +1275,8 @@ void LineDetector::createTrajectory(LinesToUse *ltu)
         }
     std::vector<int> defaultCutPoints;
     defaultCutPoints.push_back(180);
-    //defaultCutPoints.push_back(100);
-    //defaultCutPoints.push_back(50);
+    defaultCutPoints.push_back(100);
+    defaultCutPoints.push_back(50);
     std::vector<int> cutPoints;
     std::vector<CustomLine> leftSplitted;
     std::vector<CustomLine> rightSplitted;
@@ -1411,16 +1411,17 @@ void LineDetector::createTrajectory(LinesToUse *ltu)
     std::vector<bool> estimatedLeft (dashToUse.size(), false);
     std::vector<bool> estimatedDash (dashToUse.size(), false);
     std::vector<bool> estimatedRight (dashToUse.size(), false);
+    std::vector<int> confidenceLevel_goalLine;
     for (int i = 0; i < dashToUse.size(); i++)
         {
 		cout << "------calcgoalline start lap: "<< i << endl;
             EstimationData ed;
             GoalLineData gld;
             ed.left = leftSplitted[i];
-            // ed.left = getNoneCustomLine();
             ed.dash = dashToUse[i];
-            // ed.dash = getNoneCustomLine();
             ed.right = rightSplitted[i];
+            // ed.left = getNoneCustomLine();
+            // ed.dash = getNoneCustomLine();
             // ed.right = getNoneCustomLine();
             if (i == 0)
                 ed.yPosition = h;
@@ -1449,9 +1450,15 @@ void LineDetector::createTrajectory(LinesToUse *ltu)
                         rightSplitted[i] = ed.right;
                     }
             }
+            confidenceLevel_goalLine.push_back(gld.confidenceLevel_rightGoalLine);
             rightGoalLines.push_back(gld.rightGoalLine);
             leftGoalLines.push_back(gld.leftGoalLine);
         }
+    int confidenceLevel_goalLine0 = 0;
+    if (rightGoalLines.size() > 0){
+        confidenceLevel_goalLine0 = confidenceLevel_goalLine[0];
+    }
+
 
     // used for debug of getRoadSize and getRoadAngle
     // Mat frame = m_frame_color.clone();
@@ -1526,7 +1533,7 @@ void LineDetector::createTrajectory(LinesToUse *ltu)
     //////////////////
     // Create a object that the laneDetector can send to driver.
     //////////////////
-    dataToDriver = new LaneDetectorDataToDriver(switchPointsLeftGoalLines, switchPointsRightGoalLines, leftGoalLines, rightGoalLines, currentLine, false);
+    dataToDriver = new LaneDetectorDataToDriver(switchPointsLeftGoalLines, switchPointsRightGoalLines, leftGoalLines, rightGoalLines, currentLine, false, confidenceLevel_goalLine0);
 
     //////////////////
     // Debug data is provided that is used by lanedetector and lanedetector-inspection modules.
@@ -1575,6 +1582,7 @@ void LineDetector::provideGoalLine(EstimationData *ed, GoalLineData *gld)
     ed->isDashEstimated = false;
     ed->isRightEstimated = false;
     ed->foundGoal = false;
+    gld->confidenceLevel_rightGoalLine = 0;
     float roadSizeAdjustment = 1 - (300 - (float(ed->yPosition))) / 350;
 
     CustomLine lineUsedForEstimation = getNoneCustomLine(); // used for debug of getRoadSize and getRoadAngle
@@ -1607,12 +1615,14 @@ void LineDetector::provideGoalLine(EstimationData *ed, GoalLineData *gld)
                 {
                     // Calculate both goal lines
                     gld->rightGoalLine = simple_calculateGoalLine(ed->dash, ed->right, ed);
+                    gld->confidenceLevel_rightGoalLine = 5;
                     gld->leftGoalLine = simple_calculateGoalLine(ed->left, ed->dash, ed);
                 }
             else if (foundR)
                 {
                     // Calculate right goal line
                     gld->rightGoalLine = simple_calculateGoalLine(ed->dash, ed->right, ed);
+                    gld->confidenceLevel_rightGoalLine = 5;
                     // Shift calculation result to get left goal line
                     gld->leftGoalLine = gld->rightGoalLine;
                     gld->leftGoalLine.p2.x -= ed->calcRoadSize;
@@ -1626,6 +1636,7 @@ void LineDetector::provideGoalLine(EstimationData *ed, GoalLineData *gld)
                     gld->rightGoalLine = gld->leftGoalLine;
                     gld->rightGoalLine.p2.x += ed->calcRoadSize;
                     gld->rightGoalLine.slope = getLineSlope(gld->rightGoalLine.p2, gld->rightGoalLine.p1);
+                    gld->confidenceLevel_rightGoalLine = 4;
                 }
             else
                 {
@@ -1653,6 +1664,7 @@ void LineDetector::provideGoalLine(EstimationData *ed, GoalLineData *gld)
 
                     // Calculate right goal line
                     gld->rightGoalLine = simple_calculateGoalLine(ed->dash, ed->right, ed);
+                    gld->confidenceLevel_rightGoalLine = 3;
                     // Shift calculation result to get left goal line
                     gld->leftGoalLine = gld->rightGoalLine;
                     gld->leftGoalLine.p2.x -= ed->calcRoadSize;
@@ -1672,6 +1684,7 @@ void LineDetector::provideGoalLine(EstimationData *ed, GoalLineData *gld)
             gld->leftGoalLine.slope = getLineSlope(gld->leftGoalLine.p2, gld->leftGoalLine.p1);
             gld->rightGoalLine.p2.x += ed->calcRoadSize / 4;
             gld->rightGoalLine.slope = getLineSlope(gld->rightGoalLine.p2, gld->rightGoalLine.p1);
+            gld->confidenceLevel_rightGoalLine = 4;
 
         }
     else if (foundR)
@@ -1703,6 +1716,7 @@ void LineDetector::provideGoalLine(EstimationData *ed, GoalLineData *gld)
             ed->isDashEstimated = true;
             // Calculate right goal line
             gld->rightGoalLine = simple_calculateGoalLine(ed->dash, ed->right, ed);
+            gld->confidenceLevel_rightGoalLine = 3;
             // Shift calculation result to get left goal line
             gld->leftGoalLine = gld->rightGoalLine;
             gld->leftGoalLine.p2.x -= ed->calcRoadSize;
@@ -1740,6 +1754,7 @@ void LineDetector::provideGoalLine(EstimationData *ed, GoalLineData *gld)
             gld->rightGoalLine = gld->leftGoalLine;
             gld->rightGoalLine.p2.x += ed->calcRoadSize;
             gld->rightGoalLine.slope = getLineSlope(gld->rightGoalLine.p2, gld->rightGoalLine.p1);
+            gld->confidenceLevel_rightGoalLine = 2;
         }
 
     // Set the global variable used in charasteristicFiltering
@@ -2245,6 +2260,7 @@ std::vector<Point> LineDetector::trajectorySwitchingPoints(std::vector<CustomLin
 std::vector<CustomLine> LineDetector::splitSolidLines(std::vector<int> cutAt, CustomLine solid)
 {
     bool printouts = false; // Gives debug text and window
+    bool deactivateSplitting = false;
     cv::Mat out;
 
     if (printouts){
@@ -2253,13 +2269,15 @@ std::vector<CustomLine> LineDetector::splitSolidLines(std::vector<int> cutAt, Cu
     }
     std::vector<CustomLine> splittedSolid;
 
+    //////////////////
     // Check whether is it necessary to split the solid line e.g. it is a straight line
-    // if (line_sizes[solid.polygonIndex].sizeX < 30)  // pixel width of the solid line's rectangle
-    //     {
-    //         // Return vector with replicated solid lines
-    //         std::vector<CustomLine> unCutSolid (cutAt.size() + 1, solid);
-    //         return unCutSolid;
-    //     }
+    //////////////////
+    if (line_sizes[solid.polygonIndex].sizeX < 30 || deactivateSplitting)  // pixel width of the solid line's rectangle
+        {
+            // Return vector with replicated solid lines
+            std::vector<CustomLine> unCutSolid (cutAt.size() + 1, solid);
+            return unCutSolid;
+        }
 
     //////////////////
     // Transform the cut point int vector into a Point vector
