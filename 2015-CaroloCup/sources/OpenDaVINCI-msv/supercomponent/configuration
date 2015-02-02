@@ -178,7 +178,7 @@ recintegrity.input = file:///dev/stdin
 # CONFIGURATION FOR PROXY
 #
 proxy.debug = 1
-proxy.useRecorder = 1 # 1 = record all captured data directly, 0 otherwise. 
+proxy.useRecorder = 0 # 1 = record all captured data directly, 0 otherwise. 
 proxy.recorder.output = file://recs/
 proxy.camera.name = WebCam
 proxy.camera.type = UEYE # OpenCV or UEYE

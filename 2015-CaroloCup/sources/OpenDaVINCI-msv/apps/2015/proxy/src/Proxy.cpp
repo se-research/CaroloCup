@@ -128,12 +128,14 @@ void Proxy::setUp() {
 void Proxy::nextString(const string &s)
 {
 	log("Recieved Sensor Data ");
-	cout<<"data,"<<s<<endl;
+//	cout<<"data,"<<s<<endl;
 	int posIstr=s.find(':');
 	int posUstr=s.find(':',posIstr+1);
+	int posLstr=s.find(':',posUstr+1);
 	string iStr=s.substr(2,posIstr);
 	string uStr=s.substr(posIstr+1,posUstr-posIstr);
-	string wStr=s.substr(posUstr+1);
+	string lStr=s.substr(posUstr+1,posLstr-posUstr);
+	string wStr=s.substr(posLstr+1);
     if (iStr[0] == 'i') {
 
 		char firstInfra[2];
@@ -174,9 +176,10 @@ void Proxy::nextString(const string &s)
 		}
 		if (m_debug) {
 			cout << "proxy:" << s << endl;
-			cout << "uStr:" << uStr << endl;
-			cout << "iStr:" << iStr << endl;
-			cout << "wStr:" << wStr <<endl;
+//			cout << "uStr:" << uStr << endl;
+//			cout << "iStr:" << iStr << endl;
+//			cout << "lStr:" << lStr << endl;
+//			cout << "wStr:" << wStr <<endl;
 			cout << "Found First: " << m_sensorBoardData.getDistance(0) << endl;
 			cout << "Found Second: " << m_sensorBoardData.getDistance(1)
 					<< endl;
@@ -237,11 +240,28 @@ void Proxy::nextString(const string &s)
 				Lock l(m_sensorBoardMutex);
 				m_sensorBoardData.update(6, distanceTraveled);
 			}
+			if(m_debug)
+			     {
+			  	    	cout << "Found Encoder: " << m_sensorBoardData.getDistance(6) << endl;
+			      }
     }
-    if(m_debug)
-   		    {
-   		    	cout << "Found Encoder: " << m_sensorBoardData.getDistance(6) << endl;
-   		    }
+    if(lStr[0]=='l')
+      {
+	char ambientLight[3];
+	ambientLight[0]=lStr[1];
+	ambientLight[1]=lStr[2];
+	ambientLight[2]=lStr[3];
+	int lux=converter(ambientLight,3);
+	{
+		Lock l(m_sensorBoardMutex);
+		m_sensorBoardData.update(7, lux);
+	}
+	if(m_debug)
+	{
+	   	cout << "Found Light: " << m_sensorBoardData.getDistance(7) << endl;
+	}
+      }
+
     log("Converted sensor values "+m_sensorBoardData.toString());
 
 }
