@@ -34,7 +34,7 @@ using namespace core::data::image;
 using namespace tools::player;
 using namespace cv;
 
-bool debug;
+bool debug, print_results = true;
 Config cfg;
 // Global variables for camera functions
 int  avg_time = 0, num_msmnt;
@@ -545,7 +545,7 @@ void LaneDetector_inspection::showResult_getContours(IntermediateResult_getConto
     //Mat frame = f.clone();
     Mat frame(f.rows, f.cols, CV_8UC1, Scalar(0, 0, 0));
 
-    if (m_debug)
+    if (m_debug && print_results)
         {
             cout << "__START: All found contours" << endl;
             cout << "NOT IMPLEMENTED" << endl;
@@ -566,7 +566,7 @@ void LaneDetector_inspection::showResult_getRectangles(IntermediateResult_getRec
     //Mat frame = f.clone();
     Mat frame(f.rows, f.cols, CV_8UC1, Scalar(0, 0, 0));
 
-    if (m_debug)
+    if (m_debug && print_results)
         {
             cout << "__START: All found rectangles" << endl;
             cout << res->rects.size() << " rectangles." << endl;
@@ -592,7 +592,7 @@ void LaneDetector_inspection::showResult_classification(IntermediateResult *res,
 {
     Mat frame = f.clone();
 
-    if (m_debug)
+    if (m_debug && print_results)
         {
             cout << "__START: Result after classification " << endl;
             cout << "Dashes: " << res->cntDash << endl;
@@ -605,7 +605,7 @@ void LaneDetector_inspection::showResult_classification(IntermediateResult *res,
         addInspectionInfo(road, frame);
 
     imshow("Result from classification", frame);
-    if (m_debug)
+    if (m_debug && print_results)
         {
             cout << "__END: Result after classification" << endl;
         }
@@ -616,7 +616,7 @@ void LaneDetector_inspection::showResult_filterAndMerge(IntermediateResult *res,
 {
     Mat frame = f.clone();
 
-    if (m_debug)
+    if (m_debug && print_results)
         {
             cout << "__START: Result after filterAndMerge " << endl;
             cout << "Dashes: " << res->cntDash << endl;
@@ -629,7 +629,7 @@ void LaneDetector_inspection::showResult_filterAndMerge(IntermediateResult *res,
         addInspectionInfo(road, frame);
 
     imshow("Result from filterAndMerge", frame);
-    if (m_debug)
+    if (m_debug && print_results)
         {
             cout << "__END: Result after filterAndMerge" << endl;
         }
@@ -640,7 +640,7 @@ void LaneDetector_inspection::showResult_finalFilter(IntermediateResult *res, Li
 {
     Mat frame = f.clone();
 
-    if (m_debug)
+    if (m_debug && print_results)
         {
             cout << "__START: Result after finalFilter " << endl;
             cout << "Dashes: " << res->cntDash << endl;
@@ -653,7 +653,7 @@ void LaneDetector_inspection::showResult_finalFilter(IntermediateResult *res, Li
         addInspectionInfo(road, frame);
 
     imshow("Result from finalFilter", frame);
-    if (m_debug)
+    if (m_debug && print_results)
         {
             cout << "__END: Result after finalFilter" << endl;
         }
@@ -664,7 +664,7 @@ void LaneDetector_inspection::showResult_finalResult(LinesToUse *res, LineDetect
 {
     Mat frame = f.clone();
 
-    if (m_debug)
+    if (m_debug && print_results)
         {
             cout << "__START: Final result" << endl;
         }
@@ -679,7 +679,7 @@ void LaneDetector_inspection::showResult_finalResult(LinesToUse *res, LineDetect
             drawLines(res->lines, &frame, 0);
         }
 
-    if (m_debug)
+    if (m_debug && print_results)
         {
             cout << "Found lines, left: " << res->foundL << ". dashed: " << res->foundD << ". right: " << res->foundR << endl;
             cout << "Left line. p1(" << res->leftLine.p1.x << "," << res->leftLine.p1.y << ") p2(" << res->leftLine.p2.x << "," << res->leftLine.p2.y << ")" << endl;
@@ -697,7 +697,7 @@ void LaneDetector_inspection::showResult_finalResult(LinesToUse *res, LineDetect
         addInspectionInfo(road, frame);
 
     imshow("Final result", frame);
-    if (m_debug)
+    if (m_debug && print_results)
         {
             cout << "__END: Final result" << endl;
         }
@@ -724,7 +724,7 @@ void LaneDetector_inspection::showResult_createTrajectory(FinalOutput *res, Line
 
     // TODO: display switchPoints
 
-    if (m_debug)
+    if (m_debug && print_results)
         {
             cout << "__START: createTrajectory" << endl;
         }
@@ -762,7 +762,7 @@ void LaneDetector_inspection::showResult_createTrajectory(FinalOutput *res, Line
                 line(frame, pad(&top,&left,p), pad(&top,&left,q), Scalar(255, 255, 255), 1, CV_AA);
             }
 
-        if (m_debug)
+        if (m_debug && print_results)
             {
             for (int i = 0; i < res->cutPoints.size(); i++){
                 cout << "cutPoint: " << res->cutPoints[i] << endl;
@@ -793,7 +793,7 @@ void LaneDetector_inspection::showResult_createTrajectory(FinalOutput *res, Line
         addInspectionInfo(road, frame);
 
     imshow("Result from createTrajectory", frame);
-    if (m_debug)
+    if (m_debug && print_results)
         {
             cout << "__END: createTrajectory" << endl;
         }
@@ -843,7 +843,7 @@ void LaneDetector_inspection::print_lines(IntermediateResult *res, Mat &f)
     for (int i = 0; i < res->cntDash; i++)
         {
             line(f, res->dashLines[i].p1, res->dashLines[i].p2, 45, 2);
-            if (m_debug)
+            if (m_debug && print_results)
                 {
                     cout << "Dash line angle: " << res->dashLines[i].slope << endl;
                 }
@@ -851,7 +851,7 @@ void LaneDetector_inspection::print_lines(IntermediateResult *res, Mat &f)
     for (int i = 0; i < res->cntSolid; i++)
         {
             line(f, res->solidLines[i].p1, res->solidLines[i].p2, 0, 2);
-            if (m_debug)
+            if (m_debug && print_results)
                 {
                     cout << "Solid line angle: " << res->solidLines[i].slope << endl;
                 }
