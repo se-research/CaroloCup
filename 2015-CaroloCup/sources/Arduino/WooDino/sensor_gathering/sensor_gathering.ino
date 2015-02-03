@@ -144,7 +144,7 @@ void loop()
   }
 
   int lightVal= getAmbientLight();
-  char lStr[4];
+  char lStr[7];
   sprintf(lStr, "l%3d",lightVal);
 
   
@@ -159,6 +159,8 @@ void loop()
   Serial.print(irStr);
   Serial.print(":");
   Serial.print(uStr);
+  Serial.print(":");
+  Serial.print(lStr);
   Serial.print(":");
   Serial.println(wStr);
 }
