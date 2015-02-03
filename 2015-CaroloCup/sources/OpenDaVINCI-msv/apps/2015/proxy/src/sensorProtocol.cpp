@@ -52,7 +52,8 @@ using namespace core::wrapper;
                 	  // points to the beginning of the stream and further receivedString() calls
                 	  // would override existing data. So the write pointer has to point to the
                 	  // end of the stream.
-                	  m_partialData.seekp(0, ios_base::end);
+                	 // m_partialData.seekp(0, ios_base::end);
+			    m_partialData.str("");
                   }
                }
 

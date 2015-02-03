@@ -145,9 +145,10 @@ public:
         currentLine(),
 		roadState(NORMAL),
 		confidenceLevel(0),
+    confidenceLevel_goalLine(0),
 		noTrajectory(true)
     {}
-    LaneDetectorDataToDriver (vector<int> spl, vector<int> spr, vector<CustomLine> lgl, vector<CustomLine> rgl, CustomLine c, bool nothing):
+    LaneDetectorDataToDriver (vector<int> spl, vector<int> spr, vector<CustomLine> lgl, vector<CustomLine> rgl, CustomLine c, bool nothing, int clgl):
         switchPointsLeftGoalLines0(spl[0]),
 	switchPointsRightGoalLines0(spr[0]),	
 	switchPointsLeftGoalLines1(spl[1]),
@@ -160,7 +161,8 @@ public:
         rightGoalLines2(rgl[2]),
         currentLine(c),
 		roadState(NORMAL),
-		confidenceLevel(0),
+    confidenceLevel(0),
+    confidenceLevel_goalLine(clgl),
 		noTrajectory(nothing)
     {}
     virtual ~LaneDetectorDataToDriver () {}
@@ -186,6 +188,7 @@ public:
     CustomLine currentLine;
     RoadState roadState;
     int confidenceLevel;
+    int confidenceLevel_goalLine;
     bool noTrajectory;
 };
 

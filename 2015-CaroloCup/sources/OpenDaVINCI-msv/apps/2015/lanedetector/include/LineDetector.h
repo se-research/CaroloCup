@@ -109,6 +109,7 @@ struct FinalOutput {
 struct GoalLineData {
 	CustomLine rightGoalLine;
 	CustomLine leftGoalLine;
+	int confidenceLevel_rightGoalLine;
 };
 
 struct RoadAngle_RoadSize_debug {
