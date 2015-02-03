@@ -2272,12 +2272,8 @@ std::vector<Point> LineDetector::trajectorySwitchingPoints(std::vector<CustomLin
 //////////////////
 std::vector<CustomLine> LineDetector::splitSolidLines(std::vector<int> cutAt, CustomLine solid)
 {
-<<<<<<< HEAD
-	bool printouts = false;
-=======
     bool printouts = false; // Gives debug text and window
     bool deactivateSplitting = false;
->>>>>>> 108fe89e64cc1915c66d816927f045cea512a73d
     cv::Mat out;
 
     if (printouts){
