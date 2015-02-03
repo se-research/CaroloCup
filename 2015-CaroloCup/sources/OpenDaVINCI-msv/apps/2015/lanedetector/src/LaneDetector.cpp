@@ -200,7 +200,7 @@ void LaneDetector::processImage()
     dataToDriver.setConfidence(road.getConfidenceLevel());
 
     lines.setCurrentLine(dataToDriver.currentLine);
-    cout << "State: "<< road.getRoadState() << "Confidence: " << road.getConfidenceLevel() << endl;
+
     if (&lines != NULL)
         cout << "We have lines for frame " << m_frame_count << endl;
     LaneDetectionData data;
@@ -437,77 +437,76 @@ void LaneDetector::showResult(LineDetector &road, Mat &f)
 }
 void LaneDetector::showResult_createTrajectory(FinalOutput *res, LineDetector &road, Mat &f)
 {
+	bool printouts = false;
 
     Mat frame = f.clone();
 
-    if (debug)
+    if (printouts)
         {
             cout << "__START: createTrajectory" << endl;
         }
     if (res->noTrajectory == true){
             cout << "Nothing in..." << endl;
 
-        }else{
-            for (int i = 0; i < res->rightGoalLines.size(); i++){
-                if (res->estimatedLeft[i])
-                    line(frame, res->left[i].p1, res->left[i].p2, Scalar(255, 0, 0), 1, CV_AA);
-                else
-                    line(frame, res->left[i].p1, res->left[i].p2, Scalar(255, 0, 0), 2, CV_AA);
+    }else{
+		for (int i = 0; i < res->rightGoalLines.size(); i++){
+			if (res->estimatedLeft[i])
+				line(frame, res->left[i].p1, res->left[i].p2, Scalar(255, 0, 0), 1, CV_AA);
+			else
+				line(frame, res->left[i].p1, res->left[i].p2, Scalar(255, 0, 0), 2, CV_AA);
 
-                if (res->estimatedRight[i])
-                    line(frame, res->right[i].p1, res->right[i].p2, Scalar(0, 0, 255), 1, CV_AA);
-                else
-                    line(frame, res->right[i].p1, res->right[i].p2, Scalar(0, 0, 255), 2, CV_AA);
+			if (res->estimatedRight[i])
+				line(frame, res->right[i].p1, res->right[i].p2, Scalar(0, 0, 255), 1, CV_AA);
+			else
+				line(frame, res->right[i].p1, res->right[i].p2, Scalar(0, 0, 255), 2, CV_AA);
 
-                if (res->estimatedDash[i])
-                    line(frame, res->dash[i].p1, res->dash[i].p2, Scalar(0, 255, 0), 1, CV_AA);
-                else
-                    line(frame, res->dash[i].p1, res->dash[i].p2, Scalar(0, 255, 0), 2, CV_AA);
+			if (res->estimatedDash[i])
+				line(frame, res->dash[i].p1, res->dash[i].p2, Scalar(0, 255, 0), 1, CV_AA);
+			else
+				line(frame, res->dash[i].p1, res->dash[i].p2, Scalar(0, 255, 0), 2, CV_AA);
 
-                line(frame, res->rightGoalLines[i].p1, res->rightGoalLines[i].p2, Scalar(153, 106, 0), 2, CV_AA);
-                line(frame, res->leftGoalLines[i].p1, res->leftGoalLines[i].p2, Scalar(153, 0, 76), 2, CV_AA);
-            }
-            line(frame, res->currentLine.p1, res->currentLine.p2, Scalar(255, 0, 255), 2, CV_AA);
+			line(frame, res->rightGoalLines[i].p1, res->rightGoalLines[i].p2, Scalar(153, 106, 0), 2, CV_AA);
+			line(frame, res->leftGoalLines[i].p1, res->leftGoalLines[i].p2, Scalar(153, 0, 76), 2, CV_AA);
+		}
+		line(frame, res->currentLine.p1, res->currentLine.p2, Scalar(255, 0, 255), 2, CV_AA);
 
-            for (int i = 0; i < res->cutPoints.size(); i++){
-                Point p;
-                p.y = res->cutPoints[i];
-                p.x = 0;
-                Point q = p;
-                q.x = 800;
-                line(frame, p, q, Scalar(255, 255, 255), 1, CV_AA);
-            }
+		for (int i = 0; i < res->cutPoints.size(); i++){
+			Point p;
+			p.y = res->cutPoints[i];
+			p.x = 0;
+			Point q = p;
+			q.x = 800;
+			line(frame, p, q, Scalar(255, 255, 255), 1, CV_AA);
+		}
 
-        if (debug)
-            {
-            for (int i = 0; i < res->cutPoints.size(); i++){
-                cout << "cutPoint: " << res->cutPoints[i] << endl;
-            }
-            for (int i = 0; i < res->rightGoalLines.size(); i++)
-                {
-                    cout << "left[" << i << "] slope: " << res->left[i].slope << " p1(" << res->left[i].p1.x << "," << res->left[i].p1.y;
-                    cout << ") p2(" << res->left[i].p2.x << "," << res->left[i].p2.y << ")" << endl;
+		if (printouts){
+			for (int i = 0; i < res->cutPoints.size(); i++){
+				cout << "cutPoint: " << res->cutPoints[i] << endl;
+			}
+			for (int i = 0; i < res->rightGoalLines.size(); i++){
+				cout << "left[" << i << "] slope: " << res->left[i].slope << " p1(" << res->left[i].p1.x << "," << res->left[i].p1.y;
+				cout << ") p2(" << res->left[i].p2.x << "," << res->left[i].p2.y << ")" << endl;
 
-                    cout << "Dashed[" << i << "] slope: " << res->dash[i].slope << " p1(" << res->dash[i].p1.x << "," << res->dash[i].p1.y;
-                    cout << ") p2(" << res->dash[i].p2.x << "," << res->dash[i].p2.y << ")" << endl;
+				cout << "Dashed[" << i << "] slope: " << res->dash[i].slope << " p1(" << res->dash[i].p1.x << "," << res->dash[i].p1.y;
+				cout << ") p2(" << res->dash[i].p2.x << "," << res->dash[i].p2.y << ")" << endl;
 
-                    cout << "right[" << i << "] slope: " << res->right[i].slope << " p1(" << res->right[i].p1.x << "," << res->right[i].p1.y;
-                    cout << ") p2(" << res->right[i].p2.x << "," << res->right[i].p2.y << ")" << endl;
+				cout << "right[" << i << "] slope: " << res->right[i].slope << " p1(" << res->right[i].p1.x << "," << res->right[i].p1.y;
+				cout << ") p2(" << res->right[i].p2.x << "," << res->right[i].p2.y << ")" << endl;
 
 
-                    cout << "leftGoalLines[" << i << "] slope: " << res->leftGoalLines[i].slope << " p1(" << res->leftGoalLines[i].p1.x << "," << res->leftGoalLines[i].p1.y;
-                    cout << ") p2(" << res->leftGoalLines[i].p2.x << "," << res->leftGoalLines[i].p2.y << ")" << endl;
+				cout << "leftGoalLines[" << i << "] slope: " << res->leftGoalLines[i].slope << " p1(" << res->leftGoalLines[i].p1.x << "," << res->leftGoalLines[i].p1.y;
+				cout << ") p2(" << res->leftGoalLines[i].p2.x << "," << res->leftGoalLines[i].p2.y << ")" << endl;
 
-                    cout << "rightGoalLines[" << i << "] slope: " << res->rightGoalLines[i].slope << " p1(" << res->rightGoalLines[i].p1.x << "," << res->rightGoalLines[i].p1.y;
-                    cout << ") p2(" << res->rightGoalLines[i].p2.x << "," << res->rightGoalLines[i].p2.y << ")" << endl;
+				cout << "rightGoalLines[" << i << "] slope: " << res->rightGoalLines[i].slope << " p1(" << res->rightGoalLines[i].p1.x << "," << res->rightGoalLines[i].p1.y;
+				cout << ") p2(" << res->rightGoalLines[i].p2.x << "," << res->rightGoalLines[i].p2.y << ")" << endl;
 
-                    cout << "---" << endl;
-                }
-            }
-        }
+				cout << "---" << endl;
+			}
+		}
+	}
 
     imshow("Result from createTrajectory", frame);
-    if (debug)
+    if (printouts)
         {
             cout << "__END: createTrajectory" << endl;
         }
