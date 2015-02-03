@@ -22,6 +22,7 @@ int irLeftBack = 1;                  // analog pin used to connect the sharp sen
 int irRightBack = 2;                 // analog pin used to connect the sharp sensor
 int irRightSide = 3;                 // analog pin used to connect the sharp sensor
 int infraCount = 0;
+int lightSensor = 7;
 int uf = -1;
 int ub = -1;
 int led = 13;
@@ -141,6 +142,11 @@ void loop()
     digitalWrite(led, LOW); 
     }
   }
+
+  int lightVal= getAmbientLight();
+  char lStr[4];
+  sprintf(lStr, "l%3d",lightVal);
+
   
   
   char uStr[13];
@@ -163,3 +169,8 @@ void encoderISR(){
     distanceTravelledMilli = 0;
   }
 }
+int getAmbientLight()
+{
+    return analogRead(lightSensor) * 0.9765625;
+}
+
