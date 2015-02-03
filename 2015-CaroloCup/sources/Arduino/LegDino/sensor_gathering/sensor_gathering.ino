@@ -1,5 +1,7 @@
 #include <Wire.h>
 #include <stdio.h>
+#include <EEPROM.h>
+
 #define ADDRESSBACK 115
 #define ADDRESSFRONT 112
 
@@ -16,6 +18,12 @@
 #define IR_MAP_START_VALUE        3
 
 unsigned long distanceTravelledMilli = 0;
+
+
+
+//Identification
+char sID[7];
+
 
 int irLeftSide = 0;                  // analog pin used to connect the sharp sensor
 int irLeftBack = 1;                  // analog pin used to connect the sharp sensor
@@ -62,7 +70,12 @@ void setup()
   Serial.begin(115200);
   Wire.begin();
   
-  
+  //Identification
+  for (int i=0; i<6; i++) {
+    sID[i] = EEPROM.read(i);
+  }
+  //Serial.println(sID); 
+    
   attachInterrupt(WHEEL_ENCODER_PIN, encoderISR, FALLING);
 }
 

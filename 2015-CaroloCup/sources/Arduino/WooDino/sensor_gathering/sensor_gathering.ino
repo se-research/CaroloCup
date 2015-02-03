@@ -1,5 +1,7 @@
 #include <Wire.h>
 #include <stdio.h>
+#include <EEPROM.h>
+
 #define ADDRESSBACK 115
 #define ADDRESSFRONT 112
 
@@ -14,6 +16,10 @@
 // IR
 #define IR_MAP_SIZE               23
 #define IR_MAP_START_VALUE        3
+
+
+//Identification
+char sID[7];
 
 unsigned long distanceTravelledMilli = 0;
 
@@ -43,9 +49,13 @@ void setup()
   Serial.begin(115200);
   Wire.begin();
   pinMode(led, OUTPUT);
-  
-  
   attachInterrupt(WHEEL_ENCODER_PIN, encoderISR, CHANGE);
+
+  //Identification
+  for (int i=0; i<6; i++) {
+    sID[i] = EEPROM.read(i);
+  }
+  //Serial.println(sID); 
 }
 
 int getDistanceIR(int val, int sensorPin)

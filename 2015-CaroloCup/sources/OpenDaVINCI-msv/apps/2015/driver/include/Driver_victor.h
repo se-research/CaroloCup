@@ -1,91 +1,93 @@
 /*
- * Mini-Smart-Vehicles.
+ * CaroloCup.
  *
  * This software is open source. Please see COPYING and AUTHORS for further information.
  */
 
-#ifndef DRIVER_H_
-#define DRIVER_H_
+#ifndef DRIVER_H_2
+#define DRIVER_H_2
 
 #include "core/base/ConferenceClientModule.h"
-#include "core/data/control/VehicleControl.h"
-#include "core/data/environment/VehicleData.h"
+#include "LaneDetectionData.h"
+#include "opencv2/opencv.hpp"
+
 
 namespace msv {
 
-using namespace std;
-using namespace core::data::control;
-using namespace core::data::environment;
-enum DRIVING_STATE {
-	FORWARD = 0,
-	WAIT1 = 1,
-	BACKWARDS = 2,
-	WAIT2 = 3,
-	STOP = 4,
-	PARKING = 5,
-	NO_POSSIBLE_PARKING_PLACE = 6
+  using namespace std;
+  using namespace cv;
 
-};
+  /**
+   * This class is a skeleton to send driving commands to Hesperia-light's vehicle driving dynamics simulation.
+   */
+  class Driver_victor : public core::base::ConferenceClientModule {
+    private:
+      /**
+       * "Forbidden" copy constructor. Goal: The compiler should warn
+       * already at compile time for unwanted bugs caused by any misuse
+       * of the copy constructor.
+       *
+       * @param obj Reference to an object of this class.
+       */
+      Driver_victor(const Driver_victor &/*obj*/);
 
-// enum PARKINGSTATE {
-// 	BACKWARDS_RIGHT = 0,
-// 	BACKWARDS_LEFT = 1,
-// 	WAIT_2 = 2,
-// 	FORWARD_RIGHT = 3,
-// 	WAIT_3 = 4,
-// 	BACK_AGAIN = 5,
-// 	STOP = 6
-// };
-
-/**
- * This class is a skeleton to send driving commands to Hesperia-light's vehicle driving dynamics simulation.
- */
-class Driver: public core::base::ConferenceClientModule {
-private:
-	/**
-	 * "Forbidden" copy constructor. Goal: The compiler should warn
-	 * already at compile time for unwanted bugs caused by any misuse
-	 * of the copy constructor.
-	 *
-	 * @param obj Reference to an object of this class.
-	 */
-	Driver(const Driver &/*obj*/);
-
-	/**
-	 * "Forbidden" assignment operator. Goal: The compiler should warn
-	 * already at compile time for unwanted bugs caused by any misuse
-	 * of the assignment operator.
-	 *
-	 * @param obj Reference to an object of this class.
-	 * @return Reference to this instance.
-	 */
-	Driver& operator=(const Driver &/*obj*/);
-
-public:
-	/**
-	 * Constructor.
-	 *
-	 * @param argc Number of command line arguments.
-	 * @param argv Command line arguments.
-	 */
-	Driver(const int32_t &argc, char **argv);
-
-	virtual ~Driver();
-
-	core::base::ModuleState::MODULE_EXITCODE body();
-
-private:
-
-	DRIVING_STATE driving_state;
-	//PARKINGSTATE parking_state;
+      /**
+       * "Forbidden" assignment operator. Goal: The compiler should warn
+       * already at compile time for unwanted bugs caused by any misuse
+       * of the assignment operator.
+       *
+       * @param obj Reference to an object of this class.
+       * @return Reference to this instance.
+       */
+      Driver_victor& operator=(const Driver_victor &/*obj*/);
 
 
-	virtual void setUp();
+    
 
-	virtual void tearDown();
-	void parking();
-};
+    public:
+      /**
+       * Constructor.
+       *
+       * @param argc Number of command line arguments.
+       * @param argv Command line arguments.
+       */
+      Driver_victor(const int32_t &argc, char **argv);
 
-} // msv
+      virtual ~Driver_victor();
+
+      core::base::ModuleState::MODULE_EXITCODE body();
+
+    private:
+      virtual void setUp();
+      virtual void tearDown();
+      bool laneFollowing(LaneDetectionData* data);
+      void parking();
+      //F*CK YOU ASHFAQ
+
+
+      bool m_hasReceivedLaneDetectionData;
+
+      // Define control parameters
+      float m_controlGains[3];	//For feedback linearization controller
+      float m_angularError;
+      float m_speed;
+      double m_lateralError;
+      double m_intLateralError;
+      double m_derLateralError;
+      float m_desiredSteeringWheelAngle;
+      float m_propGain;
+      float m_intGain;
+      float m_derGain;
+      //core::wrapper::SerialPort *m_serialPortPtr;
+      const float SCALE_FACTOR;	//For example, 12000 dpm (dots-per-meter)
+
+      int32_t m_timestamp;
+
+      Vec4i m_leftLine;
+      Vec4i m_rightLine;
+      Vec4i m_dashedLine;
+  };
+
+} // carolocup
 
 #endif /*DRIVER_H_*/
