@@ -718,9 +718,9 @@ void LaneDetector_inspection::showResult_createTrajectory(FinalOutput *res, Line
     int right = 400;
     Mat frame, src;
     cvtColor(f, src, CV_GRAY2BGR);
-    namedWindow("Result from createTrajectory", WINDOW_NORMAL);
+    namedWindow("Result from createTrajectory", CV_WINDOW_NORMAL);
     copyMakeBorder( src, frame, top, bottom, left, right, BORDER_CONSTANT, Scalar(30, 30, 30));
-    resizeWindow("Result from createTrajectory", 1300, 400);
+    cvResizeWindow("Result from createTrajectory", 1300, 400);
 
     // TODO: display switchPoints
 
