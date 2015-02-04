@@ -85,9 +85,9 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
 
     float last_steer = 0;
     double t_base;
-    int steer_change = 1;
-    int steer_change_timing = 200;
-    bool steer_sign;
+    int steer_change = 2;
+    int steer_change_timing = 400;
+    int steer_sign;
     int inters_max_steer;
     int inters_min_steer;
     while (getModuleState() == ModuleState::RUNNING)
@@ -116,26 +116,26 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
             if( ldd.getLaneDetectionDataDriver().roadState == NORMAL && !after_intersection){
             	cout<< "NOrmal state" << endl;
             	res = laneFollowing(&ldd);
-            }else if(ldd.getLaneDetectionDataDriver().roadState == INTERSECTION && ldd.getLaneDetectionDataDriver().confidenceLevel == 2 && !after_intersection){
-            	cout<< "Slow down the car" << endl;
+            //}else if(ldd.getLaneDetectionDataDriver().roadState == INTERSECTION && ldd.getLaneDetectionDataDriver().confidenceLevel == 2 && !after_intersection){
+            //	cout<< "Slow down the car" << endl;
             }else if( ldd.getLaneDetectionDataDriver().roadState == INTERSECTION && ldd.getLaneDetectionDataDriver().confidenceLevel == 5 && !after_intersection){
             	cout << "Found Intersection..." << endl;
                 after_intersection = true;
                 TimeStamp t_start;
                 m_timestamp = t_start.toMicroseconds();
                 t_base=m_timestamp;
-                last_steer = 0;
+                //last_steer = 0;
                 if(last_steer < 0){
-                	steer_sign = false;
+                	steer_sign = -1;
                 	inters_max_steer = abs(last_steer)/2;
-                	vc.setSteeringWheelAngle(int16_t(0));
+                	vc.setSteeringWheelAngle(int16_t(last_steer));
                 	Container c(Container::VEHICLECONTROL, vc);
                 	getConference().send(c);
                 }
                 else{
-                	steer_sign = true;
+                	steer_sign = 1;
                 	inters_min_steer = (-1)*(last_steer/2);
-                	vc.setSteeringWheelAngle(int16_t(0));
+                	vc.setSteeringWheelAngle(int16_t(last_steer));
                 	Container c(Container::VEHICLECONTROL, vc);
                 	getConference().send(c);
                 }
@@ -146,24 +146,20 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
 
             	double timeStep_total = (t_stop.toMicroseconds() - m_timestamp) / 1000.0;
             	cout << "TIme: "<< timeStep_total << endl;
-            	if(timeStep_total > 2000.0){ //Cross intersect for 3 seconds
+            	if(timeStep_total > 1000.0){ //Cross intersect for 3 seconds
             		res = laneFollowing(&ldd);
             		after_intersection = false;
             	}else{
             		if(timeStep_now > steer_change_timing){
             			t_base=t_stop.toMicroseconds();
-            			if( steer_sign){ //positive steering
-            				cout<< "Steering: " << last_steer - steer_change << endl;
-            				while(last_steer >= inters_min_steer){
-            					vc.setSteeringWheelAngle(int16_t(last_steer - steer_change));
-            					last_steer = last_steer - steer_change;
-            				}
-            			}else{ // negative steering
-            				cout<< "Steering: " << last_steer + steer_change << endl;
-            				while(last_steer <= inters_max_steer){
-            					vc.setSteeringWheelAngle(int16_t(last_steer + steer_change));
-            					last_steer = last_steer + steer_change;
-            				}
+            			if( steer_sign == 1 && last_steer >= inters_min_steer){ //positive steering
+            				last_steer = last_steer - steer_change;
+            				cout<< "Steering: " << last_steer << endl;
+            				vc.setSteeringWheelAngle(int16_t(last_steer));
+            			}else if( steer_sign == -1 && last_steer <= inters_max_steer){ // negative steering
+            				last_steer = last_steer + steer_change;
+            				cout<< "Steering: " << last_steer << endl;
+            				vc.setSteeringWheelAngle(int16_t(last_steer));
             			}
             		}
 
