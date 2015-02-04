@@ -4,7 +4,7 @@ home=/home/odroid/CaroloCup/2014-CaroloCup/Legendary/project/scripts
 bin=/opt/msv/bin/
 caroloCup=$bin/2013/DIT-168/project-template/
 pidfile=${0}.pid
-serialPort=/dev/ttyACM2
+serialPort=/dev/ttyACM1
 started=0
 
 # Port setting
@@ -21,11 +21,21 @@ do
    if [[ $line == "0" ]]; then
     if [[ $started == 1 ]]; then
 	    echo "STOP"
-	    # Stop and kill the processes
-	    for pid in $(tac $pidfile); do
-	      kill -SIGINT $pid
-	      sleep 1
-	    done
+	    # Stop and kill the processes from the pidfile
+	   # for pid in $(tac $pidfile); do
+	    #  kill -SIGINT $pid
+	    #  sleep 1
+	  #  done
+
+	   #Kill all processes
+	   killall supercomponent
+           echo "Supercomponent is stopped"
+
+	   killall proxy
+	   echo "Proxy is stopped"
+
+	   killall driver
+ 	   echo "Driver is stopped"
 	    started=0
     fi
   elif [[ $line == "1" ]]; then
@@ -65,13 +75,14 @@ do
 	    echo "$!" >> $pidfile
 	    echo "Supercomponent has started"
 
-	    nohup ./2013/DIT-168/project-template/proxy --cid=222 --freq=60 &
+	    cd 2013/DIT-168/project-template/
+	    nohup ./proxy --cid=222 --freq=60 &
 	    echo "$!" >> $pidfile
 	    echo "Proxy has started"
 	    echo "Starting Driver in a few seconds"
 	    sleep 5 #Waits n seconds before start Driver component  
           
-	    nohup ./2013/DIT-168/project-template/driver --cid=222 --freq=40 &
+	    nohup ./driver --cid=222 --freq=40 &
 	    echo "$!" >> $pidfile
 	    echo "Driver has started"
 	    started=1

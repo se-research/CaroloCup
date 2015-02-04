@@ -1,9 +1,6 @@
 #include <LiquidCrystal.h>
 #include <EEPROM.h>
 
-#define ROOT 0
-#define DATA 1
-
 
 //Identification
 char sID[7];
@@ -40,46 +37,38 @@ void setup(){
 
 void loop(){
   lcd.clear(); 
-  switch (menuLevel) {
-      case ROOT:
-          lcd.setCursor(0,0);          
-		  lcd.print("SCENARIOS:");
-		  lcd.setCursor(0,1);
-		  lcd.print("< STOP");   
-		  lcd.setCursor(7,1);     
-		  lcd.print("LANEFOLLOW >");
-		  lcd.setCursor(10,3);           
-		  lcd.print("PARKING >");
-        break;
-      case DATA:
-          lcd.setCursor(0,0);          
-		  lcd.print("TESTDATA:");   
-		  lcd.setCursor(4,1);        
-		  lcd.print("LANEFOLLOWING >");
-		  lcd.setCursor(10,3);           
-		  lcd.print("PARKING >");
-        break;
+screenPrint();
+ 
 
-      default:
-        ;
-  }
   if(digitalRead(upLeft)){
 	Serial.print("0");  	//Sends STOP signal
+	lcd.clear();
+	lcd.setCursor(1, 1);
+	lcd.print("STOPPING PROCESSES");
+	delay(2000);
+	//lcd.clear();
   }
   if(digitalRead(downLeft)){
-  	// menuLevel++;
+  	Serial.print("3");
   }
-  if(menuLevel == 0){
-  	if(digitalRead(upRight)){
-  		Serial.print("1"); //LaneFollowing
+  if(digitalRead(upRight)){
+  	Serial.print("1"); //LaneFollowing
+	lcd.clear();
+	lcd.setCursor(1, 1);
+	lcd.print("STARTING LANEFOLLOW");
+	delay(2000);
+	//lcd.clear();
+
   }
-  	if(digitalRead(downRight)){
+  if(digitalRead(downRight)){
 		Serial.print("2"); //Parking
+	lcd.clear();
+	lcd.setCursor(1, 1);
+	lcd.print("STARTING PARKING");
+	delay(2000);
+	//lcd.clear();
   }
-}
-  if(menuLevel > 1 || menuLevel < 0){
-  	menuLevel = 0;
-  } 
+
   delay(100);
 
  /* Serial.print("upLeft: ");  
@@ -89,4 +78,16 @@ void loop(){
     Serial.print("downRight: ");  
   Serial.println(digitalRead(downRight)); 
   */
+}
+
+void screenPrint(){
+
+ lcd.setCursor(0,0);          
+  lcd.print("SCENARIOS:");
+  lcd.setCursor(0,1);
+  lcd.print("< STOP");   
+  lcd.setCursor(8,1);     
+  lcd.print("LANEFOLLOW >");
+  lcd.setCursor(11,3);           
+  lcd.print("PARKING >");
 }
