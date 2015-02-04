@@ -39,12 +39,13 @@ int currentLeftGoalX = 0;
 int calcRoadSize, calcRoadAngle;
 float minXI, minYI, YI;
 long startTime;
+RoadState roadState=NOT_SET;
 
 
 LineDetector::LineDetector(const Mat &f, const Config &cfg, const bool debug,
                            const int id) :
     m_frame(), m_frameCanny(), m_lines(NULL), m_debug(debug), m_lastSolidRightTop(), detectedLines(), m_config(
-        cfg), roadState(NORMAL), confidenceLevel(0)
+        cfg), confidenceLevel(0)
 {
     cout << "___start LineDetector" << endl;
     m_frame = f.clone();
@@ -72,6 +73,10 @@ LineDetector::~LineDetector()
         }
 }
 
+
+RoadState LineDetector::getRoadState(){
+    	return roadState;//not really a good idea returning a global value
+    }
 // This function exists due to old conventions
 Lines LineDetector::getLines()
 {
