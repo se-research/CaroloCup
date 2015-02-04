@@ -101,7 +101,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 	KeyValueConfiguration kv = getKeyValueConfiguration();
 	//const uint32_t m_sensorId = kv.getValue<int32_t> ("irus.sensor2.id");
 	//cout << "***********  Sensor ID: " << m_sensorId << endl;
-
+	const double m_speed = kv.getValue<double> ("driver.speed");
 	VehicleControl vc;
 
 	TimeStamp start;
@@ -151,6 +151,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 		Distance = sbd.getDistance(6); // WheeelEncoder Data (mm)
 		
 		//Status
+		cout << "Car speed" << m_speed <<endl;
 		cout << " ===== Rear IRs difference: " << abs (IRdis_RL - IRdis_RR) << endl;
 // 		cout << " ===== Side Left Infrared reading: " << IRdis_SL << endl;
  		cout << " ===== Rear Left Infrared reading: " << IRdis_RL << endl;

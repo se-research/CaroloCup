@@ -130,9 +130,7 @@ public:
     Lines getLines();
     int detectStartLine(int dist);
     int detectStopLine(int dist);
-    RoadState getRoadState(){
-    	return roadState;
-    }
+    RoadState getRoadState();
     int getConfidenceLevel(){
     	return confidenceLevel;
     }
@@ -245,7 +243,7 @@ private:
     Lines result_getLines;
     LaneDetectorDataToDriver *dataToDriver;
     FinalOutput finalOutput;
-    RoadState roadState;
+
     int confidenceLevel;
     RoadAngle_RoadSize_debug rrd;
 };

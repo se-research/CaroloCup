@@ -388,7 +388,7 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 			stringstream logs;
 			if(m_useRealSpeed){
 				bool reverse= currentValues.speed<0? true:false;
-				m_protocol.setWheelFrequency((unsigned int)abs(currentValues.speed*10),reverse);
+				m_protocol.setWheelFrequency(abs(int8_t(currentValues.speed)*10),reverse);
 				logs<<"Set Wheel Frequency to "<<currentValues.speed<<endl;
 				log(logs.str());
 			}
