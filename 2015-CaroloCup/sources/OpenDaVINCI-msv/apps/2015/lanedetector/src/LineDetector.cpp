@@ -39,7 +39,7 @@ int currentLeftGoalX = 0;
 int calcRoadSize, calcRoadAngle;
 float minXI, minYI, YI;
 long startTime;
-RoadState roadState=NOT_SET;
+RoadState roadState=NORMAL;
 
 
 LineDetector::LineDetector(const Mat &f, const Config &cfg, const bool debug,
@@ -625,7 +625,6 @@ PolySize LineDetector::createPolySize (const RotatedRect &rect)
 void LineDetector::classification()
 {
     bool printouts = true;
-    roadState = NORMAL;
     confidenceLevel = 0;
     int sizeX;
     int sizeY;
@@ -860,17 +859,18 @@ void LineDetector::finalFilter()
                     maxDashY = max(dashLines[i].p1.y, dashLines[i].p2.y);
                 }
         }
+    // This check is now made in the lower part of characteristicFiltering(..)
     //cout << "MaxDashY"    << maxDashY
     //      << "\nScreen section" << (9 * h / 10) << endl;
     //if ((cntSolid > 0 && cntDash > 1 && maxDashY < (9 * h / 10)) || YI < 120)
-    if (cntSolid > 0 && cntDash > 1 && maxDashY > (9 * h / 10) && intersectionOn)
-        {
-            cout << "=========================================================================================="
-                 <<  "Intersection off "
-                 << "MaxDashY"   << maxDashY  << endl;
-            intersectionOn = false;
-            roadState = NORMAL;
-        }
+    // if (cntSolid > 0 && cntDash > 1 && maxDashY > (9 * h / 10) && intersectionOn)
+    //     {
+    //         cout << "=========================================================================================="
+    //              <<  "Intersection off "
+    //              << "MaxDashY"   << maxDashY  << endl;
+    //         intersectionOn = false;
+    //         roadState = NORMAL;
+    //     }
 }
 
 void LineDetector::characteristicFiltering(LinesToUse *ltu)
@@ -885,6 +885,7 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
             cout << "currentRightGoalX: " << currentRightGoalX << endl;
             cout << "calcRoadSize: " << calcRoadSize << endl;
             cout << "intersectionOn: " << intersectionOn << endl;
+            cout << "roadState: " << roadState << endl;
         }
 
     //LinesToUse old_ltu;
@@ -1281,6 +1282,41 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
         currentRightGoalX = 0;
     if (!ltu->foundL)
         currentLeftGoalX = 0;
+
+    //////////////////
+    // This check is used to find out if we have passed an intersection.
+    // If it is passed, it will set the roadState to NORMAL.
+    //////////////////
+    if(roadState == INTERSECTION){
+        if (printouts)
+            cout << "entering passed intersection check" << endl;
+        int maxY = 0;
+        for (int i = 0; i < ltu->dashedCurve.size(); i ++){
+            if (maxY < ltu->dashedCurve[i].p1.y){ // p1 is always the point furtest down on the frame
+                maxY = ltu->dashedCurve[i].p1.y;
+            }
+        }
+        if (printouts)
+            cout << "maxY: " << maxY << " > " << (9 * h / 10) << endl;
+        if (ltu->dashedCurve.size() > 1 && maxY > (9 * h / 10)){
+            int slopeDiviation = 25;
+            float dashSlope = ltu->dashedCurve[0].slope;
+            if (dashSlope < 0)
+                dashSlope = dashSlope + 180;
+            else
+                dashSlope = dashSlope;
+            if (printouts){
+                cout << "dashSlope: " << dashSlope << endl;
+            }
+            if (dashSlope > 90 - slopeDiviation && dashSlope < 90 + slopeDiviation){
+                if (printouts)
+                    cout << "roadState set to NORMAL" << endl;
+                roadState = NORMAL;
+
+            }
+        }
+        cout << "leaving passed intersection check" << endl;
+    }
 
     if (printouts)
         {
