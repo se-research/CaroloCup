@@ -58,7 +58,11 @@ lanedetector.showRes_createTrajectory = 1
 lanefollower.camera_id = 2  # select here the proper camera
 lanefollower.debug = 1      # set to 0 to disable any windows and further output
 
+#
+# CONFIGURATION FOR THE DRIVER
+#
 
+driver.speed = 0.7
 #
 # CONFIGURATION FOR VCR
 #
@@ -189,10 +193,10 @@ proxy.camera.width = 752 #752-UEYE, 640-OpenCV
 proxy.camera.height = 480
 proxy.camera.bpp = 1 #3- openCV, 1-UEYE
 
-Proxy.Actuator.UseRealSpeed=0
-proxy.Actuator.SerialPort=/dev/ttyACM1
+proxy.Actuator.UseRealSpeed=0
+proxy.Actuator.SerialPort=/dev/ttyACM0
 
-proxy.Sensor.SerialPort=/dev/ttyACM0
+proxy.Sensor.SerialPort=/dev/ttyUSB0
 proxy.Sensor.SerialSpeed=115200
 
 proxy.numberOfSensors=6

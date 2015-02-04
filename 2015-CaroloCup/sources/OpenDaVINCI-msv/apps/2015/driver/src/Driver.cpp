@@ -101,7 +101,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 	KeyValueConfiguration kv = getKeyValueConfiguration();
 	//const uint32_t m_sensorId = kv.getValue<int32_t> ("irus.sensor2.id");
 	//cout << "***********  Sensor ID: " << m_sensorId << endl;
-
+	const double m_speed = kv.getValue<double> ("driver.speed");
 	VehicleControl vc;
 
 	TimeStamp start;
