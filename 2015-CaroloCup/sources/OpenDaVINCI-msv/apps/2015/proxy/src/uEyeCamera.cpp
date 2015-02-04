@@ -82,8 +82,8 @@ namespace msv {
             ::memcpy(dest, m_ueyeImagePtr, size);
             m_image->imageData = (char*)m_ueyeImagePtr;
 
-            cvShowImage("WindowShowImage", m_image);
-            cvWaitKey(10);
+            //cvShowImage("WindowShowImage", m_image);
+            //cvWaitKey(10);
 
             retVal = true;
         }

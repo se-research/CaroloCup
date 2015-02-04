@@ -39,7 +39,7 @@ using namespace core::wrapper;
                     m_partialData.seekg(0, ios_base::beg);
                     // cout<<"Recived New:"<<m_partialData.str()<<endl;
                     int posFirst=m_partialData.str().find('.')+1;
-                	  int posSecond=m_partialData.str().find('.',posFirst);
+                    int posSecond=m_partialData.str().find('.',posFirst);
                     int length=posSecond-posFirst;
 //                	  cout<<"pos:"<<pos<<endl;
                	  // cout<<"length:"<<length<<endl;
@@ -62,7 +62,7 @@ using namespace core::wrapper;
             	   m_partialData.seekg(0, ios_base::end);
             	   const uint8_t streamSize = m_partialData.tellg();
             	   m_partialData.seekg(0, ios_base::beg);
-            	   if(streamSize>60){ //Currently 100 is used as a safety value to receive 2 lines from the sensor data, going ahead we need to make this more robust with some inherent logic
+            	   if(streamSize>70){ //Currently 100 is used as a safety value to receive 2 lines from the sensor data, going ahead we need to make this more robust with some inherent logic
             		   return true;
             	   }
             	   return false;

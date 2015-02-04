@@ -1,9 +1,12 @@
 #include <LiquidCrystal.h>
-
+#include <EEPROM.h>
 
 #define ROOT 0
 #define DATA 1
 
+
+//Identification
+char sID[7];
 
 LiquidCrystal lcd(12, 11, 10, 5, 4, 3, 2);
 
@@ -26,6 +29,13 @@ void setup(){
   lcd.begin(20,4);
 
   Serial.begin(9600);
+  
+  //Identification
+  for (int i=0; i<6; i++) {
+    sID[i] = EEPROM.read(i);
+  }
+  //Serial.println(sID); 
+  
 }
 
 void loop(){
