@@ -1,5 +1,7 @@
 // Need the Servo library
 #include <Servo.h>
+#include <EEPROM.h>
+
 #define MAX_STEERING_ANGLE_R 	43
 #define MAX_STEERING_ANGLE_L 	-43
 #define MIN_MOTOR_SPEED 		800
@@ -17,6 +19,9 @@
 #define WHEEL_ENCODER_SEGMENTS    22
 #define DISTANCE_PER_SEGMENT      (float)WHEEL_CIRCUMFERENCE / WHEEL_ENCODER_SEGMENTS
 #define WHEEL_ENCODER_PIN         0
+
+//Identification
+char sID[7];
 
 
 // This is our motor.
@@ -110,6 +115,12 @@ void setup()
   pinMode(frontLeftLed, OUTPUT);
   pinMode(rearRightLed, OUTPUT);
   pinMode(frontRightLed, OUTPUT);
+
+  //Identification
+  for (int i=0; i<6; i++) {
+    sID[i] = EEPROM.read(i);
+  }
+  //Serial.println(sID);     
 }
 
 void loop()

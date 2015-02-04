@@ -9,6 +9,7 @@
 #include <cmath>
 #include <string>
 
+#include "core/base/Thread.h"
 #include "core/base/KeyValueConfiguration.h"
 #include "core/data/Container.h"
 #include "core/data/TimeStamp.h"
@@ -126,12 +127,14 @@ void Proxy::setUp() {
 void Proxy::nextString(const string &s)
 {
 	log("Recieved Sensor Data ");
+//	cout<<"data,"<<s<<endl;
 	int posIstr=s.find(':');
 	int posUstr=s.find(':',posIstr+1);
-	string iStr=s.substr(0,posIstr);
+	int posLstr=s.find(':',posUstr+1);
+	string iStr=s.substr(2,posIstr);
 	string uStr=s.substr(posIstr+1,posUstr-posIstr);
-	string wStr=s.substr(posUstr+1);
-
+	string lStr=s.substr(posUstr+1,posLstr-posUstr);
+	string wStr=s.substr(posLstr+1);
     if (iStr[0] == 'i') {
 
 		char firstInfra[2];
@@ -172,9 +175,10 @@ void Proxy::nextString(const string &s)
 		}
 		if (m_debug) {
 			cout << "proxy:" << s << endl;
-			cout << "uStr:" << uStr << endl;
-			cout << "iStr:" << iStr << endl;
-			cout << "wStr:" << wStr <<endl;
+//			cout << "uStr:" << uStr << endl;
+//			cout << "iStr:" << iStr << endl;
+//			cout << "lStr:" << lStr << endl;
+//			cout << "wStr:" << wStr <<endl;
 			cout << "Found First: " << m_sensorBoardData.getDistance(0) << endl;
 			cout << "Found Second: " << m_sensorBoardData.getDistance(1)
 					<< endl;
@@ -234,11 +238,28 @@ void Proxy::nextString(const string &s)
 				Lock l(m_sensorBoardMutex);
 				m_sensorBoardData.update(6, distanceTraveled);
 			}
+			if(m_debug)
+			     {
+			  	    	cout << "Found Encoder: " << m_sensorBoardData.getDistance(6) << endl;
+			      }
     }
-    if(m_debug)
-   		    {
-   		    	cout << "Found Encoder: " << m_sensorBoardData.getDistance(6) << endl;
-   		    }
+    if(lStr[0]=='l')
+      {
+	char ambientLight[3];
+	ambientLight[0]=lStr[1];
+	ambientLight[1]=lStr[2];
+	ambientLight[2]=lStr[3];
+	int lux=converter(ambientLight,3);
+	{
+		Lock l(m_sensorBoardMutex);
+		m_sensorBoardData.update(7, lux);
+	}
+	if(m_debug)
+	{
+	   	cout << "Found Light: " << m_sensorBoardData.getDistance(7) << endl;
+	}
+      }
+
     log("Converted sensor values "+m_sensorBoardData.toString());
 
 }
@@ -363,11 +384,11 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 			cout << "brakeLight" << currentValues.brakeLight << endl;
 		}
 
-		if (previousValues.speed != currentValues.speed) {
+		if ((previousValues.speed > currentValues.speed) || (previousValues.speed < currentValues.speed) ) {
 			stringstream logs;
 			if(m_useRealSpeed){
 				bool reverse= currentValues.speed<0? true:false;
-				m_protocol.setWheelFrequency(abs(currentValues.speed*10),reverse);
+				m_protocol.setWheelFrequency((unsigned int)abs(currentValues.speed*10),reverse);
 				logs<<"Set Wheel Frequency to "<<currentValues.speed<<endl;
 				log(logs.str());
 			}
@@ -378,7 +399,7 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 			}
 			previousValues.speed=(int)currentValues.speed;
 		}
-		if (previousValues.steeringAngle != currentValues.steeringAngle) {
+		if ((previousValues.steeringAngle < currentValues.steeringAngle) || (previousValues.steeringAngle > currentValues.steeringAngle)) {
 			stringstream logs;
 			m_protocol.setSteeringAngle((int)currentValues.steeringAngle);
 			previousValues.steeringAngle=(int)currentValues.steeringAngle;
@@ -405,8 +426,16 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 	}
 
 	cout << "Proxy: Captured " << captureCounter << " frames." << endl;
-	m_protocol.setSpeed(0); //stop the car when proxy is stopped
+	//stop the car when proxy is stopped
+	if(m_useRealSpeed) {
+	  m_protocol.setWheelFrequency(0, false);
+	} else {
+	  m_protocol.setSpeed(0); 
+	}
+	m_protocol.setSteeringAngle(0);
+	sp.setStringListener(NULL);
 	serialPort->stop();
+	core::base::Thread::usleep(1000*1000);
 	OPENDAVINCI_CORE_DELETE_POINTER(serialPort);
 	log("Proxy killed");
 	return ModuleState::OKAY;

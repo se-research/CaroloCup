@@ -1,5 +1,7 @@
 #include <Wire.h>
 #include <stdio.h>
+#include <EEPROM.h>
+
 #define ADDRESSBACK 115
 #define ADDRESSFRONT 112
 
@@ -15,6 +17,10 @@
 #define IR_MAP_SIZE               23
 #define IR_MAP_START_VALUE        3
 
+
+//Identification
+char sID[7];
+
 unsigned long distanceTravelledMilli = 0;
 
 int irLeftSide = 0;                  // analog pin used to connect the sharp sensor
@@ -22,6 +28,7 @@ int irLeftBack = 1;                  // analog pin used to connect the sharp sen
 int irRightBack = 2;                 // analog pin used to connect the sharp sensor
 int irRightSide = 3;                 // analog pin used to connect the sharp sensor
 int infraCount = 0;
+int lightSensor = 7;
 int uf = -1;
 int ub = -1;
 int led = 13;
@@ -42,9 +49,13 @@ void setup()
   Serial.begin(115200);
   Wire.begin();
   pinMode(led, OUTPUT);
-  
-  
   attachInterrupt(WHEEL_ENCODER_PIN, encoderISR, CHANGE);
+
+  //Identification
+  for (int i=0; i<6; i++) {
+    sID[i] = EEPROM.read(i);
+  }
+  //Serial.println(sID); 
 }
 
 int getDistanceIR(int val, int sensorPin)
@@ -141,6 +152,11 @@ void loop()
     digitalWrite(led, LOW); 
     }
   }
+
+  int lightVal= getAmbientLight();
+  char lStr[7];
+  sprintf(lStr, "l%3d",lightVal);
+
   
   
   char uStr[13];
@@ -154,6 +170,8 @@ void loop()
   Serial.print(":");
   Serial.print(uStr);
   Serial.print(":");
+  Serial.print(lStr);
+  Serial.print(":");
   Serial.println(wStr);
 }
 
@@ -163,3 +181,8 @@ void encoderISR(){
     distanceTravelledMilli = 0;
   }
 }
+int getAmbientLight()
+{
+    return analogRead(lightSensor) * 0.9765625;
+}
+
