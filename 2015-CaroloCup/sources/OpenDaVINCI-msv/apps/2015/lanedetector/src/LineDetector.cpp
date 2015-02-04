@@ -1050,10 +1050,17 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
                                             ((unusedLines[i].p1.y < ltu->dashedCurve[s].p2.y) &&
                                              (unusedLines[i].p2.y < ltu->dashedCurve[s].p2.y))))
                                         {
-                                            solidLines[cntSolid] = unusedLines[i];
-                                            cntSolid++;
-                                            if (printouts)
-                                                cout << "Added to solid: p1(" << unusedLines[i].p1.x << "," << unusedLines[i].p1.y << ") p2(" << unusedLines[i].p2.x << "," << unusedLines[i].p2.y << ") " << endl;
+                                            // Filter away short lines that probably do not have an accurate angle
+                                            if (getDist(unusedLines[i].p1, unusedLines[i].p2) > (m_config.maxY / 3)){
+                                                solidLines[cntSolid] = unusedLines[i];
+                                                cntSolid++;
+                                                if (printouts)
+                                                    cout << "Added to solid: p1(" << unusedLines[i].p1.x << "," << unusedLines[i].p1.y << ") p2(" << unusedLines[i].p2.x << "," << unusedLines[i].p2.y << ") " << endl;
+                                            }else{
+                                                if (printouts){
+                                                    cout << "getDist(unusedLines[i].p1, unusedLines[i].p2): " << getDist(unusedLines[i].p1, unusedLines[i].p2) << "(m_config.maxY / 3): " << (m_config.maxY / 3) << endl;
+                                                }
+                                            }
                                         }
                                     else if (printouts)
                                         cout << "Line not added p1(" << unusedLines[i].p1.x << "," << unusedLines[i].p1.y << ") p2(" << unusedLines[i].p2.x << "," << unusedLines[i].p2.y << ") " << endl;
