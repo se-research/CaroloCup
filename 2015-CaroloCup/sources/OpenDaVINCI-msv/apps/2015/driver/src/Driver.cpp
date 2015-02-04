@@ -151,6 +151,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 		Distance = sbd.getDistance(6); // WheeelEncoder Data (mm)
 		
 		//Status
+		cout << "Car speed" << m_speed <<endl;
 		cout << " ===== Rear IRs difference: " << abs (IRdis_RL - IRdis_RR) << endl;
 // 		cout << " ===== Side Left Infrared reading: " << IRdis_SL << endl;
  		cout << " ===== Rear Left Infrared reading: " << IRdis_RL << endl;
