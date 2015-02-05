@@ -686,10 +686,10 @@ void LineDetector::classification()
 
                     //intersectionOn = true;
                     //foundIntersection = true;
-                    float angle_thr = 5;
+                    float angle_thr = 10;
                     float height_thr = 140;
                     cout << "Possible INTERSECTION"
-                         << "\tCenter: " << rectCenter.y
+                         << "\tCenter: " << rectCenter.y << "ANgle: " << rect.angle
                          << endl;
                     //confidenceLevel = 2;
                     //roadState = INTERSECTION;
