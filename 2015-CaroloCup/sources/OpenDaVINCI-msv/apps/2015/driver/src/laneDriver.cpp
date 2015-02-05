@@ -86,7 +86,7 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
     float last_steer = 0;
     double t_base;
     int steer_change = 2;
-    int steer_change_timing = 400;
+    int steer_change_timing = 200;
     int steer_sign;
     int inters_max_steer;
     int inters_min_steer;
@@ -118,7 +118,7 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
             	res = laneFollowing(&ldd);
             //}else if(ldd.getLaneDetectionDataDriver().roadState == INTERSECTION && ldd.getLaneDetectionDataDriver().confidenceLevel == 2 && !after_intersection){
             //	cout<< "Slow down the car" << endl;
-            }else if( ldd.getLaneDetectionDataDriver().roadState == INTERSECTION && ldd.getLaneDetectionDataDriver().confidenceLevel == 5 && !after_intersection){
+            }else if( ldd.getLaneDetectionDataDriver().roadState == INTERSECTION &&  !after_intersection){
             	cout << "Found Intersection..." << endl;
                 after_intersection = true;
                 TimeStamp t_start;
@@ -146,7 +146,7 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
 
             	double timeStep_total = (t_stop.toMicroseconds() - m_timestamp) / 1000.0;
             	cout << "TIme: "<< timeStep_total << endl;
-            	if(timeStep_total > 1000.0){ //Cross intersect for 3 seconds
+            	if(timeStep_total > 2000.0){ //Cross intersect for 3 seconds
             		res = laneFollowing(&ldd);
             		after_intersection = false;
             	}else{

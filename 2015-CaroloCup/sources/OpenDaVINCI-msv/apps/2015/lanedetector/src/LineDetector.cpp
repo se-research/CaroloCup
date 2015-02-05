@@ -625,7 +625,7 @@ PolySize LineDetector::createPolySize (const RotatedRect &rect)
 void LineDetector::classification()
 {
     bool printouts = true;
-    confidenceLevel = 0;
+    //confidenceLevel = 0;
     int sizeX;
     int sizeY;
     int sizeR;
@@ -691,13 +691,13 @@ void LineDetector::classification()
                     cout << "Possible INTERSECTION"
                          << "\tCenter: " << rectCenter.y
                          << endl;
-                    confidenceLevel = 2;
-                    roadState = INTERSECTION;
+                    //confidenceLevel = 2;
+                    //roadState = INTERSECTION;
 
                     if ( abs(rect.angle) < angle_thr && rectCenter.y > height_thr )
                         {
                             roadState = INTERSECTION;
-                            confidenceLevel = CONFIDENCE_LEVEL_MAX;
+                            //confidenceLevel = CONFIDENCE_LEVEL_MAX;
                             intersectionOn = true;
                             foundIntersection = true;
                             cout << "INTERSECTION   !!!!!!!!!!!!" << endl;
@@ -863,14 +863,14 @@ void LineDetector::finalFilter()
     //cout << "MaxDashY"    << maxDashY
     //      << "\nScreen section" << (9 * h / 10) << endl;
     //if ((cntSolid > 0 && cntDash > 1 && maxDashY < (9 * h / 10)) || YI < 120)
-    // if (cntSolid > 0 && cntDash > 1 && maxDashY > (9 * h / 10) && intersectionOn)
-    //     {
-    //         cout << "=========================================================================================="
-    //              <<  "Intersection off "
-    //              << "MaxDashY"   << maxDashY  << endl;
-    //         intersectionOn = false;
-    //         roadState = NORMAL;
-    //     }
+     if (cntSolid > 0 && cntDash > 1 && maxDashY > (9 * h / 10) && roadState== INTERSECTION)
+        {
+             cout << "=========================================================================================="
+                  <<  "Intersection off "
+                  << "MaxDashY"   << maxDashY  << endl;
+             intersectionOn = false;
+             roadState = NORMAL;
+         }
 }
 
 void LineDetector::characteristicFiltering(LinesToUse *ltu)
@@ -1287,6 +1287,7 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
     // This check is used to find out if we have passed an intersection.
     // If it is passed, it will set the roadState to NORMAL.
     //////////////////
+    /*
     if(roadState == INTERSECTION){
         if (printouts)
             cout << "entering passed intersection check" << endl;
@@ -1317,7 +1318,7 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
         }
         cout << "leaving passed intersection check" << endl;
     }
-
+	*/
     if (printouts)
         {
             cout << "---End left Lines" << endl;
