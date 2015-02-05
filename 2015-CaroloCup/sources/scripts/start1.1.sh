@@ -17,6 +17,7 @@ stty -F $serialPort raw speed 9600
 cd $home
 while read -n1 line #OPTIONS: -n 10 (Legendary car), -n 1 (Wooden car)
 do
+
    echo $line
    if [[ $line == "0" ]]; then
     if [[ $started == 1 ]]; then
