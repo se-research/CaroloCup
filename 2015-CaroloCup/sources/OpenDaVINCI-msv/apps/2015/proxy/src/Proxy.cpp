@@ -127,11 +127,12 @@ void Proxy::setUp() {
 void Proxy::nextString(const string &s)
 {
 	log("Recieved Sensor Data ");
-//	cout<<"data,"<<s<<endl;
+	cout<<"data,"<<s<<endl;
 	int posIstr=s.find(':');
 	int posUstr=s.find(':',posIstr+1);
 	int posLstr=s.find(':',posUstr+1);
-	string iStr=s.substr(2,posIstr);
+	int posI = s.find('i');
+	string iStr=s.substr(posI,posIstr);
 	string uStr=s.substr(posIstr+1,posUstr-posIstr);
 	string lStr=s.substr(posUstr+1,posLstr-posUstr);
 	string wStr=s.substr(posLstr+1);

@@ -23,15 +23,18 @@
 #include <pthread.h>
 #include "obstacleDriver.h"
 
+#define NUMBER_OF_SENSORS 7
+#define NUMBER_OF_SAMPLES 10
+
 int indicators = -1;
 bool indicatorsOn = false;
 bool overtakingNow = false;
 bool overtakingDone = false;
 bool obstacleDetected = false;
+bool firstObj = false;
+int startDist = 0;
 
-
-int arr[5][5], cirK = 0;
-
+int arr[NUMBER_OF_SENSORS][NUMBER_OF_SAMPLES], cirK = 0;
 
 namespace msv
 {
@@ -52,9 +55,9 @@ namespace msv
 	  Vec4i (0, 0, 0, 0)), m_dashedLine (Vec4i (0, 0, 0, 0))
   {
 
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < NUMBER_OF_SENSORS; i++)
       {
-	for (int j = 0; j < 5; j++)
+	for (int j = 0; j < NUMBER_OF_SAMPLES; j++)
 	  {
 	    arr[i][j] = 0;
 	  }
@@ -79,7 +82,7 @@ namespace msv
     // This method will be call automatically _after_ return from body().
   }
 
-  bool debug = true;
+  bool debug = false;
   int increaseSpeed = 0;
 
 //TODO: Set indicator logic
@@ -92,7 +95,13 @@ namespace msv
     KeyValueConfiguration kv = getKeyValueConfiguration ();
 
     VehicleControl vc;
-
+ /*   float last_steer = 0;
+       double t_base;
+       int steer_change = 1;
+       int steer_change_timing = 200;
+       bool steer_sign;
+       int inters_max_steer;
+       int inters_min_steer;*/
     bool first = true;
     while (getModuleState () == ModuleState::RUNNING)
       {
@@ -126,10 +135,10 @@ namespace msv
 	    for (int i = 0; i < 6; i++)
 	      {
 		int urF = sdb.getDistance (4);
-		int irSL = sdb.getDistance (0);
+		int irSL = sdb.getDistance (1);
 		int irRL = sdb.getDistance (3);
-		 movingAvg (urF, 4);
-		movingAvg (irSL, 0);
+		movingAvg (urF, 4);
+		movingAvg (irSL, 1);
 		movingAvg (irRL, 3);
 	      }
 	    first = false;
@@ -140,51 +149,107 @@ namespace msv
 	m_derGain = 0.23; //0.23;
 
 	bool overtake = overtaking (sdb);
-
-	//Check for intersection
+	bool res = laneFollowing (&ldd,overtake);
+/*	//Check for intersection
 	// This algo needs to be changed to work according
-	// to the distance travelled in the intersection,
+	// to the distance traveled in the intersection,
 	// instead of the time.
 	bool res = false;
 
 	if (ldd.getLaneDetectionDataDriver ().roadState == NORMAL
 	    && !after_intersection)
 	  {
-	    cout << "NOrmal state" << endl;
-	    res = laneFollowing (&ldd, overtake);
+	   // cout << "NOrmal state" << endl;
+	    res = laneFollowing (&ldd,overtake);
 	  }
 	else if (ldd.getLaneDetectionDataDriver ().roadState == INTERSECTION
-	    && ldd.getLaneDetectionDataDriver ().confidenceLevel >= 1)
+	    && ldd.getLaneDetectionDataDriver ().confidenceLevel == 2
+	    && !after_intersection)
 	  {
-	    cout << "Found Intersection..." << endl;
+	    //cout << "Slow down the car" << endl;
+	  }
+	else if (ldd.getLaneDetectionDataDriver ().roadState == INTERSECTION
+	    && ldd.getLaneDetectionDataDriver ().confidenceLevel == 5
+	    && !after_intersection)
+	  {
+	    //cout << "Found Intersection..." << endl;
 	    after_intersection = true;
 	    TimeStamp t_start;
 	    m_timestamp = t_start.toMicroseconds ();
+	    t_base = m_timestamp;
+	    last_steer = 0;
+	    if (last_steer < 0)
+	      {
+		steer_sign = false;
+		inters_max_steer = abs (last_steer) / 2;
+		vc.setSteeringWheelAngle (int16_t (0));
+		Container c (Container::VEHICLECONTROL, vc);
+		getConference ().send (c);
+	      }
+	    else
+	      {
+		steer_sign = true;
+		inters_min_steer = (-1) * (last_steer / 2);
+		vc.setSteeringWheelAngle (int16_t (0));
+		Container c (Container::VEHICLECONTROL, vc);
+		getConference ().send (c);
+	      }
 
 	  }
 	else if (after_intersection)
 	  {
 	    TimeStamp t_stop;
+	    double timeStep_now = (t_stop.toMicroseconds () - t_base) / 1000.0;
+
 	    double timeStep_total = (t_stop.toMicroseconds () - m_timestamp)
 		/ 1000.0;
 	    cout << "TIme: " << timeStep_total << endl;
-	    if (timeStep_total > 3000.0) //Cross intersect for 3 seconds
-	      {
-		res = laneFollowing (&ldd, overtake);
+	    if (timeStep_total > 2000.0)
+	      { //Cross intersect for 3 seconds
+		res = laneFollowing (&ldd,overtake);
 		after_intersection = false;
 	      }
 	    else
 	      {
-		vc.setSteeringWheelAngle (int16_t (0));
+		if (timeStep_now > steer_change_timing)
+		  {
+		    t_base = t_stop.toMicroseconds ();
+		    if (steer_sign)
+		      { //positive steering
+			cout << "Steering: " << last_steer - steer_change
+			    << endl;
+			while (last_steer >= inters_min_steer)
+			  {
+			    vc.setSteeringWheelAngle (
+				int16_t (last_steer - steer_change));
+			    last_steer = last_steer - steer_change;
+			  }
+		      }
+		    else
+		      { // negative steering
+			cout << "Steering: " << last_steer + steer_change
+			    << endl;
+			while (last_steer <= inters_max_steer)
+			  {
+			    vc.setSteeringWheelAngle (
+				int16_t (last_steer + steer_change));
+			    last_steer = last_steer + steer_change;
+			  }
+		      }
+		  }
+
+		Container c (Container::VEHICLECONTROL, vc);
+		getConference ().send (c);
 		cout << "Crossing Intersection..." << endl;
 	      }
+
 	  }
 	else
 	  {
 	    cout << "U not supposed to be here: "
 		<< ldd.getLaneDetectionDataDriver ().roadState << "=>"
 		<< after_intersection << endl;
-	  }
+	  } */
 
 	if (!res)
 	  {
@@ -239,51 +304,58 @@ namespace msv
   obstacleDriver::overtaking (SensorBoardData sensorData)
   {
     int urF = sensorData.getDistance (4);
-    int irSL = sensorData.getDistance (0);
+    int irSL = sensorData.getDistance (1);
     int irRL = sensorData.getDistance (3);
     float urF_avg = movingAvg (urF, 4);
-    float irSL_avg = movingAvg (irSL, 0);
+    float irSL_avg = movingAvg (irSL, 1);
     float irRL_avg = movingAvg (irRL, 3);
-
-    if (abs(urF_avg) < 55 && abs(urF_avg) > 1)
+	cout<<"urf:"<<urF_avg<<endl;
+	cout<<"irSL:"<<irSL_avg<<endl;
+	cout<<"irRL:"<<irRL_avg<<endl;
+	cout<<"ObstacleDetected:"<<obstacleDetected<<endl;
+    if (abs (urF_avg) < 45 && abs (urF_avg) > 8 && !obstacleDetected)
       {
 	obstacleDetected = true;
       }
     else if (obstacleDetected)
       {
-	if (abs(irSL_avg) < 20)
+	cout<<"Obstacle Previously Detected"<<endl;
+	if (abs (irSL_avg) < 20 && abs (irSL_avg) > 6 && !firstObj)
 	  {
+	    //firstObj = true;
 	    cout << "overtakingStarted" << endl;
-	    if (abs(irRL_avg) < 20)
+	    if (abs (irRL_avg) < 20 && abs (irRL_avg) > 6 && !overtakingNow)
 	      {
 		overtakingNow = true;
 	      }
 	  }
-	if (abs(irRL_avg) > 20 && abs(irSL_avg) > 20 && overtakingNow)
+	if (abs (irRL_avg) < 3 && abs (irSL_avg) < 3 && overtakingNow)
 	  {
 	    overtakingDone = true;
+
 	  }
 	if (overtakingDone)
 	  {
 	    obstacleDetected = false;
+	    overtakingNow = false;
 	  }
       }
     return obstacleDetected;
 
   }
   float
-  obstacleDriver::movingAvg (int sensorVal, int pos)
+  obstacleDriver::movingAvg (int sensorVal, int sensor)
   {
     float out = 0;
 
-    arr[pos][cirK] = sensorVal;
-    cirK = (cirK + 1) % 5;
+    arr[sensor][cirK] = sensorVal;
+    cirK = (cirK + 1) % NUMBER_OF_SAMPLES;
 
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < NUMBER_OF_SAMPLES; i++)
       {
-	out += arr[pos][i];
+	out += arr[sensor][i];
       }
-    return out / 5;
+    return out / NUMBER_OF_SAMPLES;
   }
   float
   obstacleDriver::calculateDesiredHeading (float oldLateralError)
@@ -449,4 +521,6 @@ namespace msv
   }
 
 } // msv
+
+
 
