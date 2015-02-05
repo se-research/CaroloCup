@@ -1416,67 +1416,86 @@ void LineDetector::createTrajectory(LinesToUse *ltu)
     // If no dashes are found, the default cut points are used and dashToUse is filled with dummy lines.
     // This code result in that createTrajectory(..) will output at most two goalLines.
     //////////////////
-    if (ltu->foundD)
-        {
-            int size = ltu->dashedCurve.size();
-            dashToUse.push_back((ltu->dashedCurve)[0]);
-            int cutP = ltu->dashedCurve[0].p2.y;
-            if (cutP > defaultCutPoints[0])
-                cutPoints.push_back(defaultCutPoints[0]);
-            else
-                cutPoints.push_back(cutP);
+    // if (ltu->foundD)
+    //     {
+    //         dashToUse.push_back((ltu->dashedCurve)[0]);
+    //         int cutP = ltu->dashedCurve[0].p2.y;
+    //         if (cutP > defaultCutPoints[0])
+    //             cutPoints.push_back(defaultCutPoints[0]);
+    //         else
+    //             cutPoints.push_back(cutP);
 
-            if (size > 1)
-                {
-                    dashToUse.push_back((ltu->dashedCurve)[1]);
-                }
-            else
-                {
-                    dashToUse.push_back(getNoneCustomLine());
-                }
-        }
-    else
-        {
-            cutPoints.push_back(defaultCutPoints[0]);
-            dashToUse.push_back(getNoneCustomLine());
-            dashToUse.push_back(getNoneCustomLine());
-        }
+    //         if (ltu->dashedCurve.size() > 1)
+    //                 dashToUse.push_back((ltu->dashedCurve)[1]);
+    //         else
+    //                 dashToUse.push_back(getNoneCustomLine());
+    //     }
+    // else
+    //     {
+    //         cutPoints.push_back(defaultCutPoints[0]);
+    //         dashToUse.push_back(getNoneCustomLine());
+    //         dashToUse.push_back(getNoneCustomLine());
+    //     }
 
     //////////////////
     // The code below splits the found solid lines at the derived cut points.
     // If the solid line was not found, dummy lines (None lines) is inserted.
     //////////////////
-    bool splitRight = false;
-    if (ltu->foundR || ltu->foundL)
-        {
-            // Prioritize to split right line if it is found
-            if (ltu->foundR)
-                {
-                    splitRight = true;
-                    rightSplitted = splitSolidLines(cutPoints, ltu->rightLine);
-                }
+    // bool splitRight = false;
+    // if (ltu->foundR || ltu->foundL)
+    //     {
+    //         // Prioritize to split right line if it is found
+    //         if (ltu->foundR)
+    //             {
+    //                 splitRight = true;
+    //                 rightSplitted = splitSolidLines(cutPoints, ltu->rightLine);
+    //             }
 
-            if (ltu->foundL && (!splitRight || true))
-                // When two goalLines is wanted, change last bool to true
-                {
-                    leftSplitted = splitSolidLines(cutPoints, ltu->leftLine);
-                }
-        }
-    // Fill potentially empty vector with None lines
-    if (leftSplitted.size() == 0)
-        {
-            for (int i = 0; i < dashToUse.size(); i++)
-                {
-                    leftSplitted.push_back(getNoneCustomLine());
-                }
-        }
-    if (rightSplitted.size() == 0)
-        {
-            for (int i = 0; i < dashToUse.size(); i++)
-                {
-                    rightSplitted.push_back(getNoneCustomLine());
-                }
-        }
+    //         if (ltu->foundL && (!splitRight || true))
+    //             // When two goalLines is wanted, change last bool to true
+    //             {
+    //                 leftSplitted = splitSolidLines(cutPoints, ltu->leftLine);
+    //             }
+    //     }
+    // // Fill potentially empty vector with None lines
+    // if (leftSplitted.size() == 0)
+    //     {
+    //         for (int i = 0; i < dashToUse.size(); i++)
+    //             {
+    //                 leftSplitted.push_back(getNoneCustomLine());
+    //             }
+    //     }
+    // if (rightSplitted.size() == 0)
+    //     {
+    //         for (int i = 0; i < dashToUse.size(); i++)
+    //             {
+    //                 rightSplitted.push_back(getNoneCustomLine());
+    //             }
+    //     }
+
+    //////////////////
+    // This code is used for the simplest option possible and will not cut any solid line
+    // and it will provide maximum one goalLine
+    //////////////////
+    if (ltu->foundR)
+        rightSplitted.push_back(ltu->rightLine);
+    else
+        rightSplitted.push_back(getNoneCustomLine());
+
+    if (ltu->foundL)
+        leftSplitted.push_back(ltu->leftLine);
+    else
+        leftSplitted.push_back(getNoneCustomLine());
+
+    if (ltu->foundD)
+        dashToUse.push_back((ltu->dashedCurve)[0]);
+    else
+        dashToUse.push_back(getNoneCustomLine());
+    cutPoints.push_back(h);
+    //////////////////
+    // End simplest option code
+    //////////////////
+
     if (printouts)
         cout << "rightSplitted: " << rightSplitted.size() << " leftSplitted: " << leftSplitted.size() << " dashToUse.size(): " << dashToUse.size() << endl;
     // used for debug of getRoadSize and getRoadAngle

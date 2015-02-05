@@ -52,7 +52,7 @@ LaneDetector_inspection::LaneDetector_inspection(const int32_t &argc, char **arg
     m_frame(),
     m_frame_count(0)
 {
-    m_config.th1 = 150;//83;
+    m_config.th1 = 130;//83;
     m_config.th2 = 230;
     m_config.hlTh = THRESH_BINARY;
     m_config.XTimesYMin = 0;
