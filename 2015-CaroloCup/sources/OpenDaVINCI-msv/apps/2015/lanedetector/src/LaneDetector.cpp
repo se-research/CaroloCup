@@ -16,6 +16,7 @@
 #include "core/data/image/SharedImage.h"
 #include "core/io/ContainerConference.h"
 #include "core/wrapper/SharedMemoryFactory.h"
+#include "SensorBoardData.h"
 
 #include "tools/player/Player.h"
 
@@ -176,7 +177,12 @@ void drawLines(msv::Lines *lines, Mat *dst, int offset)
 // You should start your work in this method.
 void LaneDetector::processImage()
 {
+    SensorBoardData sdb;
+    Container conUserData0 = getKeyValueDataStore ().get (Container::USER_DATA_0);
+    sdb = conUserData0.getData<SensorBoardData> ();
+    int lux = sdb.getDistance(7);
 
+    cout<<"LUX::"<<lux<<endl;
     TimeStamp currentTime_strt1;
 
     debug = m_debug;
