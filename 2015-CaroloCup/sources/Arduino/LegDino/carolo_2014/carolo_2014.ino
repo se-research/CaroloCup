@@ -70,6 +70,7 @@ boolean blinkingLeft = false;
 boolean blinkingRight = false;
 boolean stopBlinking = true;
 
+
 int takenOverSpeed = 0;
 int revertBackSpeed = false;
 boolean fullMsgRecv = false;
@@ -349,7 +350,7 @@ void loop()
       if(reverse == 1) {
         speed = constrain(speed, 1537, 1600);
       } else {
-        speed = constrain(speed, 1100, 1270);
+        speed = constrain(speed, 1100, 1240);
       }
     }
     //Serial.print("Speed :");
