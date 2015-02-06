@@ -167,7 +167,7 @@ private:
     Lines findCurves();
     pair<vector<Point>::iterator, vector<Point>::iterator> findBiggestDistance(Cluster &c);
     Mat getBirdView(Mat &source);
-    void findLines(cv::Mat &outputImg);
+    void findLines();
     float getLineSlope(Point &p1, Point &p2);
     float getDist(const Point p1, const Point p2) const;
     int detectHorizontalLine(Mat canny_roi, int dist);
@@ -181,7 +181,7 @@ private:
 
 	Point getLowestOrHighestPoint(std::vector<Point> pts, bool getLowest);
     //Find contours
-    void getContours(cv::Mat &outputImg);
+    void getContours();
     //Get all marked lines
     void getRectangles();
     // Split big rectangles into smaller pieces

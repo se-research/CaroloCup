@@ -51,7 +51,6 @@ LineDetector::LineDetector(const Mat &f, const Config &cfg, const bool debug,
 {
     cout << "___start LineDetector" << endl;
     m_frame = f.clone();
-    Mat outputImg = f.clone();
     //if (m_debug)
     //imshow("m_frame",m_frame);
     w = m_frame.size().width;
@@ -62,7 +61,7 @@ LineDetector::LineDetector(const Mat &f, const Config &cfg, const bool debug,
     cvtColor(m_frame, m_frame_color, CV_GRAY2BGR);
 
     // Run lineDetector and provide goalLines for the driver
-    findLines(outputImg);
+    findLines();
     //cout << "Id:" << id << endl;
     cout << "___end LineDetector" << endl;
 }
@@ -86,7 +85,7 @@ Lines LineDetector::getLines()
 }
 
 // The "body"
-void LineDetector::findLines(cv::Mat &outputImg)
+void LineDetector::findLines()
 {
 
     if (m_debug)
@@ -95,7 +94,7 @@ void LineDetector::findLines(cv::Mat &outputImg)
             startTime = currentTime.toMicroseconds();
         }
     //Find contours
-    getContours(outputImg);
+    getContours();
 
     if (m_debug)
         {
@@ -277,7 +276,7 @@ void LineDetector::findLines(cv::Mat &outputImg)
 
 // The "body" functions follow in call order
 
-void LineDetector::getContours(cv::Mat &outputImg)
+void LineDetector::getContours()
 {
     vector<vector<Point> > contours;
     vector<Vec4i> hierarchy;
