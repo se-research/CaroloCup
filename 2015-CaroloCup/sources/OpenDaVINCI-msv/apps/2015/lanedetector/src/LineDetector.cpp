@@ -1361,7 +1361,7 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
 
 void LineDetector::createTrajectory(LinesToUse *ltu)
 {
-    bool printouts = false;
+    bool printouts = true;
     if (printouts)
         cout << "__start createTrajectory" << endl;
 
