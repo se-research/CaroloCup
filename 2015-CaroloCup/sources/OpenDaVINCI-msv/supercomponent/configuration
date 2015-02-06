@@ -187,10 +187,10 @@ proxy.camera.width = 752 #752-UEYE, 640-OpenCV
 proxy.camera.height = 480
 proxy.camera.bpp = 1 #3- openCV, 1-UEYE
 
-Proxy.Actuator.UseRealSpeed=0
-proxy.Actuator.SerialPort=/dev/ttyACM1
+Proxy.Actuator.UseRealSpeed=1
+proxy.Actuator.SerialPort=/dev/ttyACM0
 
-proxy.Sensor.SerialPort=/dev/ttyACM0
+proxy.Sensor.SerialPort=/dev/ttyUSB0
 proxy.Sensor.SerialSpeed=115200
 
 proxy.numberOfSensors=8

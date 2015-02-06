@@ -128,7 +128,7 @@ void Proxy::setUp() {
 void Proxy::nextString(const string &s)
 {
 	log("Recieved Sensor Data ");
-//	cout<<"data,"<<s<<endl;
+	cout<<"data,"<<s<<endl;
 	int posIstr=s.find(':');
 	int posUstr=s.find(':',posIstr+1);
 	int posLstr=s.find(':',posUstr+1);
@@ -392,11 +392,12 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 			cout << "brakeLight" << currentValues.brakeLight << endl;
 		}
 
-		if ((previousValues.speed > currentValues.speed) || (previousValues.speed < currentValues.speed) ) {
+		if ((previousValues.speed != currentValues.speed) ) {
 			stringstream logs;
 			if(m_useRealSpeed){
 				bool reverse= currentValues.speed<0? true:false;
-				m_protocol.setWheelFrequency((unsigned int)abs(currentValues.speed*10),reverse);
+				m_protocol.setWheelFrequency((uint8_t)abs(currentValues.speed),reverse);
+				logs<<"Value we  set for speed" << abs(currentValues.speed)<<reverse <<endl;
 				logs<<"Set Wheel Frequency to "<<currentValues.speed<<endl;
 				log(logs.str());
 			}
@@ -405,7 +406,9 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 				logs<<"set speed to "<<currentValues.speed<<endl;
 				log(logs.str());
 			}
-			previousValues.speed=(int)currentValues.speed;
+			previousValues.speed=currentValues.speed;
+			 logs<<"preval"<<previousValues.speed;
+			log(logs.str());
 		}
 		if ((previousValues.steeringAngle < currentValues.steeringAngle) || (previousValues.steeringAngle > currentValues.steeringAngle)) {
 			stringstream logs;

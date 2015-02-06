@@ -6,11 +6,11 @@
 #define ADDRESSFRONT 112
 
 // WHEEL ENCODER
-#define WHEEL_DIAMETER            80
+#define WHEEL_DIAMETER            82.65
 #define PI                        3.141592
 #define WHEEL_CIRCUMFERENCE       WHEEL_DIAMETER * PI
-#define WHEEL_ENCODER_SEGMENTS    10
-#define DISTANCE_PER_SEGMENT      (float)WHEEL_CIRCUMFERENCE / WHEEL_ENCODER_SEGMENTS
+#define WHEEL_ENCODER_SEGMENTS    8
+#define DISTANCE_PER_SEGMENT      53 //(int)WHEEL_CIRCUMFERENCE / WHEEL_ENCODER_SEGMENTS
 #define WHEEL_ENCODER_PIN         0
 
 // IR
@@ -161,7 +161,7 @@ void loop()
     }
   }
   int lightVal= getAmbientLight();
-  char lStr[4];
+  char lStr[7];
   sprintf(lStr, "l%3d",lightVal);
 
   char uStr[13];
@@ -183,7 +183,7 @@ void loop()
 
 void encoderISR(){
   distanceTravelledMilli += DISTANCE_PER_SEGMENT;
-  if(distanceTravelledMilli > 99999){
+  if(distanceTravelledMilli > 30999){
     distanceTravelledMilli = 0;
   }
 }
