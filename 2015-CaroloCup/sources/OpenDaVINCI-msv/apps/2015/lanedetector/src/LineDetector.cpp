@@ -1307,29 +1307,29 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
         if (printouts)
             cout << "entering passed intersection check" << endl;
         int maxY = 0;
-        for (int i = 0; i < ltu->dashedCurve.size(); i ++){
-            if (maxY < ltu->dashedCurve[i].p1.y){ // p1 is always the point furtest down on the frame
-                maxY = ltu->dashedCurve[i].p1.y;
-            }
-        }
         if (printouts){
-            cout << "maxY: " << maxY << " > " << (8 * h / 10) << endl;
             cout << "ltu->dashedCurve.size(): " << ltu->dashedCurve.size() << endl;
         }
-        if (ltu->dashedCurve.size() > 1 && maxY > (8 * h / 10)){
+        if (ltu->dashedCurve.size() > 1){
+            for (int i = 0; i < ltu->dashedCurve.size(); i ++){
+                if (maxY < ltu->dashedCurve[i].p1.y){ // p1 is always the point furtest down on the frame
+                    maxY = ltu->dashedCurve[i].p1.y;
+                }
+            }
             if (printouts){
                 cout << "abs(ltu->dashedCurve[0].slope) > minSlope  " << abs(ltu->dashedCurve[0].slope) << ">(?)" << minSlope  << endl;
+                cout << "maxY: " << maxY << " > " << (8 * h / 10) << endl;
             }
-            if (abs(ltu->dashedCurve[0].slope) > minSlope ){
+            if (abs(ltu->dashedCurve[0].slope) > minSlope && maxY > (8 * h / 10)){
                 if (printouts)
                     cout << "roadState set to NORMAL due to dashes" << endl;
                 roadState = NORMAL;
                 intersectionOn = false;
                 foundIntersection = false;
-
             }
         }else if(ltu->foundR){
-            if (abs(ltu->rightLine.slope) > minSlope){
+            maxY = ltu->rightLine.p1.y;
+            if (abs(ltu->rightLine.slope) > minSlope && maxY > (8 * h / 10)){
                 if (printouts)
                     cout << "roadState set to NORMAL do to right solid" << endl;
                 roadState = NORMAL;
@@ -1338,7 +1338,8 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
 
             }
         }else if(ltu->foundL){
-            if (abs(ltu->leftLine.slope) > minSlope){
+            maxY = ltu->leftLine.p1.y;
+            if (abs(ltu->leftLine.slope) > minSlope && maxY > (8 * h / 10)){
                 if (printouts)
                     cout << "roadState set to NORMAL do to left solid" << endl;
                 roadState = NORMAL;
