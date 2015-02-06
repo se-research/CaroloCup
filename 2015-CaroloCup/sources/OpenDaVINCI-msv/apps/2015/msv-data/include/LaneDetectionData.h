@@ -25,7 +25,6 @@ using namespace cv;
 enum RoadState{
   NOT_SET,
   NORMAL,
-  INTERSECTION_AHEAD,
   INTERSECTION
 };
 

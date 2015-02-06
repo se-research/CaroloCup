@@ -41,7 +41,6 @@ long startTime;
 bool intersectionOn = false;
 bool foundIntersection = false;
 RoadState roadState=NORMAL;
-int intersectionRect = -1;
 
 
 LineDetector::LineDetector(const Mat &f, const Config &cfg, const bool debug,
@@ -636,8 +635,6 @@ void LineDetector::classification()
     Point rectCenter;
     Point shortSideMiddle;
 
-    intersectionRect = -1;
-
     for (unsigned int i = 0; i < line_sizes.size(); i++)
         {
             sizeX = line_sizes[i].sizeX;
@@ -686,10 +683,6 @@ void LineDetector::classification()
                                 }
                         }
                     YI = rectCenter.y;
-                    if (roadState != INTERSECTION){
-                        roadState = INTERSECTION_AHEAD;
-                    }
-                    intersectionRect = i;
 
                     //intersectionOn = true;
                     //foundIntersection = true;
@@ -701,10 +694,10 @@ void LineDetector::classification()
                     //confidenceLevel = 2;
                     //roadState = INTERSECTION;rect.angle
 
-                    cout << "(abs(rect.angle) < angle_thr || 180 - abs(rect.angle) < angle_thr ) && rectCenter.y > height_thr && roadState == INTERSECTION_AHEAD" << endl;
-                    cout << "(" << abs(rect.angle) <<" <(?) " << angle_thr << " || "<< 180 - abs(rect.angle) << " <(?) " << angle_thr<< ") && " << rectCenter.y << " >(?) " << height_thr << "&& roadState: " << roadState << endl;
+                    cout << "(abs(rect.angle) < angle_thr || 180 - abs(rect.angle) < angle_thr ) && rectCenter.y > height_thr" << endl;
+                    cout << "(" << abs(rect.angle) <<" <(?) " << angle_thr << " || "<< 180 - abs(rect.angle) << " <(?) " << angle_thr<< ") && " << rectCenter.y << " >(?) " << height_thr << endl;
                     
-                    if ( (abs(rect.angle) < angle_thr || 180 - abs(rect.angle) < angle_thr ) && rectCenter.y > height_thr && roadState == INTERSECTION_AHEAD)
+                    if ( (abs(rect.angle) < angle_thr || 180 - abs(rect.angle) < angle_thr ) && rectCenter.y > height_thr)
                         {
                             roadState = INTERSECTION;
                             //confidenceLevel = CONFIDENCE_LEVEL_MAX;
@@ -768,13 +761,6 @@ void LineDetector::classification()
 
                 }
         }
-
-    //////////////////
-    // Check if there were no intersection
-    //////////////////
-    if (roadState == INTERSECTION_AHEAD && intersectionRect == -1){
-        roadState = NORMAL;
-    }
 
     if (intersectionOn && !foundIntersection)
         {
@@ -1313,12 +1299,8 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
     // If it is passed, it will set the roadState to NORMAL.
     //////////////////
     cout << "_:_intersection checks start" << endl;
-    cout << "intersectionRect: " << intersectionRect << endl;
     cout << "roadState: " << roadState << endl;
     cout << "YI: " << YI << endl;
-    if (intersectionRect != -1){
-        cout << "intRect.angle: " << rects[intersectionRect].angle << endl;        
-    }
     
     if(roadState == INTERSECTION){
         if (printouts)
