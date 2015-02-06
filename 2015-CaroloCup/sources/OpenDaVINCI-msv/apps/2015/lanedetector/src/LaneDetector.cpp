@@ -214,7 +214,7 @@ void LaneDetector::processImage()
     data.setFrameCount(m_frame_count);
     Container con(Container::USER_DATA_1, data);
 
-   
+    
     // Send the data:
     //cout << "Send..." << endl;
     getConference().send(con);
@@ -363,9 +363,11 @@ void LaneDetector::showResult(LineDetector &road, Mat &f)
 {
     // Fetch pointers to result data
     FinalOutput *res_createTrajectory = road.getResult_createTrajectory();
+    IntermediateResult *res_finalFilter = road.getResult_finalFilter();
 
     // Show final result window
     showResult_createTrajectory(res_createTrajectory, road, f);
+    showResult_finalFilter(res_finalFilter, road, f);
 
     // Create window to display text results
     cv::Mat txtRes = cv::Mat::zeros(150, 300, CV_8UC3);
@@ -440,6 +442,27 @@ void LaneDetector::showResult(LineDetector &road, Mat &f)
                 FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
 
     imshow("Text results", txtRes);
+}
+void LaneDetector::showResult_finalFilter(IntermediateResult *res, LineDetector &road, Mat &f)
+{
+	bool printouts = false;
+    Mat frame = f.clone();
+
+    if (printouts)
+        {
+            cout << "__START: Result after finalFilter " << endl;
+            cout << "Dashes: " << res->cntDash << endl;
+            cout << "Solids: " << res->cntSolid << endl;
+            cout << "Intersection: " << res->intersectionOn << endl;
+        }
+    print_lines(res, frame);
+
+    imshow("Result from finalFilter", frame);
+    if (printouts)
+        {
+            cout << "__END: Result after finalFilter" << endl;
+        }
+    frame.release();
 }
 void LaneDetector::showResult_createTrajectory(FinalOutput *res, LineDetector &road, Mat &f)
 {
@@ -517,6 +540,26 @@ void LaneDetector::showResult_createTrajectory(FinalOutput *res, LineDetector &r
             cout << "__END: createTrajectory" << endl;
         }
     frame.release();
+}
+void LaneDetector::print_lines(IntermediateResult *res, Mat &f)
+{
+	bool printouts = false;
+    for (int i = 0; i < res->cntDash; i++)
+        {
+            line(f, res->dashLines[i].p1, res->dashLines[i].p2, 45, 2);
+            if (printouts)
+                {
+                    cout << "Dash line angle: " << res->dashLines[i].slope << endl;
+                }
+        }
+    for (int i = 0; i < res->cntSolid; i++)
+        {
+            line(f, res->solidLines[i].p1, res->solidLines[i].p2, 0, 2);
+            if (printouts)
+                {
+                    cout << "Solid line angle: " << res->solidLines[i].slope << endl;
+                }
+        }
 }
 } // msv
 

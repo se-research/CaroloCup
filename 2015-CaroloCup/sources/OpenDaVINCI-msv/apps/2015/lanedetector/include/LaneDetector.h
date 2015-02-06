@@ -77,7 +77,9 @@ private:
 
 	void showResult(LineDetector &road, Mat &f);
 	void showResult_createTrajectory(FinalOutput *res, LineDetector &road, Mat &f);
-	
+	void showResult_finalFilter(IntermediateResult *res, LineDetector &road, Mat &f);
+	void print_lines(IntermediateResult *res, Mat &f);
+
     virtual void setUp();
 
     virtual void tearDown();
