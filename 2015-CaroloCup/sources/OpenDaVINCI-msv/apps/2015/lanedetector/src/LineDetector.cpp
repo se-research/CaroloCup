@@ -770,11 +770,11 @@ void LineDetector::classification()
         }
 
     //////////////////
-    // Check if we have entered the intersection
+    // Check if there were no intersection
     //////////////////
-    // if (roadState == INTERSECTION_AHEAD && intersectionRect == -1){
-    //     roadState = INTERSECTION;
-    // }
+    if (roadState == INTERSECTION_AHEAD && intersectionRect == -1){
+        roadState = NORMAL;
+    }
 
     if (intersectionOn && !foundIntersection)
         {
