@@ -1303,6 +1303,7 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
     cout << "YI: " << YI << endl;
     
     if(roadState == INTERSECTION){
+        int minSlope = 40;
         if (printouts)
             cout << "entering passed intersection check" << endl;
         int maxY = 0;
@@ -1316,13 +1317,30 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
             cout << "ltu->dashedCurve.size(): " << ltu->dashedCurve.size() << endl;
         }
         if (ltu->dashedCurve.size() > 1 && maxY > (8 * h / 10)){
-            int minSlope = 40;
             if (printouts){
                 cout << "abs(ltu->dashedCurve[0].slope) > minSlope  " << abs(ltu->dashedCurve[0].slope) << ">(?)" << minSlope  << endl;
             }
             if (abs(ltu->dashedCurve[0].slope) > minSlope ){
                 if (printouts)
-                    cout << "roadState set to NORMAL" << endl;
+                    cout << "roadState set to NORMAL due to dashes" << endl;
+                roadState = NORMAL;
+                intersectionOn = false;
+                foundIntersection = false;
+
+            }
+        }else if(ltu->foundR){
+            if (abs(ltu->rightLine.slope) > minSlope){
+                if (printouts)
+                    cout << "roadState set to NORMAL do to right solid" << endl;
+                roadState = NORMAL;
+                intersectionOn = false;
+                foundIntersection = false;
+
+            }
+        }else if(ltu->foundL){
+            if (abs(ltu->leftLine.slope) > minSlope){
+                if (printouts)
+                    cout << "roadState set to NORMAL do to left solid" << endl;
                 roadState = NORMAL;
                 intersectionOn = false;
                 foundIntersection = false;
