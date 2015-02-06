@@ -61,7 +61,7 @@ void loop(){
 		  lcd.setCursor(7,1);        
 		  lcd.print("LANEFOLLOW >");
 		  upRightButton();
-		  lcd.setCursor(11,3);           
+		  lcd.setCursor(12,3);           
 		  lcd.print("PARKING >");
 		  downRightButton();
         break;
@@ -94,7 +94,8 @@ void upLeftButton(){
 
 if(menuLevel == 0){
   if(digitalRead(upLeft)){
-	Serial.print("0");  	//Sends STOP signal
+	Serial.print("00");  	//Sends STOP signal
+Serial.flush();
 	lcd.clear();
 	lcd.setCursor(1, 1);
 	lcd.print("STOPPING PROCESSES");
@@ -102,7 +103,8 @@ if(menuLevel == 0){
   }
 }if(menuLevel == 1){
   if(digitalRead(upLeft)){
-	Serial.print("0");  	//Sends STOP signal
+	Serial.print("00");  	//Sends STOP signal
+Serial.flush();
 	lcd.clear();
 	lcd.setCursor(1, 1);
 	lcd.print("STOPPING PROCESSES");
@@ -115,7 +117,8 @@ if(menuLevel == 0){
 void upRightButton(){
 if(menuLevel == 0){
   if(digitalRead(upRight)){
-  	Serial.print("4"); //Starting supercomponent and proxy
+  	Serial.print("44"); //Starting supercomponent and proxy
+  Serial.flush();
 	lcd.clear();
 	lcd.setCursor(1, 1);
 	lcd.print("GETTING READY");
@@ -125,7 +128,8 @@ if(menuLevel == 0){
   }
 }if(menuLevel == 1){
   if(digitalRead(upRight)){
-  	Serial.print("1"); //LaneFollowing
+  	Serial.print("11"); //LaneFollowing
+  Serial.flush();
 	lcd.clear();
 	lcd.setCursor(1, 1);
 	lcd.print("STARTING LANEFOLLOW");
@@ -139,7 +143,8 @@ if(menuLevel == 0){
 void downRightButton(){
 if(menuLevel == 1){
   if(digitalRead(downRight)){
-		Serial.print("2"); //Parking
+		Serial.print("22"); //Parking
+    Serial.flush();
 	lcd.clear();
 	lcd.setCursor(1, 1);
 	lcd.print("STARTING PARKING");
