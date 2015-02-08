@@ -350,61 +350,61 @@ void Driver::parking() {
 		driving_speed = SpeedB1;
 		desiredSteeringWheelAngle = -42;
 		cout << "\t========  BACKWARDS_LEFT"  << endl;
-		if ((Distance > (CurrentDist2 + DesiredDistance3)) || (IRdis_RL < 10 && IRdis_RL > 2) ) {			
-			TimeStamp currentTimeB;
-			start_timerB = currentTimeB.toMicroseconds() / 1000.0;
-			parking_state = WAIT_2;
+		if ((Distance > (CurrentDist2 + DesiredDistance3)) || (IRdis_RL < 20 && IRdis_RL > 2) || (IRdis_RR < 20 && IRdis_RR > 2)) {			
+// 			TimeStamp currentTimeB;
+// 			start_timerB = currentTimeB.toMicroseconds() / 1000.0;
+			parking_state = FORWARD_RIGHT;
 
 		} 
 	}
 		break;
 	
-	case WAIT_2: { 
-	      driving_speed = Stop_Speed;
-	      cout << "\t WAIT_2" << endl;
-	      TimeStamp currentTimeB2;
-	      time_takenB = (currentTimeB2.toMicroseconds() / 1000.0) - start_timerB;
-			      
-	      cout << "++++++++++ Stoping timer: " << time_taken2 << endl;
-	      if (time_takenB > 300) {  
-		      cout << "++++++===== Stoping timerB: " << time_takenB << endl;
-		      CurrentDist3 = Distance;
-		      parking_state = FORWARD_RIGHT;	
-			}
-	}
-			break;
+// 	case WAIT_2: { 
+// 	      driving_speed = Stop_Speed;
+// 	      cout << "\t WAIT_2" << endl;
+// 	      TimeStamp currentTimeB2;
+// 	      time_takenB = (currentTimeB2.toMicroseconds() / 1000.0) - start_timerB;
+// 			      
+// 	      cout << "++++++++++ Stoping timer: " << time_taken2 << endl;
+// 	      if (time_takenB > 300) {  
+// 		      cout << "++++++===== Stoping timerB: " << time_takenB << endl;
+// 		      CurrentDist3 = Distance;
+// 		      parking_state = FORWARD_RIGHT;	
+// 			}
+// 	}
+// 			break;
 
 	case FORWARD_RIGHT: {
 		driving_speed = SpeedF1;
 		desiredSteeringWheelAngle = 42;
 		cout << "\t\t========  FORWARD_RIGHT"  << endl;
-		if ((Distance > (CurrentDist3 + DesiredDistance4)) || (USFront < 7 && USFront > 2)) {
+		if ((USFront < 7 && USFront > 2) || ((abs (IRdis_RL - IRdis_RR)) < 1)) {
 		  //(Distance > (CurrentDist3 + DesiredDistance4)) || 
-			parking_state = WAIT_3;
-			TimeStamp currentTime3;
-			start_timer2 = currentTime3.toMicroseconds() / 1000.0;
+			parking_state = BACK_AGAIN;
+// 			TimeStamp currentTime3;
+// 			start_timer2 = currentTime3.toMicroseconds() / 1000.0;
 		} 
 	}
 
 		break;
 		
-	case WAIT_3: { 
-	      driving_speed = Stop_Speed;
-	      
-	      cout << "\t WAIT_3" << endl;
-	      TimeStamp currentTime4;
-	      time_taken2 = (currentTime4.toMicroseconds() / 1000.0)- start_timer2;
-			      
-	      cout << "++++++++++ Stoping timerF1: " << time_taken2 << endl;
-	      if (time_taken2 > 400) 
-		      { 
-	      	      CurrentDist4 = Distance;
-		      parking_state = BACK_AGAIN;
-		      
-			}
-			
-		}
-			break;
+// 	case WAIT_3: { 
+// 	      driving_speed = Stop_Speed;
+// 	      
+// 	      cout << "\t WAIT_3" << endl;
+// 	      TimeStamp currentTime4;
+// 	      time_taken2 = (currentTime4.toMicroseconds() / 1000.0)- start_timer2;
+// 			      
+// 	      cout << "++++++++++ Stoping timerF1: " << time_taken2 << endl;
+// 	      if (time_taken2 > 400) 
+// 		      { 
+// 	      	      CurrentDist4 = Distance;
+// 		      parking_state = BACK_AGAIN;
+// 		      
+// 			}
+// 			
+// 		}
+// 			break;
 
 	case BACK_AGAIN: {
 		driving_speed = SpeedB1;
