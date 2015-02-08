@@ -87,10 +87,12 @@ void Proxy::setUp() {
 		// Number of memory segments.
 		const uint32_t NUMBER_OF_SEGMENTS = getKeyValueConfiguration().getValue<
 				uint32_t>("global.buffer.numberOfMemorySegments");
-                // Run recorder in asynchronous mode to allow real-time recording in background.
-                const bool THREADING = true;
+
+		// Run recorder in asynchronous mode to allow real-time recording in background.
+               const bool THREADING = true;
  
-                m_recorder = new Recorder(recordingURL.str(), MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS, THREADING);
+               m_recorder = new Recorder(recordingURL.str(), MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS, THREADING);
+
 	}
 
 	// Create the camera grabber.
@@ -132,7 +134,8 @@ void Proxy::nextString(const string &s)
 	int posIstr=s.find(':');
 	int posUstr=s.find(':',posIstr+1);
 	int posLstr=s.find(':',posUstr+1);
-	string iStr=s.substr(2,posIstr);
+	int posI = s.find('i');
+	string iStr=s.substr(posI,posIstr);
 	string uStr=s.substr(posIstr+1,posUstr-posIstr);
 	string lStr=s.substr(posUstr+1,posLstr-posUstr);
 	string wStr=s.substr(posLstr+1);
@@ -232,7 +235,7 @@ void Proxy::nextString(const string &s)
 			wheelEncoder[1] = wStr[2];
 			wheelEncoder[2] = wStr[3];
 			wheelEncoder[3] = wStr[4];
-			wheelEncoder[4] = wStr[5];
+			wheelEncoder[4] = wStr[5];	
 			int distanceTraveled;
 			distanceTraveled=converter(wheelEncoder,5);
 
@@ -333,7 +336,6 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 	sp.setStringListener(this);
 	serialPort->setPartialStringReceiver(&sp);
 	serialPort->start();
-	
 
 	//setupSerial port for Actuators
 	ArduinoMegaProtocol m_protocol(getKeyValueConfiguration().getValue<string>("proxy.Actuator.SerialPort"),10);
@@ -352,10 +354,6 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 			Container c(Container::SHARED_IMAGE, si);
 			distribute(c);
 			captureCounter++;
-			stringstream logs;
-			logs<<"SharedImage Distributed Capture Counter:"<<captureCounter<<endl;
-			log(logs.str());
-			
 		}
 
 		// Get sensor data from IR/US, and distribute
@@ -363,7 +361,6 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 			Lock l(m_sensorBoardMutex);
 			Container sensorData(Container::USER_DATA_0, m_sensorBoardData);
 			distribute(sensorData);
-			log("Distributed Sensor data");
 		}
 
 		//Get driver data and send it to the arduino
@@ -392,23 +389,20 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 			cout << "brakeLight" << currentValues.brakeLight << endl;
 		}
 
-		if ((previousValues.speed != currentValues.speed) ) {
+		if ((previousValues.speed !=currentValues.speed) ) {
 			stringstream logs;
 			if(m_useRealSpeed){
 				bool reverse= currentValues.speed<0? true:false;
-				m_protocol.setWheelFrequency((uint8_t)abs(currentValues.speed),reverse);
-				logs<<"Value we  set for speed" << abs(currentValues.speed)<<reverse <<endl;
+				m_protocol.setWheelFrequency(uint8_t(abs(currentValues.speed)),reverse);
 				logs<<"Set Wheel Frequency to "<<currentValues.speed<<endl;
 				log(logs.str());
 			}
 			else{
 				m_protocol.setSpeed(currentValues.speed);
-				logs<<"set speed to "<<currentValues.speed<<endl;
+				logger<<"set speed to "<<currentValues.speed<<endl;
 				log(logs.str());
 			}
 			previousValues.speed=currentValues.speed;
-			 logs<<"preval"<<previousValues.speed;
-			log(logs.str());
 		}
 		if ((previousValues.steeringAngle < currentValues.steeringAngle) || (previousValues.steeringAngle > currentValues.steeringAngle)) {
 			stringstream logs;
@@ -422,16 +416,13 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 		if((previousValues.leftFlash != currentValues.leftFlash) || (previousValues.rightFlash != currentValues.rightFlash))
 		{
 			m_protocol.setIndicatorsStop();
-			log("Turn off indicator");
 			if(currentValues.rightFlash)
 			{
 				m_protocol.setIndicatorsRight();
-				log("Turn On right indicator");
 			}
 			if(currentValues.leftFlash)
 			{
 				m_protocol.setIndicatorsLeft();
-				log("Turn On left indicator");
 			}
 			previousValues.leftFlash = currentValues.leftFlash;
 			previousValues.rightFlash = currentValues.rightFlash;
@@ -440,7 +431,6 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 	}
 
 	cout << "Proxy: Captured " << captureCounter << " frames." << endl;
-	
 	//stop the car when proxy is stopped
 	if(m_useRealSpeed) {
 	  m_protocol.setWheelFrequency(0, false);

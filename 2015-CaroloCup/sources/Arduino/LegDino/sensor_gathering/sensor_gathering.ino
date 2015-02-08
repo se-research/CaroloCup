@@ -6,11 +6,11 @@
 #define ADDRESSFRONT 112
 
 // WHEEL ENCODER
-#define WHEEL_DIAMETER            82.65
+#define WHEEL_DIAMETER            80
 #define PI                        3.141592
 #define WHEEL_CIRCUMFERENCE       WHEEL_DIAMETER * PI
-#define WHEEL_ENCODER_SEGMENTS    8
-#define DISTANCE_PER_SEGMENT      53 //(int)WHEEL_CIRCUMFERENCE / WHEEL_ENCODER_SEGMENTS
+#define WHEEL_ENCODER_SEGMENTS    10
+#define DISTANCE_PER_SEGMENT      (float)WHEEL_CIRCUMFERENCE / WHEEL_ENCODER_SEGMENTS
 #define WHEEL_ENCODER_PIN         0
 
 // IR
@@ -179,11 +179,12 @@ void loop()
   Serial.print(":");
   Serial.println(wStr);
   
+  Serial.flush();
 }
 
 void encoderISR(){
   distanceTravelledMilli += DISTANCE_PER_SEGMENT;
-  if(distanceTravelledMilli > 30999){
+  if(distanceTravelledMilli > 99999){
     distanceTravelledMilli = 0;
   }
 }

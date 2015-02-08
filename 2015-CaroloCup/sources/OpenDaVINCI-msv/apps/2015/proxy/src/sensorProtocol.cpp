@@ -62,7 +62,7 @@ using namespace core::wrapper;
                bool sensorProtocol::hasCompleteData() {
                   //TODO:VerifyProtocol if required
             	   m_partialData.seekg(0, ios_base::end);
-            	   const uint8_t streamSize = m_partialData.tellg();
+            	   const uint32_t streamSize = m_partialData.tellg();
             	   m_partialData.seekg(0, ios_base::beg);
             	   if(streamSize>70){ //Currently 100 is used as a safety value to receive 2 lines from the sensor data, going ahead we need to make this more robust with some inherent logic
             		   return true;
