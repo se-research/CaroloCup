@@ -77,7 +77,7 @@ namespace msv {
 
         public:
             struct vehicleControl {
-                    		double speed;
+                    		int speed;
                     		double steeringAngle;
                     		bool leftFlash;
                     		bool rightFlash;
