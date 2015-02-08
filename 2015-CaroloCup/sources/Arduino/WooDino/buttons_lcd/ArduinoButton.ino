@@ -43,27 +43,27 @@ void loop(){
  switch (menuLevel) {
       case ROOT:
           lcd.setCursor(0,0);          
-		  lcd.print("CAR STATUS:");
-		  lcd.setCursor(0,1);
-		  lcd.print("< STOP");   
-		  lcd.setCursor(12,1);     
-		  lcd.print("READY! >");
-		  upLeftButton();
-		  upRightButton();
+      lcd.print("CAR STATUS:");
+      lcd.setCursor(0,1);
+      lcd.print("< STOP");   
+      lcd.setCursor(12,1);     
+      lcd.print("READY! >");
+      upLeftButton();
+      upRightButton();
 
         break;
       case SCENARIO:
           lcd.setCursor(0,0);          
-		  lcd.print("SCENARIOS:");
-		  lcd.setCursor(0,1);
-		  lcd.print("< STOP");
-	   	  upLeftButton();   
-		  lcd.setCursor(7,1);        
-		  lcd.print("LANEFOLLOW >");
-		  upRightButton();
-		  lcd.setCursor(12,3);           
-		  lcd.print("PARKING >");
-		  downRightButton();
+      lcd.print("SCENARIOS:");
+      lcd.setCursor(0,1);
+      lcd.print("< STOP");
+        upLeftButton();   
+      lcd.setCursor(7,1);        
+      lcd.print("LANEFOLLOW >");
+      upRightButton();
+      lcd.setCursor(12,3);           
+      lcd.print("PARKING >");
+      downRightButton();
         break;
 
       default:
@@ -71,11 +71,11 @@ void loop(){
   }
 
   if(digitalRead(downLeft)){
-  	//Serial.print("3");
+    //Serial.print("3");
   }
 
   if(menuLevel > 1 || menuLevel < 0){
-  	menuLevel = 0;
+    menuLevel = 0;
   }
   delay(100);
 
@@ -94,22 +94,22 @@ void upLeftButton(){
 
 if(menuLevel == 0){
   if(digitalRead(upLeft)){
-	Serial.print("00");  	//Sends STOP signal
+  Serial.print("00");   //Sends STOP signal
 Serial.flush();
-	lcd.clear();
-	lcd.setCursor(1, 1);
-	lcd.print("STOPPING PROCESSES");
-	delay(2000);
+  lcd.clear();
+  lcd.setCursor(1, 1);
+  lcd.print("STOPPING PROCESSES");
+  delay(2000);
   }
 }if(menuLevel == 1){
   if(digitalRead(upLeft)){
-	Serial.print("00");  	//Sends STOP signal
+  Serial.print("00");   //Sends STOP signal
 Serial.flush();
-	lcd.clear();
-	lcd.setCursor(1, 1);
-	lcd.print("STOPPING PROCESSES");
-	delay(2000);
-	menuLevel = 0;
+  lcd.clear();
+  lcd.setCursor(1, 1);
+  lcd.print("STOPPING PROCESSES");
+  delay(2000);
+  menuLevel = 0;
   }
 }
 }
@@ -117,24 +117,24 @@ Serial.flush();
 void upRightButton(){
 if(menuLevel == 0){
   if(digitalRead(upRight)){
-  	Serial.print("44"); //Starting supercomponent and proxy
+    Serial.print("44"); //Starting supercomponent and proxy
   Serial.flush();
-	lcd.clear();
-	lcd.setCursor(1, 1);
-	lcd.print("GETTING READY");
-	delay(2000);
-	menuLevel = 1;
+  lcd.clear();
+  lcd.setCursor(1, 1);
+  lcd.print("GETTING READY");
+  delay(2000);
+  menuLevel = 1;
 
   }
 }if(menuLevel == 1){
   if(digitalRead(upRight)){
-  	Serial.print("11"); //LaneFollowing
+    Serial.print("11"); //LaneFollowing
   Serial.flush();
-	lcd.clear();
-	lcd.setCursor(1, 1);
-	lcd.print("STARTING LANEFOLLOW");
-	delay(2000);
-	menuLevel = 0;
+  lcd.clear();
+  lcd.setCursor(1, 1);
+  lcd.print("STARTING LANEFOLLOW");
+  delay(2000);
+  menuLevel = 0;
 
   }
 }
@@ -143,13 +143,13 @@ if(menuLevel == 0){
 void downRightButton(){
 if(menuLevel == 1){
   if(digitalRead(downRight)){
-		Serial.print("22"); //Parking
+    Serial.print("22"); //Parking
     Serial.flush();
-	lcd.clear();
-	lcd.setCursor(1, 1);
-	lcd.print("STARTING PARKING");
-	delay(2000);
-	menuLevel = 0;
+  lcd.clear();
+  lcd.setCursor(1, 1);
+  lcd.print("STARTING PARKING");
+  delay(2000);
+  menuLevel = 0;
   }
 }
 }

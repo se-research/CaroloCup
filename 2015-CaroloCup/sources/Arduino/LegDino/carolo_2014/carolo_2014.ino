@@ -70,7 +70,6 @@ boolean blinkingLeft = false;
 boolean blinkingRight = false;
 boolean stopBlinking = true;
 
-int takenOverSpeed = 5;
 
 int takenOverSpeed = 0;
 int revertBackSpeed = false;
@@ -185,21 +184,7 @@ void loop()
         
         //Cruise control
         if (!first && cruiseCtrl) {
-<<<<<<< HEAD
-          if (readbyte == 'r' && !applyCruiseCtrl && reverse == -1) {
-            applyCruiseCtrl = true;
-            reverse = -1;
-            speed = 1240;
-           // Serial.println("Reverse");
-          } else if (readbyte == 'f' && !applyCruiseCtrl && reverse == 1) {
-            applyCruiseCtrl = true;
-            reverse = 1;
-            speed = 1520;
-        //    Serial.println("Forward");
-          } else if (readbyte == 'f' || readbyte == 'r') {
-=======
           if (readbyte == 'f' || readbyte == 'r') {
->>>>>>> master
             isDirSet = true;
             if(!applyCruiseCtrl) {
                applyCruiseCtrl = true;
@@ -237,12 +222,8 @@ void loop()
           } else if(readbyte >= '0' && readbyte <= '9' && isDirSet) {
             //applyCruiseCtrl = true;
             setFreq = setFreq * 10 + (readbyte - '0');
-<<<<<<< HEAD
-          //  Serial.println(setFreq);
-=======
             //Serial.println(setFreq);
             revertBackSpeed = true;
->>>>>>> master
           }
         }
         if (first && readbyte == 'f') {
@@ -436,11 +417,7 @@ void evaluateReceiver()
      receiverSpeed = pulseIn(2, HIGH, 100000);
      receiverSteer = pulseIn(3, HIGH, 100000);
   }
-<<<<<<< HEAD
-  receiverSpeed = map(receiverSpeed, 1400,2500,-5,5);
-=======
   receiverSpeed = map(receiverSpeed, 1400,2500,-4,4);
->>>>>>> master
   //set a constant speed here
   //1520 zero 
   //1400 zero reverse
@@ -458,10 +435,7 @@ void evaluateReceiver()
       takeOver = true;
       if(revertBackSpeed) {
         takenOverSpeed = setFreq;
-<<<<<<< HEAD
-=======
         Serial.println(setFreq);
->>>>>>> master
       }
       revertBackSpeed = false;
       digitalWrite(blueLed, LOW);
@@ -491,15 +465,9 @@ void evaluateReceiver()
     digitalWrite(blueLed, LOW);
     angle = 0;
     controlSteering();
-<<<<<<< HEAD
-    setFreq=0;
-    reverse=1;
-    //speed = takenOverSpeed;
-=======
     //setFreq=0;
     reverse=1;
     setFreq = takenOverSpeed;
->>>>>>> master
     //applyCruiseCtrl = true;
     controlMotor();
     takeOver = false;

@@ -2,14 +2,14 @@
 #include <Servo.h>
 #include <EEPROM.h>
 
-#define MAX_STEERING_ANGLE_R 	43
-#define MAX_STEERING_ANGLE_L 	-43
-#define MIN_MOTOR_SPEED 		800
-#define MAX_MOTOR_SPEED 		1623
-#define MIN_REVERSE_SPEED 		1100
-#define BRAKE_SPEED_MAX 		1541
-#define BRAKE_SPEED_MIN 		1299
-#define INIT_MOTOR_SPEED 		1500
+#define MAX_STEERING_ANGLE_R  43
+#define MAX_STEERING_ANGLE_L  -43
+#define MIN_MOTOR_SPEED     800
+#define MAX_MOTOR_SPEED     1623
+#define MIN_REVERSE_SPEED     1100
+#define BRAKE_SPEED_MAX     1541
+#define BRAKE_SPEED_MIN     1299
+#define INIT_MOTOR_SPEED    1500
 
 #define REMOTE_CHANNEL_3 3
 #define REMOTE_CHANNEL_5 4

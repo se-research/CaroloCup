@@ -187,4 +187,3 @@ int getAmbientLight()
 {
     return analogRead(lightSensor) * 0.9765625;
 }
-
