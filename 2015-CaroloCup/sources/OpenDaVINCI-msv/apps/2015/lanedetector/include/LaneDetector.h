@@ -79,6 +79,7 @@ private:
 	void showResult_createTrajectory(FinalOutput *res, LineDetector &road, Mat &f);
 	void showResult_finalFilter(IntermediateResult *res, LineDetector &road, Mat &f);
 	void print_lines(IntermediateResult *res, Mat &f);
+	int getDynamicThresh(int lux);
 
     virtual void setUp();
 

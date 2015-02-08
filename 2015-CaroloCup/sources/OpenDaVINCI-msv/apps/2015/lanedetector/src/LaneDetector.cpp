@@ -25,6 +25,8 @@
 
 #include "LaneDetector.h"
 
+
+
 namespace msv
 {
 
@@ -35,6 +37,7 @@ using namespace core::data::image;
 using namespace tools::player;
 using namespace cv;
 
+int previousThresh=48;
 bool debug;
 Config cfg;
 // Global variables for camera functions
@@ -173,6 +176,36 @@ void drawLines(msv::Lines *lines, Mat *dst, int offset)
     line( *dst, lines->goalLineLeft.p1, lines->goalLineLeft.p2, 124,3,CV_AA);
     line( *dst, lines->currentLine.p1, lines->currentLine.p2, 0, 3, CV_AA);
 }
+int LaneDetector::getDynamicThresh(int lux)
+{
+
+  int minIntervalValue[]={15,17,20,23,26,29,32},maxIntervalValue[]={18,21,24,27,31,35,40};
+  int foundIndex[3],thresh[]={50,55,60,65,70,75,80};
+  if(lux<minIntervalValue[0])
+    {
+      return 48;
+    }
+  if(lux>maxIntervalValue[6]){
+      return 90;
+  }
+  int cnt=0;
+  for(int i=0;i<7;i++)
+    {
+
+      if(lux>minIntervalValue[i] && lux<maxIntervalValue[i])
+	{
+	  foundIndex[cnt++]=i;
+	}
+    }
+  for(int j=0;j<cnt;j++)
+    {
+      if(previousThresh==thresh[foundIndex[j]])
+	{
+	  return thresh[foundIndex[j]];
+	}
+    }
+  return thresh[foundIndex[0]];
+}
 
 // You should start your work in this method.
 void LaneDetector::processImage()
@@ -187,6 +220,9 @@ void LaneDetector::processImage()
 
     debug = m_debug;
     cout << "Debug: " << debug << endl;
+    previousThresh=m_config.th1;
+    m_config.th1 =  getDynamicThresh(lux);
+    cout<<"Thresh:"<<m_config.th1<<endl;
     cfg = m_config;
 
     Mat neededPart = m_frame(cv::Rect(1, 2 * height / 16 - 1, width - 1, 10 * height / 16 - 1));
