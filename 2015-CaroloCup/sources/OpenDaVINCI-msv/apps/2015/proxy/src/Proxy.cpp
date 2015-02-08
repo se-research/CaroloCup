@@ -88,8 +88,11 @@ void Proxy::setUp() {
 		const uint32_t NUMBER_OF_SEGMENTS = getKeyValueConfiguration().getValue<
 				uint32_t>("global.buffer.numberOfMemorySegments");
 
-		m_recorder = new Recorder(recordingURL.str(), MEMORY_SEGMENT_SIZE,
-				NUMBER_OF_SEGMENTS);
+		// Run recorder in asynchronous mode to allow real-time recording in background.
+               const bool THREADING = true;
+ 
+               m_recorder = new Recorder(recordingURL.str(), MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS, THREADING);
+
 	}
 
 	// Create the camera grabber.
@@ -232,6 +235,7 @@ void Proxy::nextString(const string &s)
 			wheelEncoder[1] = wStr[2];
 			wheelEncoder[2] = wStr[3];
 			wheelEncoder[3] = wStr[4];
+			wheelEncoder[4] = wStr[5];	
 			int distanceTraveled;
 			distanceTraveled=converter(wheelEncoder,4);
 

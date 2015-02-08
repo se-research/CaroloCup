@@ -173,6 +173,8 @@ void loop()
   Serial.print(lStr);
   Serial.print(":");
   Serial.println(wStr);
+  
+  Serial.flush();
 }
 
 void encoderISR(){

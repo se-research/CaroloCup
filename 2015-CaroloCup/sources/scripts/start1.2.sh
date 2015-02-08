@@ -4,7 +4,7 @@ home=/home/odroid/CaroloCup/2014-CaroloCup/Legendary/project/scripts
 bin=/opt/msv/bin/
 caroloCup=$bin/2013/DIT-168/project-template/
 pidfile=${0}.pid
-serialPort=/dev/ttyACM1
+serialPort=/dev/ttyACM3
 started=0
 
 # Port setting
@@ -58,6 +58,27 @@ do
 
 #Note that this is only lanedriver!
 	    nohup ${caroloCup}/lanedriver --cid=222 --freq=40 &
+	    started=0
+    fi
+  elif [[ $line == "11" ]]; then
+    if [[ $started == 0 ]]; then
+	    echo "START LANEFOLLOWING"
+#cp configuration1 configuration
+	    killall supercomponent
+	    # Start the processes
+	    
+	    cd /opt/msv/bin/
+	    nohup ./supercomponent --cid=111 &
+	    echo "$!" > $pidfile
+
+        nohup ${caroloCup}/proxy --cid=111 --freq=20 &
+        echo "$!" >> $pidfile
+
+        nohup ${caroloCup}/lanedetector --cid=111 --freq=20 &
+	    echo "$!" >> $pidfile
+
+#Note that this is only lanedriver!
+	    nohup ${caroloCup}/lanedriver --cid=111 --freq=40 &
 	    echo "$!" >> $pidfile
 	    started=1
     fi
@@ -96,7 +117,6 @@ do
 	    echo "Driver has started"
 	    started=1
 
-fi
    fi
 done < $serialPort
 
