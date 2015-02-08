@@ -178,32 +178,31 @@ void drawLines(msv::Lines *lines, Mat *dst, int offset)
 }
 int LaneDetector::getDynamicThresh(int lux)
 {
-
-  int minIntervalValue[]={15,17,20,23,26,29,32},maxIntervalValue[]={18,21,24,27,31,35,40};
-  int foundIndex[3],thresh[]={50,55,60,65,70,75,80};
+  int baseThresh=getKeyValueConfiguration().getValue<uint32_t>("lanedetector.threshBaseParameter");
+  int minIntervalValue[]={11,15,17,20,23,26,29,32},maxIntervalValue[]={16,18,21,24,27,31,35,40};
+  int foundIndex[3],thresh[]={baseThresh+2,baseThresh+7,baseThresh+12,baseThresh+17,baseThresh+22,baseThresh+27,baseThresh+32};
   if(lux<minIntervalValue[0])
     {
-      return 48;
+      return baseThresh;
     }
   if(lux>maxIntervalValue[6]){
-      return 90;
+      return baseThresh+42;
   }
   int cnt=0;
   for(int i=0;i<7;i++)
     {
-
-      if(lux>minIntervalValue[i] && lux<maxIntervalValue[i])
+      if(lux>=minIntervalValue[i] && lux<=maxIntervalValue[i])
 	{
 	  foundIndex[cnt++]=i;
 	}
     }
-  for(int j=0;j<cnt;j++)
-    {
-      if(previousThresh==thresh[foundIndex[j]])
+      for(int j=0;j<cnt;j++)
 	{
-	  return thresh[foundIndex[j]];
+	  if(previousThresh==thresh[foundIndex[j]])
+	    {
+	      return thresh[foundIndex[j]];
+	    }
 	}
-    }
   return thresh[foundIndex[0]];
 }
 
