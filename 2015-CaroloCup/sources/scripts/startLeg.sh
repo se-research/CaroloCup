@@ -4,7 +4,7 @@ home=/home/odroid/CaroloCup/2014-CaroloCup/Legendary/project/scripts
 bin=/opt/msv/bin/
 caroloCup=$bin/2013/DIT-168/project-template/
 pidfile=${0}.pid
-serialPort=/dev/ttyACM1 //Legendary: ACM1, Woody: ACM0
+serialPort=/dev/ttyACM1 #Legendary: ACM1, Woody: ACM0
 started=0
 
 # Port setting
@@ -20,7 +20,7 @@ do
 
    echo $line
    echo "test"
-   if [[ $line == "0" ]]; then //RED button
+   if [[ $line == "0" ]]; then #RED button
     if [[ $started == 1 || $started=2 ]]; then
 	    echo "STOP"
 	    # Stop and kill the processes from the pidfile
@@ -46,7 +46,7 @@ do
 	   echo "LaneDetetor is stopped"
 	    started=0
     fi
-  elif [[ $line == "1" ]]; then //YELLOW + BLUE
+  elif [[ $line == "1" ]]; then #YELLOW + BLUE
     if [[ $started == 0 ]]; then
 	    echo "START LANEFOLLOWING"
 #cp configuration1 configuration
@@ -63,7 +63,7 @@ do
     fi
 
     # Change back to 2 for parking
-  elif [[ $line == "3" ]]; then //LIGHT BLUE + BLUE
+  elif [[ $line == "3" ]]; then #LIGHT BLUE + BLUE
     if [[ $started == 0 ]]; then
 	   # echo "START PARKING"
 	    # cp configuration2 configuration
@@ -88,7 +88,7 @@ do
 	    started=2
 
 	fi
-   elif [[ $line == "2" ]]; then //GREEN + BLUE
+   elif [[ $line == "2" ]]; then #GREEN + BLUE
 	if [[ $started == 2 ]]; then
 	    
 	    cd /opt/msv/bin/2013/DIT-168/project-template/ 
