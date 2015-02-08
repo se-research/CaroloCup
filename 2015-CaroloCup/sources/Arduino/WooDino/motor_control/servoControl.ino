@@ -11,6 +11,8 @@
 #define BRAKE_SPEED_MIN 		1299
 #define INIT_MOTOR_SPEED 		1500
 
+#define REMOTE_CHANNEL_3 3
+#define REMOTE_CHANNEL_5 4
 
 // WHEEL ENCODER
 #define WHEEL_DIAMETER            65.4
@@ -100,8 +102,9 @@ void setup()
   time = 0;
   
   attachInterrupt(WHEEL_ENCODER_PIN, countRotations, CHANGE);
-  pinMode(2, INPUT);
-  pinMode(3, INPUT);
+  
+  pinMode(REMOTE_CHANNEL_3, INPUT);
+  pinMode(REMOTE_CHANNEL_5, INPUT);
   // initialize serial communication
   Serial.begin(115200);
   Serial.println("initialized");
@@ -423,13 +426,13 @@ void evaluateReceiver()
 {
   int receiverSpeed, receiverSteer;
   if(!takeOver) {
-     receiverSpeed = pulseIn(3, HIGH, 5000);
-     receiverSteer = pulseIn(4, HIGH, 5000);
+     receiverSpeed = pulseIn(REMOTE_CHANNEL_3, HIGH, 5000);
+     receiverSteer = pulseIn(REMOTE_CHANNEL_5, HIGH, 5000);
   } else {
-     receiverSpeed = pulseIn(3, HIGH, 100000);
-     receiverSteer = pulseIn(4, HIGH, 100000);
+     receiverSpeed = pulseIn(REMOTE_CHANNEL_3, HIGH, 100000);
+     receiverSteer = pulseIn(REMOTE_CHANNEL_5, HIGH, 100000);
   }
-  receiverSpeed = map(receiverSpeed, 1400,2500,-5,5);
+  receiverSpeed = map(receiverSpeed, 1400,2500,-4,4);
   //set a constant speed here
   //INIT_MOTOR_SPEED zero 
   //1400 zero reverse
