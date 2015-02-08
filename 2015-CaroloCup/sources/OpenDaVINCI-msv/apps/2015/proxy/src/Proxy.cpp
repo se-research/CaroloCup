@@ -89,9 +89,9 @@ void Proxy::setUp() {
 				uint32_t>("global.buffer.numberOfMemorySegments");
 
 		// Run recorder in asynchronous mode to allow real-time recording in background.
-               const bool THREADING = true;
+            //   const bool THREADING = true;
  
-               m_recorder = new Recorder(recordingURL.str(), MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS, THREADING);
+               m_recorder = new Recorder(recordingURL.str(), MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS);
 
 	}
 
