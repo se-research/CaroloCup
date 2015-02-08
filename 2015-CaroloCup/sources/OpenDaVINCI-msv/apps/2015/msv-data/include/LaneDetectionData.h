@@ -150,20 +150,37 @@ public:
     {}
     LaneDetectorDataToDriver (vector<int> spl, vector<int> spr, vector<CustomLine> lgl, vector<CustomLine> rgl, CustomLine c, bool nothing, int clgl):
         switchPointsLeftGoalLines0(spl[0]),
-	switchPointsRightGoalLines0(spr[0]),	
-	switchPointsLeftGoalLines1(spl[1]),
+  switchPointsRightGoalLines0(spr[0]),  
+  switchPointsLeftGoalLines1(spl[1]),
         switchPointsRightGoalLines1(spr[1]),
         leftGoalLines0(lgl[0]),
-	rightGoalLines0(rgl[0]),
+  rightGoalLines0(rgl[0]),
         leftGoalLines1(lgl[1]),
-	rightGoalLines1(rgl[1]),
+  rightGoalLines1(rgl[1]),
         leftGoalLines2(lgl[2]),
         rightGoalLines2(rgl[2]),
         currentLine(c),
-		roadState(NORMAL),
+    roadState(NORMAL),
     confidenceLevel(0),
     confidenceLevel_goalLine(clgl),
-		noTrajectory(nothing)
+    noTrajectory(nothing)
+    {}
+    LaneDetectorDataToDriver (CustomLine lgl, CustomLine rgl, CustomLine c, bool nothing, int clgl):
+        switchPointsLeftGoalLines0(),
+  switchPointsRightGoalLines0(),  
+  switchPointsLeftGoalLines1(),
+        switchPointsRightGoalLines1(),
+        leftGoalLines0(lgl),
+  rightGoalLines0(rgl),
+        leftGoalLines1(),
+  rightGoalLines1(),
+        leftGoalLines2(),
+        rightGoalLines2(),
+        currentLine(c),
+    roadState(NORMAL),
+    confidenceLevel(0),
+    confidenceLevel_goalLine(clgl),
+    noTrajectory(nothing)
     {}
     virtual ~LaneDetectorDataToDriver () {}
 

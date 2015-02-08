@@ -1664,7 +1664,8 @@ void LineDetector::createTrajectory(LinesToUse *ltu)
     //////////////////
     // Create a object that the laneDetector can send to driver.
     //////////////////
-    dataToDriver = new LaneDetectorDataToDriver(switchPointsLeftGoalLines, switchPointsRightGoalLines, leftGoalLines, rightGoalLines, currentLine, false, confidenceLevel_goalLine0);
+
+    dataToDriver = new LaneDetectorDataToDriver(leftGoalLines[0], rightGoalLines[0], currentLine, false, confidenceLevel_goalLine0);
 
     //////////////////
     // Debug data is provided that is used by lanedetector and lanedetector-inspection modules.
