@@ -2,7 +2,7 @@
 #include <EEPROM.h>
 
 #define ROOT 0
-#define DATA 1
+#define SCENARIO 1
 
 
 //Identification
@@ -34,52 +34,49 @@ void setup(){
   for (int i=0; i<6; i++) {
     sID[i] = EEPROM.read(i);
   }
-  //Serial.println(sID); 
-  
+  //Serial.println(sID);  
 }
 
 void loop(){
   lcd.clear(); 
-  switch (menuLevel) {
+
+ switch (menuLevel) {
       case ROOT:
+          lcd.setCursor(0,0);          
+		  lcd.print("CAR STATUS:");
+		  lcd.setCursor(0,1);
+		  lcd.print("< STOP");   
+		  lcd.setCursor(12,1);     
+		  lcd.print("READY! >");
+		  upLeftButton();
+		  upRightButton();
+
+        break;
+      case SCENARIO:
           lcd.setCursor(0,0);          
 		  lcd.print("SCENARIOS:");
 		  lcd.setCursor(0,1);
-		  lcd.print("< STOP");   
-		  lcd.setCursor(7,1);     
+		  lcd.print("< STOP");
+	   	  upLeftButton();   
+		  lcd.setCursor(7,1);        
 		  lcd.print("LANEFOLLOW >");
-		  lcd.setCursor(10,3);           
+		  upRightButton();
+		  lcd.setCursor(12,3);           
 		  lcd.print("PARKING >");
-        break;
-      case DATA:
-          lcd.setCursor(0,0);          
-		  lcd.print("TESTDATA:");   
-		  lcd.setCursor(4,1);        
-		  lcd.print("LANEFOLLOWING >");
-		  lcd.setCursor(10,3);           
-		  lcd.print("PARKING >");
+		  downRightButton();
         break;
 
       default:
         ;
   }
-  if(digitalRead(upLeft)){
-	Serial.print("0");  	//Sends STOP signal
-  }
+
   if(digitalRead(downLeft)){
-  	// menuLevel++;
+  	//Serial.print("3");
   }
-  if(menuLevel == 0){
-  	if(digitalRead(upRight)){
-  		Serial.print("1"); //LaneFollowing
-  }
-  	if(digitalRead(downRight)){
-		Serial.print("2"); //Parking
-  }
-}
+
   if(menuLevel > 1 || menuLevel < 0){
   	menuLevel = 0;
-  } 
+  }
   delay(100);
 
  /* Serial.print("upLeft: ");  
@@ -89,4 +86,70 @@ void loop(){
     Serial.print("downRight: ");  
   Serial.println(digitalRead(downRight)); 
   */
+
+} //End of loop()
+
+
+void upLeftButton(){
+
+if(menuLevel == 0){
+  if(digitalRead(upLeft)){
+	Serial.print("00");  	//Sends STOP signal
+Serial.flush();
+	lcd.clear();
+	lcd.setCursor(1, 1);
+	lcd.print("STOPPING PROCESSES");
+	delay(2000);
+  }
+}if(menuLevel == 1){
+  if(digitalRead(upLeft)){
+	Serial.print("00");  	//Sends STOP signal
+Serial.flush();
+	lcd.clear();
+	lcd.setCursor(1, 1);
+	lcd.print("STOPPING PROCESSES");
+	delay(2000);
+	menuLevel = 0;
+  }
+}
+}
+
+void upRightButton(){
+if(menuLevel == 0){
+  if(digitalRead(upRight)){
+  	Serial.print("44"); //Starting supercomponent and proxy
+  Serial.flush();
+	lcd.clear();
+	lcd.setCursor(1, 1);
+	lcd.print("GETTING READY");
+	delay(2000);
+	menuLevel = 1;
+
+  }
+}if(menuLevel == 1){
+  if(digitalRead(upRight)){
+  	Serial.print("11"); //LaneFollowing
+  Serial.flush();
+	lcd.clear();
+	lcd.setCursor(1, 1);
+	lcd.print("STARTING LANEFOLLOW");
+	delay(2000);
+	menuLevel = 0;
+
+  }
+}
+}
+
+void downRightButton(){
+if(menuLevel == 1){
+  if(digitalRead(downRight)){
+		Serial.print("22"); //Parking
+    Serial.flush();
+	lcd.clear();
+	lcd.setCursor(1, 1);
+	lcd.print("STARTING PARKING");
+	delay(2000);
+	menuLevel = 0;
+  }
+}
 }
