@@ -4,7 +4,7 @@ home=/home/odroid/CaroloCup/2014-CaroloCup/Legendary/project/scripts
 bin=/opt/msv/bin/
 caroloCup=$bin/2013/DIT-168/project-template/
 pidfile=${0}.pid
-serialPort=/dev/ttyACM3
+serialPort=/dev/ttyACM1
 started=0
 
 # Port setting
@@ -20,8 +20,8 @@ do
 
    echo $line
    echo "test"
-   if [[ $line == "00" ]]; then
-    if [[ $started == 1 ]]; then
+   if [[ $line == "00" ]]; then //STOP button
+    if [[ $started == 1 || $started=2 ]]; then
 	    echo "STOP"
 	    # Stop and kill the processes from the pidfile
 	   # for pid in $(tac $pidfile); do
@@ -38,33 +38,32 @@ do
 
 	   killall driver
  	   echo "Driver is stopped"
+
+	   killall lanedriver
+	   echo "LaneDriver is stopped"
+
+	   killall lanedetector
+	   echo "LaneDetetor is stopped"
 	    started=0
     fi
-  elif [[ $line == "11" ]]; then
+  elif [[ $line == "11" ]]; then //LaneFollowing
     if [[ $started == 0 ]]; then
 	    echo "START LANEFOLLOWING"
 #cp configuration1 configuration
-	    killall supercomponent
+	    #killall supercomponent
 	    # Start the processes
 	    
-	    cd /opt/msv/bin/
-	    nohup ./supercomponent --cid=111 &
-	    echo "$!" > $pidfile
-
-        nohup ${caroloCup}/proxy --cid=111 --freq=20 &
-        echo "$!" >> $pidfile
-
-        nohup ${caroloCup}/lanedetector --cid=111 --freq=20 &
+        nohup ${caroloCup}/lanedetector --cid=222 --freq=20 &
 	    echo "$!" >> $pidfile
 
 #Note that this is only lanedriver!
-	    nohup ${caroloCup}/lanedriver --cid=111 --freq=40 &
+	    nohup ${caroloCup}/lanedriver --cid=222 --freq=40 &
 	    echo "$!" >> $pidfile
 	    started=1
     fi
 
     # Change back to 2 for parking
-  elif [[ $line == "44" ]]; then
+  elif [[ $line == "44" ]]; then //READY! button
     if [[ $started == 0 ]]; then
 	   # echo "START PARKING"
 	    # cp configuration2 configuration
@@ -83,14 +82,13 @@ do
 	    nohup ./proxy --cid=222 --freq=60 &
 	    echo "$!" >> $pidfile
 	    echo "Proxy has started"
-	    #echo "Starting Driver in a few seconds"
-	    sleep 10 #Waits n seconds before start Driver component 
+	    sleep 10 # Waits n seconds before start Driver component 
 	    echo "Driver is ready"
-	    started=1
+	    started=2
 
 	fi
-   elif [[ $line == "22" ]]; then
-	#if [[ $started == 1 ]]; then
+   elif [[ $line == "22" ]]; then //PARKING button
+	if [[ $started == 2 ]]; then
 	    
 	    cd /opt/msv/bin/2013/DIT-168/project-template/ 
 	    nohup ./driver --cid=222 --freq=40 &
@@ -98,7 +96,7 @@ do
 	    echo "Driver has started"
 	    started=1
 
-#fi
+fi
    fi
 done < $serialPort
 
