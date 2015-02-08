@@ -1009,16 +1009,19 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
                                 }
                         }
                     // Pick which curve to use
-                    // Now it simple picks the (first found) longest one
-                    int longest_curve = 0;
+                    int maxY = 0;
                     for (int i = 0; i < curves.size(); i++)
                         {
-                            ltu->dashedCurveFound = true;
+                            int dashSupPosX = getIntersectionWithBottom(curves[i][0]);
 
-                            if (curves[i].size() > longest_curve)
-                                {
+                            if (curves[i][0].p1.y > maxY && 
+                                (abs(dashSupPosX - currentDashGoalX) < calcRoadSize * 0.8
+                                            || currentDashGoalX == 0)){
                                     dashLines[0] = curves[i][0];
                                     ltu->dashedCurve = curves[i];
+                                    ltu->dashedCurveFound = true;
+                                    maxY = curves[i][0].p1.y;
+                                
                                 }
                             if (printouts)
                                 {
