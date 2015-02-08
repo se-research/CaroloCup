@@ -22,6 +22,7 @@
 
 #include <pthread.h>
 #include "laneDriver.h"
+#include "SensorBoardData.h"
 
 int indicators = -1;
 bool indicatorsOn = false;
@@ -72,6 +73,32 @@ void laneDriver::tearDown()
 bool debug = true;
 int increaseSpeed = 0;
 
+bool runStartBoxRoutine=false;
+
+
+void laneDriver::startBoxRoutine(int startBoxLength){
+  cout<<"Starting Start box routine"<<endl;
+  VehicleControl vc;
+  vc.setSteeringWheelAngle(0);
+  vc.setSpeed(m_speed);//we just the default
+  Container c(Container::VEHICLECONTROL, vc);
+              getConference().send(c);
+  Container containerSensorBoardData = getKeyValueDataStore().get(
+                            Container::USER_DATA_0);
+  SensorBoardData sbd;
+  sbd= containerSensorBoardData.getData<SensorBoardData>();
+        int initialDist=sbd.getDistance(6);//mm
+        int currDist=initialDist;
+
+  while(currDist-initialDist < startBoxLength){
+      //waste time!!maybe sleep to free processor?
+      Container containerSensorBoardData2 = getKeyValueDataStore().get(Container::USER_DATA_0);
+      SensorBoardData sbd2 = containerSensorBoardData2.getData<SensorBoardData>();
+      currDist=sbd2.getDistance(6);
+  }
+  cout<<"End of start box routine"<<endl;
+
+}
 
 //TODO: Set indicator logic
 
@@ -80,6 +107,13 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
 {
     // Get configuration data.
     KeyValueConfiguration kv = getKeyValueConfiguration();
+
+    runStartBoxRoutine = kv.getValue<int32_t> ("driver.startInBox") == 1;
+
+    if(runStartBoxRoutine){
+	//int startBoxLength = kv.getValue<int32_t> ("driver.startboxLength");
+	//startBoxRoutine(startBoxLength);//un comment to enable feature
+    }
 
     VehicleControl vc;
 
