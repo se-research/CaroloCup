@@ -31,7 +31,7 @@ supercomponent.pulseshift.shift = 10000 # (in microseconds) If the managed level
 # CONFIGURATION FOR LANEDETECTOR
 #
 lanedetector.camera_id = 2  # select here the proper camera
-lanedetector.debug = 1      # set to 0 to disable any windows and further output
+lanedetector.debug = 0      # set to 0 to disable any windows and further output
 lanedetector.inspect_rec = file://recording.rec # Config for lanedetector-inspection
 # Choose what to inspect, where
 # getContours = 1
@@ -50,6 +50,7 @@ lanedetector.showRes_filterAndMerge = 1
 lanedetector.showRes_finalFilter = 1
 lanedetector.showRes_finalResult = 0
 lanedetector.showRes_createTrajectory = 1
+lanedetector.threshBaseParameter=48
 
 
 #
@@ -183,7 +184,7 @@ recintegrity.input = file:///dev/stdin
 #
 # CONFIGURATION FOR PROXY
 #
-proxy.debug = 1
+proxy.debug = 0
 proxy.useRecorder = 0 # 1 = record all captured data directly, 0 otherwise. 
 proxy.recorder.output = file://recs/
 proxy.camera.name = WebCam
@@ -193,8 +194,8 @@ proxy.camera.width = 752 #752-UEYE, 640-OpenCV
 proxy.camera.height = 480
 proxy.camera.bpp = 1 #3- openCV, 1-UEYE
 
-proxy.Actuator.UseRealSpeed=0
-proxy.Actuator.SerialPort=/dev/ttyACM0
+proxy.Actuator.UseRealSpeed=1
+proxy.Actuator.SerialPort=/dev/ttyACM1
 
 proxy.Sensor.SerialPort=/dev/ttyUSB0
 proxy.Sensor.SerialSpeed=115200
