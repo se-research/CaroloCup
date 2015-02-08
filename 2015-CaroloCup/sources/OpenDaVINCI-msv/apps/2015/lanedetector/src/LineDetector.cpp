@@ -2905,7 +2905,7 @@ std::vector<CustomLine> LineDetector::findCurve(std::vector<CustomLine> lines)
                         }
 
                     if ((slopeDiffLines < 60) && (slopeDiffToLine0 < slopeDiffLines + 20) &&
-                            (slopeDiffToLineJ < slopeDiffLines + 20) && (distInBetween < 150))
+                            (slopeDiffToLineJ < slopeDiffLines + 20) && (distInBetween < m_config.maxY))
                         {
                             if (printouts)
                                 {
