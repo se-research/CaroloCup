@@ -385,11 +385,11 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 			cout << "brakeLight" << currentValues.brakeLight << endl;
 		}
 
-		if ((previousValues.speed > currentValues.speed) || (previousValues.speed < currentValues.speed) ) {
+		if ((previousValues.speed !=currentValues.speed) ) {
 			stringstream logs;
 			if(m_useRealSpeed){
 				bool reverse= currentValues.speed<0? true:false;
-				m_protocol.setWheelFrequency(uint8_t(abs(currentValues.speed)*10),reverse);
+				m_protocol.setWheelFrequency(uint8_t(abs(currentValues.speed)),reverse);
 				logs<<"Set Wheel Frequency to "<<currentValues.speed<<endl;
 				log(logs.str());
 			}
@@ -398,7 +398,7 @@ ModuleState::MODULE_EXITCODE Proxy::body() {
 				logger<<"set speed to "<<currentValues.speed<<endl;
 				log(logs.str());
 			}
-			previousValues.speed=(int)currentValues.speed;
+			previousValues.speed=currentValues.speed;
 		}
 		if ((previousValues.steeringAngle < currentValues.steeringAngle) || (previousValues.steeringAngle > currentValues.steeringAngle)) {
 			stringstream logs;

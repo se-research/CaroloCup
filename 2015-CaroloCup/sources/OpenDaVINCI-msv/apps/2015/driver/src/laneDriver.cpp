@@ -61,7 +61,7 @@ laneDriver::~laneDriver() {}
 void laneDriver::setUp()
 {
     // This method will be call automatically _before_ running body().
-    m_speed = (0.6 * 10); //leave like this for test purpose
+    m_speed = 8; //leave like this for test purpose
 }
 
 void laneDriver::tearDown()
