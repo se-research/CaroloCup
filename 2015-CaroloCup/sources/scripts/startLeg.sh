@@ -4,14 +4,14 @@ home=/home/odroid/CaroloCup/2014-CaroloCup/Legendary/project/scripts
 bin=/opt/msv/bin/
 caroloCup=$bin/2013/DIT-168/project-template/
 pidfile=${0}.pid
-serialPort=/dev/ttyACM1 #Legendary: ACM1, Woody: ACM0
+serialPort=/dev/ttyACM2 #Legendary: ACM1, Woody: ACM0
 started=0
 
 # Port setting
 stty -F $serialPort raw speed 9600
 
-#ifconfig lo multicast
-#route add -net 224.0.0.0 netmask 240.0.0.0 dev lo
+ifconfig lo multicast
+route add -net 224.0.0.0 netmask 240.0.0.0 dev lo
 
 #Loop
 cd $home
