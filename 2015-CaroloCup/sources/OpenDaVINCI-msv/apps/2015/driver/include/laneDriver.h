@@ -43,7 +43,6 @@ namespace msv {
 
       bool laneFollowing(LaneDetectionData* data);
     
-      void startBoxRoutine(int startBoxLength);
 
     public:
       /**

@@ -76,29 +76,7 @@ int increaseSpeed = 0;
 bool runStartBoxRoutine=false;
 
 
-void laneDriver::startBoxRoutine(int startBoxLength){
-  cout<<"Starting Start box routine"<<endl;
-  VehicleControl vc;
-  vc.setSteeringWheelAngle(0);
-  vc.setSpeed(m_speed);//we just the default
-  Container c(Container::VEHICLECONTROL, vc);
-              getConference().send(c);
-  Container containerSensorBoardData = getKeyValueDataStore().get(
-                            Container::USER_DATA_0);
-  SensorBoardData sbd;
-  sbd= containerSensorBoardData.getData<SensorBoardData>();
-        int initialDist=sbd.getDistance(6);//mm
-        int currDist=initialDist;
 
-  while(currDist-initialDist < startBoxLength){
-      //waste time!!maybe sleep to free processor?
-      Container containerSensorBoardData2 = getKeyValueDataStore().get(Container::USER_DATA_0);
-      SensorBoardData sbd2 = containerSensorBoardData2.getData<SensorBoardData>();
-      currDist=sbd2.getDistance(6);
-  }
-  cout<<"End of start box routine"<<endl;
-
-}
 
 //TODO: Set indicator logic
 
@@ -108,12 +86,24 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
     // Get configuration data.
     KeyValueConfiguration kv = getKeyValueConfiguration();
 
+/*
+    //Startbox values
     runStartBoxRoutine = kv.getValue<int32_t> ("driver.startInBox") == 1;
-
+    int startBoxLength =kv.getValue<int32_t> ("driver.startboxLength");
+    int initialDist=0;
+    int currDist=0;
     if(runStartBoxRoutine){
-	//int startBoxLength = kv.getValue<int32_t> ("driver.startboxLength");
-	//startBoxRoutine(startBoxLength);//un comment to enable feature
+	   Container containerSensorBoardData = getKeyValueDataStore().get(
+	   	                                Container::USER_DATA_0);
+	    SensorBoardData sbd= containerSensorBoardData.getData<SensorBoardData>();
+	    initialDist=sbd.getDistance(6);//mm
+	    currDist=initialDist;
+
+	    //TODO remove this!!!!!
+	   // initialDist=10;
+	    //currDist=10;
     }
+*/
 
     VehicleControl vc;
 
@@ -130,6 +120,8 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
 
     while (getModuleState() == ModuleState::RUNNING)
         {
+
+
             LaneDetectionData ldd;
             Container conUserData1 = getKeyValueDataStore().get(Container::USER_DATA_1);
 
@@ -139,6 +131,31 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
                 }
 
             ldd = conUserData1.getData<LaneDetectionData>();
+            /*
+            //Start box logic
+            LaneDetectorDataToDriver trajectoryData = ldd.getLaneDetectionDataDriver();
+            	   if(runStartBoxRoutine && !trajectoryData.noTrajectory){
+            	      cout<<"Start box: dist travelled"<<currDist-initialDist<<endl;
+            	      vc.setSteeringWheelAngle(0);
+            	      vc.setSpeed(m_speed);//we just the default
+            	      Container c(Container::VEHICLECONTROL, vc);
+            	                  getConference().send(c);
+            	      Container containerSensorBoardData = getKeyValueDataStore().get(
+            	                                Container::USER_DATA_0);
+            	      SensorBoardData sbd= containerSensorBoardData.getData<SensorBoardData>();
+            	      currDist=sbd.getDistance(6);
+            	      //currDist++;//remove this
+            	      if(currDist-initialDist < startBoxLength){
+            		  continue;
+            	      }
+            	      else{
+            		  runStartBoxRoutine=false;
+            		  cout<<"Leaving start box"<<endl;
+            	      }
+            	  }*/
+
+
+
 
             m_propGain = 4.5;//4.5;//2.05;
             m_intGain = 0.5;//1.0;//8.39; //8.39;
