@@ -36,7 +36,7 @@ int SafeDistance = 30;
 int Distance;
 int CurrentDistSpot;
 int CurrentDistSpot2;
-int DesiredDistance1 = 100; //100 is when using the rear-side-right IRsensor
+int DesiredDistance1 = 250; 
 int DesiredDistance2 = 700;
 int DesiredDistance3 = 480;
 int DesiredDistance4 = 90;
@@ -154,7 +154,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 		
 		//Status
 		cout << " ===== Rear IRs difference: " << abs (IRdis_RL - IRdis_RR) << endl;
-// 		cout << " ===== Side Left Infrared reading: " << IRdis_SL << endl;
+		cout << " ===== Side Left Infrared reading: " << IRdis_SL << endl;
  		cout << " ===== Rear Left Infrared reading: " << IRdis_RL << endl;
  		cout << " ===== Rear Right Infrared reading: " << IRdis_RR << endl;
 		cout << " ===== Side Right Infrared reading: " << IRdis_SR << endl;
@@ -180,7 +180,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 			if ((USFront < SafeDistance && USFront > 2)){ 
 				driving_state = NO_POSSIBLE_PARKING_PLACE;
 			}
-			if ((IRdis_SR < 22 && IRdis_SR > 2)){ 
+			if ((IRdis_SL < 25 && IRdis_SL > 2)){ 
 				driving_state = START_OBST;
 			
 			}
@@ -196,7 +196,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 			  
 			}
 
-			if ((IRdis_SR > 22 || IRdis_SR < 2)) {
+			if ((IRdis_SL > 25 || IRdis_SL < 2)) {
 				driving_state = POSSIBLE_SPOT;
 				CurrentDistSpot = Distance;
 			}
@@ -213,7 +213,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 			  
 			}
 			
-			if(IRdis_SR < 22 && IRdis_SR > 2){
+			if(IRdis_SL < 25 && IRdis_SL > 2){
 			  gapWidth = Distance - CurrentDistSpot;
 			  //CurrentDistSpot2 = Distance;
 			 if(gapWidth > MinParkingDist){
@@ -419,7 +419,7 @@ void Driver::parking() {
 		driving_speed = SpeedB1;
 		desiredSteeringWheelAngle = -42;
 		cout << "\t========  BACK_AGAIN"  << endl;
-		if (((abs (IRdis_RL - IRdis_RR)) < 1) && ((IRdis_RL < 15 && IRdis_RL > 2) || (IRdis_RR < 15 && IRdis_RR > 2) )){
+		if ((((abs (IRdis_RL - IRdis_RR)) < 1) && ((IRdis_RL < 15 && IRdis_RL > 2) || (IRdis_RR < 15 && IRdis_RR > 2))) || (USRear < 10)){
 		  //(Distance > (CurrentDist4 + DesiredDistance5 || (Distance < (CurrentDist4 + DesiredDistance5))
 			TimeStamp currentTime5;
 			start_timerIndicator = currentTime5.toMicroseconds() / 1000.0;
