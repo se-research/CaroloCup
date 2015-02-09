@@ -162,7 +162,8 @@ void LaneDetector_inspection::processImage()
 
     LineDetector road(neededPart, cfg, debug, 1);
 
-    showResult(road, neededPart);
+    if (debug)
+        showResult(road, neededPart);
 
     // Start fix. This code deactivates the old estimateLines and calculatesGoalLine()
     //msv::Lines lines = road.getLines();

@@ -687,7 +687,7 @@ void LineDetector::classification()
                     //intersectionOn = true;
                     //foundIntersection = true;
                     float angle_thr = 10;
-                    float height_thr = (2*h)/3;
+                    float height_thr = (1*h)/2;
                     cout << "Possible INTERSECTION"
                          << "\tCenter: " << rectCenter.y << "ANgle: " << rect.angle
                          << endl;
@@ -1775,7 +1775,7 @@ void LineDetector::provideGoalLine(EstimationData *ed, GoalLineData *gld)
                     gld->leftGoalLine = simple_calculateGoalLine(ed->left, ed->dash, ed);
                     // Shift calculation result to get right goal line
                     gld->rightGoalLine = gld->leftGoalLine;
-                    gld->rightGoalLine.p2.x += ed->calcRoadSize;
+                    gld->rightGoalLine.p2.x += ed->calcRoadSize*0.7;
                     gld->rightGoalLine.slope = getLineSlope(gld->rightGoalLine.p2, gld->rightGoalLine.p1);
                     gld->confidenceLevel_rightGoalLine = 4;
                 }
