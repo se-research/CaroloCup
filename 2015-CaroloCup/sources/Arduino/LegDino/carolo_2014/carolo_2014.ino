@@ -435,7 +435,7 @@ void evaluateReceiver()
       takeOver = true;
       if(revertBackSpeed) {
         takenOverSpeed = setFreq;
-        Serial.println(setFreq);
+       // Serial.println(setFreq);
       }
       revertBackSpeed = false;
       digitalWrite(blueLed, LOW);
