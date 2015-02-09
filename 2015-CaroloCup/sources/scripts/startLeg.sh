@@ -47,7 +47,7 @@ do
 	    started=0
     fi
   elif [[ $line == "1" ]]; then #YELLOW + BLUE
-    if [[ $started == 0 ]]; then
+    if [[ $started == 2 ]]; then
 	    echo "START LANEFOLLOWING"
 #cp configuration1 configuration
 	    #killall supercomponent
@@ -62,7 +62,6 @@ do
 	    started=1
     fi
 
-    # Change back to 2 for parking
   elif [[ $line == "3" ]]; then #LIGHT BLUE + BLUE
     if [[ $started == 0 ]]; then
 	   # echo "START PARKING"
@@ -74,12 +73,12 @@ do
 
 	    cd /opt/msv/bin/
 	    echo "Starting"
-	    nohup ./supercomponent --cid=222 &
+	    nohup ./supercomponent --cid=111 &
 	    echo "$!" >> $pidfile
 	    echo "Supercomponent has started"
 
 	    cd /opt/msv/bin/2013/DIT-168/project-template/ 
-	    nohup ./proxy --cid=222 --freq=60 &
+	    nohup ./proxy --cid=111 --freq=60 &
 	    echo "$!" >> $pidfile
 	    echo "Proxy has started"
 	    #echo "Starting Driver in a few seconds"
@@ -92,7 +91,7 @@ do
 	if [[ $started == 2 ]]; then
 	    
 	    cd /opt/msv/bin/2013/DIT-168/project-template/ 
-	    nohup ./driver --cid=222 --freq=40 &
+	    nohup ./driver --cid=111 --freq=40 &
 	    echo "$!" >> $pidfile
 	    echo "Driver has started"
 	    started=1

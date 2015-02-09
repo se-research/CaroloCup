@@ -142,7 +142,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 		// cerr << "Most recent steering data: '" << sd.toString() << "'" << endl;
 
 		//Sensors
-		IRdis_SL = sbd.getDistance(3); // Side Left IR
+		IRdis_SL = sbd.getDistance(3); // Side Left IR // *on legendary is the Front-Side-Right
 		IRdis_RL = sbd.getDistance(0); // Rear Left IR
 		IRdis_RR = sbd.getDistance(1); // Rear Right IR
 		IRdis_SR = sbd.getDistance(2); // Side Right IR
@@ -421,7 +421,6 @@ void Driver::parking() {
 		cout << "\t========  BACK_AGAIN"  << endl;
 		if ((((abs (IRdis_RL - IRdis_RR)) < 1) && ((IRdis_RL < 15 && IRdis_RL > 2) || (IRdis_RR < 15 && IRdis_RR > 2))) || (USRear < 10)){
 		  //(Distance > (CurrentDist4 + DesiredDistance5 || (Distance < (CurrentDist4 + DesiredDistance5))
-			desiredSteeringWheelAngle = 0;
 			TimeStamp currentTime5;
 			start_timerIndicator = currentTime5.toMicroseconds() / 1000.0;
 			parking_state = STOP;
@@ -433,7 +432,7 @@ void Driver::parking() {
 
 	case STOP:{
 	  	driving_speed = Stop_Speed;
-		desiredSteeringWheelAngle = 0;
+		desiredSteeringWheelAngle = -1;
 		rightIndicator = false;
 		cout << "\t\t========  STOP"  << endl;
 		cout << "****  stop the car  ****" << endl;
