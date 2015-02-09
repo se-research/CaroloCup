@@ -109,9 +109,9 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
 
     float steering;
     float last_steer = 0;
-    float steering_thr = 20;
+    float steering_thr = 10;
     double t_base;
-    int steer_change = 10;
+    int steer_change = 2;
     int steer_change_timing = 200;
     int steer_sign;
     //int inters_max_steer;
@@ -187,11 +187,16 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
                 	cout << "Between thrs"<< endl;
                 }else if(steering < (-1)*steering_thr){
                 	steer_sign = -1;
+                	steering = (-1)*steering_thr;
                 	cout << "Left side" << endl;
                 }else{
                 	steer_sign = 1;
+                	steering = steering_thr;
                 	cout << "Right Side" << endl;
                 }
+                vc.setSteeringWheelAngle(int16_t(steering));
+                Container c(Container::VEHICLECONTROL, vc);
+                getConference().send(c);
                 /*
                 if(last_steer < 0){
                 	steer_sign = -1;
@@ -214,31 +219,40 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
 
             	double timeStep_total = (t_stop.toMicroseconds() - m_timestamp) / 1000.0;
             	cout << "TIme: "<< timeStep_total << endl;
-            	if(timeStep_total > 1000.0){ //Cross intersect for 3 seconds
-            		res = laneFollowing(&ldd);
-            		after_intersection = false;
-            	}else{
-            		if(timeStep_now > steer_change_timing){
-            			t_base=t_stop.toMicroseconds();
-            			if(steer_sign == 0){
-            				cout<< "Steering between thr: " << steering << endl;
-            				vc.setSteeringWheelAngle(int16_t(steering));
-            			}
-            			if( steer_sign == 1 && steering >= 0){ //positive steering
-            				steering= steering - steer_change;
-            				cout<< "Steering from right: " << steering << endl;
-            				vc.setSteeringWheelAngle(int16_t(steering));
-            			}else if( steer_sign == -1 && steering <= 0){ // negative steering
-            				steering= steering + steer_change;
-            				cout<< "Steering from left: " << steering << endl;
-            				vc.setSteeringWheelAngle(int16_t(steering));
-            			}
-            			Container c(Container::VEHICLECONTROL, vc);
-            			getConference().send(c);
-            		}
-            		//vc.setSteeringWheelAngle(int16_t(0));
 
-            		//cout << "Crossing Intersection..." << endl;
+            	if(ldd.getLaneDetectionDataDriver().noTrajectory == false){
+            		res = laneFollowing(&ldd);
+            		if(ldd.getLaneDetectionDataDriver().roadState == NORMAL)
+            			after_intersection =  false;
+            	}else{
+
+					if(timeStep_total > 1000.0){ //Cross intersect for 3 seconds
+						res = laneFollowing(&ldd);
+						after_intersection = false;
+						last_steer = steering;
+					}else{
+						if(timeStep_now > steer_change_timing){
+							t_base=t_stop.toMicroseconds();
+							if(steer_sign == 0){
+								cout<< "Steering between thr: " << steering << endl;
+								vc.setSteeringWheelAngle(int16_t(steering));
+							}
+							if( steer_sign == 1 && steering >= 0){ //positive steering
+								steering= steering - steer_change;
+								cout<< "Steering from right: " << steering << endl;
+								vc.setSteeringWheelAngle(int16_t(steering));
+							}else if( steer_sign == -1 && steering <= 0){ // negative steering
+								steering= steering + steer_change;
+								cout<< "Steering from left: " << steering << endl;
+								vc.setSteeringWheelAngle(int16_t(steering));
+							}
+							Container c(Container::VEHICLECONTROL, vc);
+							getConference().send(c);
+						}
+						//vc.setSteeringWheelAngle(int16_t(0));
+
+						//cout << "Crossing Intersection..." << endl;
+					}
             	}
 
             }else{
