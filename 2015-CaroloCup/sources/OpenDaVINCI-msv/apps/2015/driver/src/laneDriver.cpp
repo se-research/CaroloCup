@@ -95,13 +95,14 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
 
     VehicleControl vc;
 
-    float steering;
+    /*float steering;
     float last_steer = 0;
     float steering_thr = 10;
     double t_base;
     int steer_change = 2;
     int steer_change_timing = 300;
     int steer_sign;
+    */
     bool firstRun=true;
 
 
@@ -171,9 +172,10 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
             // This algo needs to be changed to work according
             // to the distance traveled in the intersection,
             // instead of the time.
-            bool res = false;
+            bool res = laneFollowing(&ldd);
             //cout << "Stee Sign: "<< steer_sign << "\nLast Steer: "<< last_steer <<endl;
 
+            /*
             if( ldd.getLaneDetectionDataDriver().roadState == NORMAL && !after_intersection){
             	if(debug)
             		cout<< "NOrmal state" << endl;
@@ -208,7 +210,7 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
                 vc.setSteeringWheelAngle(int16_t(steering));
                 Container c(Container::VEHICLECONTROL, vc);
                 getConference().send(c);
-                /*
+                // =======
                 if(last_steer < 0){
                 	steer_sign = -1;
                 	inters_max_steer = abs(last_steer)/2;
@@ -222,8 +224,8 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
                 	vc.setSteeringWheelAngle(int16_t(inters_min_steer));
                 	Container c(Container::VEHICLECONTROL, vc);
                 	getConference().send(c);
-                }*/
-
+                }
+				// ===========
             }else if(after_intersection){
             	TimeStamp t_stop;
             	double timeStep_now=(t_stop.toMicroseconds() - t_base) / 1000.0;
@@ -232,9 +234,12 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
             		cout << "TIme: "<< timeStep_total << endl;
 
             	if(ldd.getLaneDetectionDataDriver().noTrajectory == false){
-            		res = laneFollowing(&ldd);
+            		//res = laneFollowing(&ldd);
+            		vc.setSteeringWheelAngle(int16_t(0));
+            		Container c(Container::VEHICLECONTROL, vc);
+            		getConference().send(c);
             		if(debug)
-            			cout<< "Using goal form LineDetector"<<endl;
+            			cout<< "Using goal form LineDetector. Steering: " << steering <<endl;
             		if(ldd.getLaneDetectionDataDriver().roadState == NORMAL)
             			after_intersection =  false;
             	}else{
@@ -272,7 +277,7 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
             	cout << "U not supposed to be here: " << ldd.getLaneDetectionDataDriver().roadState
             			<< "=>" << after_intersection << endl;
             }
-
+			*/
 
             if (!res)
                 {
@@ -288,7 +293,7 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
 
             if (desSteering > 41) desSteering = 42;
             if (desSteering < -41) desSteering = -42;
-            last_steer = desSteering;
+            //last_steer = desSteering;
             vc.setSteeringWheelAngle(int16_t(desSteering));
 
             int speedVal;
