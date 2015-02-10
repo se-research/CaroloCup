@@ -24,14 +24,15 @@
 #include "obstacleDriver.h"
 
 #define NUMBER_OF_SENSORS 7
-#define NUMBER_OF_SAMPLES 10
+#define NUMBER_OF_SAMPLES 5
 
-int indicators = -1;
-bool indicatorsOn = false;
 bool overtakingNow = false;
 bool overtakingDone = false;
 bool obstacleDetected = false;
-bool firstObj = false;
+bool ObjDetectedFR = false;
+bool leftBlink=false;
+bool rightBlink=false;
+
 int startDist = 0;
 
 int arr[NUMBER_OF_SENSORS][NUMBER_OF_SAMPLES], cirK = 0;
@@ -73,7 +74,7 @@ namespace msv
   obstacleDriver::setUp ()
   {
     // This method will be call automatically _before_ running body().
-    m_speed = (0.6 * 10); //leave like this for test purpose
+    m_speed = 6; //leave like this for test purpose
   }
 
   void
@@ -107,7 +108,7 @@ namespace msv
       {
 
 	LaneDetectionData ldd;
-	SensorBoardData sdb;
+	SensorBoardData sbd;
 	Container conUserData1 = getKeyValueDataStore ().get (
 	    Container::USER_DATA_1);
 	Container conUserData0 = getKeyValueDataStore ().get (
@@ -128,18 +129,20 @@ namespace msv
 	    continue;
 	  }
 
-	sdb = conUserData0.getData<SensorBoardData> ();
+	sbd = conUserData0.getData<SensorBoardData> ();
 	ldd = conUserData1.getData<LaneDetectionData> ();
 	if (first)
 	  {
-	    for (int i = 0; i < 6; i++)
+	    for (int i = 0; i < NUMBER_OF_SAMPLES; i++)
 	      {
-		int urF = sdb.getDistance (4);
-		int irSL = sdb.getDistance (1);
-		int irRL = sdb.getDistance (3);
+		int urF = sbd.getDistance (4);
+		int irFR_side = sbd.getDistance (1);
+		int irRR_side = sbd.getDistance (3);
+		int irRR = sbd.getDistance (0);
 		movingAvg (urF, 4);
-		movingAvg (irSL, 1);
-		movingAvg (irRL, 3);
+		movingAvg (irFR_side, 1);
+		movingAvg (irRR_side, 3);
+		movindAvg (irRR,0);
 	      }
 	    first = false;
 	  }
@@ -148,7 +151,7 @@ namespace msv
 	m_intGain = 0.5; //1.0;//8.39; //8.39;
 	m_derGain = 0.23; //0.23;
 
-	bool overtake = overtaking (sdb);
+	bool overtake = overtaking (sbd);
 	bool res = laneFollowing (&ldd,overtake);
 /*	//Check for intersection
 	// This algo needs to be changed to work according
@@ -292,6 +295,13 @@ namespace msv
 
 	vc.setSpeed (speedVal);
 
+	if(overtake){
+	    //add indicators
+
+	}
+	vc.setLeftFlashingLights(leftBlink);
+	vc.setRightFlashingLights(rightBlink);
+
 	Container c (Container::VEHICLECONTROL, vc);
 	getConference ().send (c);
       }
@@ -304,40 +314,62 @@ namespace msv
   obstacleDriver::overtaking (SensorBoardData sensorData)
   {
     int urF = sensorData.getDistance (4);
-    int irSL = sensorData.getDistance (1);
-    int irRL = sensorData.getDistance (3);
+    int irFR_side = sensorData.getDistance (1);
+    int irRR_side = sensorData.getDistance (3);
+    int irR = sensorData.getDistance(0);
     float urF_avg = movingAvg (urF, 4);
-    float irSL_avg = movingAvg (irSL, 1);
-    float irRL_avg = movingAvg (irRL, 3);
+    float irFR_avg = movingAvg (irFR_side, 1);
+    float irRR_avg = movingAvg (irRR_side, 3);
+    float irR_avg = movingAvg (irR,0);
+
+    float timeToCollide=(urF_avg/m_speed)* 0.01; //assuming speed 0.6m/s, 1.5s at 90cm, 1s at 60cm, for 0.4m/s, 2.25s - 1.5s
+
 	cout<<"urf:"<<urF_avg<<endl;
-	cout<<"irSL:"<<irSL_avg<<endl;
-	cout<<"irRL:"<<irRL_avg<<endl;
+	cout<<"irFL:"<<irFR_avg<<endl;
+	cout<<"irRL:"<<irRR_avg<<endl;
 	cout<<"ObstacleDetected:"<<obstacleDetected<<endl;
-    if (abs (urF_avg) < 45 && abs (urF_avg) > 8 && !obstacleDetected)
+    if (timeToCollide<1 && !obstacleDetected)
       {
 	obstacleDetected = true;
+	m_speed=0;
+	leftBlink=false;
+	rightBlink=false;
+	//stop indicators
       }
     else if (obstacleDetected)
       {
+	m_speed=3;
+	leftBlink=true;
+	//flash left
 	cout<<"Obstacle Previously Detected"<<endl;
-	if (abs (irSL_avg) < 20 && abs (irSL_avg) > 6 && !firstObj)
+	if (abs (irFR_avg) < 20 && abs (irFR_avg) > 6 && !ObjDetectedFR)
 	  {
-	    //firstObj = true;
+	    ObjDetectedFR = true;
 	    cout << "overtakingStarted" << endl;
-	    if (abs (irRL_avg) < 20 && abs (irRL_avg) > 6 && !overtakingNow)
-	      {
-		overtakingNow = true;
-	      }
 	  }
-	if (abs (irRL_avg) < 3 && abs (irSL_avg) < 3 && overtakingNow)
+	 if (abs (irRR_avg) < 20 && abs (irRR_avg) > 6 && !overtakingNow &&ObjDetectedFR)
+	    {
+	       //stopLeft flash
+	       leftBlink=false;
+		overtakingNow = true;
+	    }
+	if ( abs (irFR_avg) < 3 && overtakingNow) // Needs to be refined, its too random
 	  {
+	    rightBlink=true;
+	    //flash right
 	    overtakingDone = true;
+	    m_speed=6;
 
 	  }
+
 	if (overtakingDone)
 	  {
 	    obstacleDetected = false;
 	    overtakingNow = false;
+	  }
+	if(abs (irR_avg <25) && abs (irR_avg)>4)
+	  {
+	    rightBlink=false;
 	  }
       }
     return obstacleDetected;
@@ -393,40 +425,11 @@ namespace msv
   obstacleDriver::laneFollowing (LaneDetectionData *data, bool overtake)
   {
     cout << "enteredLaneFollowing" << endl;
-    //  int x1, x2, x3, x4, y1, y2, y3, y4;
     LaneDetectionData ldd = *data;
-    // The two lines are delivered in a struct containing two Vec4i objects (vector of 4 integers)
     Lines lines = ldd.getLaneDetectionData ();
 
     LaneDetectorDataToDriver trajectoryData = ldd.getLaneDetectionDataDriver ();
 
-    /*if (lines.dashedLine[0] == 0 && lines.dashedLine[1] == 0 && lines.dashedLine[2] == 0 && lines.dashedLine[3] == 0)
-     {
-     m_leftLine = lines.leftLine;
-     }
-     else
-     {
-     m_leftLine = lines.dashedLine;
-     }
-     m_rightLine = lines.rightLine;*/
-
-    // Temporary solution to stop the car if a stop line is detected
-    //if (lines.stopLineHeight != -1)
-    //{
-    //    m_speed = 0;
-    //}
-    // int scr_width = lines.width;
-    //int scr_height = lines.height;
-    /*
-     x1 = m_leftLine[0];
-     y1 = m_leftLine[1];
-     x2 = m_leftLine[2];
-     y2 = m_leftLine[3];
-     x3 = m_rightLine[0];
-     y3 = m_rightLine[1];
-     x4 = m_rightLine[2];
-     y4 = m_rightLine[3];
-     */
 
     if (trajectoryData.noTrajectory)
       {
@@ -444,7 +447,7 @@ namespace msv
 
     float oldLateralError = m_lateralError;
     CustomLine goal;
-    if (overtake == true)
+    if (overtake)
       {
 	goal = trajectoryData.leftGoalLines0;
       }
