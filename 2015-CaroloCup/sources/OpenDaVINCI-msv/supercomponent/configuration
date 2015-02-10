@@ -27,6 +27,29 @@ global.buffer.numberOfMemorySegments = 20 # Number of memory segments used for b
 
 supercomponent.pulseshift.shift = 10000 # (in microseconds) If the managed level is pulse_shift, all connected modules will be informed about the supercomponent's real time by this increment per module. Thus, the execution times per modules are better aligned with supercomponent and the data exchange is somewhat more predictable.
 
+
+#CONFIGURATION FOR PARKING
+
+driver.MinParkingDist = 500;
+driver.MaxParkingDist = 700;
+driver.SafeDistance = 30;
+driver.MinSafeDistance = 2;
+driver.DesiredDistance1 = 250; 
+driver.DesiredDistance2 = 700;
+driver.DesiredDistance3 = 480;
+driver.DesiredDistance4 = 90;
+driver.DesiredDistance5 = 30;
+driver.SpeedF1 = 3;
+driver.SpeedF2 = 6;
+driver.SpeedB1 = -4;
+driver.SpeedB2 = -6;
+driver.Stop_Speed = 0;
+driver.IRMaxDist = 25;
+driver.IRMinDist = 0;
+driver.isSmallGapSize = 0;
+driver.DesiredMoreStates = 5;
+driver.MoreStates = 2;
+
 #
 # CONFIGURATION FOR LANEDETECTOR
 #
