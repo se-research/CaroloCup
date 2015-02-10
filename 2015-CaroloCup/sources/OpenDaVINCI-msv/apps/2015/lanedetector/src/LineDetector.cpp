@@ -714,6 +714,11 @@ void LineDetector::classification()
                             intersectionOn = true;
                             calcIntersectionGoalLine = true;
                             foundIntersection = true;
+
+                            // reset x-values
+                            currentDashGoalX = 0;
+                            currentRightGoalX = 0;
+                            currentLeftGoalX = 0;
                             cout << "INTERSECTION   !!!!!!!!!!!!" << endl;
                             if (m_debug)
                                 {
@@ -1296,14 +1301,6 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
                         }
                 }
         }
-
-    // Get rid of information gathered one frame back
-    // if (!ltu->foundD)
-    //     currentDashGoalX = 0;
-    // if (!ltu->foundR)
-    //     currentRightGoalX = 0;
-    // if (!ltu->foundL)
-    //     currentLeftGoalX = 0;
 
     if (printouts)
         {
@@ -1912,7 +1909,7 @@ void LineDetector::provideGoalLine(EstimationData *ed, GoalLineData *gld)
                     // Shift calculation result to get right goal line
                     // OLD WAY
                     gld->rightGoalLine = gld->leftGoalLine;
-                    gld->rightGoalLine.p2.x += ed->calcRoadSize*0.7;
+                    gld->rightGoalLine.p2.x += ed->calcRoadSize;
                     gld->rightGoalLine.slope = getLineSlope(gld->rightGoalLine.p2, gld->rightGoalLine.p1);
                     gld->confidenceLevel_rightGoalLine = 4;
                     // NEW WAY
