@@ -1911,36 +1911,36 @@ void LineDetector::provideGoalLine(EstimationData *ed, GoalLineData *gld)
                     gld->leftGoalLine = simple_calculateGoalLine(ed->left, ed->dash, ed);
                     // Shift calculation result to get right goal line
                     // OLD WAY
-                    // gld->rightGoalLine = gld->leftGoalLine;
-                    // gld->rightGoalLine.p2.x += ed->calcRoadSize*0.7;
-                    // gld->rightGoalLine.slope = getLineSlope(gld->rightGoalLine.p2, gld->rightGoalLine.p1);
-                    // gld->confidenceLevel_rightGoalLine = 4;
+                    gld->rightGoalLine = gld->leftGoalLine;
+                    gld->rightGoalLine.p2.x += ed->calcRoadSize*0.7;
+                    gld->rightGoalLine.slope = getLineSlope(gld->rightGoalLine.p2, gld->rightGoalLine.p1);
+                    gld->confidenceLevel_rightGoalLine = 4;
                     // NEW WAY
-                    int expectedRightLineX = getIntersectionWithY(ed->dash, ed->yPosition) + ed->calcRoadSize;
-                    float expectedRightLineAngle = 180 - abs(ed->dash.slope)
-                                                   - calcRoadAngle;
-                    if (printouts)
-                        {
-                            cout << "expectedRightLineAngle: " << expectedRightLineAngle << endl;
-                            cout << "calcRoadAngle: " << calcRoadAngle << endl;
-                            cout << "ed->calcRoadSize: " << ed->calcRoadSize << endl;
-                            cout << "abs(ed->dash.slope): " << abs(ed->dash.slope) << endl;
-                        }
+                    // int expectedRightLineX = getIntersectionWithY(ed->dash, ed->yPosition) + ed->calcRoadSize;
+                    // float expectedRightLineAngle = 180 - abs(ed->dash.slope)
+                    //                                - calcRoadAngle;
+                    // if (printouts)
+                    //     {
+                    //         cout << "expectedRightLineAngle: " << expectedRightLineAngle << endl;
+                    //         cout << "calcRoadAngle: " << calcRoadAngle << endl;
+                    //         cout << "ed->calcRoadSize: " << ed->calcRoadSize << endl;
+                    //         cout << "abs(ed->dash.slope): " << abs(ed->dash.slope) << endl;
+                    //     }
 
-                    if (expectedRightLineAngle > 90)
-                        {
-                            expectedRightLineAngle = expectedRightLineAngle - 180;
-                        }
-                    if (printouts)
-                        cout << "expectedRightLineAngle: " << expectedRightLineAngle << endl;
-                    ed->right.slope = expectedRightLineAngle;
-                    ed->right.p1.x = expectedRightLineX;
-                    ed->right.p1.y = ed->yPosition;
-                    ed->isRightEstimated = true;
+                    // if (expectedRightLineAngle > 90)
+                    //     {
+                    //         expectedRightLineAngle = expectedRightLineAngle - 180;
+                    //     }
+                    // if (printouts)
+                    //     cout << "expectedRightLineAngle: " << expectedRightLineAngle << endl;
+                    // ed->right.slope = expectedRightLineAngle;
+                    // ed->right.p1.x = expectedRightLineX;
+                    // ed->right.p1.y = ed->yPosition;
+                    // ed->isRightEstimated = true;
 
-                    // Calculate right goal line
-                    gld->rightGoalLine = simple_calculateGoalLine(ed->dash, ed->right, ed);
-                    gld->confidenceLevel_rightGoalLine = 3;
+                    // // Calculate right goal line
+                    // gld->rightGoalLine = simple_calculateGoalLine(ed->dash, ed->right, ed);
+                    // gld->confidenceLevel_rightGoalLine = 3;
                 }
             else
                 {
