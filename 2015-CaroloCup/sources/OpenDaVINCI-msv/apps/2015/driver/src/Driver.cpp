@@ -258,12 +258,15 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 			
 			if ((USFront < SafeDistance && USFront > MinSafeDistance)){ 
 				driving_state = NO_POSSIBLE_PARKING_PLACE;
-			  
 			}
-			
+
 			if(IRdis_SL < IRMaxDist && IRdis_SL > IRMinDist){
 			  gapWidth = Distance - CurrentDistSpot;
 			  //CurrentDistSpot2 = Distance;
+			  
+			if (isSmallGapSize == 1){
+			  MinParkingDist = 500;
+			}			  
 			 if(gapWidth > MinParkingDist){
 			   desiredSteeringWheelAngle=0;
 			   CurrentDist = Distance;
@@ -289,17 +292,21 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 			if ((USFront < SafeDistance && USFront > MinSafeDistance)){ 
 				driving_state = NO_POSSIBLE_PARKING_PLACE;
 			  
-			}
-			if (Distance > (CurrentDist + DesiredDistance1)) {  
- 				
-				//parking(vc, vd);
-				CurrentDist1 = Distance;
-				driving_state = PARKING;
-				driving_speed = Stop_Speed;
-				
+			} 
+			if (IRdis_SL < IRMaxDist && IRdis_SL > IRMinDist){ 
+				desiredSteeringWheelAngle = -42;
+			  
+			 
+				if (IRdis_SR < 15 && IRdis_SR > IRMinDist) {  
+	 				
+					//parking(vc, vd);
+					CurrentDist1 = Distance;
+					driving_state = PARKING;
+					driving_speed = Stop_Speed;
+					
 
+				}
 			}
-			
 		}
 			break;
 
@@ -358,7 +365,7 @@ void Driver::parking() {
 	case BACKWARDS_RIGHT: {
 		rightIndicator = true;
 		driving_speed = SpeedB2;
-		desiredSteeringWheelAngle = 42;
+		desiredSteeringWheelAngle = 0;
 	  	cout << "========  BACKWARDS_RIGHT"  << endl;
 		if (Distance > (CurrentDist1 + DesiredDistance2)) {
 			parking_state = BACKWARDS_LEFT;
@@ -372,7 +379,7 @@ void Driver::parking() {
 		driving_speed = SpeedB1;
 		desiredSteeringWheelAngle = -42;
 		cout << "\t========  BACKWARDS_LEFT"  << endl;
-		if ((Distance > (CurrentDist2 + DesiredDistance3)) || (IRdis_RL < 13 && IRdis_RL > 2) || (IRdis_RR < 13 && IRdis_RR > 2)) {			
+		if ((Distance > (CurrentDist2 + DesiredDistance3)) && ((IRdis_RL < 13 && IRdis_RL > 2) || (IRdis_RR < 13 && IRdis_RR > 2))) {			
 // 			TimeStamp currentTimeB;
 // 			start_timerB = currentTimeB.toMicroseconds() / 1000.0;
 			parking_state = FORWARD_RIGHT;
@@ -385,20 +392,21 @@ void Driver::parking() {
 		driving_speed = SpeedF1;
 		desiredSteeringWheelAngle = 42;
 		cout << "\t\t========  FORWARD_RIGHT"  << endl;
-		if ((abs (IRdis_RL - IRdis_RR)) < 1 ) {
+		if ((abs (IRdis_RL - IRdis_RR)) < 1 && ((IRdis_RL < 15 && IRdis_RL > 2) && (IRdis_RR < 15 && IRdis_RR > 2))) {
 			parking_state = STOP;
 			TimeStamp currentTime5;
 			start_timerIndicator = currentTime5.toMicroseconds() / 1000.0;
 		}
 
-		else if (USFront < 12 && USFront > 1) {
+		else if (USFront < 10 && USFront > 1) {
 			if (isSmallGapSize == 1 && MoreStates < DesiredMoreStates) {
 				parking_state = BACK_AGAIN;
 				MoreStates += 1;
-			} else {
-				parking_state = STOP;
-				TimeStamp currentTime5;
-				start_timerIndicator = currentTime5.toMicroseconds() / 1000.0;
+			} else if ((isSmallGapSize == 0) || MoreStates < DesiredMoreStates){
+// 				parking_state = STOP;
+// 				TimeStamp currentTime5;
+// 				start_timerIndicator = currentTime5.toMicroseconds() / 1000.0;
+				parking_state = BACK_AGAIN;
 			}
 		}
 
@@ -410,7 +418,7 @@ void Driver::parking() {
 		cout << "\t========  BACK_AGAIN"  << endl;
 		parkAngle = asin((IRdis_RL - IRdis_RR)/11.0); //11 = dist between IR's
 
-		if ((((abs (IRdis_RL - IRdis_RR)) < 1) && ((IRdis_RL < 15 && IRdis_RL > 2) || (IRdis_RR < 15 && IRdis_RR > 2))) || (USRear < 10)){
+		if ((((abs (IRdis_RL - IRdis_RR)) < 1) && ((IRdis_RL < 15 && IRdis_RL > 2) && (IRdis_RR < 15 && IRdis_RR > 2))) || (USRear < 10 && USRear > 1)){
 		  //(Distance > (CurrentDist4 + DesiredDistance5 || (Distance < (CurrentDist4 + DesiredDistance5))
 			TimeStamp currentTime5;
 			start_timerIndicator = currentTime5.toMicroseconds() / 1000.0;
@@ -439,8 +447,8 @@ void Driver::parking() {
 		TimeStamp currentTime6;
 		time_takenIndicator = (currentTime6.toMicroseconds() / 1000.0)- start_timerIndicator;
 		if (time_takenIndicator < 4000)  { 
-	       rightIndicator = true;
-	       leftIndicator = true;
+			rightIndicator = true;
+			leftIndicator = true;
 		}else {
 		   parking_state = DONE;
 		}
