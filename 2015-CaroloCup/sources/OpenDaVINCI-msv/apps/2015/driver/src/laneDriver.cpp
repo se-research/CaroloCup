@@ -26,6 +26,7 @@
 
 int indicators = -1;
 bool indicatorsOn = false;
+int initialSpeed;
 
 namespace msv
 {
@@ -63,6 +64,7 @@ void laneDriver::setUp()
 {
     // This method will be call automatically _before_ running body().
     m_speed = getKeyValueConfiguration().getValue<int32_t>("driver.realSpeed");
+    initialSpeed =  m_speed;
     cout<<"speed"<<m_speed<<endl;
 }
 
@@ -176,6 +178,11 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
             bool res = laneFollowing(&ldd);
             //cout << "Stee Sign: "<< steer_sign << "\nLast Steer: "<< last_steer <<endl;
 
+            if( ldd.getLaneDetectionDataDriver().roadState == INTERSECTION){
+            	m_speed =  initialSpeed/2 + 1;
+            }else{
+            	m_speed = initialSpeed;
+            }
             /*
             if( ldd.getLaneDetectionDataDriver().roadState == NORMAL && !after_intersection){
             	if(debug)
@@ -283,6 +290,9 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
             if (!res)
                 {
                     cout << "Waiting..." << endl;
+                    vc.setSpeed(m_speed);
+                    Container c(Container::VEHICLECONTROL, vc);
+                    getConference().send(c);
                     continue;
                 }
 
