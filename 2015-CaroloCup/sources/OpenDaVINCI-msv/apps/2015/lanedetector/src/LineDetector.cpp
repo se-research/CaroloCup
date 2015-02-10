@@ -780,7 +780,7 @@ void LineDetector::classification()
 
     TimeStamp endTime;
     long time_taken_contour = (endTime.toMicroseconds() - intersection_start)/ 1000.0;
-    if (time_taken_contour > 500){
+    if (time_taken_contour > 800){
         cout << "roadState set to NORMAL do TIMEOUT" << endl;
         roadState = NORMAL;
         intersectionOn = false;
