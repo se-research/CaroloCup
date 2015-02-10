@@ -44,6 +44,7 @@ bool foundIntersection = false;
 RoadState roadState = NORMAL;
 int intersectionRect;
 bool calcIntersectionGoalLine = false;
+long intersection_start;
 
 
 LineDetector::LineDetector(const Mat &f, const Config &cfg, const bool debug,
@@ -715,10 +716,9 @@ void LineDetector::classification()
                             calcIntersectionGoalLine = true;
                             foundIntersection = true;
 
-                            // reset x-values
-                            currentDashGoalX = 0;
-                            currentRightGoalX = 0;
-                            currentLeftGoalX = 0;
+                            TimeStamp currentTime;
+                            intersection_start = currentTime.toMicroseconds();
+
                             cout << "INTERSECTION   !!!!!!!!!!!!" << endl;
                             if (m_debug)
                                 {
@@ -777,6 +777,17 @@ void LineDetector::classification()
 
                 }
         }
+
+    TimeStamp endTime;
+    long time_taken_contour = (endTime.toMicroseconds() - intersection_start)/ 1000.0;
+    if (time_taken_contour > 500){
+        cout << "roadState set to NORMAL do TIMEOUT" << endl;
+        roadState = NORMAL;
+        intersectionOn = false;
+        foundIntersection = false;
+        calcIntersectionGoalLine = false;
+    }
+
     if (intersectionRect == -1 && roadState == INTERSECTION){
         cout << "STOPS updating intersection_goalLine: " << endl;
         calcIntersectionGoalLine = false;
@@ -912,6 +923,12 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
             cout << "intersectionRect: " << intersectionRect << endl;
         }
 
+    if (roadState == INTERSECTION){
+        // reset x-values
+        currentDashGoalX = 0;
+        currentRightGoalX = 0;
+        currentLeftGoalX = 0;
+    }
     //LinesToUse old_ltu;
     // if (ltu != NULL)
     //  old_ltu = *ltu;
@@ -1342,6 +1359,7 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
                 roadState = NORMAL;
                 intersectionOn = false;
                 foundIntersection = false;
+                calcIntersectionGoalLine = false;
             }
         }else if(ltu->foundR){
             maxY = ltu->rightLine.p1.y;
@@ -1351,6 +1369,7 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
                 roadState = NORMAL;
                 intersectionOn = false;
                 foundIntersection = false;
+                calcIntersectionGoalLine = false;
 
             }
         }else if(ltu->foundL){
