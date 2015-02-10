@@ -43,7 +43,7 @@ bool intersectionOn = false;
 bool foundIntersection = false;
 RoadState roadState = NORMAL;
 bool intersectionRect;
-CustomLine intersection_goalLine;
+CustomLine intersection_rightGoalLine, intersection_leftGoalLine;
 bool init = true;
 bool calcIntersectionGoalLine = false;
 
@@ -66,7 +66,8 @@ LineDetector::LineDetector(const Mat &f, const Config &cfg, const bool debug,
 
     if (init){
         init = false;
-        intersection_goalLine = getNoneCustomLine();
+        intersection_rightGoalLine = getNoneCustomLine();
+        intersection_leftGoalLine = getNoneCustomLine();
     }
     // Run lineDetector and provide goalLines for the driver
     findLines();
@@ -1730,16 +1731,18 @@ void LineDetector::createTrajectory(LinesToUse *ltu)
 
 void LineDetector::createIntersectionGoalLine(){
     bool printouts = true;
-    if (printouts)
+    if (printouts && m_debug)
         cout << "__start createIntersectionGoalLine" << endl;
 
-    CustomLine newGoalLine = getNoneCustomLine();
+    CustomLine newRightGoalLine = getNoneCustomLine();
+    CustomLine newLeftGoalLine = getNoneCustomLine();
     if (roadState == INTERSECTION){
         dataToDriver->leftGoalLines0 = getNoneCustomLine();
         dataToDriver->rightGoalLines0 = getNoneCustomLine();
 
         if (intersectionRect != -1 && calcIntersectionGoalLine == true){
-            cout << "Check if to calculate new goalLine based on the intersection rectangle" << endl;
+            if (printouts && m_debug)
+                cout << "Check if to calculate new goalLine based on the intersection rectangle" << endl;
             Point rectCenter;
             Point2f rect_points[4];
             bigRect.points(rect_points);
@@ -1757,7 +1760,9 @@ void LineDetector::createIntersectionGoalLine(){
             Point dashPoint;
             int dashXPos = w;
             for (int i = 0; i < 4; i++){
-            cout << "rect_points[i]: " << rect_points[i] << endl;
+
+            if (printouts && m_debug)
+                cout << "rect_points[i]: " << rect_points[i] << endl;
 
                 if (rect_points[i].x < dashXPos){
                     dashXPos = rect_points[i].x;
@@ -1769,31 +1774,40 @@ void LineDetector::createIntersectionGoalLine(){
                 else if (rect_points[i].x > xCut)
                     rectXBigger = true;
             }
-            cout << "rectXBigger: " << rectXBigger << endl;
-            cout << "rectXSmaller: " << rectXSmaller << endl;
-            cout << "rect_width: " << rect_width << endl;
-            cout << "YI: " << YI << endl;
-            cout << " 0.95*w: " <<  0.95*w << endl;
-            cout << "intersectionRect: " << intersectionRect << endl;
+            if (printouts && m_debug){
+                cout << "rectXBigger: " << rectXBigger << endl;
+                cout << "rectXSmaller: " << rectXSmaller << endl;
+                cout << "rect_width: " << rect_width << endl;
+                cout << "YI: " << YI << endl;
+                cout << " 0.95*w: " <<  0.95*w << endl;
+                cout << "intersectionRect: " << intersectionRect << endl;
+            }
 
             if (rectXBigger && rectXSmaller && rect_width < 0.95*w && YI > h/2){
-                cout << "calc new goalLine" << endl;
                 rectCenter.x = bigRect.center.x;
                 rectCenter.y = bigRect.center.y;
                 float rectSlope = getLineSlope(p.longSideMiddle, rectCenter);
-                cout << "newGoalLine slope: " << rectSlope << endl;
-                newGoalLine.p1 = dashPoint;
-                newGoalLine.p1.x += ROAD_SIZE/2;
-                newGoalLine.slope = rectSlope - 2*(rectSlope - 90);
-                newGoalLine.p2.x = getIntersectionWithBottom(newGoalLine);
-                newGoalLine.p2.y = h;
-                newGoalLine.p1.x = getIntersectionWithTop(newGoalLine);
-                newGoalLine.p1.y = 0;
-                cout << "changes to new goalLine!" << endl;            
-                cout << "newGoalLine slope: " << newGoalLine.slope << " p1(" << newGoalLine.p1.x << "," << newGoalLine.p1.y;
-                cout << ") p2(" << newGoalLine.p2.x << "," << newGoalLine.p2.y << ")" << endl;
-                cout << "end straightening" << endl;
-                intersection_goalLine = newGoalLine;
+                newRightGoalLine.p1 = dashPoint;
+                newRightGoalLine.p1.x += ROAD_SIZE/2;
+                newRightGoalLine.slope = rectSlope - 2*(rectSlope - 90);
+                newRightGoalLine.p2.x = getIntersectionWithBottom(newRightGoalLine);
+                newRightGoalLine.p2.y = h;
+                newRightGoalLine.p1.x = getIntersectionWithTop(newRightGoalLine);
+                newRightGoalLine.p1.y = 0; 
+                // Derive left goal line
+                newLeftGoalLine = newRightGoalLine;
+                newLeftGoalLine.slope = abs(newRightGoalLine.slope) + ROAD_ANGLE*0.65;// 2*(90 - ROAD_ANGLE);//180 - abs(newRightGoalLine.slope) - ROAD_ANGLE;
+                newLeftGoalLine.p2.x = newRightGoalLine.p2.x - ROAD_SIZE;
+                newLeftGoalLine.p1.x = getIntersectionWithTopP2(newLeftGoalLine);
+                if (printouts && m_debug){
+                    cout << "changes to new goalLine!" << endl;            
+                    cout << "newRightGoalLine slope: " << newRightGoalLine.slope << " p1(" << newRightGoalLine.p1.x << "," << newRightGoalLine.p1.y;
+                    cout << ") p2(" << newRightGoalLine.p2.x << "," << newRightGoalLine.p2.y << ")" << endl;
+                    cout << "newLeftGoalLine slope: " << newLeftGoalLine.slope << " p1(" << newLeftGoalLine.p1.x << "," << newLeftGoalLine.p1.y;
+                    cout << ") p2(" << newLeftGoalLine.p2.x << "," << newLeftGoalLine.p2.y << ")" << endl;
+                }
+                intersection_rightGoalLine = newRightGoalLine;
+                intersection_leftGoalLine = newLeftGoalLine;
             }
         }
         Point position;
@@ -1809,20 +1823,24 @@ void LineDetector::createIntersectionGoalLine(){
         currentLine.slope = getLineSlope(heading, position);
         if (m_debug){
             std::vector<CustomLine> rightGoalLines;
-            rightGoalLines.push_back(intersection_goalLine);
+            rightGoalLines.push_back(intersection_rightGoalLine);
             finalOutput.rightGoalLines = rightGoalLines;
+            std::vector<CustomLine> leftGoalLines;
+            leftGoalLines.push_back(intersection_leftGoalLine);
+            finalOutput.leftGoalLines = leftGoalLines;
             finalOutput.intersection_goalLine = true;
             finalOutput.noTrajectory = true;
             finalOutput.currentLine = currentLine;
         }
 
-        dataToDriver->rightGoalLines0 = intersection_goalLine;
+        dataToDriver->rightGoalLines0 = intersection_rightGoalLine;
+        dataToDriver->leftGoalLines0 = intersection_leftGoalLine;
         dataToDriver->currentLine = currentLine;
         dataToDriver->noTrajectory = false;
     }else{
-        intersection_goalLine = getNoneCustomLine();
+        intersection_rightGoalLine = getNoneCustomLine();
     }
-    if (printouts)
+    if (printouts && m_debug)
         cout << "__end createIntersectionGoalLine" << endl;
 }
 
@@ -3406,6 +3424,17 @@ int LineDetector::getIntersectionWithTop(CustomLine l) const
     float a = tan(M_PI * l.slope / 180);
     float b = l.p1.y - l.p1.x * a;
     int positionX = l.p1.x;
+    if (abs(a) > 0.001)
+        {
+            positionX = (0 - b) / a;
+        }
+    return positionX;
+}
+int LineDetector::getIntersectionWithTopP2(CustomLine l) const
+{
+    float a = tan(M_PI * l.slope / 180);
+    float b = l.p2.y - l.p2.x * a;
+    int positionX = l.p2.x;
     if (abs(a) > 0.001)
         {
             positionX = (0 - b) / a;

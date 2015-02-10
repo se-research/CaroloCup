@@ -733,7 +733,17 @@ void LaneDetector_inspection::showResult_createTrajectory(FinalOutput *res, Line
         if (res->intersection_goalLine == true){
             line(frame, pad(&top,&left,res->currentLine.p1), pad(&top,&left,res->currentLine.p2), Scalar(255, 128, 0), 2, CV_AA);
             line(frame, pad(&top,&left,res->rightGoalLines[0].p1), pad(&top,&left,res->rightGoalLines[0].p2), Scalar(153, 0, 76), 2, CV_AA);
+            line(frame, pad(&top,&left,res->leftGoalLines[0].p1), pad(&top,&left,res->leftGoalLines[0].p2), Scalar(0, 128, 255), 2, CV_AA);
                 
+            if (m_debug && print_results)
+                {
+                    cout << "Intersection goalLine:" << endl;
+                    cout << "rightGoalLines[" << 0 << "] slope: " << res->rightGoalLines[0].slope << " p1(" << res->rightGoalLines[0].p1.x << "," << res->rightGoalLines[0].p1.y;
+                    cout << ") p2(" << res->rightGoalLines[0].p2.x << "," << res->rightGoalLines[0].p2.y << ")" << endl;
+                    cout << "leftGoalLines[" << 0 << "] slope: " << res->leftGoalLines[0].slope << " p1(" << res->leftGoalLines[0].p1.x << "," << res->leftGoalLines[0].p1.y;
+                    cout << ") p2(" << res->leftGoalLines[0].p2.x << "," << res->leftGoalLines[0].p2.y << ")" << endl;
+
+                }
         }else
             cout << "Nothing in..." << endl;
 

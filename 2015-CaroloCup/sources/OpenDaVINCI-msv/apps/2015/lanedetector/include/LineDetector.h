@@ -2,6 +2,7 @@
 #define LINEDETECTOR_H_
 
 #define MIN_ANGLE 15
+#define LEFT_ROAD_SIZE 350
 #define ROAD_SIZE 685//770
 #define ROAD_GOAL 0.5
 #define ROAD_ANGLE 85
@@ -176,6 +177,7 @@ private:
     Point2f getWorldPoint(Point2i imgPoint);
     int getIntersectionWithBottom(CustomLine l) const;
     int getIntersectionWithTop(CustomLine l) const;
+    int getIntersectionWithTopP2(CustomLine l) const;
 	int getIntersectionWithY(CustomLine l, int y) const;
     CustomLine createLineFromRect(RotatedRect *rect, int sizeX, int sizeY, int polygonIndex);
 
