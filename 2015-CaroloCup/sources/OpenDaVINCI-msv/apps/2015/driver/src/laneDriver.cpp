@@ -70,7 +70,7 @@ void laneDriver::tearDown()
     // This method will be call automatically _after_ return from body().
 }
 
-bool debug = true;
+bool debug = false;
 int increaseSpeed = 0;
 
 bool runStartBoxRoutine=false;
@@ -109,13 +109,11 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
 
     float steering;
     float last_steer = 0;
-    float steering_thr = 20;
+    float steering_thr = 10;
     double t_base;
-    int steer_change = 10;
-    int steer_change_timing = 200;
+    int steer_change = 2;
+    int steer_change_timing = 300;
     int steer_sign;
-    //int inters_max_steer;
-    //int inters_min_steer;
 
 
     while (getModuleState() == ModuleState::RUNNING)
@@ -169,12 +167,14 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
             //cout << "Stee Sign: "<< steer_sign << "\nLast Steer: "<< last_steer <<endl;
 
             if( ldd.getLaneDetectionDataDriver().roadState == NORMAL && !after_intersection){
-            	cout<< "NOrmal state" << endl;
+            	if(debug)
+            		cout<< "NOrmal state" << endl;
             	res = laneFollowing(&ldd);
             //}else if(ldd.getLaneDetectionDataDriver().roadState == INTERSECTION && ldd.getLaneDetectionDataDriver().confidenceLevel == 2 && !after_intersection){
             //	cout<< "Slow down the car" << endl;
             }else if( ldd.getLaneDetectionDataDriver().roadState == INTERSECTION &&  !after_intersection){
-            	cout << "Found Intersection..." << endl;
+            	if(debug)
+            		cout << "Found Intersection..." << endl;
                 after_intersection = true;
                 steering = last_steer;
                 TimeStamp t_start;
@@ -184,14 +184,22 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
                 if(steering >= (-1)*steering_thr && steering <= steering_thr){
                 	steer_sign = 0;
                 	steering = 0;
-                	cout << "Between thrs"<< endl;
+                	if(debug)
+                		cout << "Between thrs"<< endl;
                 }else if(steering < (-1)*steering_thr){
                 	steer_sign = -1;
-                	cout << "Left side" << endl;
+                	steering = (-1)*steering_thr;
+                	if(debug)
+                		cout << "Left side" << endl;
                 }else{
                 	steer_sign = 1;
-                	cout << "Right Side" << endl;
+                	steering = steering_thr;
+                	if(debug)
+                		cout << "Right Side" << endl;
                 }
+                vc.setSteeringWheelAngle(int16_t(steering));
+                Container c(Container::VEHICLECONTROL, vc);
+                getConference().send(c);
                 /*
                 if(last_steer < 0){
                 	steer_sign = -1;
@@ -211,34 +219,45 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
             }else if(after_intersection){
             	TimeStamp t_stop;
             	double timeStep_now=(t_stop.toMicroseconds() - t_base) / 1000.0;
-
             	double timeStep_total = (t_stop.toMicroseconds() - m_timestamp) / 1000.0;
-            	cout << "TIme: "<< timeStep_total << endl;
-            	if(timeStep_total > 1000.0){ //Cross intersect for 3 seconds
-            		res = laneFollowing(&ldd);
-            		after_intersection = false;
-            	}else{
-            		if(timeStep_now > steer_change_timing){
-            			t_base=t_stop.toMicroseconds();
-            			if(steer_sign == 0){
-            				cout<< "Steering between thr: " << steering << endl;
-            				vc.setSteeringWheelAngle(int16_t(steering));
-            			}
-            			if( steer_sign == 1 && steering >= 0){ //positive steering
-            				steering= steering - steer_change;
-            				cout<< "Steering from right: " << steering << endl;
-            				vc.setSteeringWheelAngle(int16_t(steering));
-            			}else if( steer_sign == -1 && steering <= 0){ // negative steering
-            				steering= steering + steer_change;
-            				cout<< "Steering from left: " << steering << endl;
-            				vc.setSteeringWheelAngle(int16_t(steering));
-            			}
-            			Container c(Container::VEHICLECONTROL, vc);
-            			getConference().send(c);
-            		}
-            		//vc.setSteeringWheelAngle(int16_t(0));
+            	if(debug)
+            		cout << "TIme: "<< timeStep_total << endl;
 
-            		//cout << "Crossing Intersection..." << endl;
+            	if(ldd.getLaneDetectionDataDriver().noTrajectory == false){
+            		res = laneFollowing(&ldd);
+            		if(debug)
+            			cout<< "Using goal form LineDetector"<<endl;
+            		if(ldd.getLaneDetectionDataDriver().roadState == NORMAL)
+            			after_intersection =  false;
+            	}else{
+					if(timeStep_total > 1000.0){ //Cross intersect for 3 seconds
+						res = laneFollowing(&ldd);
+						after_intersection = false;
+						last_steer = steering;
+					}else{
+						if(timeStep_now > steer_change_timing){
+							t_base=t_stop.toMicroseconds();
+							if(steer_sign == 0){
+								if(debug)
+									cout<< "Steering between thr: " << steering << endl;
+								vc.setSteeringWheelAngle(int16_t(steering));
+							}else if( steer_sign == 1 && steering >= 0){ //positive steering
+								steering= steering - steer_change;
+								if(debug)
+									cout<< "Steering from right: " << steering << endl;
+								vc.setSteeringWheelAngle(int16_t(steering));
+							}else if( steer_sign == -1 && steering <= 0){ // negative steering
+								steering= steering + steer_change;
+								if(debug)
+									cout<< "Steering from left: " << steering << endl;
+								vc.setSteeringWheelAngle(int16_t(steering));
+							}
+							Container c(Container::VEHICLECONTROL, vc);
+							getConference().send(c);
+						}
+						//vc.setSteeringWheelAngle(int16_t(0));
+						//cout << "Crossing Intersection..." << endl;
+					}
             	}
 
             }else{
@@ -297,8 +316,7 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
     return ModuleState::OKAY;
 }
 
-  float
-  laneDriver::calculateDesiredHeading (float oldLateralError)
+  float  laneDriver::calculateDesiredHeading (float oldLateralError)
   {
     float desiredHeading;
     float theta = m_angularError / 180 * M_PI;

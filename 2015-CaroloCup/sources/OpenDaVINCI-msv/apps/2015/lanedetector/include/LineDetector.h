@@ -103,7 +103,7 @@ struct FinalOutput {
     vector<CustomLine> leftGoalLines;
     vector<CustomLine> rightGoalLines;
     CustomLine currentLine;
-    bool noTrajectory;
+    bool noTrajectory, intersection_goalLine;
 };
 
 struct GoalLineData {
@@ -205,6 +205,7 @@ private:
 
 	void provideGoalLine(EstimationData *ed, GoalLineData *gld);
 	CustomLine simple_calculateGoalLine(CustomLine fst, CustomLine snd, EstimationData *ed);
+	void createIntersectionGoalLine();
     
     //Split  contour at given  the points
     std::vector<RotatedRect> splitContourAtPoints(vector<Point> points,int contourIndex,bool horizontalSplit);

@@ -730,6 +730,11 @@ void LaneDetector_inspection::showResult_createTrajectory(FinalOutput *res, Line
             cout << "__START: createTrajectory" << endl;
         }
     if (res->noTrajectory == true){
+        if (res->intersection_goalLine == true){
+            line(frame, pad(&top,&left,res->currentLine.p1), pad(&top,&left,res->currentLine.p2), Scalar(255, 128, 0), 2, CV_AA);
+            line(frame, pad(&top,&left,res->rightGoalLines[0].p1), pad(&top,&left,res->rightGoalLines[0].p2), Scalar(153, 0, 76), 2, CV_AA);
+                
+        }else
             cout << "Nothing in..." << endl;
 
         }else{
