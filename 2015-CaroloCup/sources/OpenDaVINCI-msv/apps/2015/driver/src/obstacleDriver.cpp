@@ -142,7 +142,7 @@ namespace msv
 		movingAvg (urF, 4);
 		movingAvg (irFR_side, 1);
 		movingAvg (irRR_side, 3);
-		movindAvg (irRR,0);
+		movingAvg (irRR,0);
 	      }
 	    first = false;
 	  }
@@ -367,7 +367,7 @@ namespace msv
 	    obstacleDetected = false;
 	    overtakingNow = false;
 	  }
-	if(abs (irR_avg <25) && abs (irR_avg)>4)
+	if(abs (irR_avg)<25 && abs (irR_avg)>4)
 	  {
 	    rightBlink=false;
 	  }
