@@ -428,10 +428,11 @@ void Driver::parking() {
 			if(isSmallGapSize == 1 && MoreStates < DesiredMoreStates) {
 				parking_state = FORWARD_RIGHT;
 				MoreStates += 1;
-			}else {
-				parking_state = STOP;
-				TimeStamp currentTime5;
-				start_timerIndicator = currentTime5.toMicroseconds() / 1000.0;
+			}else if ((isSmallGapSize == 0) || MoreStates < DesiredMoreStates){
+// 				parking_state = STOP;
+// 				TimeStamp currentTime5;
+// 				start_timerIndicator = currentTime5.toMicroseconds() / 1000.0;
+				parking_state = FORWARD_RIGHT;
 			}
 		} 
 	}
