@@ -86,24 +86,12 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
     // Get configuration data.
     KeyValueConfiguration kv = getKeyValueConfiguration();
 
-/*
+
     //Startbox values
     runStartBoxRoutine = kv.getValue<int32_t> ("driver.startInBox") == 1;
     int startBoxLength =kv.getValue<int32_t> ("driver.startboxLength");
     int initialDist=0;
     int currDist=0;
-    if(runStartBoxRoutine){
-	   Container containerSensorBoardData = getKeyValueDataStore().get(
-	   	                                Container::USER_DATA_0);
-	    SensorBoardData sbd= containerSensorBoardData.getData<SensorBoardData>();
-	    initialDist=sbd.getDistance(6);//mm
-	    currDist=initialDist;
-
-	    //TODO remove this!!!!!
-	   // initialDist=10;
-	    //currDist=10;
-    }
-*/
 
     VehicleControl vc;
 
@@ -114,6 +102,7 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
     int steer_change = 2;
     int steer_change_timing = 300;
     int steer_sign;
+    bool firstRun=true;
 
 
     while (getModuleState() == ModuleState::RUNNING)
@@ -129,8 +118,25 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
                 }
 
             ldd = conUserData1.getData<LaneDetectionData>();
-            /*
-            //Start box logic
+            
+             if(runStartBoxRoutine && firstRun){
+		     	   Container containerSensorBoardData = getKeyValueDataStore().get(
+					   	   	                                Container::USER_DATA_0);
+		    if ((containerSensorBoardData.getReceivedTimeStamp().getSeconds() + containerSensorBoardData.getReceivedTimeStamp().getFractionalMicroseconds()) < 1)
+                    {
+                        cout << "no sbd..." << endl;
+			continue;
+                    }
+ 		    else{
+
+		   	    SensorBoardData sbd= containerSensorBoardData.getData<SensorBoardData>();
+		    	    initialDist=sbd.getDistance(6);//mm
+	                    firstRun=false; 
+		    	    currDist=initialDist;
+		    }
+
+	}
+	    //Start box logic
             LaneDetectorDataToDriver trajectoryData = ldd.getLaneDetectionDataDriver();
             	   if(runStartBoxRoutine && !trajectoryData.noTrajectory){
             	      cout<<"Start box: dist travelled"<<currDist-initialDist<<endl;
@@ -142,6 +148,8 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
             	                                Container::USER_DATA_0);
             	      SensorBoardData sbd= containerSensorBoardData.getData<SensorBoardData>();
             	      currDist=sbd.getDistance(6);
+			cout<<"Curr Distance"<<currDist<<endl;
+			cout<<"Initial Value"<<initialDist<<endl;
             	      //currDist++;//remove this
             	      if(currDist-initialDist < startBoxLength){
             		  continue;
@@ -150,7 +158,7 @@ ModuleState::MODULE_EXITCODE laneDriver::body()
             		  runStartBoxRoutine=false;
             		  cout<<"Leaving start box"<<endl;
             	      }
-            	  }*/
+            	  }
 
 
 
