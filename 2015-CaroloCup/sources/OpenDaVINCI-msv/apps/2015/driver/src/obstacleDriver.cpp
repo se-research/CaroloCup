@@ -136,9 +136,9 @@ namespace msv
 	    for (int i = 0; i < NUMBER_OF_SAMPLES; i++)
 	      {
 		int urF = sbd.getDistance (4);
-		int irFR_side = sbd.getDistance (1);
-		int irRR_side = sbd.getDistance (3);
-		int irRR = sbd.getDistance (0);
+		int irFR_side = sbd.getDistance (3);// Right front side
+		int irRR_side = sbd.getDistance (2);//right side rear
+		int irRR = sbd.getDistance (1); //right rear
 		movingAvg (urF, 4);
 		movingAvg (irFR_side, 1);
 		movingAvg (irRR_side, 3);
@@ -314,32 +314,32 @@ namespace msv
   obstacleDriver::overtaking (SensorBoardData sensorData)
   {
     int urF = sensorData.getDistance (4);
-    int irFR_side = sensorData.getDistance (1);
-    int irRR_side = sensorData.getDistance (3);
-    int irR = sensorData.getDistance(0);
+    int irFR_side = sensorData.getDistance (3);
+    int irRR_side = sensorData.getDistance (2);
+    int irR = sensorData.getDistance(1);
     float urF_avg = movingAvg (urF, 4);
-    float irFR_avg = movingAvg (irFR_side, 1);
-    float irRR_avg = movingAvg (irRR_side, 3);
-    float irR_avg = movingAvg (irR,0);
+    float irFR_avg = movingAvg (irFR_side, 3);
+    float irRR_avg = movingAvg (irRR_side, 2);
+    float irR_avg = movingAvg (irR,1);
 
-    float timeToCollide=(urF_avg/m_speed)* 0.01; //assuming speed 0.6m/s, 1.5s at 90cm, 1s at 60cm, for 0.4m/s, 2.25s - 1.5s
-
+    float timeToCollide=(urF_avg/m_speed)* 0.1; //assuming speed 0.6m/s, 1.5s at 90cm, 1s at 60cm, for 0.4m/s, 2.25s - 1.5s
+ cout<<"Time To collide"<<timeToCollide<<endl;
 	cout<<"urf:"<<urF_avg<<endl;
 	cout<<"irFL:"<<irFR_avg<<endl;
 	cout<<"irRL:"<<irRR_avg<<endl;
 	cout<<"ObstacleDetected:"<<obstacleDetected<<endl;
-    if (timeToCollide<1 && !obstacleDetected)
+    if (timeToCollide<0.8 && !obstacleDetected)
       {
 	obstacleDetected = true;
 	m_speed=0;
-	leftBlink=false;
+	leftBlink=true;;
 	rightBlink=false;
 	//stop indicators
       }
     else if (obstacleDetected)
       {
 	m_speed=3;
-	leftBlink=true;
+//	leftBlink=true;
 	//flash left
 	cout<<"Obstacle Previously Detected"<<endl;
 	if (abs (irFR_avg) < 20 && abs (irFR_avg) > 6 && !ObjDetectedFR)
@@ -347,11 +347,12 @@ namespace msv
 	    ObjDetectedFR = true;
 	    cout << "overtakingStarted" << endl;
 	  }
-	 if (abs (irRR_avg) < 20 && abs (irRR_avg) > 6 && !overtakingNow &&ObjDetectedFR)
+	 if (abs (irRR_avg) < 20 && abs (irRR_avg) > 6 && !overtakingNow && ObjDetectedFR)
 	    {
 	       //stopLeft flash
 	       leftBlink=false;
 		overtakingNow = true;
+		cout<<"overtaking now"<<endl;
 	    }
 	if ( abs (irFR_avg) < 3 && overtakingNow) // Needs to be refined, its too random
 	  {
@@ -366,12 +367,18 @@ namespace msv
 	  {
 	    obstacleDetected = false;
 	    overtakingNow = false;
+	    ObjDetectedFR=false;
+	    overtakingDone=false;
 	  }
-	if(abs (irR_avg)<25 && abs (irR_avg)>4)
+	if(abs (irR_avg) <25 && abs (irR_avg)>4)
 	  {
 	    rightBlink=false;
 	  }
       }
+    cout<<"In overtaking:"<<obstacleDetected<<endl;
+    cout<<"ObjFirstDetected:"<<ObjDetectedFR<<endl;
+    cout<<"Rear is passing obstacle:"<<overtakingNow<<endl;
+    cout<<"overtaking Done"<<overtakingDone<<endl;
     return obstacleDetected;
 
   }
@@ -450,10 +457,12 @@ namespace msv
     if (overtake)
       {
 	goal = trajectoryData.leftGoalLines0;
+	cout<<"Left goal Line"<<endl;
       }
     else
       {
 	goal = trajectoryData.rightGoalLines0;
+	cout<<"Right GoalLine"<<endl;
       }
 
     calculateErr (trajectoryData.currentLine, goal, &m_angularError,

@@ -86,9 +86,9 @@ lanefollower.debug = 1      # set to 0 to disable any windows and further output
 # CONFIGURATION FOR THE DRIVER
 #
 
-driver.realSpeed = 12
+driver.realSpeed = 11
 driver.startInBox = 1  # 1 - true 0-false
-driver.startboxLength = 1300 # in mm
+driver.startboxLength = 2200 # in mm
 #
 # CONFIGURATION FOR VCR
 #

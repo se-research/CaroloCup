@@ -348,7 +348,7 @@ void loop()
     //Serial.print("Speed :");
     //Serial.println(speed);
       if(reverse == 1) {
-        speed = constrain(speed, 1537, 1600);
+        speed = constrain(speed, 1547, 1600);
       } else {
         speed = constrain(speed, 1100, 1240);
       }

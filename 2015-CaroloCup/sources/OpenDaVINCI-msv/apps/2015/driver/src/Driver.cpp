@@ -120,7 +120,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 		SpeedF1 = kv.getValue<uint32_t> ("driver.SpeedF1");
 		SpeedF2 = kv.getValue<uint32_t> ("driver.SpeedF2");
 		SpeedB1 = kv.getValue<uint32_t> ("driver.SpeedB1");
-		SpeedB2 = kv.getValue<uint32_t> ("driver.SpeedB2e");
+		SpeedB2 = kv.getValue<uint32_t> ("driver.SpeedB2");
 		isSmallGapSize = kv.getValue<uint32_t> ("driver.isSmallGapSize");
 		IRMaxDist = kv.getValue<uint32_t> ("driver.IRMaxDist");
 		IRMinDist = kv.getValue<uint32_t> ("driver.IRMinDist");
@@ -173,8 +173,8 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 				Container::USER_DATA_0);
 		SensorBoardData sbd =
 				containerSensorBoardData.getData<SensorBoardData>();
-// 		cout << "Most recent sensor board data: '" << sbd.toString() << "'"
-// 				<< endl;
+ 		cout << "Most recent sensor board data: '" << sbd.toString() << "'"
+ 				<< endl;
 
 		// 3. Get most recent user button data:
 		Container containerUserButtonData = getKeyValueDataStore().get(
@@ -287,7 +287,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 // 			TimeStamp currentTime2;
 // 			time_taken = (currentTime2.toMicroseconds() / 1000.0) - start_timer;
 					
-			cout << "++++++++++ Stoping timer: " << time_taken << endl;
+// 			cout << "++++++++++ Stoping timer: " << time_taken << endl;
 			
 			if ((USFront < SafeDistance && USFront > MinSafeDistance)){ 
 				driving_state = NO_POSSIBLE_PARKING_PLACE;
@@ -297,7 +297,7 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 				desiredSteeringWheelAngle = -42;
 			  
 			 
-				if (IRdis_SR < 15 && IRdis_SR > IRMinDist) {  
+				if (Distance > (CurrentDist + DesiredDistance1)) {  
 	 				
 					//parking(vc, vd);
 					CurrentDist1 = Distance;
@@ -379,7 +379,7 @@ void Driver::parking() {
 		driving_speed = SpeedB1;
 		desiredSteeringWheelAngle = -42;
 		cout << "\t========  BACKWARDS_LEFT"  << endl;
-		if ((Distance > (CurrentDist2 + DesiredDistance3)) && ((IRdis_RL < 13 && IRdis_RL > 2) || (IRdis_RR < 13 && IRdis_RR > 2))) {			
+		if (((Distance > (CurrentDist2 + DesiredDistance3)) && ((IRdis_RL < 13 && IRdis_RL > 2) || (IRdis_RR < 13 && IRdis_RR > 2))) || (USRear < 10 && USRear > 1)) {			
 // 			TimeStamp currentTimeB;
 // 			start_timerB = currentTimeB.toMicroseconds() / 1000.0;
 			parking_state = FORWARD_RIGHT;
@@ -428,11 +428,10 @@ void Driver::parking() {
 			if(isSmallGapSize == 1 && MoreStates < DesiredMoreStates) {
 				parking_state = FORWARD_RIGHT;
 				MoreStates += 1;
-			}else if ((isSmallGapSize == 0) || MoreStates < DesiredMoreStates){
-// 				parking_state = STOP;
-// 				TimeStamp currentTime5;
-// 				start_timerIndicator = currentTime5.toMicroseconds() / 1000.0;
-				parking_state = FORWARD_RIGHT;
+			}else {
+				parking_state = STOP;
+				TimeStamp currentTime5;
+				start_timerIndicator = currentTime5.toMicroseconds() / 1000.0;
 			}
 		} 
 	}

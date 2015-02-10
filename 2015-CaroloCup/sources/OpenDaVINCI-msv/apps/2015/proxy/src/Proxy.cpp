@@ -134,6 +134,7 @@ void Proxy::nextString(const string &s)
 	int posIstr=s.find(':');
 	int posUstr=s.find(':',posIstr+1);
 	int posLstr=s.find(':',posUstr+1);
+if(posIstr<0||posUstr<0||posLstr<0){return;}
 	int posI = s.find('i');
 	string iStr=s.substr(posI,posIstr);
 	string uStr=s.substr(posIstr+1,posUstr-posIstr);
