@@ -86,7 +86,7 @@ lanefollower.debug = 1      # set to 0 to disable any windows and further output
 # CONFIGURATION FOR THE DRIVER
 #
 
-driver.speed = 0.7
+driver.realSpeed = 12
 driver.startInBox = 1  # 1 - true 0-false
 driver.startboxLength = 1300 # in mm
 #

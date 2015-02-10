@@ -62,7 +62,8 @@ laneDriver::~laneDriver() {}
 void laneDriver::setUp()
 {
     // This method will be call automatically _before_ running body().
-    m_speed = 8; //leave like this for test purpose
+    m_speed = getKeyValueConfiguration().getValue<int32_t>("driver.realSpeed");
+    cout<<"speed"<<m_speed<<endl;
 }
 
 void laneDriver::tearDown()
