@@ -55,13 +55,13 @@ LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
     m_frame(),
     m_frame_count(0)
 {
-    m_config.th1 = 143; //150;//83;
+    m_config.th1 = 70//143; //150;//83;
     m_config.th2 = 230;
     m_config.hlTh = THRESH_BINARY;
     m_config.XTimesYMin = 2;
-    m_config.XTimesYMax = 30;
-    m_config.maxY = 195; //205;//195;
-    m_config.maxArea = 3;
+    m_config.XTimesYMax = 20;
+    m_config.maxY = 235; //205;//195;
+    m_config.maxArea = 4;
 }
 
 LaneDetector::~LaneDetector() {}
