@@ -20,22 +20,19 @@ enum DRIVING_STATE {
 	DRIVE = 0,
 	START_OBST = 1,
 	POSSIBLE_SPOT = 2,
-	INITIALIZE_POS_FOR_PARKING = 3,
-	STOP_FOR_PARKING = 4,
-	PARKING = 5,
-	NO_POSSIBLE_PARKING_PLACE = 6
+	STOP_FOR_PARKING = 3,
+	PARKING = 4,
+	NO_POSSIBLE_PARKING_PLACE = 5
 
 };
 
-enum PARKINGSTATE {
+enum PARKING_STATE {
 	BACKWARDS_RIGHT = 0,
 	BACKWARDS_LEFT = 1,
-	WAIT_2 = 2,
-	FORWARD_RIGHT = 3,
-	WAIT_3 = 4,
-	BACK_AGAIN = 5,
-	STOP = 6,
-	DONE = 7
+	FORWARD_RIGHT = 2,
+	BACK_AGAIN = 3,
+	STOP = 4,
+	DONE = 5
 };
 
 /**
@@ -78,7 +75,7 @@ public:
 private:
 
 	DRIVING_STATE driving_state;
-	PARKINGSTATE parking_state;
+	PARKING_STATE parking_state;
 
 
 	virtual void setUp();
