@@ -9,6 +9,8 @@
 #include "core/data/TimeStamp.h"
 #include "core/io/UDPMultiCastContainerConference.h"
 #include "core/wrapper/UDPFactory.h"
+#include "core/base/LCMSerializer.h"
+#include "core/base/SerializationFactory.h"
 
 namespace core {
     namespace io {
@@ -53,26 +55,42 @@ namespace core {
 
         void UDPMultiCastContainerConference::nextString(const string &s) {
             if (hasContainerListener()) {
+            	//cout << "starting next string" <<endl;
                 stringstream stringstreamData(s);
+		//cout << "string data " << s << endl;
                 Container container;
-                stringstreamData >> container;
-                container.setReceivedTimeStamp(TimeStamp());
-
+                //cout << "starting deserialize 1" << endl;
+                SerializationFactory sf;
+                LCMDeserializer &lcm = sf.getLCMDeserializer(stringstreamData);
+                lcm.read(stringstreamData, container); //double stringstreamData variable
+        //       stringstreamData >> container;
+                //cout << " after stringstreamData >> container; "  << container.m_serializedData.str()<<endl;
+             //   container.setReceivedTimeStamp(TimeStamp());
+	  
                 // Use superclass to distribute any received containers.
+                //cout << "receive container"<< endl;
                 receive(container);
+                //cout << "end of next string" <<endl;
             }
         }
 
         void UDPMultiCastContainerConference::send(Container &container) const {
             // Set sending time stamp.
-            container.setSentTimeStamp(TimeStamp());
-
+        	//thesis implementation
             stringstream stringstreamValue;
-            stringstreamValue << container;
-            string stringValue = stringstreamValue.str();
 
+        	SerializationFactory sf;
+        	LCMSerializer &lcm = sf.getLCMSerializer(stringstreamValue);
+            container.setSentTimeStamp(TimeStamp());
+            //cout << "--- UDP send function ---" << endl<< endl<< endl;
+            lcm.write(container);
+        //    stringstreamValue << container;
+            //cout << "after stringstream << container" << endl;
+            string stringValue = stringstreamValue.str();
+	      //cout << "sending data"<< endl;
             // Send data.
             m_sender->send(stringValue);
+	    //cout << "----  done ! -----"<<endl;
         }
 
     }

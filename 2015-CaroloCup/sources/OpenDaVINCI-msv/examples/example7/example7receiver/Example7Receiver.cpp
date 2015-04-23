@@ -38,7 +38,7 @@ namespace examples {
 			Example7Data data = c.getData<Example7Data>();
             sum += data.getNumericalValue();
 			cout << "Latest container from data type " << (uint32_t)c.getDataType() << ", content: " << data.toString() << ", sum = " << sum << endl;
-
+	    
             if (sum > 0) {
                 counter++;
                 expected_sum += counter;

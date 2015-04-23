@@ -69,10 +69,24 @@ namespace examples {
 			virtual istream& operator>>(istream &in);
 
 			virtual const string toString() const;
-
-		private:
 			uint32_t m_numericalValue;
 			string m_stringValue;
+			bool m_bool;
+			char m_char;
+			unsigned char m_uc;
+			int32_t m_int32;
+			float m_float;
+			double m_double;
+
+		private:
+			/*uint32_t m_numericalValue;
+			string m_stringValue;
+			bool m_bool;
+			char m_char;
+			unsigned char m_uc;
+			int32_t m_int32;
+			float m_float;
+			double m_double;*/
 	};
 
 } // examples

@@ -15,6 +15,12 @@
 #include "core/base/Deserializer.h"
 #include "core/exceptions/Exceptions.h"
 
+//Thesis implementation
+#include "core/base/LCMSerializer.h"
+#include "core/base/LCMDeserializer.h"
+
+
+
 namespace core {
     namespace base {
 
@@ -63,9 +69,18 @@ namespace core {
                  */
                 Deserializer& getDeserializer(istream &in) const;
 
+
+                //Thesis implementation
+                LCMSerializer& getLCMSerializer(ostream &out) const;
+                LCMDeserializer& getLCMDeserializer(istream &in) const;
+
             private:
                 mutable vector<SharedPointer<Serializer> > m_listOfSerializers;
                 mutable vector<SharedPointer<Deserializer> > m_listOfDeserializers;
+                //Thesis implementation
+                mutable vector<SharedPointer<LCMSerializer> > m_listOfLCMSerializers;
+                mutable vector<SharedPointer<LCMDeserializer> > m_listOfLCMDeserializers;
+
         };
 
     }
