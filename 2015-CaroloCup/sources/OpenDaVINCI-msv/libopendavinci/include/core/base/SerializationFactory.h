@@ -18,6 +18,8 @@
 //Thesis implementation
 #include "core/base/LCMSerializer.h"
 #include "core/base/LCMDeserializer.h"
+#include "core/base/PROTOSerializer.h"
+#include "core/base/PROTODeserializer.h"
 
 
 
@@ -73,6 +75,8 @@ namespace core {
                 //Thesis implementation
                 LCMSerializer& getLCMSerializer(ostream &out) const;
                 LCMDeserializer& getLCMDeserializer(istream &in) const;
+                PROTOSerializer& getPROTOSerializer(ostream &out) const;
+                PROTODeserializer& getPROTODeserializer(istream &in) const;
 
             private:
                 mutable vector<SharedPointer<Serializer> > m_listOfSerializers;
@@ -80,6 +84,8 @@ namespace core {
                 //Thesis implementation
                 mutable vector<SharedPointer<LCMSerializer> > m_listOfLCMSerializers;
                 mutable vector<SharedPointer<LCMDeserializer> > m_listOfLCMDeserializers;
+                 mutable vector<SharedPointer<PROTOSerializer> > m_listOfPROTOSerializers;
+                mutable vector<SharedPointer<PROTODeserializer> > m_listOfPROTODeserializers;
 
         };
 

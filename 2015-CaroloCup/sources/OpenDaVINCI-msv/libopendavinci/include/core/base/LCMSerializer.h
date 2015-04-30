@@ -51,7 +51,18 @@ namespace core{
 
             public:
                 virtual ~LCMSerializer();
-
+                
+                /*
+                 * The write functions below are called to encode and write variables to a stringstream buffer.
+                 * The variables will be written to the buffer in the order the write functions are called.
+                 * 
+                 * A hash number is also generated based on the id and the type of variable that is being written.
+                 * This hash is used to check that the right container is reading from the data later.
+                 * 
+                 * For single byte variables, they are just written to the buffer without any encoding.
+                 * For others, the bytes of the variable are stored into a uint8_t buffer and the buffer is then written to the stream.
+                 */
+                
                 virtual void write( const uint32_t id, const Serializable &s );
 
                 virtual void write( const uint32_t id, const bool &b );
@@ -83,18 +94,14 @@ namespace core{
 
 
             private:
-                ostream &m_out;
-                stringstream m_buffer;
-                uint64_t m_hash;
-            //    uint64_t payload_hash;
-
+                ostream &m_out; // Buffer that will be sent
+                stringstream m_buffer; // Buffer where all encoded variables will be stored to later be written to m_out
+                uint64_t m_hash; // The variable where the hash will be stored
         };
+        // Functions taken from LCM for calculating hash
         int64_t calculate_hash(int64_t v, char c);
+        
         int64_t hash_string(int64_t v, const char *s);
-
-
-
-
     }
 } // core::base
 

@@ -5,9 +5,9 @@
  */
 
 #include "core/base/Hash.h"
-#include "core/base/Deserializer.h"
+#include "core/base/LCMDeserializer.h"
 #include "core/base/SerializationFactory.h"
-#include "core/base/Serializer.h"
+#include "core/base/LCMSerializer.h"
 
 #include "Example3Data.h"
 
@@ -60,7 +60,7 @@ namespace examples {
 	ostream& Example3Data::operator<<(ostream &out) const {
 		SerializationFactory sf;
 
-		Serializer &s = sf.getSerializer(out);
+		LCMSerializer &s = sf.getLCMSerializer(out);
 
 		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL3('n', 'u', 'm') >::RESULT,
 				m_numericalValue);
@@ -74,7 +74,7 @@ namespace examples {
 	istream& Example3Data::operator>>(istream &in) {
 		SerializationFactory sf;
 
-		Deserializer &d = sf.getDeserializer(in);
+		LCMDeserializer &d = sf.getLCMDeserializer(in);
 
 		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL3('n', 'u', 'm') >::RESULT,
 			   m_numericalValue);

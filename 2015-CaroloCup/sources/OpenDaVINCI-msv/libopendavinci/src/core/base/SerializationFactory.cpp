@@ -6,8 +6,8 @@
 
 #include "core/base/QueryableNetstringsSerializer.h"
  #include "core/base/QueryableNetstringsDeserializer.h"
-//#include "core/base/PROTOSerializer.h"
-//#include "core/base/PROTODeserializer.h"
+#include "core/base/PROTOSerializer.h"
+#include "core/base/PROTODeserializer.h"
 #include "core/base/SerializationFactory.h"
 #include "core/base/LCMSerializer.h"
 #include "core/base/LCMDeserializer.h"
@@ -72,6 +72,32 @@ namespace core {
 			return *lcmd;
 		}
 
+		
+		
+		       PROTOSerializer& SerializationFactory::getPROTOSerializer(ostream &out) const {
+            PROTOSerializer *lcms = NULL;
+            if (m_listOfPROTOSerializers.empty()){
+                lcms = new PROTOSerializer(out);
+                m_listOfPROTOSerializers.push_back(SharedPointer<PROTOSerializer>(lcms));
+            }
+            else {
+                lcms = &(*(*(m_listOfPROTOSerializers.begin()))); // The innermost * dereferences the iterator to SharedPointer<Serializer>, the second * returns the Serializer from within the SharedPointer, and the & turns it into a regular pointer.
+            }
+            return *lcms;
+        }
+
+
+        PROTODeserializer& SerializationFactory::getPROTODeserializer(istream &in) const {
+            PROTODeserializer *lcmd = NULL;
+            if (m_listOfPROTODeserializers.empty()) {
+                lcmd = new PROTODeserializer(in);
+                m_listOfPROTODeserializers.push_back(SharedPointer<PROTODeserializer>(lcmd)); // The innermost * dereferences the iterator to SharedPointer<Deserializer>, the second * returns the Deserializer from within the SharedPointer, and the & turns it into a regular pointer.
+            }
+            else {
+                lcmd = &(*(*(m_listOfPROTODeserializers.begin())));
+            }
+            return *lcmd;
+        }
         //End of thesis implementation
 
         Deserializer& SerializationFactory::getDeserializer(istream &in) const {

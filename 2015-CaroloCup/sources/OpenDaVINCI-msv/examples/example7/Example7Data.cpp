@@ -8,6 +8,8 @@
 #include "core/base/LCMDeserializer.h"
 #include "core/base/SerializationFactory.h"
 #include "core/base/LCMSerializer.h"
+#include "core/base/PROTOSerializer.h"
+#include "core/base/PROTODeserializer.h"
 
 #include "Example7Data.h"
 
@@ -86,7 +88,7 @@ namespace examples {
 	ostream& Example7Data::operator<<(ostream &out) const {
 		SerializationFactory sf;
 
-		LCMSerializer &s = sf.getLCMSerializer(out);
+		PROTOSerializer &s = sf.getPROTOSerializer(out);
 
 		s.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL3('n', 'u', 'm') >::RESULT,
 				m_numericalValue);
@@ -110,7 +112,7 @@ namespace examples {
 	istream& Example7Data::operator>>(istream &in) {
 		SerializationFactory sf;
 
-		LCMDeserializer &d = sf.getLCMDeserializer(in);
+		PROTODeserializer &d = sf.getPROTODeserializer(in);
 
 		d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL3('n', 'u', 'm') >::RESULT,
 			   m_numericalValue);

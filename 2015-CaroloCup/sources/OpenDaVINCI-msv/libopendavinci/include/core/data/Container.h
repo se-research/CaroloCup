@@ -99,19 +99,19 @@ namespace core {
                  */
                 Container& operator=(const Container &obj);
 				
+				string getSerializedData() const;
+				void setSerializedData(const string &s);
 				
-				uint64_t getHash() const;
-				
-				void setHash(const uint64_t &hash);
-
                 /**
                  * This method returns the data type inside this container.
                  *
                  * @return Data type of the data contained in this container.
                  */
-                DATATYPE getDataType() const;
-				
+				DATATYPE getDataType() const;
 				void setDataType(const DATATYPE &dataType);
+				
+				uint64_t getHash() const;
+				void setHash(const uint64_t &hash);
 
                 virtual ostream& operator<<(ostream &out) const;
                 virtual istream& operator>>(istream &in);
@@ -143,7 +143,9 @@ namespace core {
                  * @return Time stamp when this container was sent.
                  */
                 const TimeStamp getSentTimeStamp() const;
-
+                
+                void setMessageSize(uint32_t value);
+                uint32_t getMessageSize();
                 /**
                  * This method sets the time stamp when this
                  * container was sent.
@@ -176,15 +178,18 @@ namespace core {
                 const string toString() const;
 
                 
-                DATATYPE m_dataType;
-                stringstream m_serializedData;
+				
 
 
             private:
-				
+                
+				stringstream m_serializedData;
+                 uint32_t m_message_size;
+				DATATYPE m_dataType;
 				uint64_t m_payloadHash;
                 TimeStamp m_sent;
                 TimeStamp m_received;
+               
         };
 
     }

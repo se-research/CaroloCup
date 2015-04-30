@@ -7,6 +7,9 @@
 #include "core/base/PROTOSerializer.h"
 #include "core/base/Serializable.h"
 #include "endian.h"
+#include "core/data/Container.h"
+#include <typeinfo>
+
 
 
 namespace core {
@@ -22,358 +25,233 @@ namespace core {
         PROTOSerializer::~PROTOSerializer(){
             // Here suppose to be finalized message based on PROTO approach, as far i know it is
             // It is : 
-        	// - > Magic number (to know where to start)?
-        	// - > size of message
-        	// - > payload
-        	//cout<< "Encoding magic Number" << endl;
-            uint16_t magicNumber = 0xAACF;
-            magicNumber = htole16( magicNumber );
-				  do {
-					   char nextByte = magicNumber & ( uint8_t ) 0x7F;
-					   magicNumber >>= 7;
-
-					   if ( magicNumber ) { nextByte |= ( uint8_t ) 0x80;}
-
-					   m_out << nextByte ;
-				  } while (magicNumber);
-			// Writing size of message
-		        	//cout<< "Encoding size of message: " <<  (int)m_size <<endl;
-
-				  m_size = htole16(m_size);
-				  do {
-				  		char nextByte = m_size & ( uint8_t ) 0x7F;
-				  	   m_size >>= 7;
-
-				  	   if ( m_size ) { nextByte |= ( uint8_t ) 0x80;}
-
-				  	   m_out << nextByte ;
-				  } while (m_size);
-
-
-		  // Writing payload;
-		        	//cout<< "Writing payload" << endl;
-
-				  m_out << m_buffer.str();
-
-				  //no real need for this , but for now keeping it.
-				  m_out << ",";
-
-
-            //cout<< "created PROTOserializer" << endl;
-
-
+            // - > size of message
+            // - > payload
+            // Writing size of message
+            m_out << m_buffer.str();
+       
         } // end of ~constructor
 
         void PROTOSerializer::write ( const uint32_t id, const Serializable& s ) {
-             //cout<< " Serializing of SERIALIZABLE " << endl;
-             // Writing id
-                   uint64_t _id = htole64( id );
-                   uint8_t size = 0;
-                        do {
-                             char nextByte = _id & ( uint8_t ) 0x7F;
-                             _id >>= 7;
-
-                             if ( _id ) { nextByte |= ( uint8_t ) 0x80;}
-
-                             m_buffer << nextByte ;
-                             ++size;
-
-                        } while ( _id );
-                   m_size += size;
              // writing serializable
-             stringstream buffer;
-             buffer << s;
-
-             uint32_t buffer_size = buffer.str().length();
-             buffer_size = htole64( buffer_size );
-			 size = 0;
-			  do {
-				char nextByte = buffer_size & ( uint8_t ) 0x7F;
-				buffer_size >>= 7;
-
-				if ( buffer_size ) { nextByte |= ( uint8_t ) 0x80;}
-
-				m_buffer << nextByte ;
-				++size;
-
-			   } while ( buffer_size );
-			  m_size += size;
-			  m_buffer << buffer.str();
-			  //cout<< "serializable" <<endl;
-
+            (void)id;
+            stringstream buffer;
+            buffer << s;
+            m_buffer << buffer.str();
         }
     
     
         void PROTOSerializer::write ( const uint32_t id, const bool& b ) {
-          //cout<< " Serialization of BOOLEAN. "<< endl;
-          // Writing id
-                uint64_t _id = htole64( id );
-                uint8_t size = 0;
-                     do {
-                          char nextByte = _id & ( uint8_t ) 0x7F;
-                          _id >>= 7;
-
-                          if ( _id ) { nextByte |= ( uint8_t ) 0x80;}
-
-                          m_buffer << nextByte ;
-                          ++size;
-
-                     } while ( _id );
-                m_size += size;
-          // writing boolean (bool is being encoded as Varint)
-                uint64_t _b = htole64( b );
-				size = 0;
-					 do {
-						  char nextByte = _b & ( uint8_t ) 0x7F;
-						  _id >>= 7;
-
-						  if ( _b ) { nextByte |= ( uint8_t ) 0x80;}
-
-						  m_buffer << nextByte ;
-						  ++size;
-
-					 } while ( _b );
-				m_size += size;
-				  //cout<< "boolean" <<endl;
-
+                uint32_t sizeOFB = getVarSize(b);
+                m_size += sizeOFB;
+                
+                PROTO_TYPE protoType = ( PROTO_TYPE )6;
+                WIRE_TYPE wireType = getWireType ( protoType) ;
+                
+                uint32_t key = getKey ( id, wireType );
+                m_size += getVarSize(key);
+  
+                encode(m_buffer,key);
+                encode(m_buffer, b );
         }
         
         void PROTOSerializer::write ( const uint32_t id, const char& c ) {
-                  //cout<< " Serialization  of char. " <<endl;
-                  // Writing id
-                      uint64_t _id = htole64( id );
-                      uint8_t size = 0;
-                           do {
-                                char nextByte = _id & ( uint8_t ) 0x7F;
-                                _id >>= 7;
-
-                                if ( _id ) { nextByte |= ( uint8_t ) 0x80;}
-
-                                m_buffer << nextByte ;
-                                ++size;
-
-                           } while ( _id );
-                           m_size += size;
-		// Writing char / same as bool because bool and char same size ?
-                           uint64_t _c = htole64( c );
-                           size = 0;
-							do {
-								 char nextByte = _c & ( uint8_t ) 0x7F;
-								 _c >>= 7;
-
-								 if ( _c ) { nextByte |= ( uint8_t ) 0x80;}
-
-								 m_buffer << nextByte ;
-								 ++size;
-
-							} while ( _c );
-							m_size += size;
-							  //cout<< "char" <<endl;
-
-		}
+               
+                m_size += getVarSize(c);
+                
+                PROTO_TYPE protoType = ( PROTO_TYPE )6;
+                WIRE_TYPE wireType = getWireType ( protoType) ;
+                
+                uint32_t key = getKey ( id, wireType );           
+                m_size += getVarSize(key);
+                
+                encode(m_buffer,key);
+                encode(m_buffer,c );
+        }
         
         void PROTOSerializer::write ( const uint32_t id, const unsigned char& uc ) {
-            //cout<< " Serialization of  unsigned char : "  << endl;
-            // Writing id
-                  uint64_t _id = htole64( id );
-                  uint8_t size = 0;
-                       do {
-                            char nextByte = _id & ( uint8_t ) 0x7F;
-                            _id >>= 7;
-
-                            if ( _id ) { nextByte |= ( uint8_t ) 0x80;}
-
-                            m_buffer << nextByte ;
-                            ++size;
-
-                       } while ( _id );
-                  m_size += size;
-             // writing unsigned char
-                  uint64_t _uc = htole64( uc );
-				  size = 0;
-				  	  	  do {
-							  char nextByte = _uc & ( uint8_t ) 0x7F;
-							  _uc >>= 7;
-
-							  if ( _uc ) { nextByte |= ( uint8_t ) 0x80;}
-
-							  m_buffer << nextByte ;
-							  ++size;
-
-				  	  	  } while ( _uc );
-					m_size += size;
-					  //cout<< " unsigned char" <<endl;
-
+               
+                m_size += getVarSize(uc);
+                
+                PROTO_TYPE protoType = ( PROTO_TYPE )6;
+                WIRE_TYPE wireType = getWireType ( protoType) ;
+                
+                uint32_t key = getKey ( id, wireType );
+                m_size += getVarSize(key);
+                
+                encode(m_buffer,key);
+                encode(m_buffer, uc );
         }
 
         void PROTOSerializer::write ( const uint32_t id, const int32_t& i ) {
-          //cout<< "Serialization of int32 " <<endl;
-          // Writing id
-                uint64_t _id = htole64( id );
-                uint8_t size = 0;
-                     do {
-                          char nextByte = _id & ( uint8_t ) 0x7F;
-                          _id >>= 7;
-
-                          if ( _id ) { nextByte |= ( uint8_t ) 0x80;}
-
-                          m_buffer << nextByte ;
-                          ++size;
-
-                     } while ( _id );
-                m_size += size;
-
-          // Writing value
-                int64_t _i = htole64( i );
-                size = 0;
-                     do {
-                          char nextByte = _i & ( uint8_t ) 0x7F;
-                          _i >>= 7;
-
-                          if ( _i ) { nextByte |= ( uint8_t ) 0x80;}
-
-                          m_buffer << nextByte ;
-                          ++size;
-
-                     } while ( _i );
-                  m_size += size;
-    			  //cout<< " int " <<endl;
-
+              
+                m_size += getVarSize(i);
+                
+                PROTO_TYPE protoType = ( PROTO_TYPE )0;
+                WIRE_TYPE wireType = getWireType ( protoType) ;
+               
+                uint32_t key = getKey ( id, wireType );
+                m_size += getVarSize(key);
+                
+                encode(m_buffer,key);
+                encode(m_buffer, i );
         }
         
         void PROTOSerializer::write ( const uint32_t id, const uint32_t& ui ) {
-                        //cout<< " Serialization of uint32_t : "  << endl;
-                        // Writing id
-                              uint64_t _id = htole64( id );
-                              uint8_t size = 0;
-                                   do {
-                                        char nextByte = _id & ( uint8_t ) 0x7F;
-                                        _id >>= 7;
 
-                                        if ( _id ) { nextByte |= ( uint8_t ) 0x80;}
+                m_size += getVarSize(ui);
+                
+                PROTO_TYPE protoType = ( PROTO_TYPE )2;
+                WIRE_TYPE wireType = getWireType ( protoType) ;
+               
+                uint32_t key = getKey ( id, wireType );
+                m_size += getVarSize(key);
 
-					m_buffer << nextByte ;
-					++size;
+                encode(m_buffer,key);
+                encode(m_buffer, ui );
 
-				   } while ( _id );
-			      m_size += size;
 
-			// Writing value
-			      int64_t _ui = htole64( ui );
-			      size = 0;
-				   do {
-					char nextByte = _ui & ( uint8_t ) 0x7F;
-					_ui >>= 7;
-
-					if ( _ui ) { nextByte |= ( uint8_t ) 0x80;}
-
-					m_buffer << nextByte ;
-					++size;
-
-				   } while ( _ui );
-				m_size += size;
-				  //cout<< " unsigned int" <<endl;
-
-		}
+        }
         
         void PROTOSerializer::write ( const uint32_t id, const float& f ) {
-			//cout<< "Writing id: " << id <<  " of float "  <<endl;
-			// Writing id
-			      uint64_t _id = htole64( id );
-			      uint8_t size = 0;
-				   do {
-					char nextByte = _id & ( uint8_t ) 0x7F;
-					_id >>= 7;
-
-					if ( _id ) { nextByte |= ( uint8_t ) 0x80;}
-
-					m_buffer << nextByte ;
-					++size;
-
-				   } while ( _id );
-			      m_size += size;
-			//Writing float
-			      float _f = f;
-		          m_buffer.write(reinterpret_cast<const char *>(&_f), 4);
-		          m_size += 4;
-				  //cout<< "float" <<endl;
-
-
-	   }
+       
+                float _f = f;
+                m_size += 4;
+                
+                PROTO_TYPE protoType = ( PROTO_TYPE )4;
+                WIRE_TYPE wireType = getWireType ( protoType) ;
+                
+                uint32_t key = getKey ( id, wireType );
+                m_size += getVarSize(key);
+                
+                encode(m_buffer,key);
+                m_buffer.write(reinterpret_cast<const char *>(&_f), 4);
+       }
 
         void PROTOSerializer::write ( const uint32_t id, const double& d ) {
-			//cout<< " Writing id: " << id << " of double " <<endl;
-			// Writing id
-			      uint32_t _id = htole64( id );
-			      uint8_t size = 0;
-				   do {
-					char nextByte = _id & ( uint8_t ) 0x7F;
-					_id >>= 7;
 
-					if ( _id ) { nextByte |= ( uint8_t ) 0x80;}
+                double _d = d;
+              
+                m_size += 8;
+                PROTO_TYPE protoType = ( PROTO_TYPE )5;
+                WIRE_TYPE wireType = getWireType ( protoType) ;
+               
+                uint32_t key = getKey ( id, wireType );
+                m_size += getVarSize(key);
+               
+                encode(m_buffer,key);
+                m_buffer.write(reinterpret_cast<const char *>(&_d), 8);
 
-					m_buffer << nextByte ;
-					++size;
-
-				   } while ( _id );
-			      m_size += size;
-		  // Writing double
-			     double _d = d;
-			     m_buffer.write(reinterpret_cast<const char *>(&_d), 8);
-			     m_size += 8;
-				  //cout<< "double" <<endl;
 
         }
         void PROTOSerializer::write ( const uint32_t id, const string& s ) {
-			//cout<< "Writing id: " << id << "of string "  << endl;
-			// Writing id
-			      uint32_t _id = htole64( id );
-			      uint8_t size = 0;
-				   do {
-					char nextByte = _id & ( uint8_t ) 0x7F;
-					_id >>= 7;
 
-					if ( _id ) { nextByte |= ( uint8_t ) 0x80;}
-
-					m_buffer << nextByte ;
-					++size;
-
-				   } while ( _id );
-			      m_size += size;
-			      //cout<< "done with string id" <<endl;
-            //Writing string
-			// Writing strings length
-			      //cout<< "writing strings size" <<endl;
-			 uint32_t string_size = s.size();
-			 string_size = htole64( string_size );
-			 size = 0;//cout
-			 m_size += string_size;
-			 do {
-				  char nextByte = string_size & ( uint8_t ) 0x7F;
-				  string_size >>= 7;
-
-				  if ( string_size ) { nextByte |= ( uint8_t ) 0x80;}
-
-				  m_buffer << nextByte ;
-				  ++size;
-
-			 	 } while ( string_size );
-			  m_size += size;
-
-			  // writing string
-
-	          m_buffer.write(reinterpret_cast<const char *>(s.c_str()), string_size);
-			  //cout<< "string" <<endl;
+                PROTO_TYPE protoType = ( PROTO_TYPE )8;
+                WIRE_TYPE wireType = getWireType ( protoType) ;
+            
+                uint32_t key = getKey ( id, wireType );
+                encode(m_buffer,key);
+              
+                uint32_t stringSize = 0;
+                stringSize = (s.size() + 1) ;
+                m_size += stringSize;
+              
+                encode( m_buffer,stringSize );
+                m_buffer.write ( s.c_str(), stringSize );  
 
 
-
-		}
+        }
 
         void PROTOSerializer::write ( const uint32_t id, const void* data, const uint32_t& size ) {
-			cout<< "Writing id: " << id << "of user data " << data << " size of it " << size << endl;
-		}
+            cout<< "Writing id: " << id << "of user data " << data << " size of it " << size << endl;
+        }
+    
 
-        } 
+    void PROTOSerializer::write (core::data::Container &container){
+   
+                uint16_t magicNumber = 0xAABB;
+                uint16_t dataType = container.getDataType();  
+                encode(m_out, magicNumber);
+                encode(m_out, dataType); 
+            
+                uint32_t msgSize = container.getMessageSize();
+                m_out << msgSize;
+                m_out << container.getSerializedData();
+//                 Serializing container
+//                 -- write Message size -- uint32_t
+//                 -- write Payload
+//                 ----encode Key -- uint32_t
+//                 ----encode value 
+    }
+    
+
+
+    
+    void PROTOSerializer::encode( ostream &out, uint64_t value){
+  
+                value = htole64( value);
+                
+                    do {
+
+                        char byte = value & (uint8_t) 0x7F;
+                        value >>= 7;
+            
+                        if ( value) {
+                            byte |= ( uint8_t ) 0x80;
+                        }
+                        out.put( byte );
+                
+                } while (value);
+            }
+
+
+    uint8_t PROTOSerializer::getVarSize( uint64_t value){
+                uint8_t size = 0;
+                value = htole64(value);
+                
+                    do {
+                        
+                        char byte = value & (uint8_t) 0x7F;
+                        value >>=7;
+
+                        if(value){
+                            byte |= (uint8_t) 0x80;
+                        }
+                        ++size;
+                
+                    } while (value);
+
+                    return size;
+                }
+
+
+    } 
+        
+base::PROTOSerializer::WIRE_TYPE base::PROTOSerializer::getWireType ( base::PROTOSerializer::PROTO_TYPE type )
+{
+switch ( type ) {
+     case INT32:
+          return VARINT;
+     case INT64:
+          return VARINT;
+     case UINT32:
+          return VARINT;
+     case UINT64:
+          return VARINT;
+     case FLOAT:
+          return BIT_32;
+     case DOUBLE:
+          return BIT_64;
+     case BOOL:
+          return VARINT;
+     case STRING:
+     case BYTES:
+          return LENGTH_DELIMITED;
+     default:
+          return OTHER;
+     }
+
+}
 } // core:base
 
   

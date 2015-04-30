@@ -18,45 +18,37 @@ namespace core {
         using namespace base;
 
         Container::Container() :
-                m_dataType(UNDEFINEDDATA),
                 m_serializedData(),
+                m_message_size(),
+                m_dataType(UNDEFINEDDATA),
                 m_payloadHash(),
                 m_sent(TimeStamp(0, 0)),
                 m_received(TimeStamp(0, 0)) {}
 
         Container::Container(const DATATYPE &dataType, const SerializableData &serializableData) :
-                m_dataType(dataType),
                 m_serializedData(),
+                 m_message_size(),
+                m_dataType(dataType),
                 m_payloadHash(),
                 m_sent(TimeStamp(0, 0)),
                 m_received(TimeStamp(0, 0)) {
-        	 //cout << "5 "<< endl;
-        	//Serializing payload
-
-        	SerializationFactory sf;
-        	//cout << "inside container constructor" << endl;
-        	LCMSerializer &lcm = sf.getLCMSerializer(m_serializedData);
-
-        	lcm.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL3('s','e','r') >:: RESULT,serializableData);
-        	m_payloadHash = lcm.getHash();
-        	//cout << "Printing hash inside container" << m_payloadHash << endl;
-            // Get data for container.
-        //	cout << "m_serializedData << serializableData " << endl;
-
-           // m_serializedData << serializableData;
-            //cout << "end of container:container" << endl;
-
+                    
+            SerializationFactory sf;
+            LCMSerializer &lcm = sf.getLCMSerializer(m_serializedData);
+            
+            lcm.write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL3('s','e','r') >:: RESULT,serializableData);
+            m_payloadHash = lcm.getHash();
         }
 
         Container::Container(const Container &obj) :
                 Serializable(),
-                m_dataType(obj.getDataType()),
                 m_serializedData(),
+                m_dataType(obj.getDataType()),
                 m_payloadHash(),
                 m_sent(obj.m_sent),
                 m_received(obj.m_received) {
+                    
             m_serializedData.str(obj.m_serializedData.str());
-            //cout << "3 "<< endl;
         }
 
         Container& Container::operator=(const Container &obj) {
@@ -70,20 +62,36 @@ namespace core {
 
         Container::~Container() {}
         
+        string Container::getSerializedData() const {
+            return m_serializedData.str();
+        }
+        
+        void Container::setSerializedData(const string &s) {
+            m_serializedData.str(s);
+        }
+    
+        
+        Container::DATATYPE Container::getDataType() const {
+            return m_dataType;
+        }
+        void Container::setMessageSize(uint32_t value){
+        m_message_size = value;
+        }
+        uint32_t Container::getMessageSize(){
+            return m_message_size;
+        }
+
+        
+        void Container::setDataType(const DATATYPE &dataType) {
+            m_dataType = dataType;
+        }
+        
         uint64_t Container::getHash() const {
             return m_payloadHash;
         }
         
         void Container::setHash(const uint64_t &hash) {
             m_payloadHash = hash;
-        }
-
-        Container::DATATYPE Container::getDataType() const {
-            return m_dataType;
-        }
-        
-        void Container::setDataType(const DATATYPE &dataType) {
-            m_dataType = dataType;
         }
 
         const TimeStamp Container::getSentTimeStamp() const {

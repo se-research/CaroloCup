@@ -110,8 +110,8 @@ ModuleState::MODULE_EXITCODE Driver::body() {
 		speedB1 = kv.getValue<uint32_t> ("driver.speedB1");
 		speedB2 = kv.getValue<uint32_t> ("driver.speedB2");
 		isSmallGapSize = kv.getValue<uint32_t> ("driver.isSmallGapSize");
-		dist_IR_Max = kv.getValue<uint32_t> ("driver.dist_IR_Max");
-		dist_IR_Min = kv.getValue<uint32_t> ("driver.dist_IR_Min");
+// 		dist_IR_Max = kv.getValue<uint32_t> ("driver.dist_IR_Max");
+// 		dist_IR_Min = kv.getValue<uint32_t> ("driver.dist_IR_Min");
 		//cout << "***********  Sensor ID: " << m_sensorId << endl;	
 		initialized = true;
 

@@ -37,18 +37,18 @@ INSTALL(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/" DESTINATION include PAT
 
 ###############################################################################
 # Enable CxxTest for all available testsuites.
-IF(CXXTEST_FOUND)
-	FILE(GLOB libhesperia-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
-
-    FOREACH(testsuite ${libhesperia-testsuites})
-        STRING(REPLACE "/" ";" testsuite-list ${testsuite})
-
-        LIST(LENGTH testsuite-list len)
-        MATH(EXPR lastItem "${len}-1")
-        LIST(GET testsuite-list "${lastItem}" testsuite-short)
-
-	    CXXTEST_ADD_TEST(${testsuite-short}-TestSuite ${testsuite-short}-TestSuite.cpp ${testsuite})
-	    TARGET_LINK_LIBRARIES(${testsuite-short}-TestSuite hesperia ${OPENDAVINCI_LIBS} ${LIBS} ${THIRDPARTY_LIBS})
-    ENDFOREACH()
-ENDIF(CXXTEST_FOUND)
+#IF(CXXTEST_FOUND)
+#	FILE(GLOB libhesperia-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
+#
+#    FOREACH(testsuite ${libhesperia-testsuites})
+#        STRING(REPLACE "/" ";" testsuite-list ${testsuite})
+#
+#        LIST(LENGTH testsuite-list len)
+#        MATH(EXPR lastItem "${len}-1")
+#        LIST(GET testsuite-list "${lastItem}" testsuite-short)
+#
+#	    CXXTEST_ADD_TEST(${testsuite-short}-TestSuite ${testsuite-short}-TestSuite.cpp ${testsuite})
+#3	    TARGET_LINK_LIBRARIES(${testsuite-short}-TestSuite hesperia ${OPENDAVINCI_LIBS} ${LIBS} ${THIRDPARTY_LIBS})
+#  ENDFOREACH()
+#ENDIF(CXXTEST_FOUND)
 

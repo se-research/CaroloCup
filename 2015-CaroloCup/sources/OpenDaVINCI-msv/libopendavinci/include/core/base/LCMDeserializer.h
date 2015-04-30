@@ -64,7 +64,16 @@ namespace core {
 
             public:
                 virtual ~LCMDeserializer();
-
+                
+                /*
+                 * The read functions below are called to decode and get the variables from the payload.
+                 * The variables must be read in the order they were written.
+                 * 
+                 * For single byte variables, they are just read without any decoding.
+                 * For others, the variable is read into a uint8_t buffer and then decoded.
+                 * The decoding procedure is the encoding procedure backwards.
+                 */
+                
                 virtual void read(const uint32_t id, Serializable &s);
 
                 virtual void read(const uint32_t id, bool &b);
@@ -88,8 +97,7 @@ namespace core {
                 void read(istream &in, core::data::Container &container );
 
             private:
-                stringstream m_buffer;
-                map<uint32_t, streampos> m_values;
+                stringstream m_buffer; // Buffer where the payload is stored to then get decoded
         };
 
     }
