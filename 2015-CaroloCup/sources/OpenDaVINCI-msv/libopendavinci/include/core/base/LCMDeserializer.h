@@ -85,6 +85,8 @@ namespace core {
                 virtual void read(const uint32_t id, int32_t &i);
 
                 virtual void read(const uint32_t id, uint32_t &ui);
+                
+                void read(const uint32_t id, int64_t &i);
 
                 virtual void read(const uint32_t id, float &f);
 

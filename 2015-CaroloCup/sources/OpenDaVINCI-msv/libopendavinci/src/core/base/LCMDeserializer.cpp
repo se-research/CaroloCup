@@ -93,6 +93,18 @@ namespace core {
             ui = (((int32_t)buf[0])<<24) + (((int32_t)buf[1])<<16) + (((int32_t)buf[2])<<8) + ((int32_t)buf[3]);
         }
         
+        // int64_t
+        void LCMDeserializer::read(const uint32_t id, int64_t &i) {
+            (void) id;
+            uint8_t buf[8];
+            m_buffer.read(reinterpret_cast<char *>(&buf), sizeof(int64_t));
+            
+            int64_t *p = (int64_t*) &i;
+            int64_t a = (((int32_t)buf[0])<<24) + (((int32_t)buf[1])<<16) + ((int32_t)buf[2]<<8) + (int32_t)buf[3];
+            int64_t b = (((int32_t)buf[4])<<24) + (((int32_t)buf[5])<<16) + ((int32_t)buf[6]<<8) + (int32_t)buf[7];
+            *p = (a<<32) + (b&0xffffffff);
+        }
+        
         // Float
         void LCMDeserializer::read(const uint32_t id, float &f) {
             (void) id;
@@ -146,7 +158,7 @@ namespace core {
             if (magicNumber != 0x4c433032) {
                 if (in.good()) {
                     // Stream is good but still no magic number?
-                    clog << "Stream corrupt: magic number not found." << endl;
+                    clog << "Stream corrupt: magic number not found. LCM" << endl;
                 }
                 return;
             }

@@ -74,6 +74,8 @@ namespace core{
                 virtual void write( const uint32_t id, const int32_t &i );
 
                 virtual void write( const uint32_t id, const uint32_t &ui );
+                
+                void write( const uint32_t id, const int64_t &i );
 
                 virtual void write( const uint32_t id, const float &f );
 
@@ -85,18 +87,15 @@ namespace core{
 
                 void write(core::data::Container &container );
 
-                void setHash(int64_t hash);
-
-                int64_t getHash();
-
-                string getSerialyzerType(){return "LCM";}
+                string getSerializerType(){return "LCM";}
+                int64_t getHash() const;
 
 
 
             private:
                 ostream &m_out; // Buffer that will be sent
                 stringstream m_buffer; // Buffer where all encoded variables will be stored to later be written to m_out
-                uint64_t m_hash; // The variable where the hash will be stored
+                int64_t m_hash; // The variable where the hash will be stored
         };
         // Functions taken from LCM for calculating hash
         int64_t calculate_hash(int64_t v, char c);
