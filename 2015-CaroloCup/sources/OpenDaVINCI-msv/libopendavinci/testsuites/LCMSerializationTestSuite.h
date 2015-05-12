@@ -57,6 +57,13 @@ class SerializationTestNestedData : public core::base::Serializable {
 };
 
 class SerializationTestSampleData : public core::base::Serializable {
+    private:
+        int64_t m_hash;
+        bool m_bool;
+        int32_t m_int;
+        string m_string;
+        float m_float;
+        double m_double;
     public:
         SerializationTestSampleData() :
                 m_hash(),
@@ -73,12 +80,7 @@ class SerializationTestSampleData : public core::base::Serializable {
                 m_float(o.m_float),
                 m_double(o.m_double)
                 { }
-        int64_t m_hash;
-        bool m_bool;
-        int32_t m_int;
-        string m_string;
-        float m_float;
-        double m_double;
+       
 
         ostream& operator<<(ostream &out) const {
             SerializationFactory sf;

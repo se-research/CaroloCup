@@ -77,18 +77,18 @@ INSTALL(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/" DESTINATION include PAT
 
 ###############################################################################
 # Enable CxxTest for all available testsuites.
-#IF(CXXTEST_FOUND)
-#	FILE(GLOB libopendavinci-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
-#
- #   FOREACH(testsuite ${libopendavinci-testsuites})
-   #     STRING(REPLACE "/" ";" testsuite-list ${testsuite})
+IF(CXXTEST_FOUND)
+	FILE(GLOB libopendavinci-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
 
-     #   LIST(LENGTH testsuite-list len)
+    FOREACH(testsuite ${libopendavinci-testsuites})
+        STRING(REPLACE "/" ";" testsuite-list ${testsuite})
+
+        LIST(LENGTH testsuite-list len)
        
-       # MATH(EXPR lastItem "${len}-1")
-        #LIST(GET testsuite-list "${lastItem}" testsuite-short)
+        MATH(EXPR lastItem "${len}-1")
+        LIST(GET testsuite-list "${lastItem}" testsuite-short)
 
-	   # CXXTEST_ADD_TEST(${testsuite-short}-TestSuite ${testsuite-short}-TestSuite.cpp ${testsuite})
-	    #TARGET_LINK_LIBRARIES(${testsuite-short}-TestSuite opendavinci ${OPENDAVINCI_LIBS} ${LIBS} ${THIRDPARTY_LIBS})
-   # ENDFOREACH()
-#ENDIF(CXXTEST_FOUND)
+	    CXXTEST_ADD_TEST(${testsuite-short}-TestSuite ${testsuite-short}-TestSuite.cpp ${testsuite})
+	    TARGET_LINK_LIBRARIES(${testsuite-short}-TestSuite opendavinci ${OPENDAVINCI_LIBS} ${LIBS} ${THIRDPARTY_LIBS})
+    ENDFOREACH()
+ENDIF(CXXTEST_FOUND)
