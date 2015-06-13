@@ -168,6 +168,9 @@ namespace core {
                  */
                 const string toString() const;
 
+                void setDataType(const DATATYPE &dataType);
+                string getSerializedData() const;
+                void setSerializedData(const string &s);
             private:
                 DATATYPE m_dataType;
                 stringstream m_serializedData;

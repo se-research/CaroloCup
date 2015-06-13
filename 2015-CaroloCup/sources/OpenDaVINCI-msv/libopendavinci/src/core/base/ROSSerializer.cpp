@@ -33,10 +33,9 @@ namespace core {
             // if m_size = 0, then it is container or nothing was writen to m_buffer.
             if(m_size !=0){
             stringstream ss;
-            ss.write(reinterpret_cast<const char *>(&m_size), sizeof(uint32_t));
+            ss.write(reinterpret_cast<const char *>(&m_size), sizeof(int32_t));
             m_out << ss.str();
             m_out << m_buffer.str();
-            
             
             // All write functions are simple, just writes values into m_buffer.
             }
@@ -125,12 +124,11 @@ namespace core {
         void ROSSerializer::write ( const uint32_t id, const string& s ) {
                
             (void) id;
-            m_size += static_cast<uint32_t>(sizeof(s));
             
+            m_size += static_cast<uint32_t>(sizeof(uint32_t));
             uint32_t stringLength = s.length();
-
-            uint32_t _stringLength = stringLength;
-            m_buffer.write(reinterpret_cast<const char *>(&_stringLength), sizeof(uint32_t));
+            m_size += static_cast<uint32_t>(stringLength);
+            m_buffer.write(reinterpret_cast<const char *>(&stringLength), sizeof(uint32_t));
             m_buffer.write(reinterpret_cast<const char *>(s.c_str()), stringLength);
 
 

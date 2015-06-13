@@ -70,7 +70,7 @@ namespace core {
             PROTO_TYPE protoType =  BOOL;
             WIRE_TYPE wireType = getWireType( protoType) ;
                 
-            uint32_t key = getKey ( 1, wireType );              
+            uint32_t key = getKey ( id, wireType );              
   
             size = encode(m_buffer,key);
             m_size += size;
@@ -86,7 +86,7 @@ namespace core {
             PROTO_TYPE protoType = INT32;              
             WIRE_TYPE wireType = getWireType ( protoType) ;  
             
-            uint32_t key = getKey ( 1, wireType );                                                   
+            uint32_t key = getKey ( id, wireType );                                                   
            
             size = encode(m_buffer,key);        
             m_size += size;        
@@ -102,7 +102,7 @@ namespace core {
             PROTO_TYPE protoType = INT32;
             WIRE_TYPE wireType = getWireType ( protoType) ;
                 
-            uint32_t key = getKey ( 1, wireType );
+            uint32_t key = getKey ( id, wireType );
             
             size = encode(m_buffer,key);
             m_size += size;
@@ -117,7 +117,7 @@ namespace core {
             PROTO_TYPE protoType = INT32;
             WIRE_TYPE wireType = getWireType ( protoType) ;
                
-            uint32_t key = getKey ( 1, wireType );
+            uint32_t key = getKey ( id, wireType );
                 
             size = encode(m_buffer,key);
             m_size += size;
@@ -132,7 +132,7 @@ namespace core {
             PROTO_TYPE protoType = UINT32;
             WIRE_TYPE wireType = getWireType ( protoType) ;
                
-            uint32_t key = getKey ( 1, wireType );
+            uint32_t key = getKey ( id, wireType );
             size = encode(m_buffer,key);
             m_size += size;
             size = encode(m_buffer, ui );
@@ -149,7 +149,7 @@ namespace core {
             PROTO_TYPE protoType = FLOAT;
             WIRE_TYPE wireType = getWireType ( protoType) ;
             
-            uint32_t key = getKey ( 1, wireType );            
+            uint32_t key = getKey ( id, wireType );            
               
             size = encode(m_buffer,key);
             m_size += size;
@@ -165,7 +165,7 @@ namespace core {
             PROTO_TYPE protoType = DOUBLE;
             WIRE_TYPE wireType = getWireType ( protoType) ;
             
-            uint32_t key = getKey ( 1, wireType );               
+            uint32_t key = getKey ( id, wireType );               
             size = encode(m_buffer,key);
             m_size += size;
             m_buffer.write(reinterpret_cast<const char *>(&_d), 8);
@@ -178,7 +178,7 @@ namespace core {
             PROTO_TYPE protoType = STRING; 
             WIRE_TYPE wireType = getWireType ( protoType) ;
             
-            uint32_t key = getKey ( 1, wireType );
+            uint32_t key = getKey ( id, wireType );
 
             size = encode(m_buffer,key);
             m_size += size;

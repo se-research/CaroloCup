@@ -49,7 +49,7 @@ class SerializationTestNestedData : public core::base::Serializable {
         ostream& operator<<(ostream &out) const {
             SerializationFactory sf;
 
-            Serializer &s = sf.getSerializer(out);
+            ROSSerializer &s = sf.getROSSerializer(out);
 
             s.write(1,m_int);
             s.write(2,m_double);
@@ -61,7 +61,7 @@ class SerializationTestNestedData : public core::base::Serializable {
         istream& operator>>(istream &in) {
             SerializationFactory sf;
 
-            Deserializer &d = sf.getDeserializer(in);
+            ROSDeserializer &d = sf.getROSDeserializer(in);
 
             d.read(2, m_int);
             d.read(3,m_double);
@@ -81,7 +81,7 @@ public:
      ostream& operator<<(ostream &out) const {
             SerializationFactory sf;
 
-            Serializer &s = sf.getSerializer(out);
+            ROSSerializer &s = sf.getROSSerializer(out);
             s.write(3,m_string);
 
             return out;
@@ -89,7 +89,7 @@ public:
     istream& operator>>(istream &in) {
             SerializationFactory sf;
 
-            Deserializer &d = sf.getDeserializer(in);
+            ROSDeserializer &d = sf.getROSDeserializer(in);
             d.read(1,m_string);
 
             return in;
@@ -118,7 +118,7 @@ class SerializationTestSampleData : public core::base::Serializable {
         ostream& operator<<(ostream &out) const {
             SerializationFactory sf;
 
-            Serializer &s = sf.getSerializer(out);
+            ROSSerializer &s = sf.getROSSerializer(out);
             
             s.write(1,m_float);
             s.write(2,m_double);
@@ -136,7 +136,7 @@ class SerializationTestSampleData : public core::base::Serializable {
         istream& operator>>(istream &in) {
             SerializationFactory sf;
 
-            Deserializer &d = sf.getDeserializer(in);
+            ROSDeserializer &d = sf.getROSDeserializer(in);
             
              d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL6('m', '_', 'b', '3', 'o', 'l') >::RESULT,m_float);
              d.read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL6('m', '_', 'b', '2', 'o', 'l') >::RESULT,m_double);
@@ -203,8 +203,8 @@ class SerializationTest : public CxxTest::TestSuite {
             inout.flush();
             
             Container c2;
-            ROSDeserializer &protod = sf.getROSDeserializer(inout);
-            protod.read(inout, c2);
+            ROSDeserializer &rosd = sf.getROSDeserializer(inout);
+            rosd.read(inout, c2);
 
             VehicleControl vc2 = c2.getData<VehicleControl>();
 
@@ -231,12 +231,12 @@ class SerializationTest : public CxxTest::TestSuite {
            }
               
         
-        void testProtoDeserialisationRawData() {
+        void testROSDeserialisationRawData() {
             
           ROSSerializationData data;
           // Raw data structure : message length , string length, string with value: Hello, World!
           
-          string hex = "110000000D00000048656c6c6f2c20576f726c64210d0a";
+          string hex = "110000000D00000048656c6c6f2c20576f726c6421";
           int len = hex.length();
           string rawData;
             
@@ -254,6 +254,32 @@ class SerializationTest : public CxxTest::TestSuite {
           TS_ASSERT(data.m_string == "Hello, World!");
         }
         
+        
+        void testROSSerialisationRawData() {
+            
+          ROSSerializationData data;
+          // Raw data structure : message length , string length, string with value: Hello, World!
+          ROSSerializationData data1;
+          string hexString = "110000000D00000048656c6c6f2c20576f726c6421";
+          int len = hexString.length();
+          string rawData;
+            
+          for(int i=0; i< len; i+=2) {
+               string byte = hexString.substr(i,2);
+               char chr = (char) (int)strtol(byte.c_str(), NULL, 16);
+               rawData.push_back(chr);
+          }
+         stringstream rawDataStream ;
+         rawDataStream << rawData;
+          
+         data.m_string = "Hello, World!";
+          
+          stringstream ss;
+          ss << data;
+   
+          TS_ASSERT(rawDataStream.str()== ss.str());
+         
+        }
     
 };
 

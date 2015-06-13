@@ -133,7 +133,7 @@ namespace core {
             uint8_t buf[8];
             m_buffer.read(reinterpret_cast<char *>(&buf), sizeof(uint64_t));
             
-            // A way of converting a 64 bit variable from big endian to little endian.
+            // A way of converting a 64 bit variable from big endian to little endian, since there are no functions for it.
             int64_t a = (((int32_t)buf[0])<<24) + (((int32_t)buf[1])<<16) + ((int32_t)buf[2]<<8) + (int32_t)buf[3];
             int64_t b = (((int32_t)buf[4])<<24) + (((int32_t)buf[5])<<16) + ((int32_t)buf[6]<<8) + (int32_t)buf[7];
             i = (a<<32) + (b&0xffffffff);
@@ -182,6 +182,7 @@ namespace core {
              * This function will be called to decode the message and get the payload from it.
              */
             
+            
             // Decoding the Magic number
             int32_t _magicNumber;
             in.read(reinterpret_cast<char*>(&_magicNumber), sizeof(int32_t));
@@ -194,12 +195,14 @@ namespace core {
                 return;
             }
             
+            
             // Decoding the seq_number.
             int32_t _sequence;
             in.read(reinterpret_cast<char*>(&_sequence), sizeof(int32_t));
             int32_t sequence = ntohl(_sequence);
             // Sequence Number is not used so void it to avoid unused variable warning.
             (void) sequence; 
+            
             
             // Decoding Channel Name
             char channel[256];
@@ -216,6 +219,7 @@ namespace core {
             ss >> containerDataType;
             container.setDataType(static_cast<core::data::Container::DATATYPE>(containerDataType));
             
+            
             // Writing the payload to the m_buffer which will then be read and decoded.
             // This payload also includes the hash.
             stringstream ss2;
@@ -230,4 +234,3 @@ namespace core {
         }
     }
 } // core::base
-

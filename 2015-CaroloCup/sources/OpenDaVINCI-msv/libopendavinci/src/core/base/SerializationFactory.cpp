@@ -25,7 +25,7 @@ namespace core {
                 m_listOfLCMSerializers(),
                 m_listOfLCMDeserializers(),
                 m_listOfPROTOSerializers(),
-                m_listOfPROTODeserializers()
+                m_listOfPROTODeserializers(),
                 m_listOfROSSerializers(),
                 m_listOfROSDeserializers()
                 {}
@@ -44,9 +44,9 @@ namespace core {
             Serializer *s = NULL;
             //Serializer *temp = NULL;
             if (m_listOfSerializers.empty()) {
-                //s = new QueryableNetstringsSerializer(out);
+                s = new QueryableNetstringsSerializer(out);
                 //s = new PROTOSerializer(out);
-                s = new LCMSerializer(out);
+//                 s = new LCMSerializer(out);
                 m_listOfSerializers.push_back(SharedPointer<Serializer>(s));
             }
             else {
@@ -58,9 +58,9 @@ namespace core {
         Deserializer& SerializationFactory::getDeserializer(istream &in) const {
             Deserializer *d = NULL;
             if (m_listOfDeserializers.empty()) {
-                //d = new QueryableNetstringsDeserializer(in);
+                d = new QueryableNetstringsDeserializer(in);
                 //d = new  PROTODeserializer(in);
-                d = new LCMDeserializer(in);
+//                 d = new LCMDeserializer(in);
                     m_listOfDeserializers.push_back(SharedPointer<Deserializer>(d)); // The innermost * dereferences the iterator to SharedPointer<Deserializer>, the second * returns the Deserializer from within the SharedPointer, and the & turns it into a regular pointer.
             }
             else {

@@ -70,7 +70,16 @@ namespace core {
         void Container::setReceivedTimeStamp(const TimeStamp &receivedTimeStamp) {
             m_received = receivedTimeStamp;
         }
-
+        string Container::getSerializedData() const {
+            return m_serializedData.str();
+        }
+        
+        void Container::setSerializedData(const string &s) {
+            m_serializedData.str(s);
+        }
+        void Container::setDataType(const DATATYPE &dataType) {
+            m_dataType = dataType;
+        }
         ostream& Container::operator<<(ostream &out) const {
             SerializationFactory sf;
 
