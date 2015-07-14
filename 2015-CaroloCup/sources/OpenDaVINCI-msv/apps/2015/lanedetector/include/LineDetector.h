@@ -199,13 +199,8 @@ private:
     // Creates a trajectory for the driver
 	void createTrajectory(LinesToUse *ltu);
     //Estimate missing needed lines
-    void estimateLines(LinesToUse *ltu);
-	void new_estimateLines(EstimationData *ed);
-    //Calculate the goal line etc.
-    void calculateGoalLine(LinesToUse *ltu);
-	CustomLine new_calculateGoalLine(EstimationData *ed);
-
 	void provideGoalLine(EstimationData *ed, GoalLineData *gld);
+    //Calculate the goal lines
 	CustomLine simple_calculateGoalLine(CustomLine fst, CustomLine snd, EstimationData *ed);
 	void createIntersectionGoalLine();
     
