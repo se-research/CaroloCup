@@ -1128,7 +1128,7 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
                 }
 
             //
-            // The old way to do it follows
+            // The old way to find a dash is performed if no dashed curve is found
             //
             if (!ltu->dashedCurveFound)
                 {
@@ -1586,9 +1586,9 @@ void LineDetector::createTrajectory(LinesToUse *ltu)
             ed.left = leftSplitted[i];
             ed.dash = dashToUse[i];
             ed.right = rightSplitted[i];
-            // ed.left = getNoneCustomLine();
-            // ed.dash = getNoneCustomLine();
-            // ed.right = getNoneCustomLine();
+            // ed.left = getNoneCustomLine(); // For testing estimations
+            // ed.dash = getNoneCustomLine(); // For testing estimations
+            // ed.right = getNoneCustomLine(); // For testing estimations
             if (i == 0)
                 ed.yPosition = (2*h)/3.;
             else
@@ -1925,13 +1925,15 @@ void LineDetector::provideGoalLine(EstimationData *ed, GoalLineData *gld)
                 {
                     // Calculate left goal line
                     gld->leftGoalLine = simple_calculateGoalLine(ed->left, ed->dash, ed);
+                    
                     // Shift calculation result to get right goal line
                     // OLD WAY
                     gld->rightGoalLine = gld->leftGoalLine;
                     gld->rightGoalLine.p2.x += ed->calcRoadSize;
                     gld->rightGoalLine.slope = getLineSlope(gld->rightGoalLine.p2, gld->rightGoalLine.p1);
                     gld->confidenceLevel_rightGoalLine = 4;
-                    // NEW WAY
+
+                    // ANOTHER WAY - Doesn't seem to be better
                     // int expectedRightLineX = getIntersectionWithY(ed->dash, ed->yPosition) + ed->calcRoadSize;
                     // float expectedRightLineAngle = 180 - abs(ed->dash.slope)
                     //                                - calcRoadAngle;
