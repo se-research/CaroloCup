@@ -1,4 +1,4 @@
-2014-CaroloCup
+CaroloCup
 ==============
 
-Development project for the 2014 CaroloCup competition.
+Development project for the CaroloCup competition.
