@@ -27,6 +27,9 @@ config.log
 *#
 .#*
 
+# Python byte code
+*.pyc
+
 # .DS_Store on Mac.
 .DS_Store
 

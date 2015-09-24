@@ -1,7 +1,8 @@
-
 #include <iostream>
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
+/// example to show how to use measure_time.h
+#include "measure_time.h"
 
 using namespace std;
 using namespace cv;
@@ -74,7 +75,10 @@ int main(int argc, char** argv) {
     };
     //imshow("Original Image", image);
 
-    toGrayScale();
+    //toGrayScale();
+    /// example:
+    cout << measure<>::execution( toGrayScale ) << " milliseconds" << endl;
+
     //imshow("GrayScale Image", image);
 
     cropImage();
