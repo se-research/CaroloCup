@@ -1,1 +1,0 @@
-/home/ibtissam/ClionProjects/LaneDetectionAlgorithm/CMakeFiles/LaneDetectionAlgorithm.dir
