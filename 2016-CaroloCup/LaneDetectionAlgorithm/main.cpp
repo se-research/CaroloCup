@@ -66,6 +66,22 @@ void classificationDashedLines();
 float getLineSlope(Point &p1, Point &p2);
 CustomLine createLineFromRect(RotatedRect *rect, int sizeX, int sizeY, int polygonIndex);
 Mat getDashedLines();
+/// alternative way
+Mat mat_contour;
+Mat _out;
+void getContours2(Mat &input_mat);
+void getContours2(Mat &input_mat) {
+    vector<Vec4i> hierarchy;
+    cntDash = 0;
+    findContours(image, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
+    _out = Mat::zeros(image.size().height, image.size().width, CV_32F);
+    for( int i = 0; i< contours.size(); i++ )
+    {
+        Scalar color = Scalar( 255, 255, 255 );
+        cv::drawContours( _out, contours, i, color, 2, 8, hierarchy, 0, Point() );
+    }
+}
+/// End Here
 
 int main(int argc, char** argv) {
     char* imageName = argv[1];
@@ -87,19 +103,21 @@ int main(int argc, char** argv) {
     applyThreshold();
     //imshow("Threshold Image Lux 50", image);
 
-    Mat imageContour = getContours();
+    //Mat imageContour = getContours();
+    cout << measure<>::execution( getContours2, mat_contour ) << " milliseconds" << endl;
+    imshow("Contours", _out);
     //imshow("Contours", imageContour);
 
     Mat imagePolygonCountour = getPolygonContours();
     //imshow("Polygon Contours", imagePolygonCountour);
 
     Mat imageBoundingBox = getRectangles();
-    imshow("Bounding Box", imageBoundingBox);
+    //imshow("Bounding Box", imageBoundingBox);
 
     classificationDashedLines();
 
     Mat imageDashedLines = getDashedLines();
-    imshow("Classified Dashed Lines", imageDashedLines);
+    //imshow("Classified Dashed Lines", imageDashedLines);
 
     waitKey(0);
     return 0;

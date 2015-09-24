@@ -17,8 +17,7 @@ struct measure
     {
         auto start = std::chrono::system_clock::now();
         std::forward<decltype(func)>(func)(std::forward<Args>(args)...);
-        auto duration = std::chrono::duration_cast< TimeT>
-                            (std::chrono::system_clock::now() - start);
+        auto duration = std::chrono::duration_cast< TimeT>(std::chrono::system_clock::now() - start);
         return duration.count();
     }
 };
