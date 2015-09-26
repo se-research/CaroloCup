@@ -48,8 +48,10 @@ vector<vector<Point> > contours;
 vector<CustomLine> dashLines;
 vector<PolySize> line_sizes;
 vector<RotatedRect> rects;
+vector<CustomLine> solidLines;
 
 int cntDash = 0;
+int cntSolid = 0;
 
 
 int readImage(char *imageName, int argc);
@@ -75,6 +77,10 @@ float getLineSlope(Point &p1, Point &p2);
 CustomLine createLineFromRect(RotatedRect *rect, int sizeX, int sizeY, int polygonIndex);
 
 Mat getDashedLines();
+
+void classificationSolidLines();
+
+Mat getSolidLines();
 
 int main(int argc, char **argv) {
     char *imageName = argv[1];
@@ -105,7 +111,12 @@ int main(int argc, char **argv) {
     classificationDashedLines();
 
     Mat imageDashedLines = getDashedLines();
-    imshow("Classified Dashed Lines", imageDashedLines);
+    //imshow("Classified Dashed Lines", imageDashedLines);
+
+    classificationSolidLines();
+
+    Mat imageSolidLines = getSolidLines();
+    imshow("Classified Solid Lines", imageSolidLines);
 
 
     waitKey(0);
@@ -162,6 +173,7 @@ void applyThreshold() {
 Mat getContours() {
     vector<Vec4i> hierarchy;
     cntDash = 0;
+    cntSolid = 0;
 
     findContours(image, contours, hierarchy, CV_RETR_TREE,
                  CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
@@ -177,7 +189,7 @@ Mat getContours() {
 Mat getPolygonContours() {
     contours_poly.resize(contours.size());
     dashLines = vector<CustomLine>(contours.size());
-
+    solidLines = vector<CustomLine>(contours.size());
     for (unsigned int i = 0; i < contours.size(); i++) {
         approxPolyDP(Mat(contours[i]), contours_poly[i], 3, true);
     }
@@ -361,15 +373,51 @@ Mat getDashedLines() {
     return out;
 }
 
+void classificationSolidLines() {
+    bool printouts = true;
+    //confidenceLevel = 0;
+    int sizeX;
+    int sizeY;
+    int sizeR;
+    int area;
+    RotatedRect rect;
+    Point2f rect_points[4];
+    Point rectCenter;
+    Point shortSideMiddle;
+    //intersectionRect = -1;
+    for (unsigned int i = 0; i < line_sizes.size(); i++) {
+        sizeX = line_sizes[i].sizeX;
+        sizeY = line_sizes[i].sizeY;
+        sizeR = line_sizes[i].sizeR;
+        shortSideMiddle = line_sizes[i].shortSideMiddle;
+        area = sizeX * sizeY;
+        rect = rects[i];
+        rect.points(rect_points);
+        rectCenter.x = rect.center.x;
+        rectCenter.y = rect.center.y;
+        rect.angle = getLineSlope(shortSideMiddle, rectCenter);
+        if (sizeY > 2 * sizeX
+            && sizeY < 20 * sizeX
+            && sizeY < 235) {
+            dashLines[cntDash] = createLineFromRect(&rect, sizeX, sizeY, i);
+            cntDash++;
+            cout << "Dash Rect y: " << rectCenter.y << endl;
+        }
+        else if (sizeY > sizeX && sizeY > (235 / 2)
+                 && area < 4 * 10000) {
+            solidLines[cntSolid] = createLineFromRect(&rect, sizeX, sizeY, i);
+            cntSolid++;
+        }
+    }
+}
 
-
-
-
-
-
-
-
-
-
-
-
+Mat getSolidLines() {
+    Mat out = Mat::zeros(image.size().height, image.size().width, CV_32F);
+    for (unsigned int i = 0; i < contours_poly.size(); i++) {
+        Scalar color = Scalar(255, 0, 0);
+        for (int i = 0; i < solidLines.size(); i++) {
+            line(out, solidLines[i].p1, solidLines[i].p2, color, 1, 8, 0);
+        }
+    }
+    return out;
+}
