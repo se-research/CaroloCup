@@ -58,6 +58,7 @@ vector<CustomLine> solidLines;
 int cntDash = 0;
 int cntSolid = 0;
 int h, w, offset;
+bool foundStopStartLine = false;
 
 int readImage(char *imageName, int argc);
 
@@ -69,27 +70,29 @@ int getDynamicThresh(int lux);
 
 void applyThreshold();
 
-Mat getContours();
+void getAndDisplayContours();
 
-Mat getPolygonContours();
+void getAndDisplayPolygonContours();
 
-Mat getRectangles();
+void getAndDisplayRectangles();
 
-void classificationDashedLines();
+void getDashedLines();
 
 float getLineSlope(Point &p1, Point &p2);
 
 CustomLine createLineFromRect(RotatedRect *rect, int sizeX, int sizeY, int polygonIndex);
 
-Mat getDashedLines();
+void displayDashedLines();
 
-void classificationSolidLines();
+void getSolidLines();
 
-Mat getSolidLines();
+void displaySolidLines();
 
 void filterAndMerge();
 
-Mat getFilterAndMerge();
+void displayBothLineTypes();
+
+void finalFilter();
 
 
 int main(int argc, char **argv) {
@@ -113,30 +116,27 @@ int main(int argc, char **argv) {
     applyThreshold();
     //imshow("Threshold Image Lux 50", image);
 
-    Mat imageContour = getContours();
-    imshow("Contours", imageContour);
+    getAndDisplayContours();
 
-    Mat imagePolygonCountour = getPolygonContours();
-    //imshow("Polygon Contours", imagePolygonCountour);
+    getAndDisplayPolygonContours();
 
-    Mat imageBoundingBox = getRectangles();
-    //imshow("Bounding Box", imageBoundingBox);
+    getAndDisplayRectangles();
 
-    classificationDashedLines();
+    getDashedLines();
 
-    Mat imageDashedLines = getDashedLines();
-    imshow("Classified Dashed Lines", imageDashedLines);
+    displayDashedLines();
 
-    classificationSolidLines();
+    getSolidLines();
 
-    Mat imageSolidLines = getSolidLines();
-    imshow("Classified Solid Lines", imageSolidLines);
+    displaySolidLines();
 
     filterAndMerge();
 
-    Mat imageFilterAndMerge = getFilterAndMerge();
-    imshow("FIlter And Merge", imageFilterAndMerge);
+    displayBothLineTypes();
 
+    finalFilter();
+
+    displayBothLineTypes();
 
     waitKey(0);
     return 0;
@@ -189,7 +189,7 @@ void applyThreshold() {
     threshold(image, image, getDynamicThresh(50), 255, CV_THRESH_BINARY);
 }
 
-Mat getContours() {
+void getAndDisplayContours() {
     vector<Vec4i> hierarchy;
     cntDash = 0;
     cntSolid = 0;
@@ -202,10 +202,10 @@ Mat getContours() {
         Scalar color = Scalar(255, 255, 255);
         cv::drawContours(out, contours, i, color, 2, 8, hierarchy, 0, Point());
     }
-    return out;
+//    imshow("Contours", out);
 }
 
-Mat getPolygonContours() {
+void getAndDisplayPolygonContours() {
     contours_poly.resize(contours.size());
     dashLines = vector<CustomLine>(contours.size());
     solidLines = vector<CustomLine>(contours.size());
@@ -219,10 +219,10 @@ Mat getPolygonContours() {
         Scalar color = Scalar(0, 0, 255);
         drawContours(out, contours_poly, i, color, 2, 8, vector<Vec4i>(), 0, Point());
     }
-    return out;
+//    imshow("Polygon Contours", out);
 }
 
-Mat getRectangles() {
+void getAndDisplayRectangles() {
     bool picture = false;
     RotatedRect rect;
 
@@ -282,11 +282,11 @@ Mat getRectangles() {
 
     }
 
-    return out;
+//    imshow("Bounding Boxes", out);
 
 }
 
-void classificationDashedLines() {
+void getDashedLines() {
     bool printouts = true;
     //confidenceLevel = 0;
     int sizeX;
@@ -382,7 +382,7 @@ CustomLine createLineFromRect(RotatedRect *rect, int sizeX, int sizeY, int polyg
     return l;
 }
 
-Mat getDashedLines() {
+void displayDashedLines() {
 //    Mat out = Mat(image.size().height, image.size().width, CV_32F);
     Mat out;
     originalImage.copyTo(out);
@@ -395,10 +395,11 @@ Mat getDashedLines() {
 
         }
     }
-    return out;
+
+    imshow("Classified Dashed Lines", out);
 }
 
-void classificationSolidLines() {
+void getSolidLines() {
     bool printouts = true;
     //confidenceLevel = 0;
     int sizeX;
@@ -436,16 +437,16 @@ void classificationSolidLines() {
     }
 }
 
-Mat getSolidLines() {
+void displaySolidLines() {
     Mat out;
     originalImage.copyTo(out);
     for (unsigned int i = 0; i < contours_poly.size(); i++) {
         Scalar color = Scalar(0, 0, 255);
         for (int i = 0; i < solidLines.size(); i++) {
-            line(out, solidLines[i].p1, solidLines[i].p2, color, 1, 8, 0);
+            line(out, solidLines[i].p1, solidLines[i].p2, color, 2, 8, 0);
         }
     }
-    return out;
+    imshow("Classified Solid Lines", out);
 }
 
 void filterAndMerge() {
@@ -492,8 +493,7 @@ void filterAndMerge() {
     }
 }
 
-Mat getFilterAndMerge() {
-
+void displayBothLineTypes() {
     Mat out;
     originalImage.copyTo(out);
     for (unsigned int i = 0; i < contours_poly.size(); i++) {
@@ -507,9 +507,55 @@ Mat getFilterAndMerge() {
 
     }
 
-
-    return out;
+    imshow("Both lines", out);
 }
+
+void finalFilter()
+{
+    for (int i = 0; i < cntSolid; i++)
+    {
+        CustomLine l = solidLines[i];
+        int minAngle = MIN_ANGLE - 5;
+        //cout << "Slope: " << l.slope << " min is " << minAngle << endl;
+        if (abs(l.slope) < minAngle)
+        {
+            solidLines[i] = solidLines[cntSolid - 1];
+            cntSolid--;
+            if (i > 0)
+            {
+                i--;
+            }
+            foundStopStartLine = true;
+        }
+    }
+
+    //Dash also positioned too high on the image or too left or too right
+    int maxDashY = 0;
+    for (int i = 0; i < cntDash; i++)
+    {
+        CustomLine l = dashLines[i];
+        int dashCenterX = (l.p1.x + l.p2.x) / 2;
+        int dashCenterY = (l.p1.y + l.p2.y) / 2;
+        //cout << "Slope: " << l.slope << " min is " << MIN_ANGLE << endl;
+        if ((l.slope < MIN_ANGLE) && (l.slope > ((-1) * MIN_ANGLE))
+            || (dashCenterY < h / 15) || (dashCenterX > 19 * w / 20)) //|| (dashCenterX < w/20) too left //too high
+        {
+            dashLines[i] = dashLines[cntDash - 1];
+            cntDash--;
+            if (i > 0)
+            {
+                i--;
+            }
+        }
+
+        if (maxDashY < max(dashLines[i].p1.y, dashLines[i].p2.y))
+        {
+            maxDashY = max(dashLines[i].p1.y, dashLines[i].p2.y);
+        }
+    }
+
+}
+
 
 
 
