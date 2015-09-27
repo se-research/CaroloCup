@@ -178,7 +178,7 @@ Mat getContours() {
     findContours(image, contours, hierarchy, CV_RETR_TREE,
                  CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
     //Mat drawing
-    Mat out = Mat::zeros(image.size().height, image.size().width, CV_32F);
+    Mat out = Mat(image.size().height, image.size().width, CV_32F);
     for (int i = 0; i < contours.size(); i++) {
         Scalar color = Scalar(255, 255, 255);
         cv::drawContours(out, contours, i, color, 2, 8, hierarchy, 0, Point());
@@ -194,7 +194,7 @@ Mat getPolygonContours() {
         approxPolyDP(Mat(contours[i]), contours_poly[i], 3, true);
     }
 
-    Mat out = Mat::zeros(image.size().height, image.size().width, CV_32F);
+    Mat out = Mat(image.size().height, image.size().width, CV_32F);
     for (unsigned int i = 0; i < contours_poly.size(); i++) {
         Scalar color = Scalar(255, 255, 255);
         drawContours(out, contours_poly, i, color, 1, 8, vector<Vec4i>(), 0, Point());
@@ -206,7 +206,7 @@ Mat getRectangles() {
     bool picture = false;
     RotatedRect rect;
 
-    Mat out = Mat::zeros(image.size().height, image.size().width, CV_32F);
+    Mat out = Mat(image.size().height, image.size().width, CV_32F);
 
     for (unsigned int i = 0; i < contours_poly.size(); i++) {
         rect = minAreaRect(contours_poly[i]);
@@ -361,7 +361,7 @@ CustomLine createLineFromRect(RotatedRect *rect, int sizeX, int sizeY, int polyg
 }
 
 Mat getDashedLines() {
-    Mat out = Mat::zeros(image.size().height, image.size().width, CV_32F);
+    Mat out = Mat(image.size().height, image.size().width, CV_32F);
     for (unsigned int i = 0; i < contours_poly.size(); i++) {
         Scalar color = Scalar(255, 0, 0);
         //draw lines
@@ -412,7 +412,7 @@ void classificationSolidLines() {
 }
 
 Mat getSolidLines() {
-    Mat out = Mat::zeros(image.size().height, image.size().width, CV_32F);
+    Mat out = Mat(image.size().height, image.size().width, CV_32F);
     for (unsigned int i = 0; i < contours_poly.size(); i++) {
         Scalar color = Scalar(255, 0, 0);
         for (int i = 0; i < solidLines.size(); i++) {
