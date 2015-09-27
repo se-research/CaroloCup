@@ -2,8 +2,12 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 /// example to show how to use measure_time.h
-//#include "measure_time.h"
+#include "measure_time.h"
+//#include "/usr/include/opendavinci/core/data/TimeStamp.h"
 
+//using namespace core::data;
+
+#define MIN_ANGLE 15
 using namespace std;
 using namespace cv;
 
@@ -42,6 +46,7 @@ struct PolySize {
 };
 
 Mat image;
+Mat originalImage;
 int previousThresh = 48;
 vector<vector<Point> > contours_poly;
 vector<vector<Point> > contours;
@@ -52,7 +57,7 @@ vector<CustomLine> solidLines;
 
 int cntDash = 0;
 int cntSolid = 0;
-
+int h, w, offset;
 
 int readImage(char *imageName, int argc);
 
@@ -82,6 +87,7 @@ void classificationSolidLines();
 
 Mat getSolidLines();
 
+
 int main(int argc, char **argv) {
     char *imageName = argv[1];
     if (!readImage(imageName, argc)) {
@@ -96,11 +102,15 @@ int main(int argc, char **argv) {
     cropImage();
     //imshow("Croped Image", image);
 
+    image.copyTo(originalImage);
+    cvtColor(originalImage, originalImage, CV_GRAY2BGR);
+
+
     applyThreshold();
     //imshow("Threshold Image Lux 50", image);
 
     Mat imageContour = getContours();
-    //imshow("Contours", imageContour);
+    imshow("Contours", imageContour);
 
     Mat imagePolygonCountour = getPolygonContours();
     //imshow("Polygon Contours", imagePolygonCountour);
@@ -111,7 +121,7 @@ int main(int argc, char **argv) {
     classificationDashedLines();
 
     Mat imageDashedLines = getDashedLines();
-    //imshow("Classified Dashed Lines", imageDashedLines);
+    imshow("Classified Dashed Lines", imageDashedLines);
 
     classificationSolidLines();
 
@@ -194,10 +204,11 @@ Mat getPolygonContours() {
         approxPolyDP(Mat(contours[i]), contours_poly[i], 3, true);
     }
 
-    Mat out = Mat(image.size().height, image.size().width, CV_32F);
+    Mat out;
+    originalImage.copyTo(out);
     for (unsigned int i = 0; i < contours_poly.size(); i++) {
-        Scalar color = Scalar(255, 255, 255);
-        drawContours(out, contours_poly, i, color, 1, 8, vector<Vec4i>(), 0, Point());
+        Scalar color = Scalar(0, 0, 255);
+        drawContours(out, contours_poly, i, color, 2, 8, vector<Vec4i>(), 0, Point());
     }
     return out;
 }
@@ -206,7 +217,9 @@ Mat getRectangles() {
     bool picture = false;
     RotatedRect rect;
 
-    Mat out = Mat(image.size().height, image.size().width, CV_32F);
+//    Mat out = Mat(image.size().height, image.size().width, CV_32F);
+    Mat out;
+    originalImage.copyTo(out);
 
     for (unsigned int i = 0; i < contours_poly.size(); i++) {
         rect = minAreaRect(contours_poly[i]);
@@ -241,7 +254,7 @@ Mat getRectangles() {
                                     + rect_points[(j + 1) % 4].y) / 2;
             }
 
-            line(out, rect_points[j], rect_points[(j + 1) % 4], Scalar(255, 0, 0));
+            line(out, rect_points[j], rect_points[(j + 1) % 4], Scalar(0, 0, 255), 2);
         }
 
         if (sizeX > sizeY) {
@@ -361,12 +374,15 @@ CustomLine createLineFromRect(RotatedRect *rect, int sizeX, int sizeY, int polyg
 }
 
 Mat getDashedLines() {
-    Mat out = Mat(image.size().height, image.size().width, CV_32F);
+//    Mat out = Mat(image.size().height, image.size().width, CV_32F);
+    Mat out;
+    originalImage.copyTo(out);
+
     for (unsigned int i = 0; i < contours_poly.size(); i++) {
-        Scalar color = Scalar(255, 0, 0);
+        Scalar color = Scalar(0, 0, 255);
         //draw lines
         for (int i = 0; i < dashLines.size(); i++) {
-            line(out, dashLines[i].p1, dashLines[i].p2, color, 1, 8, 0);
+            line(out, dashLines[i].p1, dashLines[i].p2, color, 3, 8, 0);
 
         }
     }
@@ -421,3 +437,10 @@ Mat getSolidLines() {
     }
     return out;
 }
+
+
+
+
+
+
+
