@@ -87,6 +87,10 @@ void classificationSolidLines();
 
 Mat getSolidLines();
 
+void filterAndMerge();
+
+Mat getFilterAndMerge();
+
 
 int main(int argc, char **argv) {
     char *imageName = argv[1];
@@ -127,6 +131,11 @@ int main(int argc, char **argv) {
 
     Mat imageSolidLines = getSolidLines();
     imshow("Classified Solid Lines", imageSolidLines);
+
+    filterAndMerge();
+
+    Mat imageFilterAndMerge = getFilterAndMerge();
+    imshow("FIlter And Merge", imageFilterAndMerge);
 
 
     waitKey(0);
@@ -428,9 +437,10 @@ void classificationSolidLines() {
 }
 
 Mat getSolidLines() {
-    Mat out = Mat(image.size().height, image.size().width, CV_32F);
+    Mat out;
+    originalImage.copyTo(out);
     for (unsigned int i = 0; i < contours_poly.size(); i++) {
-        Scalar color = Scalar(255, 0, 0);
+        Scalar color = Scalar(0, 0, 255);
         for (int i = 0; i < solidLines.size(); i++) {
             line(out, solidLines[i].p1, solidLines[i].p2, color, 1, 8, 0);
         }
@@ -438,7 +448,68 @@ Mat getSolidLines() {
     return out;
 }
 
+void filterAndMerge() {
+    for (int j = 0; j < cntSolid; j++) {
+        float a = tan(M_PI * solidLines[j].slope / 180);
+        Point center;
+        center.x = (solidLines[j].p1.x + solidLines[j].p2.x) / 2;
+        center.y = (solidLines[j].p1.y + solidLines[j].p2.y) / 2;
+        float b = center.y - center.x * a;
+//        cout << "Equation [a,b]: [" << a << "," << b << "]" << endl;
+//        cout << "Dashes" << endl;
+        if ((solidLines[j].slope > MIN_ANGLE - 5
+             && max(solidLines[j].p1.x, solidLines[j].p2.x) > w / 2)
+            || (solidLines[j].slope < (-1) * (MIN_ANGLE - 5)
+                && min(solidLines[j].p1.x, solidLines[j].p2.x) < w / 2)) {
+            for (int l = 0; l < cntDash; l++) {
+                Point dashCenter;
+                dashCenter.x = (dashLines[l].p1.x + dashLines[l].p2.x) / 2;
+                dashCenter.y = (dashLines[l].p1.y + dashLines[l].p2.y) / 2;
+                float res = a * dashCenter.x + b;
+//                cout << "[res, y] = [" << res << "," << dashCenter.y << "]" << endl;
+//                cout << "[x, y] = [" << dashCenter.x << "," << dashCenter.y << "]" << endl;
+                if (res > dashCenter.y) {
+                    dashLines[l] = dashLines[cntDash - 1];
+                    cntDash--;
+                    l--;
+                    cout << cntDash << endl;
+                }
+            }
+            cout << "Solids" << endl;
+            for (int k = j + 1; k < cntSolid; k++) {
+                Point sldCenter;
+                sldCenter.x = (solidLines[k].p1.x + solidLines[k].p2.x) / 2;
+                sldCenter.y = (solidLines[k].p1.y + solidLines[k].p2.y) / 2;
+                float res = a * sldCenter.x + b;
+                if (res > sldCenter.y) {
+                    solidLines[k] = solidLines[cntSolid - 1];
+                    cntSolid--;
+                    k--;
+                    cout << cntSolid << endl;
+                }
+            }
+        }
+    }
+}
 
+Mat getFilterAndMerge() {
+
+    Mat out;
+    originalImage.copyTo(out);
+    for (unsigned int i = 0; i < contours_poly.size(); i++) {
+        Scalar color = Scalar(0, 0, 255);
+        for (int i = 0; i < solidLines.size(); i++) {
+            line(out, solidLines[i].p1, solidLines[i].p2, color, 3, 8, 0);
+        }
+        for (int j = 0; j < dashLines.size(); j++) {
+            line(out, dashLines[i].p1, dashLines[i].p2, color, 3, 8, 0);
+        }
+
+    }
+
+
+    return out;
+}
 
 
 
