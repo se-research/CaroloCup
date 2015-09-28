@@ -34,12 +34,14 @@ int main(int argc, char **argv) {
 
     filterAndMerge();
 
-    finalFilter();
+//    finalFilter();
 
     displayDashedLines();
     displaySolidLines();
 
     characteristicFiltering(&ltu);
+
+    displaySelectedLines();
 
     waitKey(0);
 
@@ -91,7 +93,7 @@ int getDynamicThresh(int lux) {
 
 void applyAndDisplayThreshold() {
     threshold(image, image, getDynamicThresh(-2), 255, CV_THRESH_BINARY);
-//    imshow("Threshold Image Lux -2", image);
+    imshow("Threshold Image Lux -2", image);
 }
 
 void getAndDisplayContours() {
@@ -107,7 +109,7 @@ void getAndDisplayContours() {
         Scalar color = Scalar(255, 255, 255);
         cv::drawContours(out, contours, i, color, 1, 8, hierarchy, 0, Point());
     }
-//    imshow("Contours", out);
+    imshow("Contours", out);
 }
 
 void getAndDisplayPolygonContours() {
@@ -123,11 +125,10 @@ void getAndDisplayPolygonContours() {
         Scalar color = Scalar(255, 255, 255);
         drawContours(out, contours_poly, i, color, 1, 8, vector<Vec4i>(), 0, Point());
     }
-//    imshow("Polygon Contours", out);
+    imshow("Polygon Contours", out);
 }
 
 void getAndDisplayRectangles() {
-    bool picture = false;
     RotatedRect rect;
 
 //    Mat out = Mat(image.size().height, image.size().width, CV_32F);
@@ -183,7 +184,7 @@ void getAndDisplayRectangles() {
 
     }
 
-//    imshow("Bounding Boxes", out);
+    imshow("Bounding Boxes", out);
 
 }
 
@@ -787,3 +788,17 @@ float getDist(const Point p1, const Point p2)
 {
     return sqrt(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2));
 }
+
+void displaySelectedLines() {
+    Mat out;
+    originalImage.copyTo(out);
+
+    Scalar blue = Scalar(255, 0, 0);
+    Scalar green = Scalar(0, 255, 0);
+    Scalar red = Scalar(0, 0, 255);
+
+    line(out, ltu.dashLine.p1, ltu.dashLine.p2, red, 2, 8, 0);
+    line(out, ltu.rightLine.p1, ltu.rightLine.p2, green, 2, 8, 0);
+    line(out, ltu.leftLine.p1, ltu.leftLine.p2, blue, 2, 8, 0);
+    imshow("Selected Lines", out);
+};

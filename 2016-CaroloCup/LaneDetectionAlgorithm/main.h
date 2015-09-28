@@ -226,3 +226,5 @@ int getIntersectionWithBottom(CustomLine l);
 vector<CustomLine> findCurve(vector<CustomLine> lines);
 
 float getDist(const Point p1, const Point p2);
+
+void displaySelectedLines();
