@@ -208,7 +208,7 @@ CustomLine createLineFromRect(RotatedRect *rect, int sizeX, int sizeY, int polyg
 
 void displayDashedLines();
 
-void getSolidLines();
+void classifyLines();
 
 void displaySolidLines();
 
@@ -227,7 +227,10 @@ vector<CustomLine> findCurve(vector<CustomLine> lines);
 float getDist(const Point p1, const Point p2);
 
 int main(int argc, char **argv) {
+    m_config.XTimesYMin = 2;
+    m_config.XTimesYMax  = 20;
     m_config.maxY = 235;
+    m_config.maxArea = 4;
 
     char *imageName = argv[1];
     if (!readImage(imageName, argc)) {
@@ -255,11 +258,9 @@ int main(int argc, char **argv) {
 
     getAndDisplayRectangles();
 
-    getDashedLines();
+    classifyLines();
 
     displayDashedLines();
-
-    getSolidLines();
 
     displaySolidLines();
 
@@ -370,19 +371,16 @@ void getAndDisplayRectangles() {
         Point2f rect_points[4];
         rect.points(rect_points);
 //            rects.push_back(rect);
-        //cout << "Angle: " << rect.angle << endl;
         int sizeX = 0, sizeY = 0, sizeR = 0;
         Point shortSideMiddle;
         Point longSideMiddle;
         // Find rect sizes
         for (int j = 0; j < 4; j++) {
-            //cout << "Point [x,y] = [" << rect_points[j].x << "," << rect_points[j].y << "]" << endl;
             sizeR = cv::sqrt(
                     cv::pow((rect_points[j].x - rect_points[(j + 1) % 4].x), 2)
                     + cv::pow(
                             (rect_points[j].y
                              - rect_points[(j + 1) % 4].y), 2));
-            //cout << "Size:" << sizeR << endl;
             if (sizeX == 0) {
                 sizeX = sizeR;
                 shortSideMiddle.x = (rect_points[j].x
@@ -422,7 +420,6 @@ void getAndDisplayRectangles() {
 }
 
 void getDashedLines() {
-    bool printouts = true;
     //confidenceLevel = 0;
     int sizeX;
     int sizeY;
@@ -446,12 +443,11 @@ void getDashedLines() {
         rectCenter.y = rect.center.y;
         rect.angle = getLineSlope(shortSideMiddle, rectCenter);
 
-        if (sizeY > 2 * sizeX
-            && sizeY < 20 * sizeX
-            && sizeY < 235) {
+        if (sizeY > m_config.XTimesYMin * sizeX
+            && sizeY < m_config.XTimesYMax * sizeX
+            && sizeY < m_config.maxY) {
             dashLines[cntDash] = createLineFromRect(&rect, sizeX, sizeY, i);
             cntDash++;
-            cout << "Dash Rect y: " << rectCenter.y << endl;
         }
 
     }
@@ -471,23 +467,12 @@ float getLineSlope(Point &p1, Point &p2) {
 }
 
 CustomLine createLineFromRect(RotatedRect *rect, int sizeX, int sizeY, int polygonIndex) {
-    bool printouts = false;
-    if (printouts)
-        cout << "__start createLineFromRect" << endl;
-
     Point2f rect_points[4];
     rect->points(rect_points);
-
-    if (printouts) {
-        cout << "Sizes: " << sizeX << " " << sizeY << endl;;
-        for (int j = 0; j < 4; j++)
-            cout << "Point [x,y] = [" << rect_points[j].x << "," << rect_points[j].y << "]" << endl;
-    }
 
     CustomLine l;
     Point pt1, pt2;
     l.polygonIndex = polygonIndex;
-    //cout << "[centerx, centery] = [" << rect->center.x << "," << rect->center.y << "]" << endl;
     if (rect->angle < 90) {
         float angle = rect->angle * M_PI / 180;
         float xOffset = cos(angle) * sizeY / 2;
@@ -507,13 +492,9 @@ CustomLine createLineFromRect(RotatedRect *rect, int sizeX, int sizeY, int polyg
         pt2.y = rect->center.y - yOffset;
         pt2.x = rect->center.x + xOffset;
     }
-    //cout << "Angle: " << rect->angle << endl;
-    //cout << "[x, y] = [" << pt1.x << "," << pt1.y << "]" << endl;
     l.p1 = pt1;
     l.p2 = pt2;
     l.slope = rect->angle;
-    if (printouts)
-        cout << "__end createLineFromRect" << endl;
     return l;
 }
 
@@ -534,8 +515,7 @@ void displayDashedLines() {
     imshow("Classified Dashed Lines", out);
 }
 
-void getSolidLines() {
-    bool printouts = true;
+void classifyLines() {
     //confidenceLevel = 0;
     int sizeX;
     int sizeY;
@@ -557,15 +537,14 @@ void getSolidLines() {
         rectCenter.x = rect.center.x;
         rectCenter.y = rect.center.y;
         rect.angle = getLineSlope(shortSideMiddle, rectCenter);
-        if (sizeY > 2 * sizeX
-            && sizeY < 20 * sizeX
-            && sizeY < 235) {
+        if (sizeY > m_config.XTimesYMin * sizeX
+            && sizeY < m_config.XTimesYMax * sizeX
+            && sizeY < m_config.maxY) {
             dashLines[cntDash] = createLineFromRect(&rect, sizeX, sizeY, i);
             cntDash++;
-            cout << "Dash Rect y: " << rectCenter.y << endl;
         }
-        else if (sizeY > sizeX && sizeY > (235 / 2)
-                 && area < 4 * 10000) {
+        else if (sizeY > sizeX && sizeY > (m_config.maxY / 2)
+                 && area < m_config.maxArea * 10000) {
             solidLines[cntSolid] = createLineFromRect(&rect, sizeX, sizeY, i);
             cntSolid++;
         }
@@ -591,8 +570,6 @@ void filterAndMerge() {
         center.x = (solidLines[j].p1.x + solidLines[j].p2.x) / 2;
         center.y = (solidLines[j].p1.y + solidLines[j].p2.y) / 2;
         float b = center.y - center.x * a;
-//        cout << "Equation [a,b]: [" << a << "," << b << "]" << endl;
-//        cout << "Dashes" << endl;
         if ((solidLines[j].slope > MIN_ANGLE - 5
              && max(solidLines[j].p1.x, solidLines[j].p2.x) > w / 2)
             || (solidLines[j].slope < (-1) * (MIN_ANGLE - 5)
@@ -602,16 +579,12 @@ void filterAndMerge() {
                 dashCenter.x = (dashLines[l].p1.x + dashLines[l].p2.x) / 2;
                 dashCenter.y = (dashLines[l].p1.y + dashLines[l].p2.y) / 2;
                 float res = a * dashCenter.x + b;
-//                cout << "[res, y] = [" << res << "," << dashCenter.y << "]" << endl;
-//                cout << "[x, y] = [" << dashCenter.x << "," << dashCenter.y << "]" << endl;
                 if (res > dashCenter.y) {
                     dashLines[l] = dashLines[cntDash - 1];
                     cntDash--;
                     l--;
-                    cout << cntDash << endl;
                 }
             }
-            cout << "Solids" << endl;
             for (int k = j + 1; k < cntSolid; k++) {
                 Point sldCenter;
                 sldCenter.x = (solidLines[k].p1.x + solidLines[k].p2.x) / 2;
@@ -621,7 +594,6 @@ void filterAndMerge() {
                     solidLines[k] = solidLines[cntSolid - 1];
                     cntSolid--;
                     k--;
-                    cout << cntSolid << endl;
                 }
             }
         }
@@ -651,7 +623,6 @@ void finalFilter()
     {
         CustomLine l = solidLines[i];
         int minAngle = MIN_ANGLE - 5;
-        //cout << "Slope: " << l.slope << " min is " << minAngle << endl;
         if (abs(l.slope) < minAngle)
         {
             solidLines[i] = solidLines[cntSolid - 1];
@@ -671,7 +642,6 @@ void finalFilter()
         CustomLine l = dashLines[i];
         int dashCenterX = (l.p1.x + l.p2.x) / 2;
         int dashCenterY = (l.p1.y + l.p2.y) / 2;
-        //cout << "Slope: " << l.slope << " min is " << MIN_ANGLE << endl;
         if ((l.slope < MIN_ANGLE) && (l.slope > ((-1) * MIN_ANGLE))
             || (dashCenterY < h / 15) || (dashCenterX > 19 * w / 20)) //|| (dashCenterX < w/20) too left //too high
         {
@@ -851,17 +821,12 @@ void characteristicFiltering(LinesToUse *ltu)
         {
             for (int i = 0; i < cntDash; i++)
             {
-                cout << "new iteration" << endl;
                 for (int j = 0; j < cntDash; j++)
                 {
-                    cout << "Dash line. p1(" << dashLines[j].p1.x << "," << dashLines[j].p1.y << ") p2(" << dashLines[j].p2.x << "," << dashLines[j].p2.y << ")" << endl;
                 }
-                //cout << "Dash y: " << max(dashLines[i].p1.y,dashLines[i].p2.y) << endl;
-                //cout << "Dash max: " << max(dashLines[i+1].p1.y,dashLines[i+1].p2.y) << " Dash min: " <<  min(dashLines[i].p1.y,dashLines[i].p2.y) << endl;
                 if (i != cntDash - 1 && max(dashLines[i + 1].p1.y, dashLines[i + 1].p2.y)
                                         > min(dashLines[i].p1.y, dashLines[i].p2.y))
                 {
-                    //cout << "Removing wrong dash!" << endl;
                     int positionX = getIntersectionWithBottom(dashLines[i]);
                     int nPositionX = getIntersectionWithBottom(dashLines[i + 1]);
                     if (abs(currentDashGoalX - positionX)
@@ -869,13 +834,11 @@ void characteristicFiltering(LinesToUse *ltu)
                     {
                         dashLines.erase(dashLines.begin() + 1);
                         cntDash--;
-                        cout << "rm other" << endl;
                     }
                     else
                     {
                         dashLines.erase(dashLines.begin());
                         cntDash--;
-                        cout << "rm current" << endl;
                     }
                     if (i > 0)
                     {
@@ -1038,24 +1001,11 @@ int getIntersectionWithBottom(CustomLine l)
 
 vector<CustomLine> findCurve(vector<CustomLine> lines)
 {
-    bool printouts = true;
-    if (printouts)
-        cout << "__running findCurves" << endl;
-    // This function is used to merge the dashes to one curve, or
     // used to be sure that you have found the dashes.
     std::vector<CustomLine> curve;
     if (lines.size() < 2)
     {
-        if (printouts)
-            cout << "findCurve need at least 2 lines. returning" << endl;
         return curve;
-    }
-    if (printouts)
-    {
-        for (int j = 0; j < lines.size(); j++)
-        {
-            cout << "Dash line. p1(" << lines[j].p1.x << "," << lines[j].p1.y << ") p2(" << lines[j].p2.x << "," << lines[j].p2.y << ")" << endl;
-        }
     }
     for (int j = 1; j < lines.size(); j++)
     {
@@ -1086,26 +1036,10 @@ vector<CustomLine> findCurve(vector<CustomLine> lines)
             float slopeDiffToLineJ = abs(slopeInBetween - slopeB);
             //float distInBetween = getDist(lines[0].p2, lines[j].p1);
 
-            if (printouts)
-            {
-                cout << "slopeA: " << slopeA;
-                cout << " slopeB: " << slopeB;
-                cout << " slopeInBetween: " << slopeInBetween << endl;
-                //cout << " distInBetween: " << distInBetween << endl;
-                cout << " slopeDiffLines: " << slopeDiffLines;
-                cout << " slopeDiffToLine0: " << slopeDiffToLine0;
-                cout << " slopeDiffToLineJ: " << slopeDiffToLineJ << endl;
-            }
 
             if ((slopeDiffLines < 60) && (slopeDiffToLine0 < slopeDiffLines + 20) &&
                 (slopeDiffToLineJ < slopeDiffLines + 20))// && (distInBetween < m_config.maxY * 0.7))
             {
-                if (printouts)
-                {
-                    cout << "curve found";
-                    cout << "(" << lines[j].p1.x << "," << lines[j].p1.y << ") ";
-                    cout << "(" << lines[j].p2.x << "," << lines[j].p2.y << ") " << endl;
-                }
 
                 curve.push_back(lines[j]);
 
@@ -1125,15 +1059,11 @@ vector<CustomLine> findCurve(vector<CustomLine> lines)
                 }
                 else
                 {
-                    if (printouts)
-                        cout << "__longest curve found. returning" << endl;
                     return curve;
                 }
             }
         }
     }
-    if (printouts)
-        cout << "__No curve found, returning." << endl;
     return curve;
 }
 
