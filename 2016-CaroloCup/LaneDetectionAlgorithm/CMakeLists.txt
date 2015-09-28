@@ -8,7 +8,7 @@ FIND_PACKAGE (OpenCV REQUIRED)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-set(SOURCE_FILES main.cpp)
+set(SOURCE_FILES main.cpp main.h)
 add_executable(LaneDetectionAlgorithm ${SOURCE_FILES})
 target_link_libraries( LaneDetectionAlgorithm ${OpenCV_LIBS})
 
