@@ -2,7 +2,7 @@
 
 int main(int argc, char **argv) {
     m_config.XTimesYMin = 2;
-    m_config.XTimesYMax  = 20;
+    m_config.XTimesYMax = 20;
     m_config.maxY = 235;
     m_config.maxArea = 4;
 
@@ -31,7 +31,6 @@ int main(int argc, char **argv) {
     getAndDisplayRectangles();
 
     classifyLines();
-
 
 
     filterAndMerge();
@@ -283,18 +282,14 @@ void classifyLines() {
                  && area < m_config.maxArea * 10000) {
             solidLines[cntSolid] = createLineFromRect(&rect, sizeX, sizeY, i);
             cntSolid++;
-        } else if (area > m_config.maxArea * 10000)
-        {
+        } else if (area > m_config.maxArea * 10000) {
             minXI = w;
             minYI = h;
-            for (int j = 0; j < 4; j++)
-            {
-                if (minXI > rect_points[j].x)
-                {
+            for (int j = 0; j < 4; j++) {
+                if (minXI > rect_points[j].x) {
                     minXI = rect_points[j].x;
                 }
-                if (minYI > rect_points[j].y)
-                {
+                if (minYI > rect_points[j].y) {
                     minYI = rect_points[j].y;
                 }
             }
@@ -307,9 +302,9 @@ void classifyLines() {
             //intersectionOn = true;
             //foundIntersection = true;
             float angle_thr = 10;
-            float height_thr = (1*h)/2;
-            if ( (abs(rect.angle) < angle_thr || 180 - abs(rect.angle) < angle_thr ) && rectCenter.y > height_thr && roadState == NORMAL)
-            {
+            float height_thr = (1 * h) / 2;
+            if ((abs(rect.angle) < angle_thr || 180 - abs(rect.angle) < angle_thr) && rectCenter.y > height_thr &&
+                roadState == NORMAL) {
                 roadState = INTERSECTION;
                 //confidenceLevel = CONFIDENCE_LEVEL_MAX;
                 intersectionOn = true;
@@ -325,25 +320,24 @@ void classifyLines() {
     }
 
 //        TimeStamp endTime;
-        auto endTime = chrono::high_resolution_clock::now();
+    auto endTime = chrono::high_resolution_clock::now();
 //        long time_taken_contour = (endTime.toMicroseconds() - intersection_start)/ 1000.0;
-        long time_taken_contour = chrono::duration_cast<chrono::microseconds>(endTime - intersection_start).count();
-        if (time_taken_contour > 800){
-            cout << "roadState set to NORMAL do TIMEOUT" << endl;
-            roadState = NORMAL;
-            intersectionOn = false;
-            foundIntersection = false;
-            calcIntersectionGoalLine = false;
-        }
+    long time_taken_contour = chrono::duration_cast<chrono::microseconds>(endTime - intersection_start).count();
+    if (time_taken_contour > 800) {
+        cout << "roadState set to NORMAL do TIMEOUT" << endl;
+        roadState = NORMAL;
+        intersectionOn = false;
+        foundIntersection = false;
+        calcIntersectionGoalLine = false;
+    }
 
-        if (intersectionRect == -1 && roadState == INTERSECTION){
-            cout << "STOPS updating intersection_goalLine: " << endl;
-            calcIntersectionGoalLine = false;
-        }
+    if (intersectionRect == -1 && roadState == INTERSECTION) {
+        cout << "STOPS updating intersection_goalLine: " << endl;
+        calcIntersectionGoalLine = false;
+    }
 
-        if (intersectionOn && !foundIntersection)
-        {
-            YI = h;
+    if (intersectionOn && !foundIntersection) {
+        YI = h;
 
 
     }
@@ -398,18 +392,14 @@ void filterAndMerge() {
     }
 }
 
-void finalFilter()
-{
-    for (int i = 0; i < cntSolid; i++)
-    {
+void finalFilter() {
+    for (int i = 0; i < cntSolid; i++) {
         CustomLine l = solidLines[i];
         int minAngle = MIN_ANGLE - 5;
-        if (abs(l.slope) < minAngle)
-        {
+        if (abs(l.slope) < minAngle) {
             solidLines[i] = solidLines[cntSolid - 1];
             cntSolid--;
-            if (i > 0)
-            {
+            if (i > 0) {
                 i--;
             }
             foundStopStartLine = true;
@@ -418,8 +408,7 @@ void finalFilter()
 
     //Dash also positioned too high on the image or too left or too right
     int maxDashY = 0;
-    for (int i = 0; i < cntDash; i++)
-    {
+    for (int i = 0; i < cntDash; i++) {
         CustomLine l = dashLines[i];
         int dashCenterX = (l.p1.x + l.p2.x) / 2;
         int dashCenterY = (l.p1.y + l.p2.y) / 2;
@@ -428,23 +417,20 @@ void finalFilter()
         {
             dashLines[i] = dashLines[cntDash - 1];
             cntDash--;
-            if (i > 0)
-            {
+            if (i > 0) {
                 i--;
             }
         }
 
-        if (maxDashY < max(dashLines[i].p1.y, dashLines[i].p2.y))
-        {
+        if (maxDashY < max(dashLines[i].p1.y, dashLines[i].p2.y)) {
             maxDashY = max(dashLines[i].p1.y, dashLines[i].p2.y);
         }
     }
 
 }
 
-void characteristicFiltering(LinesToUse *ltu)
-{
-    if (roadState == INTERSECTION){
+void characteristicFiltering(LinesToUse *ltu) {
+    if (roadState == INTERSECTION) {
         // reset x-values
         currentDashGoalX = 0;
         currentRightGoalX = 0;
@@ -460,18 +446,15 @@ void characteristicFiltering(LinesToUse *ltu)
     ltu->rightLineVec = Vec4i(0, 0, 0, 0);
     //Pick the suitable dashLine
     ltu->dashedCurveFound = false;
-    if (cntDash > 0)
-    {
+    if (cntDash > 0) {
         ltu->dashLine.p1.y = 0;
         ltu->dashLine.p2.y = 0;
         // Sort the dashes by highest p1.y value first
         std::sort(dashLines.begin(), dashLines.begin() + cntDash);
         ltu->cntDash = cntDash;
         // Make p1 be the bottom point
-        for (int i = 0; i < cntDash; i++)
-        {
-            if (dashLines[i].p1.y < dashLines[i].p2.y)
-            {
+        for (int i = 0; i < cntDash; i++) {
+            if (dashLines[i].p1.y < dashLines[i].p2.y) {
                 // Flipping p1 <-> p2, recalc slope.
                 Point tmp = dashLines[i].p1;
                 dashLines[i].p2 = dashLines[i].p1;
@@ -487,8 +470,7 @@ void characteristicFiltering(LinesToUse *ltu)
         // continue to look if other dashes also matches. (findCurve should spawn
         // one CustomLine vector for eash found curve)
         //
-        if (cntDash > 1)
-        {
+        if (cntDash > 1) {
             // Copy needed data
             std::vector<CustomLine> dashedLines = dashLines;
             std::vector<CustomLine> unusedLines;
@@ -497,18 +479,15 @@ void characteristicFiltering(LinesToUse *ltu)
             // The found curves will be stored in this
             std::vector<vector<CustomLine> > curves;
 
-            for (int i = 0; i < cntDash - 1; i++)
-            {
+            for (int i = 0; i < cntDash - 1; i++) {
                 // When fiding curve from i, dashes present at i < don't need to be checked.
                 std::vector<CustomLine> lines;
-                for (int j = 0; j < cntDashed; j++)
-                {
+                for (int j = 0; j < cntDashed; j++) {
                     lines.push_back(dashedLines[j]);
                 }
 
                 std::vector<CustomLine> res = findCurve(lines);
-                if (res.size() == 0)
-                {
+                if (res.size() == 0) {
                     unusedLines.push_back(dashedLines[0]);
                     dashedLines.erase(dashedLines.begin());
                     cntDashed--;
@@ -518,40 +497,34 @@ void characteristicFiltering(LinesToUse *ltu)
                 std::vector<CustomLine> curve;
                 curve.push_back(lines[0]);
 
-                for (int j = 0; j < res.size(); j++)
-                {
+                for (int j = 0; j < res.size(); j++) {
                     curve.push_back(res[j]);
                 }
                 // Save the found curve
                 curves.push_back(curve);
 
                 // Remove dashed lines already a part of a found curve
-                for (int j = 0; j < curve.size(); j++)
-                {
-                    for (int k = 0; k < cntDashed; k++)
-                    {
-                        if (curve[j] == dashedLines[k])
-                        {
+                for (int j = 0; j < curve.size(); j++) {
+                    for (int k = 0; k < cntDashed; k++) {
+                        if (curve[j] == dashedLines[k]) {
                             dashedLines.erase(dashedLines.begin() + k);
                             cntDashed--;
                         }
                     }
                 }
                 // Check if we got enough lines to make another curve
-                if (cntDashed < 2)
-                {
+                if (cntDashed < 2) {
                     break;
                 }
             }
             // Pick which curve to use
             int maxY = 0;
-            for (int i = 0; i < curves.size(); i++)
-            {
+            for (int i = 0; i < curves.size(); i++) {
                 int dashSupPosX = getIntersectionWithBottom(curves[i][0]);
 
                 if (curves[i][0].p1.y > maxY &&
                     (abs(dashSupPosX - currentDashGoalX) < calcRoadSize * 0.8
-                     || currentDashGoalX == 0)){
+                     || currentDashGoalX == 0)) {
                     dashLines[0] = curves[i][0];
                     ltu->dashedCurve = curves[i];
                     ltu->dashedCurveFound = true;
@@ -562,35 +535,32 @@ void characteristicFiltering(LinesToUse *ltu)
 //            global_dashedCurve = ltu->dashedCurve;
             // Check if any remaining dashed lines not a part of a curve could be potential
             // left or right lines.
-            if (ltu->dashedCurveFound)
-            {
-                for (int j = 0; j < cntDashed; j++)
-                {
+            if (ltu->dashedCurveFound) {
+                for (int j = 0; j < cntDashed; j++) {
                     unusedLines.push_back(dashedLines[j]);
                 }
 
-                for (int i = 0; i < unusedLines.size(); i++)
-                {
+                for (int i = 0; i < unusedLines.size(); i++) {
                     int s = ltu->dashedCurve.size() - 1;
 
                     // Checks if a unused dash line is interleaved with the found dashed curve w.r.t the y-axis
                     if (!(((unusedLines[i].p1.y > ltu->dashedCurve[0].p1.y) &&
                            (unusedLines[i].p2.y > ltu->dashedCurve[0].p1.y)) ||
                           ((unusedLines[i].p1.y < ltu->dashedCurve[s].p2.y) &&
-                           (unusedLines[i].p2.y < ltu->dashedCurve[s].p2.y))))
-                    {
+                           (unusedLines[i].p2.y < ltu->dashedCurve[s].p2.y)))) {
                         // Filter away short lines that probably do not have an accurate angle
-                        if (getDist(unusedLines[i].p1, unusedLines[i].p2) > (m_config.maxY / 3)){
+                        if (getDist(unusedLines[i].p1, unusedLines[i].p2) > (m_config.maxY / 3)) {
                             solidLines[cntSolid] = unusedLines[i];
                             cntSolid++;
-                        }else{
+                        } else {
                         }
                     }
                 }
                 // set currentDashGoalX
                 ltu->dashLine = ltu->dashedCurve[0];
                 currentDashGoalX = getIntersectionWithBottom(ltu->dashLine);
-                ltu->dashLineVec = Vec4i(ltu->dashLine.p1.x, ltu->dashLine.p1.y, ltu->dashLine.p2.x, ltu->dashLine.p2.y);
+                ltu->dashLineVec = Vec4i(ltu->dashLine.p1.x, ltu->dashLine.p1.y, ltu->dashLine.p2.x,
+                                         ltu->dashLine.p2.y);
                 ltu->foundD = true;
             }
         }
@@ -598,53 +568,42 @@ void characteristicFiltering(LinesToUse *ltu)
         //
         // The old way to do it follows
         //
-        if (!ltu->dashedCurveFound)
-        {
-            for (int i = 0; i < cntDash; i++)
-            {
-                for (int j = 0; j < cntDash; j++)
-                {
+        if (!ltu->dashedCurveFound) {
+            for (int i = 0; i < cntDash; i++) {
+                for (int j = 0; j < cntDash; j++) {
                 }
                 if (i != cntDash - 1 && max(dashLines[i + 1].p1.y, dashLines[i + 1].p2.y)
-                                        > min(dashLines[i].p1.y, dashLines[i].p2.y))
-                {
+                                        > min(dashLines[i].p1.y, dashLines[i].p2.y)) {
                     int positionX = getIntersectionWithBottom(dashLines[i]);
                     int nPositionX = getIntersectionWithBottom(dashLines[i + 1]);
                     if (abs(currentDashGoalX - positionX)
-                        < abs(currentDashGoalX - nPositionX))
-                    {
+                        < abs(currentDashGoalX - nPositionX)) {
                         dashLines.erase(dashLines.begin() + 1);
                         cntDash--;
                     }
-                    else
-                    {
+                    else {
                         dashLines.erase(dashLines.begin());
                         cntDash--;
                     }
-                    if (i > 0)
-                    {
+                    if (i > 0) {
                         i--;
                     }
                 }
 
-                if (intersectionOn && ((dashLines[i].p1.y + dashLines[i].p2.y) / 2) < YI)
-                {
+                if (intersectionOn && ((dashLines[i].p1.y + dashLines[i].p2.y) / 2) < YI) {
                     dashLines[i] = dashLines[cntDash - 1];
                     cntDash--;
-                    if (i > 0)
-                    {
+                    if (i > 0) {
                         i--;
                     }
                 }
             }
-            if (cntDash > 0)
-            {
+            if (cntDash > 0) {
                 ltu->dashLine = dashLines[0];
                 int dashSupPosX = getIntersectionWithBottom(ltu->dashLine);
                 //if(ltu->dashLine.slope < 0) {
                 if (abs(dashSupPosX - currentDashGoalX) < calcRoadSize * 0.8
-                    || currentDashGoalX == 0)
-                {
+                    || currentDashGoalX == 0) {
                     /*if(max(ltu->dashLine.p1.x, ltu->dashLine.p2.x) < w/10) {
                      shrinkSize = true;
                      }*/
@@ -660,63 +619,52 @@ void characteristicFiltering(LinesToUse *ltu)
     }
 
     // Determine which solid line is the left and right solid lines
-    if (cntSolid > 0 && !intersectionOn)
-    {
+    if (cntSolid > 0 && !intersectionOn) {
         ltu->rightLine.p1.x = w + 50;
         ltu->rightLine.p2.x = w + 50;
-        for (int i = 0; i < cntSolid; i++)
-        {
+        for (int i = 0; i < cntSolid; i++) {
             if (solidLines[i].slope < 90 && solidLines[i].slope > 0
                 && min(solidLines[i].p1.x, solidLines[i].p2.x)
-                   < min(ltu->rightLine.p1.x, ltu->rightLine.p2.x))
-            {
+                   < min(ltu->rightLine.p1.x, ltu->rightLine.p2.x)) {
                 ltu->rightLine = solidLines[i];
                 ltu->foundR = true;
             }
         }
-        if (ltu->foundR)
-        {
+        if (ltu->foundR) {
             int rSupPosX = getIntersectionWithBottom(ltu->rightLine);
 
             if (abs(rSupPosX - currentRightGoalX) < calcRoadSize * 0.8
-                || currentRightGoalX == 0)
-            {
+                || currentRightGoalX == 0) {
                 ltu->rightLineVec = Vec4i(ltu->rightLine.p1.x, ltu->rightLine.p1.y,
                                           ltu->rightLine.p2.x, ltu->rightLine.p2.y);
                 currentRightGoalX = rSupPosX;
             }
-            else
-            {
+            else {
                 ltu->foundR = false;
             }
         }
 
         ltu->leftLine.p1.x = -50;
         ltu->leftLine.p2.x = -50;
-        for (int i = 0; i < cntSolid; i++)
-        {
+        for (int i = 0; i < cntSolid; i++) {
             // centerSolidLineX commented to avoid unused variable warning!
             //int centerSolidLineX = (solidLines[i].p1.x + solidLines[i].p2.x)/2;
             if (solidLines[i].slope > -90 && solidLines[i].slope < 0
                 && min(solidLines[i].p1.x, solidLines[i].p2.x)
-                   > min(ltu->leftLine.p1.x, ltu->leftLine.p2.x))
-            {
+                   > min(ltu->leftLine.p1.x, ltu->leftLine.p2.x)) {
                 ltu->leftLine = solidLines[i];
                 ltu->foundL = true;
             }
         }
-        if (ltu->foundL)
-        {
+        if (ltu->foundL) {
             int lSupPosX = getIntersectionWithBottom(ltu->leftLine);
             if (abs(lSupPosX - currentLeftGoalX) < calcRoadSize * 0.8
-                || currentLeftGoalX == 0)
-            {
+                || currentLeftGoalX == 0) {
                 ltu->leftLineVec = Vec4i(ltu->leftLine.p1.x, ltu->leftLine.p1.y,
                                          ltu->leftLine.p2.x, ltu->leftLine.p2.y);
                 currentLeftGoalX = lSupPosX;
             }
-            else
-            {
+            else {
                 ltu->foundL = false;
             }
         }
@@ -726,37 +674,37 @@ void characteristicFiltering(LinesToUse *ltu)
     // This check is used to find out if we have passed an intersection.
     // If it is passed, it will set the roadState to NORMAL.
     //////////////////
-    if(roadState == INTERSECTION){
+    if (roadState == INTERSECTION) {
         int minSlope = 40;
 
         int maxY = 0;
 
-        if (ltu->dashedCurve.size() > 1){
-            for (int i = 0; i < ltu->dashedCurve.size(); i ++){
-                if (maxY < ltu->dashedCurve[i].p1.y){ // p1 is always the point furtest down on the frame
+        if (ltu->dashedCurve.size() > 1) {
+            for (int i = 0; i < ltu->dashedCurve.size(); i++) {
+                if (maxY < ltu->dashedCurve[i].p1.y) { // p1 is always the point furtest down on the frame
                     maxY = ltu->dashedCurve[i].p1.y;
                 }
             }
 
-            if (abs(ltu->dashedCurve[0].slope) > minSlope && maxY > (8 * h / 10)){
+            if (abs(ltu->dashedCurve[0].slope) > minSlope && maxY > (8 * h / 10)) {
 
                 roadState = NORMAL;
                 intersectionOn = false;
                 foundIntersection = false;
                 calcIntersectionGoalLine = false;
             }
-        }else if(ltu->foundR){
+        } else if (ltu->foundR) {
             maxY = ltu->rightLine.p1.y;
-            if (abs(ltu->rightLine.slope) > minSlope && maxY > (8 * h / 10)){
+            if (abs(ltu->rightLine.slope) > minSlope && maxY > (8 * h / 10)) {
                 roadState = NORMAL;
                 intersectionOn = false;
                 foundIntersection = false;
                 calcIntersectionGoalLine = false;
 
             }
-        }else if(ltu->foundL){
+        } else if (ltu->foundL) {
             maxY = ltu->leftLine.p1.y;
-            if (abs(ltu->leftLine.slope) > minSlope && maxY > (8 * h / 10)){
+            if (abs(ltu->leftLine.slope) > minSlope && maxY > (8 * h / 10)) {
                 roadState = NORMAL;
                 intersectionOn = false;
                 foundIntersection = false;
@@ -768,31 +716,25 @@ void characteristicFiltering(LinesToUse *ltu)
     return;
 }
 
-int getIntersectionWithBottom(CustomLine l)
-{
+int getIntersectionWithBottom(CustomLine l) {
     float a = tan(M_PI * l.slope / 180);
     float b = l.p1.y - l.p1.x * a;
     int positionX = l.p1.x;
-    if (abs(a) > 0.001)
-    {
+    if (abs(a) > 0.001) {
         positionX = (h - b) / a;
     }
     return positionX;
 }
 
-vector<CustomLine> findCurve(vector<CustomLine> lines)
-{
+vector<CustomLine> findCurve(vector<CustomLine> lines) {
     // used to be sure that you have found the dashes.
     std::vector<CustomLine> curve;
-    if (lines.size() < 2)
-    {
+    if (lines.size() < 2) {
         return curve;
     }
-    for (int j = 1; j < lines.size(); j++)
-    {
+    for (int j = 1; j < lines.size(); j++) {
         // The snd dash has to be above the fst one
-        if (lines[0].p2.y > lines[j].p1.y)
-        {
+        if (lines[0].p2.y > lines[j].p1.y) {
             // The slope diviation between the dashes is limited
             float slopeA, slopeB;
             if (lines[0].slope < 0)
@@ -824,22 +766,19 @@ vector<CustomLine> findCurve(vector<CustomLine> lines)
 
                 curve.push_back(lines[j]);
 
-                if (lines.size() > 2)
-                {
+                if (lines.size() > 2) {
                     // Call recursively, but take away the already processed line
                     lines[0] = lines[j];
                     lines.erase(lines.begin() + j);
                     std::vector<CustomLine> res = findCurve(lines);
 
                     // Add the recursive result
-                    for (int j = 0; j < res.size(); j++)
-                    {
+                    for (int j = 0; j < res.size(); j++) {
                         curve.push_back(res[j]);
                     }
                     return curve;
                 }
-                else
-                {
+                else {
                     return curve;
                 }
             }
@@ -848,8 +787,7 @@ vector<CustomLine> findCurve(vector<CustomLine> lines)
     return curve;
 }
 
-float getDist(const Point p1, const Point p2)
-{
+float getDist(const Point p1, const Point p2) {
     return sqrt(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2));
 }
 
@@ -872,7 +810,6 @@ void displaySelectedLines() {
     if (ltu.foundR) {
         line(out, ltu.rightLine.p1, ltu.rightLine.p2, green, 2, 8, 0);
     }
-
 
 
     imshow("Selected Lines", out);
