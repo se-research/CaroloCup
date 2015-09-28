@@ -174,7 +174,7 @@ int cntSolid = 0;
 int h, w, offset;
 bool foundStopStartLine = false;
 
-RoadState roadState = NORMAL;
+
 
 int currentDashGoalX = 0;
 int currentRightGoalX = 0;
@@ -184,9 +184,10 @@ int calcRoadSize, calcRoadAngle;
 RotatedRect bigRect;
 bool intersectionOn = false;
 bool foundIntersection = false;
+RoadState roadState = NORMAL;
 int intersectionRect;
 bool calcIntersectionGoalLine = false;
-long intersection_start;
+auto intersection_start = chrono::high_resolution_clock::now();
 
 
 int readImage(char *imageName, int argc);

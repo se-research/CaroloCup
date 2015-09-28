@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
 
     classifyLines();
 
-    classificationTest();
+
 
     filterAndMerge();
 
@@ -283,7 +283,69 @@ void classifyLines() {
                  && area < m_config.maxArea * 10000) {
             solidLines[cntSolid] = createLineFromRect(&rect, sizeX, sizeY, i);
             cntSolid++;
+        } else if (area > m_config.maxArea * 10000)
+        {
+            minXI = w;
+            minYI = h;
+            for (int j = 0; j < 4; j++)
+            {
+                if (minXI > rect_points[j].x)
+                {
+                    minXI = rect_points[j].x;
+                }
+                if (minYI > rect_points[j].y)
+                {
+                    minYI = rect_points[j].y;
+                }
+            }
+            YI = rectCenter.y;
+            intersectionRect = i;
+            bigRect = rects[i];
+            cout << "area: " << area << endl;
+            cout << "intersectionRect: " << intersectionRect << endl;
+
+            //intersectionOn = true;
+            //foundIntersection = true;
+            float angle_thr = 10;
+            float height_thr = (1*h)/2;
+            if ( (abs(rect.angle) < angle_thr || 180 - abs(rect.angle) < angle_thr ) && rectCenter.y > height_thr && roadState == NORMAL)
+            {
+                roadState = INTERSECTION;
+                //confidenceLevel = CONFIDENCE_LEVEL_MAX;
+                intersectionOn = true;
+                calcIntersectionGoalLine = true;
+                foundIntersection = true;
+
+//                TimeStamp currentTime;
+//                intersection_start = currentTime.toMicroseconds();
+                auto intersection_start = chrono::high_resolution_clock::now();
+            }
+
         }
+    }
+
+//        TimeStamp endTime;
+        auto endTime = chrono::high_resolution_clock::now();
+//        long time_taken_contour = (endTime.toMicroseconds() - intersection_start)/ 1000.0;
+        long time_taken_contour = chrono::duration_cast<chrono::microseconds>(endTime - intersection_start).count();
+        if (time_taken_contour > 800){
+            cout << "roadState set to NORMAL do TIMEOUT" << endl;
+            roadState = NORMAL;
+            intersectionOn = false;
+            foundIntersection = false;
+            calcIntersectionGoalLine = false;
+        }
+
+        if (intersectionRect == -1 && roadState == INTERSECTION){
+            cout << "STOPS updating intersection_goalLine: " << endl;
+            calcIntersectionGoalLine = false;
+        }
+
+        if (intersectionOn && !foundIntersection)
+        {
+            YI = h;
+
+
     }
 }
 
