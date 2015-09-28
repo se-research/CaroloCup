@@ -32,9 +32,11 @@ int main(int argc, char **argv) {
 
     classifyLines();
 
+    classificationTest();
+
     filterAndMerge();
 
-//    finalFilter();
+    finalFilter();
 
     displayDashedLines();
     displaySolidLines();
@@ -797,8 +799,19 @@ void displaySelectedLines() {
     Scalar green = Scalar(0, 255, 0);
     Scalar red = Scalar(0, 0, 255);
 
-    line(out, ltu.dashLine.p1, ltu.dashLine.p2, red, 2, 8, 0);
-    line(out, ltu.rightLine.p1, ltu.rightLine.p2, green, 2, 8, 0);
-    line(out, ltu.leftLine.p1, ltu.leftLine.p2, blue, 2, 8, 0);
+    if (ltu.foundD) {
+        line(out, ltu.dashLine.p1, ltu.dashLine.p2, red, 2, 8, 0);
+    }
+
+    if (ltu.foundL) {
+        line(out, ltu.leftLine.p1, ltu.leftLine.p2, blue, 2, 8, 0);
+    }
+
+    if (ltu.foundR) {
+        line(out, ltu.rightLine.p1, ltu.rightLine.p2, green, 2, 8, 0);
+    }
+
+
+
     imshow("Selected Lines", out);
 };
