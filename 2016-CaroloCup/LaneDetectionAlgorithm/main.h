@@ -197,15 +197,13 @@ void cropImage();
 
 int getDynamicThresh(int lux);
 
-void applyThreshold();
+void applyAndDisplayThreshold();
 
 void getAndDisplayContours();
 
 void getAndDisplayPolygonContours();
 
 void getAndDisplayRectangles();
-
-void getDashedLines();
 
 float getLineSlope(Point &p1, Point &p2);
 
@@ -218,8 +216,6 @@ void classifyLines();
 void displaySolidLines();
 
 void filterAndMerge();
-
-void displayBothLineTypes();
 
 void finalFilter();
 

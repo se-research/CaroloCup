@@ -22,9 +22,7 @@ int main(int argc, char **argv) {
     image.copyTo(originalImage);
     cvtColor(originalImage, originalImage, CV_GRAY2BGR);
 
-
-    applyThreshold();
-    //imshow("Threshold Image Lux 50", image);
+    applyAndDisplayThreshold();
 
     getAndDisplayContours();
 
@@ -34,21 +32,17 @@ int main(int argc, char **argv) {
 
     classifyLines();
 
-    displayDashedLines();
-
-    displaySolidLines();
-
     filterAndMerge();
-
-    displayBothLineTypes();
 
     finalFilter();
 
-    displayBothLineTypes();
+    displayDashedLines();
+    displaySolidLines();
 
     characteristicFiltering(&ltu);
 
     waitKey(0);
+
     return 0;
 }
 
@@ -95,8 +89,9 @@ int getDynamicThresh(int lux) {
     return thresh[foundIndex[0]];
 }
 
-void applyThreshold() {
-    threshold(image, image, getDynamicThresh(50), 255, CV_THRESH_BINARY);
+void applyAndDisplayThreshold() {
+    threshold(image, image, getDynamicThresh(-2), 255, CV_THRESH_BINARY);
+//    imshow("Threshold Image Lux -2", image);
 }
 
 void getAndDisplayContours() {
@@ -110,7 +105,7 @@ void getAndDisplayContours() {
     Mat out = Mat(image.size().height, image.size().width, CV_32F);
     for (int i = 0; i < contours.size(); i++) {
         Scalar color = Scalar(255, 255, 255);
-        cv::drawContours(out, contours, i, color, 2, 8, hierarchy, 0, Point());
+        cv::drawContours(out, contours, i, color, 1, 8, hierarchy, 0, Point());
     }
 //    imshow("Contours", out);
 }
@@ -123,11 +118,10 @@ void getAndDisplayPolygonContours() {
         approxPolyDP(Mat(contours[i]), contours_poly[i], 3, true);
     }
 
-    Mat out;
-    originalImage.copyTo(out);
+    Mat out = Mat(image.size().height, image.size().width, CV_32F);
     for (unsigned int i = 0; i < contours_poly.size(); i++) {
-        Scalar color = Scalar(0, 0, 255);
-        drawContours(out, contours_poly, i, color, 2, 8, vector<Vec4i>(), 0, Point());
+        Scalar color = Scalar(255, 255, 255);
+        drawContours(out, contours_poly, i, color, 1, 8, vector<Vec4i>(), 0, Point());
     }
 //    imshow("Polygon Contours", out);
 }
@@ -193,41 +187,6 @@ void getAndDisplayRectangles() {
 
 }
 
-void getDashedLines() {
-    //confidenceLevel = 0;
-    int sizeX;
-    int sizeY;
-    int sizeR;
-    int area;
-    RotatedRect rect;
-    Point2f rect_points[4];
-    Point rectCenter;
-    Point shortSideMiddle;
-    //intersectionRect = -1;
-
-    for (unsigned int i = 0; i < line_sizes.size(); i++) {
-        sizeX = line_sizes[i].sizeX;
-        sizeY = line_sizes[i].sizeY;
-        sizeR = line_sizes[i].sizeR;
-        shortSideMiddle = line_sizes[i].shortSideMiddle;
-        area = sizeX * sizeY;
-        rect = rects[i];
-        rect.points(rect_points);
-        rectCenter.x = rect.center.x;
-        rectCenter.y = rect.center.y;
-        rect.angle = getLineSlope(shortSideMiddle, rectCenter);
-
-        if (sizeY > m_config.XTimesYMin * sizeX
-            && sizeY < m_config.XTimesYMax * sizeX
-            && sizeY < m_config.maxY) {
-            dashLines[cntDash] = createLineFromRect(&rect, sizeX, sizeY, i);
-            cntDash++;
-        }
-
-    }
-
-}
-
 float getLineSlope(Point &p1, Point &p2) {
     float slope = M_PI / 2;
     if ((p1.x - p2.x) != 0) {
@@ -286,7 +245,7 @@ void displayDashedLines() {
         }
     }
 
-    imshow("Classified Dashed Lines", out);
+    imshow("Dashed Lines", out);
 }
 
 void classifyLines() {
@@ -334,7 +293,7 @@ void displaySolidLines() {
             line(out, solidLines[i].p1, solidLines[i].p2, color, 2, 8, 0);
         }
     }
-    imshow("Classified Solid Lines", out);
+    imshow("Solid Lines", out);
 }
 
 void filterAndMerge() {
@@ -372,23 +331,6 @@ void filterAndMerge() {
             }
         }
     }
-}
-
-void displayBothLineTypes() {
-    Mat out;
-    originalImage.copyTo(out);
-    for (unsigned int i = 0; i < contours_poly.size(); i++) {
-        Scalar color = Scalar(0, 0, 255);
-        for (int i = 0; i < solidLines.size(); i++) {
-            line(out, solidLines[i].p1, solidLines[i].p2, color, 3, 8, 0);
-        }
-        for (int j = 0; j < dashLines.size(); j++) {
-            line(out, dashLines[i].p1, dashLines[i].p2, color, 3, 8, 0);
-        }
-
-    }
-
-    imshow("Both lines", out);
 }
 
 void finalFilter()
