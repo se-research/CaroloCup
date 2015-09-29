@@ -13,6 +13,13 @@
 //using namespace core::data;
 
 #define MIN_ANGLE 15
+#define MIN_ANGLE 15
+#define LEFT_ROAD_SIZE 350
+#define ROAD_SIZE 685//770
+#define ROAD_GOAL 0.5
+#define ROAD_ANGLE 85
+#define MID_DASH_ANGLE -47
+#define CONFIDENCE_LEVEL_MAX 5
 using namespace std;
 using namespace cv;
 
@@ -153,7 +160,110 @@ enum RoadState{
     INTERSECTION
 };
 
+struct EstimationData {
+    bool isLeftEstimated;
+    bool isDashEstimated;
+    bool isRightEstimated;
+    bool foundGoal;
+    CustomLine left;
+    CustomLine dash;
+    CustomLine right;
+    int calcRoadSize;
+    int yPosition;
+};
+struct GoalLineData {
+    CustomLine rightGoalLine;
+    CustomLine leftGoalLine;
+    int confidenceLevel_rightGoalLine;
+};
+class LaneDetectorDataToDriver
+{
+public:
+    LaneDetectorDataToDriver () :
+            switchPointsLeftGoalLines0(),
+            switchPointsRightGoalLines0(),
+            switchPointsLeftGoalLines1(),
+            switchPointsRightGoalLines1(),
+            leftGoalLines0(),
+            rightGoalLines0(),
+            leftGoalLines1(),
+            rightGoalLines1(),
+            leftGoalLines2(),
+            rightGoalLines2(),
+            leftGoalLines3(),
+            rightGoalLines3(),
+            currentLine(),
+            roadState(NORMAL),
+            confidenceLevel(0),
+            confidenceLevel_goalLine(0),
+            noTrajectory(true)
+    {}
+    LaneDetectorDataToDriver (vector<int> spl, vector<int> spr, vector<CustomLine> lgl, vector<CustomLine> rgl, CustomLine c, bool nothing, int clgl):
+            switchPointsLeftGoalLines0(spl[0]),
+            switchPointsRightGoalLines0(spr[0]),
+            switchPointsLeftGoalLines1(spl[1]),
+            switchPointsRightGoalLines1(spr[1]),
+            leftGoalLines0(lgl[0]),
+            rightGoalLines0(rgl[0]),
+            leftGoalLines1(lgl[1]),
+            rightGoalLines1(rgl[1]),
+            leftGoalLines2(lgl[2]),
+            rightGoalLines2(rgl[2]),
+            leftGoalLines3(lgl[3]),
+            rightGoalLines3(rgl[3]),
+            currentLine(c),
+            roadState(NORMAL),
+            confidenceLevel(0),
+            confidenceLevel_goalLine(clgl),
+            noTrajectory(nothing)
+    {}
+    LaneDetectorDataToDriver (CustomLine lgl, CustomLine rgl, CustomLine c, bool nothing, int clgl):
+            switchPointsLeftGoalLines0(),
+            switchPointsRightGoalLines0(),
+            switchPointsLeftGoalLines1(),
+            switchPointsRightGoalLines1(),
+            leftGoalLines0(lgl),
+            rightGoalLines0(rgl),
+            leftGoalLines1(),
+            rightGoalLines1(),
+            leftGoalLines2(),
+            rightGoalLines2(),
+            leftGoalLines3(),
+            rightGoalLines3(),
+            currentLine(c),
+            roadState(NORMAL),
+            confidenceLevel(0),
+            confidenceLevel_goalLine(clgl),
+            noTrajectory(nothing)
+    {}
+    virtual ~LaneDetectorDataToDriver () {}
 
+    void setRoadState(RoadState state){
+        roadState=state;
+    }
+    void setConfidence(int conf){
+        confidenceLevel = conf;
+    }
+    int switchPointsLeftGoalLines0;
+    int switchPointsRightGoalLines0;
+    int switchPointsLeftGoalLines1;
+    int switchPointsRightGoalLines1;
+    CustomLine leftGoalLines0;
+    CustomLine rightGoalLines0;
+    CustomLine leftGoalLines1;
+    CustomLine rightGoalLines1;
+    CustomLine leftGoalLines2;
+    CustomLine rightGoalLines2;
+    CustomLine leftGoalLines3;
+    CustomLine rightGoalLines3;
+    CustomLine currentLine;
+    RoadState roadState;
+    int confidenceLevel;
+    int confidenceLevel_goalLine;
+    bool noTrajectory;
+};
+
+LaneDetectorDataToDriver *dataToDriver;
 LinesToUse ltu;
 
 Mat image;
@@ -166,6 +276,8 @@ vector<PolySize> line_sizes;
 vector<RotatedRect> rects;
 vector<CustomLine> solidLines;
 float minXI, minYI, YI;
+
+vector<Vec4i> hierarchy;
 
 Config m_config;
 
@@ -229,3 +341,29 @@ vector<CustomLine> findCurve(vector<CustomLine> lines);
 float getDist(const Point p1, const Point p2);
 
 void displaySelectedLines();
+
+
+CustomLine getNoneCustomLine();
+
+int getRoadAngle(int lineDetected, int lineAngle);
+
+int getRoadSize(int roadAngleVal);
+
+CustomLine simple_calculateGoalLine(CustomLine fst, CustomLine snd, EstimationData *ed);
+
+int getIntersectionWithY(CustomLine l, int y);
+
+void provideGoalLine(EstimationData *ed, GoalLineData *gld);
+
+bool isNoneCustomLine(CustomLine aspirant);
+
+void provideGoalLine(EstimationData *ed, GoalLineData *gld);
+
+int getIntersectionWithTop(CustomLine l);
+
+void createTrajectory(LinesToUse *ltu);
+
+void displayTrajectory();
+
+bool getIntersectionPoint(Point2f o1, Point2f p1, Point2f o2, Point2f p2,
+                          Point2f &r);
