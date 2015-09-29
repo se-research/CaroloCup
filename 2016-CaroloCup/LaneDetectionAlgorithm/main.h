@@ -310,13 +310,13 @@ void cropImage();
 
 int getDynamicThresh(int lux);
 
-void applyAndDisplayThreshold();
+void applyThreshold();
 
-void getAndDisplayContours();
+void getContours();
 
-void getAndDisplayPolygonContours();
+void getPolygonContours();
 
-void getAndDisplayRectangles();
+void getBoundingBoxes();
 
 float getLineSlope(Point &p1, Point &p2);
 
@@ -324,7 +324,11 @@ CustomLine createLineFromRect(RotatedRect *rect, int sizeX, int sizeY, int polyg
 
 void classifyLines();
 
-void displayBothLines();
+void displayDashedLines();
+
+void displaySolidLines();
+
+void displayBothLines(string Title);
 
 void filterAndMerge();
 
@@ -368,3 +372,9 @@ bool getIntersectionPoint(Point2f o1, Point2f p1, Point2f o2, Point2f p2,
 int getIntersectionWithTopP2(CustomLine l);
 
 PolySize createPolySize(const RotatedRect &rect);
+
+void displayContours();
+
+void displayPolygonContours();
+
+void displayBoundingBoxes();

@@ -1,60 +1,67 @@
 #include "main.h"
 
+bool showcase = true;
+
 int main(int argc, char **argv) {
     m_config.XTimesYMin = 2;
     m_config.XTimesYMax = 20;
     m_config.maxY = 235;
     m_config.maxArea = 4;
 
+    // Read supplied image path
     char *imageName = argv[1];
     if (!readImage(imageName, argc)) {
         printf(" No image data \n ");
         return -1;
-    };
-    //imshow("Original Image", image);
+    }
+    if (showcase) imshow("Original Image", image);
 
     toGrayScale();
-    //imshow("GrayScale Image", image);
+    if (showcase) imshow("Gray Scale Image", image);
 
     cropImage();
-    //imshow("Croped Image", image);
+    if (showcase) imshow("Cropped Image", image);
 
+    // Set frame size for future calculations
     w = image.size().width;
     h = image.size().height;
 
-    image.copyTo(originalImage);
-    cvtColor(originalImage, originalImage, CV_GRAY2BGR);
+    // Make a copy of the current image for demonstration purposes
+    if (showcase) {
+        image.copyTo(originalImage);
+        cvtColor(originalImage, originalImage, CV_GRAY2BGR);
+    }
 
-    applyAndDisplayThreshold();
+    applyThreshold();
+    if (showcase) imshow("Applied Threshold", image);
 
-    getAndDisplayContours();
+    getContours();
+    if (showcase) displayContours();
 
-    getAndDisplayPolygonContours();
+    getPolygonContours();
+    if (showcase) displayPolygonContours();
 
-    getAndDisplayRectangles();
+    getBoundingBoxes();
+    if (showcase) displayBoundingBoxes();
 
     classifyLines();
 
-//    displayDashedLines();
-//    displaySolidLines();
+    if (showcase) {
+        displayDashedLines();
+        displaySolidLines();
+    }
 
     filterAndMerge();
-
-//    displayBothLines();
-//    displayDashedLines();
-//    displaySolidLines();
+    if (showcase) displayBothLines("Filter and Merge");
 
     finalFilter();
-
-    displayBothLines();
+    if (showcase) displayBothLines("Final Filter");
 
     characteristicFiltering(&ltu);
-
-    displaySelectedLines();
+    if (showcase) displaySelectedLines();
 
     createTrajectory(&ltu);
-
-    displayTrajectory();
+    if (showcase) displayTrajectory();
 
     waitKey(0);
 
@@ -104,80 +111,59 @@ int getDynamicThresh(int lux) {
     return thresh[foundIndex[0]];
 }
 
-void applyAndDisplayThreshold() {
+void applyThreshold() {
     threshold(image, image, getDynamicThresh(-2), 255, CV_THRESH_BINARY);
-    imshow("Threshold Image Lux -2", image);
 }
 
-void getAndDisplayContours() {
+void getContours() {
     cntDash = 0;
     cntSolid = 0;
 
     findContours(image, contours, hierarchy, CV_RETR_TREE,
                  CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
-    //Mat drawing
-    Mat out = Mat(image.size().height, image.size().width, CV_32F);
-    for (int i = 0; i < contours.size(); i++) {
-        Scalar color = Scalar(255, 255, 255);
-        cv::drawContours(out, contours, i, color, 1, 8, hierarchy, 0, Point());
-    }
-    imshow("Contours", out);
 }
 
-void getAndDisplayPolygonContours() {
+void getPolygonContours() {
     contours_poly.resize(contours.size());
+
     dashLines = vector<CustomLine>(contours.size());
     solidLines = vector<CustomLine>(contours.size());
+
     for (unsigned int i = 0; i < contours.size(); i++) {
         approxPolyDP(Mat(contours[i]), contours_poly[i], 3, true);
     }
-
-    Mat out = Mat(image.size().height, image.size().width, CV_32F);
-    for (unsigned int i = 0; i < contours_poly.size(); i++) {
-        Scalar color = Scalar(255, 255, 255);
-        drawContours(out, contours_poly, i, color, 1, 8, hierarchy, 0, Point());
-    }
-    imshow("Polygon Contours", out);
 }
 
-void getAndDisplayRectangles() {
+void getBoundingBoxes() {
     RotatedRect rect;
-
-//    Mat out = Mat(image.size().height, image.size().width, CV_32F);
-    Mat out;
-    originalImage.copyTo(out);
 
     for (unsigned int i = 0; i < contours_poly.size(); i++) {
         rect = minAreaRect(contours_poly[i]);
         Point2f rect_points[4];
         rect.points(rect_points);
-//            rects.push_back(rect);
         int sizeX = 0, sizeY = 0, sizeR = 0;
         Point shortSideMiddle;
         Point longSideMiddle;
         // Find rect sizes
         for (int j = 0; j < 4; j++) {
-            sizeR = cv::sqrt(
-                    cv::pow((rect_points[j].x - rect_points[(j + 1) % 4].x), 2)
-                    + cv::pow(
-                            (rect_points[j].y
-                             - rect_points[(j + 1) % 4].y), 2));
+            sizeR = (int) cv::sqrt(
+                                cv::pow((rect_points[j].x - rect_points[(j + 1) % 4].x), 2)
+                                + cv::pow(
+                                        (rect_points[j].y
+                                         - rect_points[(j + 1) % 4].y), 2));
             if (sizeX == 0) {
                 sizeX = sizeR;
-                shortSideMiddle.x = (rect_points[j].x
-                                     + rect_points[(j + 1) % 4].x) / 2;
-                shortSideMiddle.y = (rect_points[j].y
-                                     + rect_points[(j + 1) % 4].y) / 2;
-            }
-            else if (sizeY == 0 && sizeR != sizeX) {
+                shortSideMiddle.x = (int) ((rect_points[j].x
+                                                     + rect_points[(j + 1) % 4].x) / 2);
+                shortSideMiddle.y = (int) ((rect_points[j].y
+                                                     + rect_points[(j + 1) % 4].y) / 2);
+            }  else if (sizeY == 0 && sizeR != sizeX) {
                 sizeY = sizeR;
-                longSideMiddle.x = (rect_points[j].x
-                                    + rect_points[(j + 1) % 4].x) / 2;
-                longSideMiddle.y = (rect_points[j].y
-                                    + rect_points[(j + 1) % 4].y) / 2;
+                longSideMiddle.x = (int) ((rect_points[j].x
+                                                    + rect_points[(j + 1) % 4].x) / 2);
+                longSideMiddle.y = (int) ((rect_points[j].y
+                                                    + rect_points[(j + 1) % 4].y) / 2);
             }
-
-            line(out, rect_points[j], rect_points[(j + 1) % 4], Scalar(0, 0, 255), 2);
         }
 
         if (sizeX > sizeY) {
@@ -195,9 +181,6 @@ void getAndDisplayRectangles() {
         line_sizes.push_back(polysize);
 
     }
-
-    imshow("Bounding Boxes", out);
-
 }
 
 float getLineSlope(Point &p1, Point &p2) {
@@ -1371,7 +1354,7 @@ bool getIntersectionPoint(Point2f o1, Point2f p1, Point2f o2, Point2f p2, Point2
     return true;
 }
 
-void displayBothLines() {
+void displayBothLines(string title) {
     Mat out;
     originalImage.copyTo(out);
 
@@ -1385,7 +1368,7 @@ void displayBothLines() {
         line(out, solidLines[i].p1, solidLines[i].p2, orange, 2, 8, 0);
     }
 
-    imshow("Final Filter", out);
+    imshow(title, out);
 }
 
 int getIntersectionWithTopP2(CustomLine l)
@@ -1520,4 +1503,45 @@ PolySize createPolySize(const RotatedRect &rect)
             { sizeX, sizeY, sizeR, shortSideMiddle, longSideMiddle };
     return polysize;
 
+}
+
+void displayContours() {
+    Mat out = Mat(image.size().height, image.size().width, CV_32F);
+
+    for (int i = 0; i < contours.size(); i++) {
+        Scalar color = Scalar(255, 255, 255);
+        cv::drawContours(out, contours, i, color, 1, 8, hierarchy, 0, Point());
+    }
+
+    imshow("Contours", out);
+}
+
+void displayPolygonContours() {
+    Mat out = Mat(image.size().height, image.size().width, CV_32F);
+
+    for (unsigned int i = 0; i < contours_poly.size(); i++) {
+        Scalar color = Scalar(255, 255, 255);
+        drawContours(out, contours_poly, i, color, 1, 8, hierarchy, 0, Point());
+    }
+
+    imshow("Polygon Contours", out);
+}
+
+void displayBoundingBoxes() {
+    Mat out;
+    originalImage.copyTo(out);
+
+    RotatedRect rect;
+
+    for (unsigned int i = 0; i < contours_poly.size(); i++) {
+        rect = minAreaRect(contours_poly[i]);
+        Point2f rect_points[4];
+        rect.points(rect_points);
+
+        for (int j = 0; j < 4; j++) {
+            line(out, rect_points[j], rect_points[(j + 1) % 4], Scalar(0, 0, 255), 2);
+        }
+    }
+
+    imshow("Bounding Boxes", out);
 }
