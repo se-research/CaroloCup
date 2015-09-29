@@ -1,12 +1,17 @@
 #include "main.h"
 
-bool showcase = true;
+bool showcase = false;
 
 int main(int argc, char **argv) {
     m_config.XTimesYMin = 2;
     m_config.XTimesYMax = 20;
     m_config.maxY = 235;
     m_config.maxArea = 4;
+
+    auto start = chrono::high_resolution_clock::now();
+    auto end = chrono::high_resolution_clock::now();
+    double period = 0;
+    double total = 0;
 
     // Read supplied image path
     char *imageName = argv[1];
@@ -16,11 +21,23 @@ int main(int argc, char **argv) {
     }
     if (showcase) imshow("Original Image", image);
 
+    start = chrono::high_resolution_clock::now();
     toGrayScale();
     if (showcase) imshow("Gray Scale Image", image);
+    end = chrono::high_resolution_clock::now();
+    period = chrono::duration_cast<chrono::microseconds>(end - start).count();
+    period = period / 1000;
+    total += period;
+    cout << "To Gray Scale: " << (period) << endl;
 
+    start = chrono::high_resolution_clock::now();
     cropImage();
     if (showcase) imshow("Cropped Image", image);
+    end = chrono::high_resolution_clock::now();
+    period = chrono::duration_cast<chrono::microseconds>(end - start).count();
+    period = period / 1000;
+    total += period;
+    cout << "Crop Image: " << (period) << endl;
 
     // Set frame size for future calculations
     w = image.size().width;
@@ -32,36 +49,92 @@ int main(int argc, char **argv) {
         cvtColor(originalImage, originalImage, CV_GRAY2BGR);
     }
 
+    start = chrono::high_resolution_clock::now();
     applyThreshold();
+    end = chrono::high_resolution_clock::now();
+    period = chrono::duration_cast<chrono::microseconds>(end - start).count();
+    period = period / 1000;
+    total += period;
+    cout << "Applied Threshold: " << (period) << endl;
+
     if (showcase) imshow("Applied Threshold", image);
 
+    start = chrono::high_resolution_clock::now();
     getContours();
+    end = chrono::high_resolution_clock::now();
+    period = chrono::duration_cast<chrono::microseconds>(end - start).count();
+    period = period / 1000;
+    total += period;
+    cout << "Get Contours: " << (period) << endl;
     if (showcase) displayContours();
 
+    start = chrono::high_resolution_clock::now();
     getPolygonContours();
+    end = chrono::high_resolution_clock::now();
+    period = chrono::duration_cast<chrono::microseconds>(end - start).count();
+    period = period / 1000;
+    total += period;
+    cout << "Get Polygon Contours: " << (period) << endl;
     if (showcase) displayPolygonContours();
 
+    start = chrono::high_resolution_clock::now();
     getBoundingBoxes();
+    end = chrono::high_resolution_clock::now();
+    period = chrono::duration_cast<chrono::microseconds>(end - start).count();
+    period = period / 1000;
+    total += period;
+    cout << "Get Bounding Boxes: " << (period) << endl;
     if (showcase) displayBoundingBoxes();
 
+    start = chrono::high_resolution_clock::now();
     classifyLines();
-
+    end = chrono::high_resolution_clock::now();
+    period = chrono::duration_cast<chrono::microseconds>(end - start).count();
+    period = period / 1000;
+    total += period;
+    cout << "Classify Lines: " << (period) << endl;
     if (showcase) {
         displayDashedLines();
         displaySolidLines();
     }
 
+    start = chrono::high_resolution_clock::now();
     filterAndMerge();
+    end = chrono::high_resolution_clock::now();
+    period = chrono::duration_cast<chrono::microseconds>(end - start).count();
+    period = period / 1000;
+    total += period;
+    cout << "Filter and Merge: " << (period) << endl;
     if (showcase) displayBothLines("Filter and Merge");
 
+    start = chrono::high_resolution_clock::now();
     finalFilter();
+    end = chrono::high_resolution_clock::now();
+    period = chrono::duration_cast<chrono::microseconds>(end - start).count();
+    period = period / 1000;
+    total += period;
+    cout << "Final Filter: " << (period) << endl;
     if (showcase) displayBothLines("Final Filter");
 
+    start = chrono::high_resolution_clock::now();
     characteristicFiltering(&ltu);
+    end = chrono::high_resolution_clock::now();
+    period = chrono::duration_cast<chrono::microseconds>(end - start).count();
+    period = period / 1000;
+    total += period;
+    cout << "Select Lines: " << (period) << endl;
     if (showcase) displaySelectedLines();
 
+    start = chrono::high_resolution_clock::now();
     createTrajectory(&ltu);
+    end = chrono::high_resolution_clock::now();
+    period = chrono::duration_cast<chrono::microseconds>(end - start).count();
+    period = period / 1000;
+    total += period;
+    cout << "Get Trajectory: " << (period) << endl;
     if (showcase) displayTrajectory();
+
+    cout << "Total: " << total << endl;
 
     waitKey(0);
 
@@ -273,8 +346,6 @@ void classifyLines() {
             YI = rectCenter.y;
             intersectionRect = i;
             bigRect = rects[i];
-            cout << "area: " << area << endl;
-            cout << "intersectionRect: " << intersectionRect << endl;
 
             //intersectionOn = true;
             //foundIntersection = true;
@@ -301,7 +372,6 @@ void classifyLines() {
 //        long time_taken_contour = (endTime.toMicroseconds() - intersection_start)/ 1000.0;
     long time_taken_contour = chrono::duration_cast<chrono::microseconds>(endTime - intersection_start).count();
     if (time_taken_contour > 800) {
-        cout << "roadState set to NORMAL do TIMEOUT" << endl;
         roadState = NORMAL;
         intersectionOn = false;
         foundIntersection = false;
