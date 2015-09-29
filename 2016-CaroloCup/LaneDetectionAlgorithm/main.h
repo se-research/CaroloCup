@@ -364,3 +364,7 @@ void displayTrajectory();
 
 bool getIntersectionPoint(Point2f o1, Point2f p1, Point2f o2, Point2f p2,
                           Point2f &r);
+
+int getIntersectionWithTopP2(CustomLine l);
+
+PolySize createPolySize(const RotatedRect &rect);

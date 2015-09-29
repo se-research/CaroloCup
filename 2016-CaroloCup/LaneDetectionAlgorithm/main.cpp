@@ -1387,3 +1387,137 @@ void displayBothLines() {
 
     imshow("Final Filter", out);
 }
+
+int getIntersectionWithTopP2(CustomLine l)
+{
+    float a = tan(M_PI * l.slope / 180);
+    float b = l.p2.y - l.p2.x * a;
+    int positionX = l.p2.x;
+    if (abs(a) > 0.001)
+    {
+        positionX = (0 - b) / a;
+    }
+    return positionX;
+}
+
+void createIntersectionGoalLine(){
+    CustomLine newRightGoalLine = getNoneCustomLine();
+    CustomLine newLeftGoalLine = getNoneCustomLine();
+    if (roadState == INTERSECTION){
+        dataToDriver->leftGoalLines0 = getNoneCustomLine();
+        dataToDriver->rightGoalLines0 = getNoneCustomLine();
+
+        if (intersectionRect != -1 && calcIntersectionGoalLine == true){
+            Point rectCenter;
+            Point2f rect_points[4];
+            bigRect.points(rect_points);
+            PolySize p = createPolySize(bigRect);
+            // Calc rect width
+            int rect_width = 0;
+            for (int i = 0; i < 3; i++){
+                int now_width = abs(rect_points[i].x - rect_points[i+1].x);
+                if (now_width > rect_width)
+                    rect_width = now_width;
+            }
+            // Calc if rect intersects current line
+            int xCut = w/2.;
+            bool rectXBigger = false, rectXSmaller = false;
+            Point dashPoint;
+            int dashXPos = w;
+            for (int i = 0; i < 4; i++){
+                if (rect_points[i].x < dashXPos){
+                    dashXPos = rect_points[i].x;
+                    dashPoint = rect_points[i];
+                }
+
+                if(rect_points[i].x < xCut)
+                    rectXSmaller = true;
+                else if (rect_points[i].x > xCut)
+                    rectXBigger = true;
+            }
+
+            if (rectXBigger && rectXSmaller && rect_width < 0.95*w && YI > h/2){
+                rectCenter.x = bigRect.center.x;
+                rectCenter.y = bigRect.center.y;
+                float rectSlope = getLineSlope(p.longSideMiddle, rectCenter);
+                newRightGoalLine.p1 = dashPoint;
+                newRightGoalLine.p1.x += ROAD_SIZE/2;
+                newRightGoalLine.slope = rectSlope - 2*(rectSlope - 90);
+                newRightGoalLine.p2.x = getIntersectionWithBottom(newRightGoalLine);
+                newRightGoalLine.p2.y = h;
+                newRightGoalLine.p1.x = getIntersectionWithTop(newRightGoalLine);
+                newRightGoalLine.p1.y = 0;
+                // Derive left goal line
+                newLeftGoalLine = newRightGoalLine;
+                newLeftGoalLine.slope = abs(newRightGoalLine.slope) + ROAD_ANGLE*0.65;// 2*(90 - ROAD_ANGLE);//180 - abs(newRightGoalLine.slope) - ROAD_ANGLE;
+                newLeftGoalLine.p2.x = newRightGoalLine.p2.x - ROAD_SIZE;
+                newLeftGoalLine.p1.x = getIntersectionWithTopP2(newLeftGoalLine);
+            }
+        }
+        Point position;
+        position.x = w / 2;
+        position.y = h;
+        Point heading;
+        heading.x = w / 2;
+        heading.y = 0;
+        //Create car orientation vector
+        CustomLine currentLine;
+        currentLine.p1 = heading;
+        currentLine.p2 = position;
+        currentLine.slope = getLineSlope(heading, position);
+
+        if(isNoneCustomLine(newRightGoalLine)){
+            dataToDriver->noTrajectory = true;
+        }else{
+            dataToDriver->noTrajectory = false;
+            dataToDriver->rightGoalLines0 = newRightGoalLine;
+            dataToDriver->leftGoalLines0 = newLeftGoalLine;
+            dataToDriver->currentLine = currentLine;
+        }
+    }
+}
+
+PolySize createPolySize(const RotatedRect &rect)
+{
+    Point2f rect_points[4];
+    rect.points (rect_points);
+    int sizeX = 0, sizeY = 0, sizeR = 0;
+    Point shortSideMiddle;
+    Point longSideMiddle;
+    // Find rect sizes
+    for (int j = 0; j < 4; j++)
+    {
+        //cout << "Size:" << sizeR << endl;
+        if (sizeX == 0)
+        {
+            sizeX = sizeR;
+            shortSideMiddle.x = (rect_points[j].x + rect_points[(j + 1) % 4].x)
+                                / 2;
+            shortSideMiddle.y = (rect_points[j].y + rect_points[(j + 1) % 4].y)
+                                / 2;
+        }
+        else if (sizeY == 0 && sizeR != sizeX)
+        {
+            sizeY = sizeR;
+            longSideMiddle.x = (rect_points[j].x + rect_points[(j + 1) % 4].x)
+                               / 2;
+            longSideMiddle.y = (rect_points[j].y + rect_points[(j + 1) % 4].y)
+                               / 2;
+        }
+    }
+    if (sizeX > sizeY)
+    {
+        Point2f temp;
+        sizeR = sizeX;
+        sizeX = sizeY;
+        sizeY = sizeR;
+        temp = longSideMiddle;
+        longSideMiddle = shortSideMiddle;
+        shortSideMiddle = temp;
+    }
+
+    PolySize polysize =
+            { sizeX, sizeY, sizeR, shortSideMiddle, longSideMiddle };
+    return polysize;
+
+}
