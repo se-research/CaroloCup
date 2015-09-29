@@ -35,20 +35,26 @@ int main(int argc, char **argv) {
 
     classifyLines();
 
+//    displayDashedLines();
+//    displaySolidLines();
+
     filterAndMerge();
+
+//    displayBothLines();
+//    displayDashedLines();
+//    displaySolidLines();
 
     finalFilter();
 
-    displayDashedLines();
-    displaySolidLines();
+    displayBothLines();
 
     characteristicFiltering(&ltu);
 
-//    displaySelectedLines();
+    displaySelectedLines();
 
     createTrajectory(&ltu);
 
-//    displayTrajectory();
+    displayTrajectory();
 
     waitKey(0);
 
@@ -190,7 +196,7 @@ void getAndDisplayRectangles() {
 
     }
 
-//    imshow("Bounding Boxes", out);
+    imshow("Bounding Boxes", out);
 
 }
 
@@ -798,6 +804,7 @@ void displaySelectedLines() {
     Scalar blue = Scalar(255, 0, 0);
     Scalar green = Scalar(0, 255, 0);
     Scalar red = Scalar(0, 0, 255);
+    Scalar orange = Scalar(0, 165, 255);
 
     if (ltu.foundD) {
         line(out, ltu.dashLine.p1, ltu.dashLine.p2, red, 2, 8, 0);
@@ -809,6 +816,10 @@ void displaySelectedLines() {
 
     if (ltu.foundR) {
         line(out, ltu.rightLine.p1, ltu.rightLine.p2, green, 2, 8, 0);
+    }
+
+    if (ltu.dashedCurveFound) {
+        line(out, ltu.dashedCurve[1].p1, ltu.dashedCurve[1].p2, orange, 2, 8, 0);
     }
 
     imshow("Selected Lines", out);
@@ -1358,4 +1369,21 @@ bool getIntersectionPoint(Point2f o1, Point2f p1, Point2f o2, Point2f p2, Point2
     double t1 = (x.x * d2.y - x.y * d2.x)/cross;
     r = o1 + d1 * t1;
     return true;
+}
+
+void displayBothLines() {
+    Mat out;
+    originalImage.copyTo(out);
+
+    Scalar red = Scalar(0, 0, 255);
+    for (int i = 0; i < dashLines.size(); i++) {
+        line(out, dashLines[i].p1, dashLines[i].p2, red, 3, 8, 0);
+    }
+
+    Scalar orange = Scalar(0, 165, 255);
+    for (int i = 0; i < solidLines.size(); i++) {
+        line(out, solidLines[i].p1, solidLines[i].p2, orange, 2, 8, 0);
+    }
+
+    imshow("Final Filter", out);
 }

@@ -322,11 +322,9 @@ float getLineSlope(Point &p1, Point &p2);
 
 CustomLine createLineFromRect(RotatedRect *rect, int sizeX, int sizeY, int polygonIndex);
 
-void displayDashedLines();
-
 void classifyLines();
 
-void displaySolidLines();
+void displayBothLines();
 
 void filterAndMerge();
 
@@ -341,7 +339,6 @@ vector<CustomLine> findCurve(vector<CustomLine> lines);
 float getDist(const Point p1, const Point p2);
 
 void displaySelectedLines();
-
 
 CustomLine getNoneCustomLine();
 
