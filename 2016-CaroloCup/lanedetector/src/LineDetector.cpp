@@ -877,7 +877,7 @@ void LineDetector::finalFilter()
             int dashCenterX = (l.p1.x + l.p2.x) / 2;
             int dashCenterY = (l.p1.y + l.p2.y) / 2;
             //cout << "Slope: " << l.slope << " min is " << MIN_ANGLE << endl;
-            if ((l.slope < MIN_ANGLE && l.slope > ((-1) * MIN_ANGLE))
+            if ((l.slope < MIN_ANGLE) && (l.slope > ((-1) * MIN_ANGLE))
                     || (dashCenterY < h / 15) || (dashCenterX > 19 * w / 20)) //|| (dashCenterX < w/20) too left //too high
                 {
                     dashLines[i] = dashLines[cntDash - 1];
