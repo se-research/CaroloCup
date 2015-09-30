@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 project(LaneDetectionAlgorithm)
-SET (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cmake.Modules" ${CMAKE_MODULE_PATH})
+SET (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake.Modules" ${CMAKE_MODULE_PATH})
 
 # Find OpenCV.
 SET(OpenCV_DIR "/usr")
