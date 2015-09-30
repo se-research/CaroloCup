@@ -1,6 +1,6 @@
 #include "main.h"
 
-bool showcase = false;
+bool showcase = true;
 auto startTimer = chrono::high_resolution_clock::now();
 auto endTimer = chrono::high_resolution_clock::now();
 double periodTimer = 0;
@@ -1647,6 +1647,7 @@ void displayTrajectory() {
 
     Point2f intersectionPoint;
     getVanishingPoint(leftGoalLine.p1, leftGoalLine.p2, rightGoalLine.p1, rightGoalLine.p2, intersectionPoint);
+    cout << "Vanishing Point: " << intersectionPoint.x << ", " << intersectionPoint.y << endl;
 
     Scalar blue = Scalar(255, 0, 0);
     Scalar green = Scalar(0, 255, 0);
