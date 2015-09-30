@@ -1,0 +1,4 @@
+other way to compile:
+
+g++ main.cpp -o out --std=c++11 -I/usr/include -I. -L/usr/lib/x86_64-linux-gnu -lopencv_imgproc -lopencv_highgui -lopencv_core
+
