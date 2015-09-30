@@ -286,8 +286,6 @@ int cntSolid = 0;
 int h, w, offset;
 bool foundStopStartLine = false;
 
-
-
 int currentDashGoalX = 0;
 int currentRightGoalX = 0;
 int currentLeftGoalX = 0;
@@ -300,7 +298,6 @@ RoadState roadState = NORMAL;
 int intersectionRect;
 bool calcIntersectionGoalLine = false;
 auto intersection_start = chrono::high_resolution_clock::now();
-
 
 int readImage(char *imageName, int argc);
 
@@ -366,8 +363,8 @@ void createTrajectory(LinesToUse *ltu);
 
 void displayTrajectory();
 
-bool getIntersectionPoint(Point2f o1, Point2f p1, Point2f o2, Point2f p2,
-                          Point2f &r);
+bool getVanishingPoint(Point2f o1, Point2f p1, Point2f o2, Point2f p2,
+                       Point2f &r);
 
 int getIntersectionWithTopP2(CustomLine l);
 
@@ -378,3 +375,5 @@ void displayContours();
 void displayPolygonContours();
 
 void displayBoundingBoxes();
+
+void createIntersectionGoalLine();

@@ -42,10 +42,10 @@ int main(int argc, char **argv) {
     getContours();
     if (showcase) displayContours();
 
-    getPolygonContours();
+    getPolygonContours(); // Also part of getContours()
     if (showcase) displayPolygonContours();
 
-    getBoundingBoxes();
+    getBoundingBoxes(); // Also, getRectangles()
     if (showcase) displayBoundingBoxes();
 
     classifyLines();
@@ -66,6 +66,8 @@ int main(int argc, char **argv) {
     createTrajectory(&ltu);
     if (showcase) displayTrajectory();
 
+    createIntersectionGoalLine();
+
     cout << "Total: " << totalTimer << endl;
 
     waitKey(0);
@@ -79,6 +81,9 @@ int readImage(char *imageName, int argc) {
     return 1;
 }
 
+/***
+ * START ALGORITHM STEPS
+ */
 void toGrayScale() {
 //TIMER
     startTimer = chrono::high_resolution_clock::now();
@@ -111,31 +116,6 @@ void cropImage() {
     totalTimer += periodTimer;
     cout << "Crop Image: " << periodTimer << endl;
 //TIMER
-}
-
-int getDynamicThresh(int lux) {
-    int baseThresh = 48;
-    int minIntervalValue[] = {11, 15, 17, 20, 23, 26, 29, 32}, maxIntervalValue[] = {16, 18, 21, 24, 27, 31, 35, 40};
-    int foundIndex[3], thresh[] = {baseThresh + 2, baseThresh + 7, baseThresh + 12, baseThresh + 17, baseThresh + 22,
-                                   baseThresh + 27, baseThresh + 32};
-    if (lux < minIntervalValue[0]) {
-        return baseThresh;
-    }
-    if (lux > maxIntervalValue[6]) {
-        return baseThresh + 42;
-    }
-    int cnt = 0;
-    for (int i = 0; i < 7; i++) {
-        if (lux >= minIntervalValue[i] && lux <= maxIntervalValue[i]) {
-            foundIndex[cnt++] = i;
-        }
-    }
-    for (int j = 0; j < cnt; j++) {
-        if (previousThresh == thresh[foundIndex[j]]) {
-            return thresh[foundIndex[j]];
-        }
-    }
-    return thresh[foundIndex[0]];
 }
 
 void applyThreshold() {
@@ -258,50 +238,6 @@ void getBoundingBoxes() {
 //TIMER
 }
 
-float getLineSlope(Point &p1, Point &p2) {
-    float slope = M_PI / 2;
-    if ((p1.x - p2.x) != 0) {
-        slope = (p1.y - p2.y) / ((float) (p1.x - p2.x));
-        slope = atan(slope);
-    }
-    if (slope < 0) {
-        return 180 + (slope * 180 / M_PI);
-    }
-    return slope * 180 / M_PI;
-}
-
-CustomLine createLineFromRect(RotatedRect *rect, int sizeX, int sizeY, int polygonIndex) {
-    Point2f rect_points[4];
-    rect->points(rect_points);
-
-    CustomLine l;
-    Point pt1, pt2;
-    l.polygonIndex = polygonIndex;
-    if (rect->angle < 90) {
-        float angle = rect->angle * M_PI / 180;
-        float xOffset = cos(angle) * sizeY / 2;
-        float yOffset = sin(angle) * sizeY / 2;
-        pt1.y = rect->center.y + yOffset;
-        pt1.x = rect->center.x + xOffset;
-        pt2.y = rect->center.y - yOffset;
-        pt2.x = rect->center.x - xOffset;
-    }
-    else {
-        rect->angle = rect->angle - 180;
-        float angle = (-rect->angle) * M_PI / 180;
-        float xOffset = cos(angle) * sizeY / 2;
-        float yOffset = sin(angle) * sizeY / 2;
-        pt1.y = rect->center.y + yOffset;
-        pt1.x = rect->center.x - xOffset;
-        pt2.y = rect->center.y - yOffset;
-        pt2.x = rect->center.x + xOffset;
-    }
-    l.p1 = pt1;
-    l.p2 = pt2;
-    l.slope = rect->angle;
-    return l;
-}
-
 void classifyLines() {
 //TIMER
     startTimer = chrono::high_resolution_clock::now();
@@ -402,30 +338,6 @@ void classifyLines() {
     totalTimer += periodTimer;
     cout << "Classify Lines: " << periodTimer << endl;
 //TIMER
-}
-
-void displayDashedLines() {
-    Mat out;
-    originalImage.copyTo(out);
-
-    Scalar red = Scalar(0, 0, 255);
-    for (int i = 0; i < dashLines.size(); i++) {
-        line(out, dashLines[i].p1, dashLines[i].p2, red, 3, 8, 0);
-    }
-
-    imshow("Dashed Lines", out);
-}
-
-void displaySolidLines() {
-    Mat out;
-    originalImage.copyTo(out);
-
-    Scalar red = Scalar(0, 0, 255);
-    for (int i = 0; i < solidLines.size(); i++) {
-        line(out, solidLines[i].p1, solidLines[i].p2, red, 2, 8, 0);
-    }
-
-    imshow("Solid Lines", out);
 }
 
 void filterAndMerge() {
@@ -823,6 +735,265 @@ void characteristicFiltering(LinesToUse *ltu) {
 //TIMER
 }
 
+void createTrajectory(LinesToUse *ltu) {
+//TIMER
+    startTimer = chrono::high_resolution_clock::now();
+//TIMER
+
+    // The found lines are used to create a trajectory for the car's future movement
+
+    if (!(ltu->foundL || ltu->foundD || ltu->foundR) || roadState == INTERSECTION) {
+        cout << "No lines found or INTERSECTION mode, trajectory will not be derived." << endl;
+
+//        finalOutput.noTrajectory = true;
+//        finalOutput.intersection_goalLine = false;
+        dataToDriver = new LaneDetectorDataToDriver(); // Empty call will set noTrajectory = true
+        return;
+    }
+    std::vector<int> defaultCutPoints;
+    defaultCutPoints.push_back(180);
+    defaultCutPoints.push_back(100);
+    defaultCutPoints.push_back(50);
+    std::vector<int> cutPoints;
+    std::vector<CustomLine> leftSplitted;
+    std::vector<CustomLine> rightSplitted;
+    std::vector<CustomLine> dashToUse;
+
+    //////////////////
+    // This code is used for the simplest option possible and will not cut any solid line
+    // and it will provide maximum one goalLine
+    //////////////////
+    if (ltu->foundR)
+        rightSplitted.push_back(ltu->rightLine);
+    else
+        rightSplitted.push_back(getNoneCustomLine());
+
+    if (ltu->foundL)
+        leftSplitted.push_back(ltu->leftLine);
+    else
+        leftSplitted.push_back(getNoneCustomLine());
+
+    if (ltu->foundD)
+        dashToUse.push_back((ltu->dashedCurve)[0]);
+    else
+        dashToUse.push_back(getNoneCustomLine());
+    cutPoints.push_back(h);
+    //////////////////
+    // End simplest option code
+    //////////////////
+
+    //////////////////
+    // This for loop creates the goalLines, one for each iteration.
+    // The three lines (left, dash, right) associated to a specific cut is fed to provideGoalLine(..).
+    // Remember that those can potentially be dummy lines.
+    //////////////////
+    std::vector<CustomLine> rightGoalLines, leftGoalLines;
+    std::vector<int> confidenceLevel_goalLine;
+    for (int i = 0; i < dashToUse.size(); i++) {
+        EstimationData ed;
+        GoalLineData gld;
+        ed.left = leftSplitted[i];
+        ed.dash = dashToUse[i];
+        ed.right = rightSplitted[i];
+        if (i == 0)
+            ed.yPosition = (2 * h) / 3.;
+        else
+            ed.yPosition = cutPoints[i - 1];
+
+        provideGoalLine(&ed, &gld);
+        confidenceLevel_goalLine.push_back(gld.confidenceLevel_rightGoalLine);
+        rightGoalLines.push_back(gld.rightGoalLine);
+        leftGoalLines.push_back(gld.leftGoalLine);
+    }
+    int confidenceLevel_goalLine0 = 0;
+    if (rightGoalLines.size() > 0) {
+        confidenceLevel_goalLine0 = confidenceLevel_goalLine[0];
+    }
+
+    //////////////////
+    // Here is the currentLine derived, which states the car's current position and heading.
+    //////////////////
+    Point position;
+    position.x = w / 2;
+    position.y = h;
+    Point heading;
+    heading.x = w / 2;
+    heading.y = 0;
+    //Create car orientation vector
+    CustomLine currentLine;
+    currentLine.p1 = heading;
+    currentLine.p2 = position;
+    currentLine.slope = getLineSlope(heading, position);
+
+
+    //////////////////
+    // Create a object that the laneDetector can send to driver.
+    //////////////////
+
+    dataToDriver = new LaneDetectorDataToDriver(leftGoalLines[0], rightGoalLines[0], currentLine, false,
+                                                confidenceLevel_goalLine0);
+
+//TIMER
+    endTimer = chrono::high_resolution_clock::now();
+    periodTimer = chrono::duration_cast<chrono::microseconds>(endTimer - startTimer).count();
+    periodTimer = periodTimer / 1000;
+    totalTimer += periodTimer;
+    cout << "Create Trajectory: " << periodTimer << endl;
+//TIMER
+}
+
+void createIntersectionGoalLine(){
+    CustomLine newRightGoalLine = getNoneCustomLine();
+    CustomLine newLeftGoalLine = getNoneCustomLine();
+    if (roadState == INTERSECTION){
+        dataToDriver->leftGoalLines0 = getNoneCustomLine();
+        dataToDriver->rightGoalLines0 = getNoneCustomLine();
+
+        if (intersectionRect != -1 && calcIntersectionGoalLine == true){
+            Point rectCenter;
+            Point2f rect_points[4];
+            bigRect.points(rect_points);
+            PolySize p = createPolySize(bigRect);
+            // Calc rect width
+            int rect_width = 0;
+            for (int i = 0; i < 3; i++){
+                int now_width = abs(rect_points[i].x - rect_points[i+1].x);
+                if (now_width > rect_width)
+                    rect_width = now_width;
+            }
+            // Calc if rect intersects current line
+            int xCut = w/2.;
+            bool rectXBigger = false, rectXSmaller = false;
+            Point dashPoint;
+            int dashXPos = w;
+            for (int i = 0; i < 4; i++){
+                if (rect_points[i].x < dashXPos){
+                    dashXPos = rect_points[i].x;
+                    dashPoint = rect_points[i];
+                }
+
+                if(rect_points[i].x < xCut)
+                    rectXSmaller = true;
+                else if (rect_points[i].x > xCut)
+                    rectXBigger = true;
+            }
+
+            if (rectXBigger && rectXSmaller && rect_width < 0.95*w && YI > h/2){
+                rectCenter.x = bigRect.center.x;
+                rectCenter.y = bigRect.center.y;
+                float rectSlope = getLineSlope(p.longSideMiddle, rectCenter);
+                newRightGoalLine.p1 = dashPoint;
+                newRightGoalLine.p1.x += ROAD_SIZE/2;
+                newRightGoalLine.slope = rectSlope - 2*(rectSlope - 90);
+                newRightGoalLine.p2.x = getIntersectionWithBottom(newRightGoalLine);
+                newRightGoalLine.p2.y = h;
+                newRightGoalLine.p1.x = getIntersectionWithTop(newRightGoalLine);
+                newRightGoalLine.p1.y = 0;
+                // Derive left goal line
+                newLeftGoalLine = newRightGoalLine;
+                newLeftGoalLine.slope = abs(newRightGoalLine.slope) + ROAD_ANGLE*0.65;// 2*(90 - ROAD_ANGLE);//180 - abs(newRightGoalLine.slope) - ROAD_ANGLE;
+                newLeftGoalLine.p2.x = newRightGoalLine.p2.x - ROAD_SIZE;
+                newLeftGoalLine.p1.x = getIntersectionWithTopP2(newLeftGoalLine);
+            }
+        }
+        Point position;
+        position.x = w / 2;
+        position.y = h;
+        Point heading;
+        heading.x = w / 2;
+        heading.y = 0;
+        //Create car orientation vector
+        CustomLine currentLine;
+        currentLine.p1 = heading;
+        currentLine.p2 = position;
+        currentLine.slope = getLineSlope(heading, position);
+
+        if(isNoneCustomLine(newRightGoalLine)){
+            dataToDriver->noTrajectory = true;
+        }else{
+            dataToDriver->noTrajectory = false;
+            dataToDriver->rightGoalLines0 = newRightGoalLine;
+            dataToDriver->leftGoalLines0 = newLeftGoalLine;
+            dataToDriver->currentLine = currentLine;
+        }
+    }
+}
+/***
+ * STOP ALGORITHM STEPS
+ */
+
+/***
+ * START ALGORITHM HELPER FUNCTIONS
+ */
+int getDynamicThresh(int lux) {
+    int baseThresh = 48;
+    int minIntervalValue[] = {11, 15, 17, 20, 23, 26, 29, 32}, maxIntervalValue[] = {16, 18, 21, 24, 27, 31, 35, 40};
+    int foundIndex[3], thresh[] = {baseThresh + 2, baseThresh + 7, baseThresh + 12, baseThresh + 17, baseThresh + 22,
+                                   baseThresh + 27, baseThresh + 32};
+    if (lux < minIntervalValue[0]) {
+        return baseThresh;
+    }
+    if (lux > maxIntervalValue[6]) {
+        return baseThresh + 42;
+    }
+    int cnt = 0;
+    for (int i = 0; i < 7; i++) {
+        if (lux >= minIntervalValue[i] && lux <= maxIntervalValue[i]) {
+            foundIndex[cnt++] = i;
+        }
+    }
+    for (int j = 0; j < cnt; j++) {
+        if (previousThresh == thresh[foundIndex[j]]) {
+            return thresh[foundIndex[j]];
+        }
+    }
+    return thresh[foundIndex[0]];
+}
+
+float getLineSlope(Point &p1, Point &p2) {
+    float slope = M_PI / 2;
+    if ((p1.x - p2.x) != 0) {
+        slope = (p1.y - p2.y) / ((float) (p1.x - p2.x));
+        slope = atan(slope);
+    }
+    if (slope < 0) {
+        return 180 + (slope * 180 / M_PI);
+    }
+    return slope * 180 / M_PI;
+}
+
+CustomLine createLineFromRect(RotatedRect *rect, int sizeX, int sizeY, int polygonIndex) {
+    Point2f rect_points[4];
+    rect->points(rect_points);
+
+    CustomLine l;
+    Point pt1, pt2;
+    l.polygonIndex = polygonIndex;
+    if (rect->angle < 90) {
+        float angle = rect->angle * M_PI / 180;
+        float xOffset = cos(angle) * sizeY / 2;
+        float yOffset = sin(angle) * sizeY / 2;
+        pt1.y = rect->center.y + yOffset;
+        pt1.x = rect->center.x + xOffset;
+        pt2.y = rect->center.y - yOffset;
+        pt2.x = rect->center.x - xOffset;
+    }
+    else {
+        rect->angle = rect->angle - 180;
+        float angle = (-rect->angle) * M_PI / 180;
+        float xOffset = cos(angle) * sizeY / 2;
+        float yOffset = sin(angle) * sizeY / 2;
+        pt1.y = rect->center.y + yOffset;
+        pt1.x = rect->center.x - xOffset;
+        pt2.y = rect->center.y - yOffset;
+        pt2.x = rect->center.x + xOffset;
+    }
+    l.p1 = pt1;
+    l.p2 = pt2;
+    l.slope = rect->angle;
+    return l;
+}
+
 int getIntersectionWithBottom(CustomLine l) {
     float a = tan(M_PI * l.slope / 180);
     float b = l.p1.y - l.p1.x * a;
@@ -897,34 +1068,6 @@ vector<CustomLine> findCurve(vector<CustomLine> lines) {
 float getDist(const Point p1, const Point p2) {
     return sqrt(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2));
 }
-
-void displaySelectedLines() {
-    Mat out;
-    originalImage.copyTo(out);
-
-    Scalar blue = Scalar(255, 0, 0);
-    Scalar green = Scalar(0, 255, 0);
-    Scalar red = Scalar(0, 0, 255);
-    Scalar orange = Scalar(0, 165, 255);
-
-    if (ltu.foundD) {
-        line(out, ltu.dashLine.p1, ltu.dashLine.p2, red, 2, 8, 0);
-    }
-
-    if (ltu.foundL) {
-        line(out, ltu.leftLine.p1, ltu.leftLine.p2, blue, 2, 8, 0);
-    }
-
-    if (ltu.foundR) {
-        line(out, ltu.rightLine.p1, ltu.rightLine.p2, green, 2, 8, 0);
-    }
-
-    if (ltu.dashedCurveFound) {
-        line(out, ltu.dashedCurve[1].p1, ltu.dashedCurve[1].p2, orange, 2, 8, 0);
-    }
-
-    imshow("Selected Lines", out);
-};
 
 CustomLine getNoneCustomLine() {
     CustomLine none;
@@ -1337,170 +1480,6 @@ int getIntersectionWithTop(CustomLine l) {
     return positionX;
 }
 
-void createTrajectory(LinesToUse *ltu) {
-//TIMER
-    startTimer = chrono::high_resolution_clock::now();
-//TIMER
-
-    // The found lines are used to create a trajectory for the car's future movement
-
-    if (!(ltu->foundL || ltu->foundD || ltu->foundR) || roadState == INTERSECTION) {
-        cout << "No lines found or INTERSECTION mode, trajectory will not be derived." << endl;
-
-//        finalOutput.noTrajectory = true;
-//        finalOutput.intersection_goalLine = false;
-        dataToDriver = new LaneDetectorDataToDriver(); // Empty call will set noTrajectory = true
-        return;
-    }
-    std::vector<int> defaultCutPoints;
-    defaultCutPoints.push_back(180);
-    defaultCutPoints.push_back(100);
-    defaultCutPoints.push_back(50);
-    std::vector<int> cutPoints;
-    std::vector<CustomLine> leftSplitted;
-    std::vector<CustomLine> rightSplitted;
-    std::vector<CustomLine> dashToUse;
-
-    //////////////////
-    // This code is used for the simplest option possible and will not cut any solid line
-    // and it will provide maximum one goalLine
-    //////////////////
-    if (ltu->foundR)
-        rightSplitted.push_back(ltu->rightLine);
-    else
-        rightSplitted.push_back(getNoneCustomLine());
-
-    if (ltu->foundL)
-        leftSplitted.push_back(ltu->leftLine);
-    else
-        leftSplitted.push_back(getNoneCustomLine());
-
-    if (ltu->foundD)
-        dashToUse.push_back((ltu->dashedCurve)[0]);
-    else
-        dashToUse.push_back(getNoneCustomLine());
-    cutPoints.push_back(h);
-    //////////////////
-    // End simplest option code
-    //////////////////
-
-    //////////////////
-    // This for loop creates the goalLines, one for each iteration.
-    // The three lines (left, dash, right) associated to a specific cut is fed to provideGoalLine(..).
-    // Remember that those can potentially be dummy lines.
-    //////////////////
-    std::vector<CustomLine> rightGoalLines, leftGoalLines;
-    std::vector<int> confidenceLevel_goalLine;
-    for (int i = 0; i < dashToUse.size(); i++) {
-        EstimationData ed;
-        GoalLineData gld;
-        ed.left = leftSplitted[i];
-        ed.dash = dashToUse[i];
-        ed.right = rightSplitted[i];
-        if (i == 0)
-            ed.yPosition = (2 * h) / 3.;
-        else
-            ed.yPosition = cutPoints[i - 1];
-
-        provideGoalLine(&ed, &gld);
-        confidenceLevel_goalLine.push_back(gld.confidenceLevel_rightGoalLine);
-        rightGoalLines.push_back(gld.rightGoalLine);
-        leftGoalLines.push_back(gld.leftGoalLine);
-    }
-    int confidenceLevel_goalLine0 = 0;
-    if (rightGoalLines.size() > 0) {
-        confidenceLevel_goalLine0 = confidenceLevel_goalLine[0];
-    }
-
-    //////////////////
-    // Here is the currentLine derived, which states the car's current position and heading.
-    //////////////////
-    Point position;
-    position.x = w / 2;
-    position.y = h;
-    Point heading;
-    heading.x = w / 2;
-    heading.y = 0;
-    //Create car orientation vector
-    CustomLine currentLine;
-    currentLine.p1 = heading;
-    currentLine.p2 = position;
-    currentLine.slope = getLineSlope(heading, position);
-
-
-    //////////////////
-    // Create a object that the laneDetector can send to driver.
-    //////////////////
-
-    dataToDriver = new LaneDetectorDataToDriver(leftGoalLines[0], rightGoalLines[0], currentLine, false,
-                                                confidenceLevel_goalLine0);
-
-//TIMER
-    endTimer = chrono::high_resolution_clock::now();
-    periodTimer = chrono::duration_cast<chrono::microseconds>(endTimer - startTimer).count();
-    periodTimer = periodTimer / 1000;
-    totalTimer += periodTimer;
-    cout << "Create Trajectory: " << periodTimer << endl;
-//TIMER
-}
-
-void displayTrajectory() {
-    Mat out;
-    originalImage.copyTo(out);
-
-    auto data = dataToDriver[0];
-    auto leftGoalLine = data.leftGoalLines0;
-    auto rightGoalLine = data.rightGoalLines0;
-    auto currentLine = data.currentLine;
-
-    Point2f intersectionPoint;
-    getIntersectionPoint(leftGoalLine.p1, leftGoalLine.p2, rightGoalLine.p1, rightGoalLine.p2, intersectionPoint);
-
-    Scalar blue = Scalar(255, 0, 0);
-    Scalar green = Scalar(0, 255, 0);
-    Scalar orange = Scalar(0, 165, 255);
-    Scalar red = Scalar(0, 0, 255);
-    line(out, leftGoalLine.p1, leftGoalLine.p2, blue, 2, 8, 0);
-    line(out, rightGoalLine.p1, rightGoalLine.p2, green, 2, 8, 0);
-    line(out, currentLine.p1, currentLine.p2, orange, 2, 8, 0);
-    line(out, Point{(int) intersectionPoint.x, (int) intersectionPoint.y},
-         Point{(int) intersectionPoint.x, h/2}, red, 2, 8, 0);
-
-    imshow("Trajectory", out);
-}
-
-bool getIntersectionPoint(Point2f o1, Point2f p1, Point2f o2, Point2f p2, Point2f &r)
-{
-    Point2f x = o2 - o1;
-    Point2f d1 = p1 - o1;
-    Point2f d2 = p2 - o2;
-
-    float cross = d1.x*d2.y - d1.y*d2.x;
-    if (abs(cross) < /*EPS*/1e-8)
-        return false;
-
-    double t1 = (x.x * d2.y - x.y * d2.x)/cross;
-    r = o1 + d1 * t1;
-    return true;
-}
-
-void displayBothLines(string title) {
-    Mat out;
-    originalImage.copyTo(out);
-
-    Scalar red = Scalar(0, 0, 255);
-    for (int i = 0; i < dashLines.size(); i++) {
-        line(out, dashLines[i].p1, dashLines[i].p2, red, 3, 8, 0);
-    }
-
-    Scalar orange = Scalar(0, 165, 255);
-    for (int i = 0; i < solidLines.size(); i++) {
-        line(out, solidLines[i].p1, solidLines[i].p2, orange, 2, 8, 0);
-    }
-
-    imshow(title, out);
-}
-
 int getIntersectionWithTopP2(CustomLine l)
 {
     float a = tan(M_PI * l.slope / 180);
@@ -1511,83 +1490,6 @@ int getIntersectionWithTopP2(CustomLine l)
         positionX = (0 - b) / a;
     }
     return positionX;
-}
-
-void createIntersectionGoalLine(){
-    CustomLine newRightGoalLine = getNoneCustomLine();
-    CustomLine newLeftGoalLine = getNoneCustomLine();
-    if (roadState == INTERSECTION){
-        dataToDriver->leftGoalLines0 = getNoneCustomLine();
-        dataToDriver->rightGoalLines0 = getNoneCustomLine();
-
-        if (intersectionRect != -1 && calcIntersectionGoalLine == true){
-            Point rectCenter;
-            Point2f rect_points[4];
-            bigRect.points(rect_points);
-            PolySize p = createPolySize(bigRect);
-            // Calc rect width
-            int rect_width = 0;
-            for (int i = 0; i < 3; i++){
-                int now_width = abs(rect_points[i].x - rect_points[i+1].x);
-                if (now_width > rect_width)
-                    rect_width = now_width;
-            }
-            // Calc if rect intersects current line
-            int xCut = w/2.;
-            bool rectXBigger = false, rectXSmaller = false;
-            Point dashPoint;
-            int dashXPos = w;
-            for (int i = 0; i < 4; i++){
-                if (rect_points[i].x < dashXPos){
-                    dashXPos = rect_points[i].x;
-                    dashPoint = rect_points[i];
-                }
-
-                if(rect_points[i].x < xCut)
-                    rectXSmaller = true;
-                else if (rect_points[i].x > xCut)
-                    rectXBigger = true;
-            }
-
-            if (rectXBigger && rectXSmaller && rect_width < 0.95*w && YI > h/2){
-                rectCenter.x = bigRect.center.x;
-                rectCenter.y = bigRect.center.y;
-                float rectSlope = getLineSlope(p.longSideMiddle, rectCenter);
-                newRightGoalLine.p1 = dashPoint;
-                newRightGoalLine.p1.x += ROAD_SIZE/2;
-                newRightGoalLine.slope = rectSlope - 2*(rectSlope - 90);
-                newRightGoalLine.p2.x = getIntersectionWithBottom(newRightGoalLine);
-                newRightGoalLine.p2.y = h;
-                newRightGoalLine.p1.x = getIntersectionWithTop(newRightGoalLine);
-                newRightGoalLine.p1.y = 0;
-                // Derive left goal line
-                newLeftGoalLine = newRightGoalLine;
-                newLeftGoalLine.slope = abs(newRightGoalLine.slope) + ROAD_ANGLE*0.65;// 2*(90 - ROAD_ANGLE);//180 - abs(newRightGoalLine.slope) - ROAD_ANGLE;
-                newLeftGoalLine.p2.x = newRightGoalLine.p2.x - ROAD_SIZE;
-                newLeftGoalLine.p1.x = getIntersectionWithTopP2(newLeftGoalLine);
-            }
-        }
-        Point position;
-        position.x = w / 2;
-        position.y = h;
-        Point heading;
-        heading.x = w / 2;
-        heading.y = 0;
-        //Create car orientation vector
-        CustomLine currentLine;
-        currentLine.p1 = heading;
-        currentLine.p2 = position;
-        currentLine.slope = getLineSlope(heading, position);
-
-        if(isNoneCustomLine(newRightGoalLine)){
-            dataToDriver->noTrajectory = true;
-        }else{
-            dataToDriver->noTrajectory = false;
-            dataToDriver->rightGoalLines0 = newRightGoalLine;
-            dataToDriver->leftGoalLines0 = newLeftGoalLine;
-            dataToDriver->currentLine = currentLine;
-        }
-    }
 }
 
 PolySize createPolySize(const RotatedRect &rect)
@@ -1634,7 +1536,13 @@ PolySize createPolySize(const RotatedRect &rect)
     return polysize;
 
 }
+/***
+ * STOP ALGORITHM HELPER FUNCTIONS
+ */
 
+/***
+ * START SHOWCASE FUNCTIONS
+ */
 void displayContours() {
     Mat out = Mat(image.size().height, image.size().width, CV_32F);
 
@@ -1675,3 +1583,115 @@ void displayBoundingBoxes() {
 
     imshow("Bounding Boxes", out);
 }
+
+void displayDashedLines() {
+    Mat out;
+    originalImage.copyTo(out);
+
+    Scalar red = Scalar(0, 0, 255);
+    for (int i = 0; i < dashLines.size(); i++) {
+        line(out, dashLines[i].p1, dashLines[i].p2, red, 3, 8, 0);
+    }
+
+    imshow("Dashed Lines", out);
+}
+
+void displaySolidLines() {
+    Mat out;
+    originalImage.copyTo(out);
+
+    Scalar red = Scalar(0, 0, 255);
+    for (int i = 0; i < solidLines.size(); i++) {
+        line(out, solidLines[i].p1, solidLines[i].p2, red, 2, 8, 0);
+    }
+
+    imshow("Solid Lines", out);
+}
+
+void displaySelectedLines() {
+    Mat out;
+    originalImage.copyTo(out);
+
+    Scalar blue = Scalar(255, 0, 0);
+    Scalar green = Scalar(0, 255, 0);
+    Scalar red = Scalar(0, 0, 255);
+    Scalar orange = Scalar(0, 165, 255);
+
+    if (ltu.foundD) {
+        line(out, ltu.dashLine.p1, ltu.dashLine.p2, red, 2, 8, 0);
+    }
+
+    if (ltu.foundL) {
+        line(out, ltu.leftLine.p1, ltu.leftLine.p2, blue, 2, 8, 0);
+    }
+
+    if (ltu.foundR) {
+        line(out, ltu.rightLine.p1, ltu.rightLine.p2, green, 2, 8, 0);
+    }
+
+    if (ltu.dashedCurveFound) {
+        line(out, ltu.dashedCurve[1].p1, ltu.dashedCurve[1].p2, orange, 2, 8, 0);
+    }
+
+    imshow("Selected Lines", out);
+};
+
+void displayTrajectory() {
+    Mat out;
+    originalImage.copyTo(out);
+
+    auto data = dataToDriver[0];
+    auto leftGoalLine = data.leftGoalLines0;
+    auto rightGoalLine = data.rightGoalLines0;
+    auto currentLine = data.currentLine;
+
+    Point2f intersectionPoint;
+    getVanishingPoint(leftGoalLine.p1, leftGoalLine.p2, rightGoalLine.p1, rightGoalLine.p2, intersectionPoint);
+
+    Scalar blue = Scalar(255, 0, 0);
+    Scalar green = Scalar(0, 255, 0);
+    Scalar orange = Scalar(0, 165, 255);
+    Scalar red = Scalar(0, 0, 255);
+    line(out, leftGoalLine.p1, leftGoalLine.p2, blue, 2, 8, 0);
+    line(out, rightGoalLine.p1, rightGoalLine.p2, green, 2, 8, 0);
+    line(out, currentLine.p1, currentLine.p2, orange, 2, 8, 0);
+    line(out, Point{(int) intersectionPoint.x, (int) intersectionPoint.y},
+         Point{(int) intersectionPoint.x, h/2}, red, 2, 8, 0);
+
+    imshow("Trajectory", out);
+}
+
+void displayBothLines(string title) {
+    Mat out;
+    originalImage.copyTo(out);
+
+    Scalar red = Scalar(0, 0, 255);
+    for (int i = 0; i < dashLines.size(); i++) {
+        line(out, dashLines[i].p1, dashLines[i].p2, red, 3, 8, 0);
+    }
+
+    Scalar orange = Scalar(0, 165, 255);
+    for (int i = 0; i < solidLines.size(); i++) {
+        line(out, solidLines[i].p1, solidLines[i].p2, orange, 2, 8, 0);
+    }
+
+    imshow(title, out);
+}
+
+bool getVanishingPoint(Point2f o1, Point2f p1, Point2f o2, Point2f p2, Point2f &r)
+{
+    Point2f x = o2 - o1;
+    Point2f d1 = p1 - o1;
+    Point2f d2 = p2 - o2;
+
+    float cross = d1.x*d2.y - d1.y*d2.x;
+    if (abs(cross) < /*EPS*/1e-8)
+        return false;
+
+    double t1 = (x.x * d2.y - x.y * d2.x)/cross;
+    r = o1 + d1 * t1;
+    return true;
+}
+/***
+ * STOP SHOWCASE FUNCTIONS
+ */
