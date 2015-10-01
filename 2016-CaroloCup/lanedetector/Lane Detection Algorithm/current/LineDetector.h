@@ -6,8 +6,20 @@
 #define AUTOMOTIVE_CAROLOCUP_LINEDETECTOR_H
 
 #include "opencv2/imgproc/imgproc.hpp"
+#include <iostream>
+#include <chrono>
 
 using namespace cv;
+using namespace std;
+
+#define MIN_ANGLE 15
+#define MIN_ANGLE 15
+#define LEFT_ROAD_SIZE 350
+#define ROAD_SIZE 685//770
+#define ROAD_GOAL 0.5
+#define ROAD_ANGLE 85
+#define MID_DASH_ANGLE -47
+#define CONFIDENCE_LEVEL_MAX 5
 
 struct Config
 {
@@ -46,20 +58,55 @@ public:
     int polygonIndex;
 };
 
+struct PolySize {
+    int sizeX, sizeY, sizeR;
+    Point shortSideMiddle;
+    Point longSideMiddle;
+};
+enum RoadState{
+    NOT_SET,
+    NORMAL,
+    INTERSECTION
+};
+
 class LineDetector {
 private:
     Mat image;
-
+    /// Counter for Solid line.
+    int cntSolid;
+    int cntDash;
     Config m_config;
     vector<Vec4i> hierarchy;
     vector<vector<Point> > contours;
     vector<vector<Point> > contours_poly;
     vector<CustomLine> dashLines;
     vector<CustomLine> solidLines;
+    vector<RotatedRect> rects;
+    vector<PolySize> line_sizes;
     RotatedRect rect;
+    RotatedRect bigRect;
+    RoadState roadState;
+
     void getContours();
     void getPolygonContours();
     void getBoundingBoxes();
+    void classifyLines();
+    void filterAndMerge();
+    void finalFilter();
+    void characteristicFiltering(LinesToUse *ltu);
+
+    CustomLine createLineFromRect(RotatedRect *rect, int sizeX, int sizeY, int polygonIndex)
+    float getLineSlope(Point &p1, Point &p2);
+    float minXI, minYI, YI;
+    int h, w, offset;
+    int intersectionRect;
+    bool intersectionOn = false;
+    bool foundIntersection = false;
+    bool calcIntersectionGoalLine = false;
+    bool foundStopStartLine = false;
+
+    auto intersection_start = chrono::high_resolution_clock::now();
+
 
 public:
     LineDetector(Config m_config);

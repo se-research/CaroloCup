@@ -1,0 +1,14 @@
+//
+// Created by parallels on 10/1/15.
+//
+
+#ifndef AUTOMOTIVE_CAROLOCUP_LANEDETECTOR_H
+#define AUTOMOTIVE_CAROLOCUP_LANEDETECTOR_H
+
+
+class LaneDetector {
+
+};
+
+
+#endif //AUTOMOTIVE_CAROLOCUP_LANEDETECTOR_H
