@@ -1,6 +1,6 @@
 #include "main.h"
 
-bool showcase = false;
+bool showcase = true;
 auto startTimer = chrono::high_resolution_clock::now();
 auto endTimer = chrono::high_resolution_clock::now();
 double periodTimer = 0;
@@ -1645,8 +1645,9 @@ void displayTrajectory() {
     auto rightGoalLine = data.rightGoalLines0;
     auto currentLine = data.currentLine;
 
-    Point2f intersectionPoint;
-    getVanishingPoint(leftGoalLine.p1, leftGoalLine.p2, rightGoalLine.p1, rightGoalLine.p2, intersectionPoint);
+    Point2f vanishingPoint;
+    getVanishingPoint(leftGoalLine.p1, leftGoalLine.p2, rightGoalLine.p1, rightGoalLine.p2, vanishingPoint);
+    cout << "Vanishing Point: " << vanishingPoint.x << ", " << vanishingPoint.y << endl;
 
     Scalar blue = Scalar(255, 0, 0);
     Scalar green = Scalar(0, 255, 0);
@@ -1655,8 +1656,8 @@ void displayTrajectory() {
     line(out, leftGoalLine.p1, leftGoalLine.p2, blue, 2, 8, 0);
     line(out, rightGoalLine.p1, rightGoalLine.p2, green, 2, 8, 0);
     line(out, currentLine.p1, currentLine.p2, orange, 2, 8, 0);
-    line(out, Point{(int) intersectionPoint.x, (int) intersectionPoint.y},
-         Point{(int) intersectionPoint.x, h/2}, red, 2, 8, 0);
+    line(out, Point{(int) vanishingPoint.x, (int) vanishingPoint.y},
+         Point{(int) vanishingPoint.x, h/2}, red, 2, 8, 0);
 
     imshow("Trajectory", out);
 }
