@@ -88,7 +88,10 @@ class ProxyTest : public CxxTest::TestSuite {
             sensorData.setUsRear(12);
             sensorData.setIrFrontRight(14);
             sensorData.setIrRearRight(16);
-            sensorData.setWheel(18);
+            sensorData.setIrBackLeft(18);
+            sensorData.setIrBackRight(20);
+            sensorData.setWheelFrontLeft(22);
+            sensorData.setWheelRearRight(24);
 
             // Create a Proto serialization visitor.
             ProtoSerializerVisitor protoSerializerVisitor;
@@ -127,6 +130,64 @@ class ProxyTest : public CxxTest::TestSuite {
             TS_ASSERT(sensorData.getUsRear() == sensorData2.getUsRear());
             TS_ASSERT(sensorData.getIrFrontRight() == sensorData2.getIrFrontRight());
             TS_ASSERT(sensorData.getIrRearRight() == sensorData2.getIrRearRight());
+            TS_ASSERT(sensorData.getIrBackLeft() == sensorData2.getIrBackLeft());
+            TS_ASSERT(sensorData.getIrBackRight() == sensorData2.getIrBackRight());
+            TS_ASSERT(sensorData.getWheelFrontLeft() == sensorData2.getWheelFrontLeft());
+            TS_ASSERT(sensorData.getWheelRearRight() == sensorData2.getWheelRearRight());
+        }
+
+        void testProtoNoHeader() {
+            automotive::carolocup::Sensors sensorData;
+            sensorData.setUsFront(10);
+            sensorData.setUsRear(12);
+            sensorData.setIrFrontRight(14);
+            sensorData.setIrRearRight(16);
+            sensorData.setIrBackLeft(18);
+            sensorData.setIrBackRight(20);
+            sensorData.setWheelFrontLeft(22);
+            sensorData.setWheelRearRight(24);
+
+            // Create a Proto serialization visitor.
+            ProtoSerializerVisitor protoSerializerVisitor;
+            sensorData.accept(protoSerializerVisitor);
+
+            // Write the data to a stringstream.
+            stringstream out;
+            protoSerializerVisitor.getSerializedDataNoHeader(out);
+
+            // Now, the data is in out.
+
+            {
+                // Some illustrative statements for demo purposes.
+                cout << "Proto data: '" << out.str() << "'" << endl;
+
+                // Create generic representation from data structure.
+                MessageFromVisitableVisitor mfvv;
+                sensorData.accept(mfvv);
+                Message msg = mfvv.getMessage();
+
+                // Pretty print generic representation.
+                MessagePrettyPrinterVisitor mpp2;
+                msg.accept(mpp2);
+                mpp2.getOutput(cout);
+            }
+
+            // Create a Proto deserialization visitor.
+            ProtoDeserializerVisitor protoDeserializerVisitor;
+            protoDeserializerVisitor.deserializeDataFromNoHeader(out);
+
+            // Read back the data by using the visitor.
+            automotive::carolocup::Sensors sensorData2;
+            sensorData2.accept(protoDeserializerVisitor);
+
+            TS_ASSERT(sensorData.getUsFront() == sensorData2.getUsFront());
+            TS_ASSERT(sensorData.getUsRear() == sensorData2.getUsRear());
+            TS_ASSERT(sensorData.getIrFrontRight() == sensorData2.getIrFrontRight());
+            TS_ASSERT(sensorData.getIrRearRight() == sensorData2.getIrRearRight());
+            TS_ASSERT(sensorData.getIrBackLeft() == sensorData2.getIrBackLeft());
+            TS_ASSERT(sensorData.getIrBackRight() == sensorData2.getIrBackRight());
+            TS_ASSERT(sensorData.getWheelFrontLeft() == sensorData2.getWheelFrontLeft());
+            TS_ASSERT(sensorData.getWheelRearRight() == sensorData2.getWheelRearRight());
         }
 
         ////////////////////////////////////////////////////////////////////////////////////
