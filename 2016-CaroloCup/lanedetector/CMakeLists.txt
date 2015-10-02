@@ -96,7 +96,7 @@ SET (LIBRARIES ${LIBRARIES} ${MSVDATA_LIB})
 FILE(GLOB_RECURSE thisproject-sources "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 ADD_LIBRARY (${PROJECT_NAME}lib-static STATIC ${thisproject-sources})
 
-ADD_EXECUTABLE (${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/apps/${PROJECT_NAME}.cpp" "Lane Detection Algorithm/current/LineDetector.cpp" "Lane Detection Algorithm/current/LineDetector.h" "Lane Detection Algorithm/current/lanedetector.cpp" "Lane Detection Algorithm/current/lanedetector.h" "Lane Detection Algorithm/current/LaneDetector.cpp" "Lane Detection Algorithm/current/LaneDetector.h")
+ADD_EXECUTABLE (${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/apps/${PROJECT_NAME}.cpp")
 TARGET_LINK_LIBRARIES (${PROJECT_NAME} ${PROJECT_NAME}lib-static ${LIBRARIES}) 
 
 ADD_EXECUTABLE (lanedetector2csvextractor "${CMAKE_CURRENT_SOURCE_DIR}/apps/LaneDetectorToCSVExtractor.cpp")
