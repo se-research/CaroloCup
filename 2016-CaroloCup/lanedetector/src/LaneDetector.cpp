@@ -43,6 +43,7 @@ Config cfg;
 int  avg_time = 0, num_msmnt;
 double width = 752, height = 480;
 Mat img;
+std::ofstream csvexport;
 
 LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
     TimeTriggeredConferenceClientModule(argc, argv, "lanedetector"),
@@ -74,6 +75,10 @@ void LaneDetector::setUp()
             cvNamedWindow("WindowShowImage", CV_WINDOW_AUTOSIZE);
             cvMoveWindow("WindowShowImage", 300, 100);
         }
+
+    string path = getenv("HOME");
+    path += "/ld-data.csv";
+    std::remove(path.c_str());
 }
 
 void LaneDetector::tearDown()
@@ -243,6 +248,13 @@ void LaneDetector::processImage()
     dataToDriver.setConfidence(road.getConfidenceLevel());
 
     lines.setCurrentLine(dataToDriver.currentLine);
+
+    Point vp = dataToDriver.rightGoalLines0.p1;
+    string path = getenv("HOME");
+    path += "/ld-data.csv";
+    csvexport.open(path.c_str(), std::ios_base::app);
+    csvexport << m_frame_count << "," << vp.x << "," << vp.y << "\n";
+    csvexport.close();
 
     if (&lines != NULL)
         cout << "We have lines for frame " << m_frame_count << endl;
