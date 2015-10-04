@@ -82,10 +82,7 @@ void LaneDetector::setUp()
 }
 
 void LaneDetector::setupVPDataFile() const {
-    // skip if same frame
-    if (containerTimestamp == previousContainerTimestamp) return;
-
-    // get root path
+    // get path
     string path = getenv("VPGRAPHER");
     if (path.empty()) path  = getenv("HOME");
     path += "/ld-data.csv";
@@ -98,8 +95,6 @@ void LaneDetector::setupVPDataFile() const {
     csvexport.open(path.c_str(), ios_base::app);
     csvexport << "VP_x,VP_y\n";
     csvexport.close();
-
-    previousContainerTimestamp = containerTimestamp;
 }
 
     void LaneDetector::tearDown()
@@ -341,13 +336,22 @@ void LaneDetector::processImage()
 }
 
 void LaneDetector::printVPToCSV(const LaneDetectorDataToDriver &dataToDriver) const {
-    Point vp = dataToDriver.rightGoalLines0.p1;
-    string path = getenv("HOME");
+    // skip if same frame
+    if (containerTimestamp == previousContainerTimestamp) return;
+
+    // get path
+    string path = getenv("VPGRAPHER");
+    if (path.empty()) path  = getenv("HOME");
     path += "/ld-data.csv";
+
+    // apend vanishing point to file
+    Point vp = dataToDriver.rightGoalLines0.p1;
     std::ofstream csvexport;
     csvexport.open(path.c_str(), ios_base::app);
     csvexport << vp.x << "," << vp.y << "\n";
     csvexport.close();
+
+    previousContainerTimestamp = containerTimestamp;
 }
 
 // This method will do the main data processing job.
