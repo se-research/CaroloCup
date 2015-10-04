@@ -36,6 +36,9 @@ using namespace tools::player;
 using namespace cv;
 using namespace automotive::miniature;
 
+int containerTimestamp;
+int previousContainerTimestamp = 0;
+
 int previousThresh=48;
 bool debug;
 Config cfg;
@@ -79,6 +82,9 @@ void LaneDetector::setUp()
 }
 
 void LaneDetector::setupVPDataFile() const {
+    // skip if same frame
+    if (containerTimestamp == previousContainerTimestamp) return;
+
     // get root path
     string path = getenv("VPGRAPHER");
     if (path.empty()) path  = getenv("HOME");
@@ -92,6 +98,8 @@ void LaneDetector::setupVPDataFile() const {
     csvexport.open(path.c_str(), ios_base::app);
     csvexport << "VP_x,VP_y\n";
     csvexport.close();
+
+    previousContainerTimestamp = containerTimestamp;
 }
 
     void LaneDetector::tearDown()
@@ -167,6 +175,8 @@ bool LaneDetector::readSharedImage(Container &c)
                                 cvReleaseImage(&image);
                             }
                     }
+
+                    containerTimestamp = c.getReceivedTimeStamp().getFractionalMicroseconds();
 
                     // Release the memory region so that the image produce (i.e. the camera for example) can provide the next raw image data.
                     m_sharedImageMemory->unlock();
