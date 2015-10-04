@@ -43,7 +43,6 @@ Config cfg;
 int  avg_time = 0, num_msmnt;
 double width = 752, height = 480;
 Mat img;
-std::ofstream csvexport;
 
 LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
     TimeTriggeredConferenceClientModule(argc, argv, "lanedetector"),
@@ -76,14 +75,23 @@ void LaneDetector::setUp()
             cvMoveWindow("WindowShowImage", 300, 100);
         }
 
-    removeVPDataFile();
+    setupVPDataFile();
 }
 
-void LaneDetector::removeVPDataFile() const {
+void LaneDetector::setupVPDataFile() const {
+    // get root path
     string path = getenv("VPGRAPHER");
     if (path.empty()) path  = getenv("HOME");
     path += "/ld-data.csv";
+
+    // remove the old file
     remove(path.c_str());
+
+    // append column names
+    std::ofstream csvexport;
+    csvexport.open(path.c_str(), ios_base::app);
+    csvexport << "VP_x,VP_y\n";
+    csvexport.close();
 }
 
     void LaneDetector::tearDown()
@@ -326,8 +334,9 @@ void LaneDetector::printVPToCSV(const LaneDetectorDataToDriver &dataToDriver) co
     Point vp = dataToDriver.rightGoalLines0.p1;
     string path = getenv("HOME");
     path += "/ld-data.csv";
+    std::ofstream csvexport;
     csvexport.open(path.c_str(), ios_base::app);
-    csvexport << this->m_frame_count << "," << vp.x << "," << vp.y << "\n";
+    csvexport << vp.x << "," << vp.y << "\n";
     csvexport.close();
 }
 

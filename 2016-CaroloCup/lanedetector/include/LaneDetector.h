@@ -81,7 +81,7 @@ private:
 	void print_lines(IntermediateResult *res, Mat &f);
 	int getDynamicThresh(int lux);
     void printVPToCSV(const LaneDetectorDataToDriver &dataToDriver) const;
-    void removeVPDataFile() const;
+    void setupVPDataFile() const;
 
     virtual void setUp();
 
