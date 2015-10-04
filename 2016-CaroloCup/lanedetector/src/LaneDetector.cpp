@@ -79,11 +79,12 @@ void LaneDetector::setUp()
     removeVPDataFile();
 }
 
-    void LaneDetector::removeVPDataFile() const {
-        string path = getenv("HOME");
-        path += "/ld-data.csv";
-        remove(path.c_str());
-    }
+void LaneDetector::removeVPDataFile() const {
+    string path = getenv("VPGRAPHER");
+    if (path.empty()) path  = getenv("HOME");
+    path += "/ld-data.csv";
+    remove(path.c_str());
+}
 
     void LaneDetector::tearDown()
 {
