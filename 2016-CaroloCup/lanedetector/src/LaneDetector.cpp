@@ -76,12 +76,16 @@ void LaneDetector::setUp()
             cvMoveWindow("WindowShowImage", 300, 100);
         }
 
-    string path = getenv("HOME");
-    path += "/ld-data.csv";
-    std::remove(path.c_str());
+    removeVPDataFile();
 }
 
-void LaneDetector::tearDown()
+    void LaneDetector::removeVPDataFile() const {
+        string path = getenv("HOME");
+        path += "/ld-data.csv";
+        remove(path.c_str());
+    }
+
+    void LaneDetector::tearDown()
 {
     // This method will be call automatically _after_ return from body().
     if (m_debug)
@@ -249,12 +253,7 @@ void LaneDetector::processImage()
 
     lines.setCurrentLine(dataToDriver.currentLine);
 
-    Point vp = dataToDriver.rightGoalLines0.p1;
-    string path = getenv("HOME");
-    path += "/ld-data.csv";
-    csvexport.open(path.c_str(), std::ios_base::app);
-    csvexport << m_frame_count << "," << vp.x << "," << vp.y << "\n";
-    csvexport.close();
+    printVPToCSV(dataToDriver);
 
     if (&lines != NULL)
         cout << "We have lines for frame " << m_frame_count << endl;
@@ -320,6 +319,15 @@ void LaneDetector::processImage()
     m_frame.release();
     waitKey(20);
 
+}
+
+void LaneDetector::printVPToCSV(const LaneDetectorDataToDriver &dataToDriver) const {
+    Point vp = dataToDriver.rightGoalLines0.p1;
+    string path = getenv("HOME");
+    path += "/ld-data.csv";
+    csvexport.open(path.c_str(), ios_base::app);
+    csvexport << this->m_frame_count << "," << vp.x << "," << vp.y << "\n";
+    csvexport.close();
 }
 
 // This method will do the main data processing job.
