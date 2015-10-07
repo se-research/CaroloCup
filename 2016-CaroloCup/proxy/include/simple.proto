@@ -1,0 +1,14 @@
+// A very simple protocol definition, consisting of only
+// one message.
+
+syntax = "proto2";
+
+message sensorData {
+    required int32 usf = 1;
+    optional int32 usb = 2;
+    optional int32 irrf = 3;
+    optional int32 irrb = 4;
+    optional int32 irrl = 5;
+    optional int32 irrr = 6;
+}
+

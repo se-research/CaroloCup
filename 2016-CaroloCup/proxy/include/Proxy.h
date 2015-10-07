@@ -1,7 +1,20 @@
-/*
- * Mini-Smart-Vehicles.
+/**
+ * proxy - Sample application to encapsulate HW/SW interfacing with embedded systems.
+ * Copyright (C) 2012 - 2015 Christian Berger
  *
- * This software is open source. Please see COPYING and AUTHORS for further information.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 #ifndef PROXY_H_
@@ -11,97 +24,79 @@
 
 #include "core/base/module/TimeTriggeredConferenceClientModule.h"
 #include "core/data/Container.h"
-#include "core/data/TimeStamp.h"
 #include "tools/recorder/Recorder.h"
-#include "ArduinoMegaProtocol.h"
 
-#include "GeneratedHeaders_AutomotiveData.h"
+#include <core/SharedPointer.h>
+#include <core/wrapper/SerialPort.h>
+#include <core/wrapper/SerialPortFactory.h>
+#include <core/base/Thread.h>
+
+#include <core/io/StringListener.h>
 
 #include "Camera.h"
 
-namespace msv {
+namespace automotive {
+    namespace miniature {
 
-    using namespace std;
-    using namespace core::data;
-    using namespace automotive::miniature;
+        using namespace std;
 
-    /**
-     * This class wraps the software/hardware interface board.
-     */
-    class Proxy : public core::base::module::TimeTriggeredConferenceClientModule,public core::io::StringListener{
-        private:
-            /**
-             * "Forbidden" copy constructor. Goal: The compiler should warn
-             * already at compile time for unwanted bugs caused by any misuse
-             * of the copy constructor.
-             *
-             * @param obj Reference to an object of this class.
-             */
-            Proxy(const Proxy &/*obj*/);
+        /**
+         * This class wraps the software/hardware interface board.
+         */
+        class Proxy : public core::base::module::TimeTriggeredConferenceClientModule, public core::io::StringListener {
+            private:
+                /**
+                 * "Forbidden" copy constructor. Goal: The compiler should warn
+                 * already at compile time for unwanted bugs caused by any misuse
+                 * of the copy constructor.
+                 *
+                 * @param obj Reference to an object of this class.
+                 */
+                Proxy(const Proxy &/*obj*/);
+		
+		core::SharedPointer<core::wrapper::SerialPort> serial;
+		
+        
 
-            /**
-             * "Forbidden" assignment operator. Goal: The compiler should warn
-             * already at compile time for unwanted bugs caused by any misuse
-             * of the assignment operator.
-             *
-             * @param obj Reference to an object of this class.
-             * @return Reference to this instance.
-             */
-            Proxy& operator=(const Proxy &/*obj*/);
+		// Your class needs to implement the method void nextString(const std::string &s).
+		void nextString(const std::string &s);
+		
+                /**
+                 * "Forbidden" assignment operator. Goal: The compiler should warn
+                 * already at compile time for unwanted bugs caused by any misuse
+                 * of the assignment operator.
+                 *
+                 * @param obj Reference to an object of this class.
+                 * @return Reference to this instance.
+                 */
+                Proxy& operator=(const Proxy &/*obj*/);
 
-        public:
-            /**
-             * Constructor.
-             *
-             * @param argc Number of command line arguments.
-             * @param argv Command line arguments.
-             */
-            Proxy(const int32_t &argc, char **argv);
+            public:
+                /**
+                 * Constructor.
+                 *
+                 * @param argc Number of command line arguments.
+                 * @param argv Command line arguments.
+                 */
+                Proxy(const int32_t &argc, char **argv);
 
-            virtual ~Proxy();
+                virtual ~Proxy();
 
-            coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode body();
+                coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode body();
 
-            virtual void nextString(const string &s);
+            private:
+                virtual void setUp();
 
-        private:
-            virtual void setUp();
+                virtual void tearDown();
 
-            virtual void tearDown();
+                void distribute(core::data::Container c);
+            
+	    private:		
+                tools::recorder::Recorder *m_recorder;
+                Camera *m_camera;
+        };
 
-            void distribute(core::data::Container c);
-
-            void sendData();
-
-            int converter(char* ,int);
-
-            void log(const string &s);
-
-        public:
-            struct vehicleControl {
-                    		int speed;
-                    		double steeringAngle;
-                    		bool leftFlash;
-                    		bool rightFlash;
-                    		bool brakeLight;
-
-                    	};
-        private:
-            tools::recorder::Recorder *m_recorder;
-            Camera *m_camera;
-            vehicleControl previousValues, currentValues;
-
-            core::base::Mutex m_sensorBoardMutex;
-            SensorBoardData m_sensorBoardData;
-
-            bool m_debug;
-            bool m_useRealSpeed;
-            ofstream logger;
-            TimeStamp timestamp;
-
-
-    };
-
-} // msv
+    }
+} // automotive::miniature
 
 #endif /*PROXY_H_*/
