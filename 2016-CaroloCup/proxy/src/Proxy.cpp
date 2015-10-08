@@ -114,13 +114,14 @@ namespace automotive {
 	return command;
 	}
 	Container decodePayload(string payload){
+	  cout << "payload length:" << payload.length() << endl;
 	  stringstream proto(payload);
 	  ProtoDeserializerVisitor protoDeserializerVisitor;
           protoDeserializerVisitor.deserializeDataFromNoHeader(proto);
 	    
 	  automotive::carolocup::Sensors sd;
 	  sd.accept(protoDeserializerVisitor);
-	  
+	  /*
 	  cout<<"PAY:";
 	  for(int i =0;i<(int)payload.length();i++){
 	    cout<<(int)payload[i]<<',';
@@ -130,8 +131,8 @@ namespace automotive {
 	  <<"IRFR:"<<sd.getIrFrontRight()<<"IRRR:"<<sd.getIrRearRight()
 	  <<"IRBL:"<<sd.getIrBackLeft()<<"IRBR:"<<sd.getIrBackRight()
 	  <<"WFL:"<<sd.getWheelFrontLeft()<<"WRR:"<<sd.getWheelRearRight()
-	  <<endl;
-	  
+	  <<endl; */
+	  cout << sd.toString()<< endl;
 	      SensorBoardData m_sensorBoardData;
 		m_sensorBoardData.putTo_MapOfDistances(0, sd.getUsFront());
 		m_sensorBoardData.putTo_MapOfDistances(1, sd.getIrFrontRight());
@@ -144,15 +145,15 @@ namespace automotive {
 	}
 	
 	void Proxy::nextString(const string &s) {
-	//  cout  << s ; 
-	  for(int i= 0; i< (int)s.length();i++){
+	//s.length();
+	//  cout << s<< endl;
+	 for(int i= 0; i< (int)s.length();i++){
 	    netstring << s[i];
 	    if(s[i] == ','){
 	      distribute(decodePayload(decodedNetstring(netstring.str())));
 	      netstring.str(std::string());
 	    }
 	  }
-	  
 	}
        
 
@@ -204,7 +205,6 @@ namespace automotive {
             if (m_camera == NULL) {
                 cerr << "No valid camera type defined." << endl;
             }
-            
 	      // This instance will handle any bytes that are received
 	      // from our serial port.
 	      serial->setStringListener(this);
@@ -213,6 +213,16 @@ namespace automotive {
 	      
 	      // Start receiving bytes.
 	      serial->start();
+	/*      stringstream raw;
+	      string data = "8 1 16 2 24 3 32 4 40 5 48 6 56 7 64 8";
+	      stringstream sstr(data);
+	      while (sstr.good()) {
+                int i = 0;
+                sstr >> i;
+                char c = (char)i;
+                raw << c; 
+            }
+            decodePayload(raw.str());*/
         }
 
         void Proxy::tearDown() {

@@ -1,0 +1,19 @@
+
+syntax = "proto2";
+
+message Sensors {
+    required uint32 usFront = 1;
+    required uint32 usRear = 2;
+    required uint32 irFrontRight = 3;
+    required uint32 irRearRight = 4;
+    required uint32 irBackLeft = 5;
+    required uint32 irBackRight = 6;
+    required uint32 wheelFrontLeft = 7;
+    required uint32 wheelRearRight = 8;
+}
+
+message Control {
+    required uint32 steering = 1;
+    required uint32 acceleration = 2;
+    required uint32 lights = 3;
+}
