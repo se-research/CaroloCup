@@ -20,6 +20,7 @@ using namespace std;
 #define ROAD_ANGLE 85
 #define MID_DASH_ANGLE -47
 #define CONFIDENCE_LEVEL_MAX 5
+auto intersection_start = chrono::high_resolution_clock::now();
 
 struct Config
 {
@@ -63,15 +64,56 @@ struct PolySize {
     Point shortSideMiddle;
     Point longSideMiddle;
 };
+
+struct LinesToUse
+{
+    CustomLine dashLine;
+    CustomLine rightLine;
+    CustomLine leftLine;
+    vector<CustomLine> dashedCurve; // debug
+    int cntDash;    // debug
+    bool dashedCurveFound;
+    bool foundD;
+    bool foundR;
+    bool foundL;
+    bool foundGoal;
+    Vec4i dashLineVec;
+    Vec4i leftLineVec;
+    Vec4i rightLineVec;
+    bool isLeftEstimated;
+    bool isDashEstimated;
+    bool isRightEstimated;
+//    Lines *lines;
+};
+
 enum RoadState{
     NOT_SET,
     NORMAL,
     INTERSECTION
 };
 
+struct EstimationData {
+    bool isLeftEstimated;
+    bool isDashEstimated;
+    bool isRightEstimated;
+    bool foundGoal;
+    CustomLine left;
+    CustomLine dash;
+    CustomLine right;
+    int calcRoadSize;
+    int yPosition;
+};
+
+struct GoalLineData {
+    CustomLine rightGoalLine;
+    CustomLine leftGoalLine;
+    int confidenceLevel_rightGoalLine;
+};
+
 class LineDetector {
 private:
     Mat image;
+    int previousThresh = 48;
     /// Counter for Solid line.
     int cntSolid;
     int cntDash;
@@ -86,6 +128,8 @@ private:
     RotatedRect rect;
     RotatedRect bigRect;
     RoadState roadState;
+    int calcRoadSize;
+    int calcRoadAngle;
 
     void getContours();
     void getPolygonContours();
@@ -94,9 +138,29 @@ private:
     void filterAndMerge();
     void finalFilter();
     void characteristicFiltering(LinesToUse *ltu);
+    void createTrajectory(LinesToUse *ltu);
+    void createIntersectionGoalLine();
 
-    CustomLine createLineFromRect(RotatedRect *rect, int sizeX, int sizeY, int polygonIndex)
+    //Helper functions
     float getLineSlope(Point &p1, Point &p2);
+    Point getLineCenter(Point &p1, Point &p2); //NOT SURE ABOUT '&'
+    float getDist(const Point p1, const Point p2);
+    CustomLine createLineFromRect(RotatedRect *rect, int sizeX, int sizeY, int polygonIndex);
+    int getDynamicThresh(int lux);
+    vector<CustomLine> findCurve(vector<CustomLine> lines);
+    bool isNoneCustomLine(CustomLine aspirant);
+    CustomLine getNoneCustomLine();
+    void provideGoalLine(EstimationData *ed, GoalLineData *gld);
+    int getRoadAngle(int lineDetected, int lineAngle);
+    int getRoadSize(int roadAngleVal);
+    CustomLine simple_calculateGoalLine(CustomLine fst, CustomLine snd, EstimationData *ed);
+    int getIntersectionWithY(CustomLine l, int y);
+    int getIntersectionWithTop(CustomLine l);
+    int getIntersectionWithTopP2(CustomLine l);
+    int getIntersectionWithBottom(CustomLine l);
+    PolySize createPolySize(const RotatedRect &rect);
+
+
     float minXI, minYI, YI;
     int h, w, offset;
     int intersectionRect;
@@ -105,7 +169,7 @@ private:
     bool calcIntersectionGoalLine = false;
     bool foundStopStartLine = false;
 
-    auto intersection_start = chrono::high_resolution_clock::now();
+
 
 
 public:

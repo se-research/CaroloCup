@@ -37,7 +37,7 @@ ENDIF()
 INCLUDE (CompileFlags)
 
 # TODO: Remove this line and fix the coding problems in the Legendary code
-SET (CMAKE_CXX_FLAGS "-Wfloat-equal -Wpointer-arith -Wwrite-strings -Wpacked -Wmissing-format-attribute -ansi -pipe")
+SET (CMAKE_CXX_FLAGS "-Wfloat-equal -Wpointer-arith -Wwrite-strings -Wpacked -Wmissing-format-attribute -ansi -pipe --std=c++11")
 
 ###########################################################################
 # Find and configure CxxTest.
@@ -104,6 +104,10 @@ TARGET_LINK_LIBRARIES (lanedetector2csvextractor ${PROJECT_NAME}lib-static ${LIB
 
 ADD_EXECUTABLE (lanedetector_InspectionModule "${CMAKE_CURRENT_SOURCE_DIR}/apps/InspectionModule.cpp")
 TARGET_LINK_LIBRARIES (lanedetector_InspectionModule ${PROJECT_NAME}lib-static ${LIBRARIES}) 
+
+# Build refactoring project
+ADD_EXECUTABLE (CaroloCup-CameraPlayback "${CMAKE_CURRENT_SOURCE_DIR}/refactoring/CaroloCup-CameraPlayback.cpp")
+TARGET_LINK_LIBRARIES(CaroloCup-CameraPlayback ${PROJECT_NAME}lib-static ${LIBRARIES})
 
 # lanedetector-demo is using libodsimulation for playback.
 IF(FOUND_ODSIMULATION)
