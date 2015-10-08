@@ -4,14 +4,6 @@
 
 #include "LineDetector.h"
 
-/*LineDetector::LineDetector(Config m_config) : m_config.th1(70),
-                                              m_config.th2(230),
-                                              m_config.hlTh(THRESH_BINARY),
-                                              m_config.XTimesYMin(2),
-                                              m_config.XTimesYMax(20),
-                                              m_config.maxY(235),
-                                              m_config.maxArea(4),
-                                              m_config.debug(false) { */
 
 LineDetector::LineDetector() {
     m_config.th1 = 70;

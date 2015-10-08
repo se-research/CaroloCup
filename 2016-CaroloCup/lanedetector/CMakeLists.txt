@@ -97,17 +97,13 @@ FILE(GLOB_RECURSE thisproject-sources "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 ADD_LIBRARY (${PROJECT_NAME}lib-static STATIC ${thisproject-sources})
 
 ADD_EXECUTABLE (${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/apps/${PROJECT_NAME}.cpp")
-TARGET_LINK_LIBRARIES (${PROJECT_NAME} ${PROJECT_NAME}lib-static ${LIBRARIES}) 
+TARGET_LINK_LIBRARIES (${PROJECT_NAME} ${PROJECT_NAME}lib-static ${LIBRARIES})
 
 ADD_EXECUTABLE (lanedetector2csvextractor "${CMAKE_CURRENT_SOURCE_DIR}/apps/LaneDetectorToCSVExtractor.cpp")
-TARGET_LINK_LIBRARIES (lanedetector2csvextractor ${PROJECT_NAME}lib-static ${LIBRARIES}) 
+TARGET_LINK_LIBRARIES (lanedetector2csvextractor ${PROJECT_NAME}lib-static ${LIBRARIES})
 
 ADD_EXECUTABLE (lanedetector_InspectionModule "${CMAKE_CURRENT_SOURCE_DIR}/apps/InspectionModule.cpp")
-TARGET_LINK_LIBRARIES (lanedetector_InspectionModule ${PROJECT_NAME}lib-static ${LIBRARIES}) 
-
-# Build refactoring project
-ADD_EXECUTABLE (CaroloCup-CameraPlayback "${CMAKE_CURRENT_SOURCE_DIR}/refactoring/CaroloCup-CameraPlayback.cpp")
-TARGET_LINK_LIBRARIES(CaroloCup-CameraPlayback ${PROJECT_NAME}lib-static ${LIBRARIES})
+TARGET_LINK_LIBRARIES (lanedetector_InspectionModule ${PROJECT_NAME}lib-static ${LIBRARIES})
 
 # lanedetector-demo is using libodsimulation for playback.
 IF(FOUND_ODSIMULATION)

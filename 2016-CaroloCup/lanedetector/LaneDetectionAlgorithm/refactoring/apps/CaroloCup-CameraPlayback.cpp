@@ -109,6 +109,9 @@ void helpMessage(string name)
 
 int32_t main(int32_t argc, char **argv)
 {
+    LineDetector m_line = LineDetector();
+
+
     uint32_t retVal = 0;
     int recIndex=1;
     bool log=false;
@@ -214,13 +217,13 @@ int32_t main(int32_t argc, char **argv)
 
                             // Let the IplImage point to the shared memory containing the captured image.
                             image->imageData = static_cast<char*>(sharedImageMemory->getSharedMemory());
-                            // LineDetector Here
-
-                            //
                         }
                     }
 
                     // Show the image using OpenCV.
+                    // Process Image in here.
+
+
 
                     // if csv parameter is set
                     if(argc==4 || (argc==3 && string(argv[1]).compare("-l")!=0))

@@ -2,9 +2,6 @@
 // Created by parallels on 9/30/15.
 //
 
-#ifndef AUTOMOTIVE_CAROLOCUP_LINEDETECTOR_H
-#define AUTOMOTIVE_CAROLOCUP_LINEDETECTOR_H
-
 #include "opencv2/imgproc/imgproc.hpp"
 #include <iostream>
 #include <chrono>
@@ -173,11 +170,7 @@ private:
 
 
 public:
-    LineDetector(Config m_config);
-
-
+    LineDetector();
+    void processImage(Mat input);
 
 };
-
-
-#endif //AUTOMOTIVE_CAROLOCUP_LINEDETECTOR_H
