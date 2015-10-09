@@ -36,7 +36,7 @@ using namespace tools::player;
 using namespace cv;
 using namespace automotive::miniature;
 
-int containerTimestamp;
+int containerTimestamp = 0;
 int previousContainerTimestamp = 0;
 
 int previousThresh=48;
@@ -83,8 +83,7 @@ void LaneDetector::setUp()
 
 void LaneDetector::setupVPDataFile() const {
     // get path
-    string path = getenv("VPGRAPHER");
-    if (path.empty()) path  = getenv("HOME");
+    string path = getenv("HOME");
     path += "/ld-data.csv";
 
     // remove the old file
@@ -340,8 +339,7 @@ void LaneDetector::printVPToCSV(const LaneDetectorDataToDriver &dataToDriver) co
     if (containerTimestamp == previousContainerTimestamp) return;
 
     // get path
-    string path = getenv("VPGRAPHER");
-    if (path.empty()) path  = getenv("HOME");
+    string path =  getenv("HOME");
     path += "/ld-data.csv";
 
     // apend vanishing point to file
