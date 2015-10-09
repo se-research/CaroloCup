@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vanishing Point Precision Graph</title>
+    <script src="vendor/d3.js"></script>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <h1>Vanishing Point Precision Graph</h1>
+    <label for="scenario">Pick scenario: </label>
+    <input type="file" id="scenario">
+    <button id="get-graph">Get Graph</button>
+    <script>
+        var graphButton = document.getElementById('get-graph');
+
+        var scenarioPath = "data/" + document.getElementById('scenario').value,
+            calculatedDataPath = "data/" + 'ld-data.csv';
+
+        graphButton.addEventListener('click', function() {
+            var data = [];
+
+            d3.csv(scenarioPath, function(scenarioData) {
+                d3.csv(calculatedDataPath, function (calculatedData) {
+                    scenarioData.forEach(function (scenario, index) {
+                        var calculated = (calculatedData[index]) ? calculatedData[index] : {VP_x: 0, VP_y: 0};
+
+                        var distance = getDistanceBetweenTwoPoints(scenario, calculated);
+
+                        data.push(distance);
+                    });
+
+                    console.log(data);
+                });
+            });
+        });
+
+        function getDistanceBetweenTwoPoints(point1, point2) {
+            return Math.round(
+                Math.sqrt(
+                    Math.pow((point2['VP_x'] - point1['VP_x']), 2) +
+                    Math.pow((point2['VP_y'] - point1['VP_y']), 2)
+                )
+            );
+        }
+    </script>
+</body>
+</html>
