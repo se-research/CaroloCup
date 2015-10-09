@@ -18,20 +18,60 @@
             calculatedDataPath = "data/" + 'ld-data.csv';
 
         graphButton.addEventListener('click', function() {
-            var data = [];
-
             d3.csv(scenarioPath, function(scenarioData) {
                 d3.csv(calculatedDataPath, function (calculatedData) {
+                    var data = [];
+
+                    var sum = 0,
+                        mean = 0,
+                        distances = [],
+                        differences = [],
+                        variance,
+                        sigma = 0;
+
                     scenarioData.forEach(function (scenario, index) {
                         var calculated = (calculatedData[index]) ? calculatedData[index] : {VP_x: 0, VP_y: 0};
 
                         var distance = getDistanceBetweenTwoPoints(scenario, calculated);
 
-                        data.push(distance);
+                        if (distance > 1000) return; // remove garbage data
+
+                        distances.push(distance);
                     });
 
-                    console.log(data);
-                });
+
+                    // get sum of all distances
+                    distances.forEach(function(number) {
+                        sum += number;
+                    });
+
+                    // get mean of all distances
+                    mean = sum / distances.length;
+
+                    // get difference of all distances
+                    distances.forEach(function(number) {
+                        differences.push(Math.pow(number - mean, 2));
+                    });
+
+                    // get sum of all differences
+                    sum = 0;
+                    differences.forEach(function(number) {
+                        sum += number;
+                    });
+
+                    // get variance
+                    variance = sum / differences.length;
+
+                    // get sigma
+                    sigma = Math.sqrt(variance);
+
+                    distances.forEach(function(value) {
+                        data.push({key: value, value: gaussian(value, mean, sigma)})
+                    });
+
+                    data.sort(function(x, y) {
+                        return x.key - y.key;
+                    });
             });
         });
 
@@ -42,6 +82,15 @@
                     Math.pow((point2['VP_y'] - point1['VP_y']), 2)
                 )
             );
+        }
+
+        function gaussian(x, mean, sigma) {
+            var gaussianConstant = 1 / Math.sqrt(2 * Math.PI);
+
+            sigma = sigma / 5;
+
+            x = (x - mean) / sigma;
+            return gaussianConstant * Math.exp(-.5 * x * x) / sigma;
         }
     </script>
 </body>
