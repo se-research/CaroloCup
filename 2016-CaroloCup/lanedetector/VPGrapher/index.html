@@ -22,13 +22,6 @@
                 d3.csv(calculatedDataPath, function (calculatedData) {
                     var data = [];
 
-                    var sum = 0,
-                        mean = 0,
-                        distances = [],
-                        differences = [],
-                        variance,
-                        sigma = 0;
-
                     scenarioData.forEach(function (scenario, index) {
                         var calculated = (calculatedData[index]) ? calculatedData[index] : {VP_x: 0, VP_y: 0};
 
@@ -36,102 +29,10 @@
 
                         if (distance > 1000) return; // remove garbage data
 
-                        distances.push(distance);
+                        data.push(distance);
                     });
 
-                    // get sum of all distances
-                    distances.forEach(function(number) {
-                        sum += number;
-                    });
-
-                    // get mean of all distances
-                    mean = sum / distances.length;
-
-                    // get difference of all distances
-                    distances.forEach(function(number) {
-                        differences.push(Math.pow(number - mean, 2));
-                    });
-
-                    // get sum of all differences
-                    sum = 0;
-                    differences.forEach(function(number) {
-                        sum += number;
-                    });
-
-                    // get variance
-                    variance = sum / differences.length;
-
-                    // get sigma
-                    sigma = Math.sqrt(variance);
-
-                    distances.forEach(function(value) {
-                        data.push({key: value, value: gaussian(value, mean, sigma)})
-                    });
-
-                    data.sort(function(x, y) {
-                        return x.key - y.key;
-                    });
-
-                    // remove previous svg
-                    var previousSvg = document.getElementsByTagName('svg')[0];
-                    if (previousSvg) previousSvg.remove();
-
-                    var margin = {
-                            top: 20,
-                            right: 20,
-                            bottom: 30,
-                            left: 50
-                        },
-                        width = 960 - margin.left - margin.right,
-                        height = 500 - margin.top - margin.bottom;
-
-                    var x = d3.scale.linear()
-                        .range([0, width]);
-
-                    var y = d3.scale.linear()
-                        .range([height, 0]);
-
-                    var xAxis = d3.svg.axis()
-                        .scale(x)
-                        .ticks(20)
-                        .orient("bottom");
-
-                    var yAxis = d3.svg.axis()
-                        .scale(y)
-                        .orient("left");
-
-                    var line = d3.svg.line()
-                        .x(function(d) {
-                            return x(d.key);
-                        })
-                        .y(function(d) {
-                            return y(d.value);
-                        });
-
-                    var svg = d3.select("body").append("svg")
-                        .attr("width", width + margin.left + margin.right)
-                        .attr("height", height + margin.top + margin.bottom)
-                        .append("g")
-                        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-                    x.domain([0, 400]);
-                    y.domain(d3.extent(data, function(d) {
-                        return d.value;
-                    }));
-
-                    svg.append("g")
-                        .attr("class", "x axis")
-                        .attr("transform", "translate(0," + height + ")")
-                        .call(xAxis);
-
-                    svg.append("g")
-                        .attr("class", "y axis")
-                        .call(yAxis);
-
-                    svg.append("path")
-                        .datum(data)
-                        .attr("class", "line")
-                        .attr("d", line);
+                    drawNormalDistributionGraph(data);
                 });
             });
         });
@@ -150,6 +51,109 @@
 
             x = (x - mean) / sigma;
             return gaussianConstant * Math.exp(-.5 * x * x) / sigma;
+        }
+
+        function drawNormalDistributionGraph(data) {
+            var sum = 0,
+                mean = 0,
+                differences = [],
+                variance,
+                sigma = 0,
+                graphData = [];
+
+            // get sum of all distances
+            data.forEach(function(number) {
+                sum += number;
+            });
+
+            // get mean of all distances
+            mean = sum / data.length;
+
+            // get difference of all distances
+            data.forEach(function(number) {
+                differences.push(Math.pow(number - mean, 2));
+            });
+
+            // get sum of all differences
+            sum = 0;
+            differences.forEach(function(number) {
+                sum += number;
+            });
+
+            // get variance
+            variance = sum / differences.length;
+
+            // get sigma
+            sigma = Math.sqrt(variance);
+
+            data.forEach(function(value) {
+                graphData.push({key: value, value: gaussian(value, mean, sigma)})
+            });
+
+            graphData.sort(function(x, y) {
+                return x.key - y.key;
+            });
+
+            // remove previous svg
+            var previousSvg = document.getElementsByTagName('svg')[0];
+            if (previousSvg) previousSvg.remove();
+
+            var margin = {
+                        top: 20,
+                        right: 20,
+                        bottom: 30,
+                        left: 50
+                    },
+                    width = 960 - margin.left - margin.right,
+                    height = 500 - margin.top - margin.bottom;
+
+            var x = d3.scale.linear()
+                    .range([0, width]);
+
+            var y = d3.scale.linear()
+                    .range([height, 0]);
+
+            var xAxis = d3.svg.axis()
+                    .scale(x)
+                    .ticks(20)
+                    .orient("bottom");
+
+            var yAxis = d3.svg.axis()
+                    .scale(y)
+                    .orient("left");
+
+            var line = d3.svg.line()
+                    .x(function(d) {
+                        return x(d.key);
+                    })
+                    .y(function(d) {
+                        return y(d.value);
+                    });
+
+            var svg = d3.select("body").append("svg")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                    .append("g")
+                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+            x.domain([0, 400]);
+            y.domain(d3.extent(graphData, function(d) {
+                return d.value;
+            }));
+
+            svg.append("g")
+                    .attr("class", "x axis")
+                    .attr("transform", "translate(0," + height + ")")
+                    .call(xAxis);
+
+            svg.append("g")
+                    .attr("class", "y axis")
+                    .call(yAxis);
+
+            svg.append("path")
+                    .datum(graphData)
+                    .attr("class", "line")
+                    .attr("d", line);
         }
     </script>
 </body>
