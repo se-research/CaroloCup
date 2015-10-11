@@ -39,7 +39,6 @@
                         distances.push(distance);
                     });
 
-
                     // get sum of all distances
                     distances.forEach(function(number) {
                         sum += number;
@@ -148,8 +147,6 @@
 
         function gaussian(x, mean, sigma) {
             var gaussianConstant = 1 / Math.sqrt(2 * Math.PI);
-
-            sigma = sigma / 5;
 
             x = (x - mean) / sigma;
             return gaussianConstant * Math.exp(-.5 * x * x) / sigma;
