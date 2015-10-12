@@ -12,11 +12,13 @@
     <input type="file" id="scenario">
     <button id="get-graph">Get Graph</button>
     <script>
-        var graphButton = document.getElementById('get-graph');
+        d3.select('#get-graph').on('click', handleCSVs);
 
-        graphButton.addEventListener('click', function() {
+        function handleCSVs() {
+            clearCanvas();
+
             var scenarioPath = "data/" + document.getElementById('scenario').value,
-                calculatedDataPath = "data/" + 'ld-data.csv';
+                    calculatedDataPath = "data/" + 'ld-data.csv';
 
             d3.csv(scenarioPath, function(scenarioData) {
                 d3.csv(calculatedDataPath, function (calculatedData) {
@@ -35,7 +37,7 @@
                     drawNormalDistributionGraph(data);
                 });
             });
-        });
+        }
 
         function getDistanceBetweenTwoPoints(point1, point2) {
             return Math.round(
@@ -94,10 +96,6 @@
                 return x.key - y.key;
             });
 
-            // remove previous svg
-            var previousSvg = document.getElementsByTagName('svg')[0];
-            if (previousSvg) previousSvg.remove();
-
             var margin = {
                         top: 20,
                         right: 20,
@@ -154,6 +152,11 @@
                     .datum(graphData)
                     .attr("class", "line")
                     .attr("d", line);
+        }
+
+        function clearCanvas() {
+
+            d3.selectAll('svg').remove(); // remove previous svgs
         }
     </script>
 </body>
