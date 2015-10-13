@@ -63,6 +63,8 @@
         }
 
         function drawNormalDistributionGraph(distances) {
+            var frames = distances.length;
+
             var data = distances.slice(), // copy array
                 mean = d3.mean(data),
                 deviation = d3.deviation(data);
@@ -91,7 +93,9 @@
 
             var y = d3.scale.linear()
                 .range([height, 0])
-                .domain([0, d3.max(data, function(d) { return d.y; })]);
+                .domain([0, 0.01]);
+
+            console.log(d3.max(data, function(d) { return d.y; }));
 
             var xAxis = d3.svg.axis()
                 .scale(x)
@@ -167,7 +171,7 @@
             data = d3.layout.histogram().bins(x.ticks(20))(data);
 
             var y = d3.scale.linear()
-                .domain([0, d3.max(data, function(d) { return d.y; })])
+                .domain([0, frames])
                 .range([height, 0]);
 
             var xAxis = d3.svg.axis()
