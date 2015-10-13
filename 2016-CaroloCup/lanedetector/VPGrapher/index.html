@@ -40,8 +40,6 @@
                     });
 
                     drawNormalDistributionGraph(data);
-
-                    drawHistogram(data);
                 });
             });
         }
@@ -62,10 +60,10 @@
             return gaussianConstant * Math.exp(-.5 * x * x) / sigma;
         }
 
-        function drawNormalDistributionGraph(distances) {
-            var frames = distances.length;
+        function drawNormalDistributionGraph(originalData) {
+            var frames = originalData.length;
 
-            var data = distances.slice(), // copy array
+            var data = originalData.slice(), // copy array
                 mean = d3.mean(data),
                 deviation = d3.deviation(data);
 
@@ -122,6 +120,8 @@
                 .append("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+            drawHistogram(originalData, svg);
+
             svg.append("g")
                 .attr("class", "x axis")
                 .attr("transform", "translate(0," + height + ")")
@@ -137,19 +137,19 @@
                 .attr("d", line);
 
             svg.append("text")
-                    .attr("class", "x label")
-                    .attr("text-anchor", "end")
-                    .attr("x", width)
-                    .attr("y", height - 6)
-                    .text("distance");
+                .attr("class", "x label")
+                .attr("text-anchor", "end")
+                .attr("x", width)
+                .attr("y", height - 6)
+                .text("distance");
 
             svg.append("text")
-                    .attr("class", "y label")
-                    .attr("text-anchor", "end")
-                    .attr("y", 6)
-                    .attr("dy", ".75em")
-                    .attr("transform", "rotate(-90)")
-                    .text("frames");
+                .attr("class", "y label")
+                .attr("text-anchor", "end")
+                .attr("y", 6)
+                .attr("dy", ".75em")
+                .attr("transform", "rotate(-90)")
+                .text("frames");
         }
 
         function clearCanvas() {
@@ -157,7 +157,7 @@
             d3.selectAll('svg').remove(); // remove previous svgs
         }
 
-        function drawHistogram(data) {
+        function drawHistogram(data, svg) {
             var frames = data.length;
 
             var margin = {top: 20, right: 20, bottom: 30, left: 50},
@@ -173,23 +173,6 @@
             var y = d3.scale.linear()
                 .domain([0, frames])
                 .range([height, 0]);
-
-            var xAxis = d3.svg.axis()
-                .scale(x)
-                .ticks(20)
-                .orient("bottom");
-
-            var yAxis = d3.svg.axis()
-                .scale(y)
-                .orient("left")
-                .ticks(15)
-                .tickFormat(function(d) { return parseInt(d * 100 / frames, 10) + "%" });
-
-            var svg = d3.select("body").append("svg")
-                .attr("width", width + margin.left + margin.right)
-                .attr("height", height + margin.top + margin.bottom)
-                .append("g")
-                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
             var bar = svg.selectAll(".bar")
                 .data(data)
@@ -208,30 +191,6 @@
                 .attr("x", x(data[0].dx) / 2)
                 .attr("text-anchor", "middle")
                 .text(function(d) { return d.y; });
-
-            svg.append("g")
-                .attr("class", "x axis")
-                .attr("transform", "translate(0," + height + ")")
-                .call(xAxis);
-
-            svg.append("g")
-                .attr("class", "y axis")
-                .call(yAxis);
-
-            svg.append("text")
-                .attr("class", "x label")
-                .attr("text-anchor", "end")
-                .attr("x", width)
-                .attr("y", height - 6)
-                .text("distance");
-
-            svg.append("text")
-                .attr("class", "y label")
-                .attr("text-anchor", "end")
-                .attr("y", 6)
-                .attr("dy", ".75em")
-                .attr("transform", "rotate(-90)")
-                .text("frames");
         }
 
         function printDistances(distance) {
