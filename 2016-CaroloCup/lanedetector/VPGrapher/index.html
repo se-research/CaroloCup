@@ -11,10 +11,13 @@
     <label for="scenario">Pick scenario: </label>
     <input type="file" id="scenario">
     <button id="get-graph">Get Graph</button>
+    <div id="print"></div>
     <script>
         d3.select('#get-graph').on('click', handleCSVs);
 
         function handleCSVs() {
+            var debugging = false;
+
             clearCanvas();
 
             var scenarioPath = "scenarios/" + document.getElementById('scenario').value,
@@ -32,6 +35,8 @@
                         if (distance > 1000) return; // remove garbage data
 
                         data.push(distance);
+
+                        if (debugging) printDistances(distance);
                     });
 
                     drawNormalDistributionGraph(data);
@@ -223,6 +228,15 @@
                 .attr("dy", ".75em")
                 .attr("transform", "rotate(-90)")
                 .text("frames");
+        }
+
+        function printDistances(distance) {
+            var container = d3.select("#print");
+
+            var html = container.html();
+            html += distance + "<br>";
+
+            container.html(html);
         }
     </script>
 </body>
