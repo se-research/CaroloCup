@@ -59,10 +59,10 @@
 
         function drawNormalDistributionGraph(data) {
             var sum = 0,
-                mean = 0,
+                mean,
                 differences = [],
                 variance,
-                sigma = 0,
+                sigma,
                 graphData = [];
 
             // get sum of all distances
@@ -91,69 +91,74 @@
             sigma = Math.sqrt(variance);
 
             data.forEach(function(value) {
-                graphData.push({key: value, value: gaussian(value, mean, sigma)})
+                graphData.push({x: value, y: gaussian(value, mean, sigma)})
             });
 
-            graphData.sort(function(x, y) {
-                return x.key - y.key;
+            graphData.sort(function(a, b) {
+                return a.x - b.x;
             });
 
             var margin = {
-                        top: 20,
-                        right: 20,
-                        bottom: 30,
-                        left: 50
-                    },
-                    width = 960 - margin.left - margin.right,
-                    height = 500 - margin.top - margin.bottom;
+                    top: 20,
+                    right: 20,
+                    bottom: 30,
+                    left: 50
+                },
+                width = 960 - margin.left - margin.right,
+                height = 500 - margin.top - margin.bottom;
 
             var x = d3.scale.linear()
-                    .range([0, width]);
+                .range([0, width]);
 
             var y = d3.scale.linear()
-                    .range([height, 0]);
+                .range([height, 0]);
 
             var xAxis = d3.svg.axis()
-                    .scale(x)
-                    .ticks(20)
-                    .orient("bottom");
+                .scale(x)
+                .ticks(20)
+                .orient("bottom");
 
             var yAxis = d3.svg.axis()
-                    .scale(y)
-                    .orient("left");
+                .scale(y)
+                .ticks(15)
+                .orient("left")
+                .tickFormat(function(d) { return parseInt(d * 10000, 10) + "%" });
 
             var line = d3.svg.line()
-                    .x(function(d) {
-                        return x(d.key);
-                    })
-                    .y(function(d) {
-                        return y(d.value);
-                    });
+                .x(function(d) {
+                    return x(d.x);
+                })
+                .y(function(d) {
+                    return y(d.y);
+                });
 
             var svg = d3.select("body").append("svg")
-                    .attr("width", width + margin.left + margin.right)
-                    .attr("height", height + margin.top + margin.bottom)
-                    .append("g")
-                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-            x.domain([0, 400]);
+            x.domain(d3.extent(graphData, function(d) {
+                return d.x;
+            }));
+
             y.domain(d3.extent(graphData, function(d) {
-                return d.value;
+                return d.y;
             }));
 
             svg.append("g")
-                    .attr("class", "x axis")
-                    .attr("transform", "translate(0," + height + ")")
-                    .call(xAxis);
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + height + ")")
+                .call(xAxis);
 
             svg.append("g")
-                    .attr("class", "y axis")
-                    .call(yAxis);
+                .attr("class", "y axis")
+                .call(yAxis);
 
             svg.append("path")
-                    .datum(graphData)
-                    .attr("class", "line")
-                    .attr("d", line);
+                .datum(graphData)
+                .attr("class", "line")
+                .attr("d", line);
         }
 
         function clearCanvas() {
@@ -169,7 +174,7 @@
                     height = 500 - margin.top - margin.bottom;
 
             var x = d3.scale.linear()
-                    .domain([0, 400])
+                    .domain([0, d3.max(data)])
                     .range([0, width]);
 
             data = d3.layout.histogram().bins(x.ticks(20))(data);
@@ -227,7 +232,7 @@
                 .attr("text-anchor", "end")
                 .attr("x", width)
                 .attr("y", height - 6)
-                .text("distance difference of ground truth and calculated vanishing points");
+                .text("distance");
 
             svg.append("text")
                 .attr("class", "y label")
@@ -235,7 +240,7 @@
                 .attr("y", 6)
                 .attr("dy", ".75em")
                 .attr("transform", "rotate(-90)")
-                .text("number of frames");
+                .text("frames");
         }
     </script>
 </body>

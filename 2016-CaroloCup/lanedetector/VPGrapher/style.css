@@ -12,7 +12,7 @@ body {
 
 .line {
     fill: none;
-    stroke: steelblue;
+    stroke: red;
     stroke-width: 1.5px;
 }
 
