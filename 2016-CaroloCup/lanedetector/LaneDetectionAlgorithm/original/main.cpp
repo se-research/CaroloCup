@@ -67,6 +67,7 @@ int main(int argc, char **argv) {
     if (showcase) displayTrajectory();
 
     createIntersectionGoalLine();
+    if (showcase) displayIntersection();
 
     cout << "Total: " << totalTimer << endl;
 
@@ -918,6 +919,18 @@ void createIntersectionGoalLine(){
         }
     }
 }
+
+void displayIntersection() {
+    Mat out = Mat(image.size().height, image.size().width, CV_32F);
+
+    for (int i = 0; i < contours.size(); i++) {
+        Scalar color = Scalar(255, 255, 255);
+        cv::drawContours(out, contours, i, color, 1, 8, hierarchy, 0, Point());
+
+    }
+
+    imshow("Intersection Contours", out);
+}
 /***
  * STOP ALGORITHM STEPS
  */
@@ -1645,9 +1658,6 @@ void displayTrajectory() {
     auto rightGoalLine = data.rightGoalLines0;
     auto currentLine = data.currentLine;
 
-    Point2f vanishingPoint;
-    getVanishingPoint(leftGoalLine.p1, leftGoalLine.p2, rightGoalLine.p1, rightGoalLine.p2, vanishingPoint);
-    cout << "Vanishing Point: " << vanishingPoint.x << ", " << vanishingPoint.y << endl;
 
     Scalar blue = Scalar(255, 0, 0);
     Scalar green = Scalar(0, 255, 0);
@@ -1656,8 +1666,7 @@ void displayTrajectory() {
     line(out, leftGoalLine.p1, leftGoalLine.p2, blue, 2, 8, 0);
     line(out, rightGoalLine.p1, rightGoalLine.p2, green, 2, 8, 0);
     line(out, currentLine.p1, currentLine.p2, orange, 2, 8, 0);
-    line(out, Point{(int) vanishingPoint.x, (int) vanishingPoint.y},
-         Point{(int) vanishingPoint.x, h/2}, red, 2, 8, 0);
+    circle(out, rightGoalLine.p1, 5, red);
 
     imshow("Trajectory", out);
 }
@@ -1681,6 +1690,8 @@ void displayBothLines(string title) {
 
 bool getVanishingPoint(Point2f o1, Point2f p1, Point2f o2, Point2f p2, Point2f &r)
 {
+
+
     Point2f x = o2 - o1;
     Point2f d1 = p1 - o1;
     Point2f d2 = p2 - o2;

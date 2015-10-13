@@ -377,3 +377,5 @@ void displayPolygonContours();
 void displayBoundingBoxes();
 
 void createIntersectionGoalLine();
+
+void displayIntersection() ;
