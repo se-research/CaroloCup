@@ -9,7 +9,21 @@
 <body>
     <h1>Vanishing Point Precision Graph</h1>
     <label for="scenario">Pick scenario: </label>
-    <input type="file" id="scenario">
+    <select id="scenario">
+        <option></option>
+        <option value="dashedlinesmissing.csv">Dashed Line Missing</option>
+        <option value="fulltrack1.csv">Full Track 1</option>
+        <option value="fulltrack2.csv">Full Track 2</option>
+        <option value="intersectionobstacle.csv">Intersection Obstacle</option>
+        <option value="leftcurve.csv">Left Curve</option>
+        <option value="obstacle.csv">Obstacle</option>
+        <option value="rightcurve.csv">Right Curve</option>
+        <option value="rightlanemissing.csv">Right Lane Missing</option>
+        <option value="roadnear.csv">Road Near</option>
+        <option value="scurve.csv">Scurve</option>
+        <option value="startbox.csv">Start Box</option>
+        <option value="straightroad.csv">Straight Road</option>
+    </select>
     <button id="get-graph">Get Graph</button>
     <div id="print"></div>
     <script>
@@ -86,7 +100,7 @@
             return sign * (
                     1 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1)
                     * t * Math.exp(-x * x));
-        };
+        }
 
         function drawNormalDistributionPDFGraph(originalData) {
             var frames = originalData.length;

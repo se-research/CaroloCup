@@ -3,6 +3,10 @@ body {
     text-align: center;
 }
 
+label {
+    font-size: 14px;
+}
+
 .axis path,
 .axis line {
     fill: none;
