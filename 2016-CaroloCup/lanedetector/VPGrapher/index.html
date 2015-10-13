@@ -17,8 +17,8 @@
         function handleCSVs() {
             clearCanvas();
 
-            var scenarioPath = "data/" + document.getElementById('scenario').value,
-                    calculatedDataPath = "data/" + 'ld-data.csv';
+            var scenarioPath = "scenarios/" + document.getElementById('scenario').value,
+                calculatedDataPath = "ld-data.csv";
 
             d3.csv(scenarioPath, function(scenarioData) {
                 d3.csv(calculatedDataPath, function (calculatedData) {
@@ -57,47 +57,20 @@
             return gaussianConstant * Math.exp(-.5 * x * x) / sigma;
         }
 
-        function drawNormalDistributionGraph(data) {
-            var sum = 0,
-                mean,
-                differences = [],
-                variance,
-                sigma,
-                graphData = [];
+        function drawNormalDistributionGraph(distances) {
+            var data = distances.slice(), // copy array
+                mean = d3.mean(data),
+                deviation = d3.deviation(data);
 
-            // get sum of all distances
-            data.forEach(function(number) {
-                sum += number;
+            data.forEach(function(value, index) {
+                data[index] = {x: value, y: gaussian(value, mean, deviation)};
             });
 
-            // get mean of all distances
-            mean = sum / data.length;
-
-            // get difference of all distances
-            data.forEach(function(number) {
-                differences.push(Math.pow(number - mean, 2));
-            });
-
-            // get sum of all differences
-            sum = 0;
-            differences.forEach(function(number) {
-                sum += number;
-            });
-
-            // get variance
-            variance = sum / differences.length;
-
-            // get sigma
-            sigma = Math.sqrt(variance);
-
-            data.forEach(function(value) {
-                graphData.push({x: value, y: gaussian(value, mean, sigma)})
-            });
-
-            graphData.sort(function(a, b) {
+            data.sort(function(a, b) {
                 return a.x - b.x;
             });
 
+            // draw graph
             var margin = {
                     top: 20,
                     right: 20,
@@ -109,11 +82,11 @@
 
             var x = d3.scale.linear()
                 .range([0, width])
-                .domain([0, d3.max(graphData, function(d) { return d.x; })]);
+                .domain([0, d3.max(data, function(d) { return d.x; })]);
 
             var y = d3.scale.linear()
                 .range([height, 0])
-                .domain([0, d3.max(graphData, function(d) { return d.y; })]);
+                .domain([0, d3.max(data, function(d) { return d.y; })]);
 
             var xAxis = d3.svg.axis()
                 .scale(x)
@@ -150,7 +123,7 @@
                 .call(yAxis);
 
             svg.append("path")
-                .datum(graphData)
+                .datum(data)
                 .attr("class", "line")
                 .attr("d", line);
 
