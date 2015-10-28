@@ -43,8 +43,11 @@
         using namespace tools::recorder;
 	
 	  const string SERIAL_PORT = "/dev/ttyACM0";
-	  const uint32_t BAUD_RATE = 9600;
-	 
+	  const uint32_t BAUD_RATE = 115200;
+	  
+	      char flagEND   = 19; 
+	      char flagESC   = 125; 
+	      int  flagXOR   = 32;
 	  stringstream netstring;
 	  
 namespace automotive {
@@ -85,7 +88,6 @@ namespace automotive {
 	}
 	
 	Container decodePayload(string payload){
-	  cout << "payload length:" << payload.length() << endl;
 	  stringstream proto(payload);
 	  ProtoDeserializerVisitor protoDeserializerVisitor;
           protoDeserializerVisitor.deserializeDataFromNoHeader(proto);
@@ -106,10 +108,23 @@ namespace automotive {
 	}
 	
 	void Proxy::nextString(const string &s) {
+	 // cout << s;
 	 for(int i= 0; i< (int)s.length();i++){
+	   if(s[i] != flagESC && s[i] != flagEND){
 	    netstring << s[i];
-	    if(s[i] == ','){
-	      distribute(decodePayload(decodedNetstring(netstring.str())));
+	   }
+	   if(s[i] == flagESC){
+	     i++;
+	     netstring << (char)(s[i]^flagXOR);
+	   }
+	   if(s[i] == flagEND){
+	    /*
+	     for(int j= 0; j< (int)netstring.str().length();j++){
+	       cout << (int)netstring.str()[j] << ";";
+	      
+	     }
+	     cout << endl; */
+	     distribute(decodePayload(netstring.str()));
 	      netstring.str(std::string());
 	    }
 	  }
@@ -121,7 +136,6 @@ namespace automotive {
             if (getFrequency() < 20) {
                 cerr << endl << endl << "Proxy: WARNING! Running proxy with a LOW frequency (consequence: data updates are too seldom and will influence your algorithms in a negative manner!) --> suggestions: --freq=20 or higher! Current frequency: " << getFrequency() << " Hz." << endl << endl << endl;
             }
-
             // Get configuration data.
             KeyValueConfiguration kv = getKeyValueConfiguration();
 
@@ -216,12 +230,12 @@ namespace automotive {
                 // Capture frame.
                 if (m_camera != NULL) {
                     coredata::image::SharedImage si = m_camera->capture();
-
+		    
                     Container c(Container::SHARED_IMAGE, si);
                     distribute(c);
                     captureCounter++;
                 }
-                
+		
             Container c = kvs.get(Container::VEHICLECONTROL);
 	    VehicleControl vc = c.getData<VehicleControl>();
 	    
@@ -230,17 +244,36 @@ namespace automotive {
 	    cc.setAcceleration(vc.getSpeed());
 	    //vc.getSteeringWheelAngle()* (1.0 / (3.141592654 / 180.0))
 	    cc.setSteering(vc.getSteeringWheelAngle()* (1.0 / (3.141592654 / 180.0)));
-	    cc.setLights(6);
+	    cc.setLights(9);
 	    ProtoSerializerVisitor protoSerializerVisitor;
 	    cc.accept(protoSerializerVisitor);
 	    stringstream proto;
 	    protoSerializerVisitor.getSerializedDataNoHeader(proto);
-	    stringstream netstring;
-	    netstring << proto.str().length() << ':' << proto.str() << ',';
-	    serial->send(netstring.str());
 	    
-                // Get sensor data from IR/US. */
-            }
+	      stringstream StreamToArduino;
+
+	      //char start_flag = 0x12; //18 in DEC
+	      
+
+	      //Whenever a flag or escape byte appears in the message, it is escaped by 0x7D and the byte itself is XOR-ed with 0x20. 
+	      //So, for example 0x7E becomes 0x7D 0x5E. Similarly 0x7D becomes 0x7D 0x5D. 
+	      //The receiver unsuffs the escape byte and XORs the next byte with 0x20 again to get the original [6].
+
+
+	      // 8;0;16;0;24;19
+	      //8;125;93;16;125;51;24;0;19
+	      for(int i = 0; i < (int)proto.str().length(); i++) {
+		if(proto.str()[i] == flagEND || proto.str()[i] == flagESC) {
+		  StreamToArduino << flagESC << (char)(proto.str()[i]^flagXOR);
+		  i++;
+		}
+		StreamToArduino << proto.str()[i];
+	      }
+
+	      StreamToArduino << flagEND;
+	      //cout << "length from proxy" << (int)netstring.str().length() << endl;
+	      serial->send(StreamToArduino.str());
+	      }
 	    
 	    
 	    
