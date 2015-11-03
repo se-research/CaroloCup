@@ -106,7 +106,7 @@ ADD_EXECUTABLE (lanedetector_InspectionModule "${CMAKE_CURRENT_SOURCE_DIR}/apps/
 TARGET_LINK_LIBRARIES (lanedetector_InspectionModule ${PROJECT_NAME}lib-static ${LIBRARIES})
 
 ADD_EXECUTABLE (Benchmark "${CMAKE_CURRENT_SOURCE_DIR}/apps/Benchmark.cpp")
-TARGET_LINK_LIBRARIES (Benchmark ${OPENDAVINCI_LIBRARIES} ${OpenCV_LIBS})
+TARGET_LINK_LIBRARIES (Benchmark  ${OPENDAVINCI_LIBRARIES} ${AUTOMOTIVEDATA_LIBRARIES} ${PROJECT_NAME}lib-static ${OpenCV_LIBS} )
 
 # lanedetector-demo is using libodsimulation for playback.
 IF(FOUND_ODSIMULATION)
