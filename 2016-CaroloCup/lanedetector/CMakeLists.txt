@@ -105,12 +105,13 @@ TARGET_LINK_LIBRARIES (lanedetector2csvextractor ${PROJECT_NAME}lib-static ${LIB
 ADD_EXECUTABLE (lanedetector_InspectionModule "${CMAKE_CURRENT_SOURCE_DIR}/apps/InspectionModule.cpp")
 TARGET_LINK_LIBRARIES (lanedetector_InspectionModule ${PROJECT_NAME}lib-static ${LIBRARIES})
 
-ADD_EXECUTABLE (Benchmark "${CMAKE_CURRENT_SOURCE_DIR}/src/Benchmark.cpp")
+ADD_EXECUTABLE (Benchmark "${CMAKE_CURRENT_SOURCE_DIR}/apps/Benchmark.cpp")
+TARGET_LINK_LIBRARIES (Benchmark ${OPENDAVINCI_LIBRARIES} ${OpenCV_LIBS})
 
 # lanedetector-demo is using libodsimulation for playback.
 IF(FOUND_ODSIMULATION)
     ADD_EXECUTABLE (lanedetector-demo "${CMAKE_CURRENT_SOURCE_DIR}/apps/lanedetector-demo.cpp")
-    TARGET_LINK_LIBRARIES (lanedetector-demo ${PROJECT_NAME}lib-static ${LIBRARIES}) 
+    TARGET_LINK_LIBRARIES (lanedetector-demo ${PROJECT_NAME}lib-static ${LIBRARIES})
 ENDIF()
 
 ###########################################################################
