@@ -6,69 +6,72 @@ int main() {
     root = homePath + "/Ground_Truth/";
 
     getScenarioNames(root);
-    string scenario = scenarioNames[0];
-    string scenarioPathString = "file://" + root + scenario + "/" + scenario + ".rec";
-    URL scenarioPath(scenarioPathString.c_str());
 
-    Player player(scenarioPath, AUTO_REWIND, MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS, THREADING);
+    for (int i = 0; i < scenarioNames.size(); i++) {
+        string scenario = scenarioNames[i];
+        string scenarioPathString = "file://" + root + scenario + "/" + scenario + ".rec";
+        URL scenarioPath(scenarioPathString.c_str());
 
-    // Set CSV file path
-    string CSVPath = homePath;
-    CSVPath += "/CaroloCup/2016-CaroloCup/lanedetector/VPGrapher/data/calculated/";
-    CSVPath += scenario + ".csv";
+        Player player(scenarioPath, AUTO_REWIND, MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS, THREADING);
 
-    setupCSVFile(CSVPath);
+        // Set CSV file path
+        string CSVPath = homePath;
+        CSVPath += "/CaroloCup/2016-CaroloCup/lanedetector/VPGrapher/data/calculated/";
+        CSVPath += scenario + ".csv";
 
-    while (player.hasMoreData()) {
-        nextContainer = player.getNextContainerToBeSent();
+        setupCSVFile(CSVPath);
 
-        if (nextContainer.getDataType() == Container::SHARED_IMAGE) {
-            SharedImage si = nextContainer.getData<SharedImage>();
+        while (player.hasMoreData()) {
+            nextContainer = player.getNextContainerToBeSent();
 
-            if (!hasAttachedToSharedImageMemory) {
-                sharedImageMemory = SharedMemoryFactory::attachToSharedMemory(si.getName());
+            if (nextContainer.getDataType() == Container::SHARED_IMAGE) {
+                SharedImage si = nextContainer.getData<SharedImage>();
 
-                hasAttachedToSharedImageMemory = true;
-            }
+                if (!hasAttachedToSharedImageMemory) {
+                    sharedImageMemory = SharedMemoryFactory::attachToSharedMemory(si.getName());
 
-            if (sharedImageMemory->isValid()) {
-
-                if (image == NULL) {
-                    imageHeight = si.getHeight();
-                    imageWidth = si.getWidth();
-                    image = cvCreateImageHeader(cvSize(imageWidth, imageHeight), IPL_DEPTH_8U,
-                                                si.getBytesPerPixel());
+                    hasAttachedToSharedImageMemory = true;
                 }
 
-                image->imageData = (char *) sharedImageMemory->getSharedMemory();
+                if (sharedImageMemory->isValid()) {
 
-                // Copy IplImage to Mat
-                Mat frame(image, true);
+                    if (image == NULL) {
+                        imageHeight = si.getHeight();
+                        imageWidth = si.getWidth();
+                        image = cvCreateImageHeader(cvSize(imageWidth, imageHeight), IPL_DEPTH_8U,
+                                                    si.getBytesPerPixel());
+                    }
 
-                cvReleaseImage(&image);
+                    image->imageData = (char *) sharedImageMemory->getSharedMemory();
 
-                // Crop top and bottom
-                frame = frame(cv::Rect(1, 2 * imageHeight / 16 - 1, imageWidth - 1, 10 * imageHeight / 16 - 1));
+                    // Copy IplImage to Mat
+                    Mat frame(image, true);
 
-                // Set lighting conditions
-                previousThresh = cfg.th1;
-                int lux = -2;
-                SensorBoardData sdb;
-                if (sdb.containsKey_MapOfDistances(7)) lux = sdb.getValueForKey_MapOfDistances(7);
-                cfg.th1 = getDynamicThresh(lux);
+                    cvReleaseImage(&image);
 
-                // Disable cout
-                cout.setstate(std::ios_base::failbit);
+                    // Crop top and bottom
+                    frame = frame(cv::Rect(1, 2 * imageHeight / 16 - 1, imageWidth - 1, 10 * imageHeight / 16 - 1));
 
-                // Run line detector
-                LineDetector road(frame, cfg, false, 1);
-                dataToDriver = *(road.getDriverData());
+                    // Set lighting conditions
+                    previousThresh = cfg.th1;
+                    int lux = -2;
+                    SensorBoardData sdb;
+                    if (sdb.containsKey_MapOfDistances(7)) lux = sdb.getValueForKey_MapOfDistances(7);
+                    cfg.th1 = getDynamicThresh(lux);
 
-                // Re-enable cout
-                cout.clear();
+                    // Disable cout
+                    cout.setstate(std::ios_base::failbit);
 
-                // Print vanishing point to CSV file
-                printVPToCSVFile(CSVPath);
+                    // Run line detector
+                    LineDetector road(frame, cfg, false, 1);
+                    dataToDriver = *(road.getDriverData());
+
+                    // Re-enable cout
+                    cout.clear();
+
+                    // Print vanishing point to CSV file
+                    printVPToCSVFile(CSVPath);
+                }
             }
         }
     }
