@@ -12,6 +12,8 @@
 #include "GeneratedHeaders_AutomotiveData.h"
 #include "core/base/KeyValueConfiguration.h"
 #include "core/base/module/ClientModule.h"
+#include <LineDetector.h>
+#include <LaneDetector.h>
 
 using namespace std;
 using namespace core;
@@ -24,7 +26,6 @@ using namespace core::base;
 using namespace cv;
 using namespace msv;
 using namespace automotive::miniature;
-
 
 string root;
 vector<string> scenarioNames;
@@ -41,11 +42,12 @@ int imageHeight, imageWidth;
 Config cfg;
 LaneDetectorDataToDriver dataToDriver;
 int previousThresh=48;
-
-#define CROSS_DUP(fd) _dup(fd)
-#define CROSS_DUP2(fd, newfd) _dup2(fd, newfd)
+std::ofstream csvexport;
+string homePath = getenv("HOME");
 
 void getScenarioNames(const string &root);
 void setupConfig();
 int getDynamicThresh(int lux);
+void printVPToCSVFile(string path);
+void setupCSVFile(string path);
 #endif //LANEDETECTOR_BENCHMARK_H

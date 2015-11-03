@@ -1,14 +1,9 @@
-#include <LineDetector.h>
-#include <LaneDetector.h>
 #include "Benchmark.h"
-
-void setupConfig();
 
 int main() {
     setupConfig();
 
-    root = getenv("HOME");
-    root.append("/Ground_Truth/");
+    root = homePath + "/Ground_Truth/";
 
     getScenarioNames(root);
     string scenario = scenarioNames[0];
@@ -17,7 +12,12 @@ int main() {
 
     Player player(scenarioPath, AUTO_REWIND, MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS, THREADING);
 
-    int frames = 0;
+    // Set CSV file path
+    string CSVPath = homePath;
+    CSVPath += "/CaroloCup/2016-CaroloCup/lanedetector/VPGrapher/data/calculated/";
+    CSVPath += scenario + ".csv";
+
+    setupCSVFile(CSVPath);
 
     while (player.hasMoreData()) {
         nextContainer = player.getNextContainerToBeSent();
@@ -25,7 +25,7 @@ int main() {
         if (nextContainer.getDataType() == Container::SHARED_IMAGE) {
             SharedImage si = nextContainer.getData<SharedImage>();
 
-            if (! hasAttachedToSharedImageMemory) {
+            if (!hasAttachedToSharedImageMemory) {
                 sharedImageMemory = SharedMemoryFactory::attachToSharedMemory(si.getName());
 
                 hasAttachedToSharedImageMemory = true;
@@ -52,9 +52,9 @@ int main() {
 
                 // Set lighting conditions
                 previousThresh = cfg.th1;
-                int lux=-2;
+                int lux = -2;
                 SensorBoardData sdb;
-                if(sdb.containsKey_MapOfDistances(7)) lux=sdb.getValueForKey_MapOfDistances(7);
+                if (sdb.containsKey_MapOfDistances(7)) lux = sdb.getValueForKey_MapOfDistances(7);
                 cfg.th1 = getDynamicThresh(lux);
 
                 // Disable cout
@@ -67,16 +67,30 @@ int main() {
                 // Re-enable cout
                 cout.clear();
 
-                ++frames;
-
-                // Get vanishing point
-                Point vp = dataToDriver.rightGoalLines0.p1;
-                cout << "Frame: " << frames << " VPx: " << vp.x << ", VPy: " << vp.y << endl;
+                // Print vanishing point to CSV file
+                printVPToCSVFile(CSVPath);
             }
         }
     }
 
     return 0;
+}
+
+void printVPToCSVFile(string path) {
+    Point vp = dataToDriver.rightGoalLines0.p1;
+    csvexport.open(path.c_str(), ios_base::app);
+    csvexport << vp.x << "," << vp.y << "\n";
+    csvexport.close();
+}
+
+void setupCSVFile(string path) {
+    // remove old file
+    remove(path.c_str());
+
+    // append column names
+    csvexport.open(path.c_str(), ios_base::app);
+    csvexport << "VP_x,VP_y\n";
+    csvexport.close();
 }
 
 void setupConfig() {
@@ -110,33 +124,32 @@ void getScenarioNames(const string &root) {
 }
 
 // TODO: make this function globally accessible in lanedetector to remove redundancy
-int getDynamicThresh(int lux)
-{
+int getDynamicThresh(int lux) {
+    int baseThresh = 48;
+    int minIntervalValue[] = {11, 15, 17, 20, 23, 26, 29, 32}, maxIntervalValue[] = {16, 18, 21, 24, 27, 31, 35, 40};
+    int foundIndex[3], thresh[] = {baseThresh + 2, baseThresh + 7, baseThresh + 12, baseThresh + 17, baseThresh + 22,
+                                   baseThresh + 27, baseThresh + 32};
 
-    int baseThresh=48;
-    int minIntervalValue[]={11,15,17,20,23,26,29,32},maxIntervalValue[]={16,18,21,24,27,31,35,40};
-    int foundIndex[3],thresh[]={baseThresh+2,baseThresh+7,baseThresh+12,baseThresh+17,baseThresh+22,baseThresh+27,baseThresh+32};
-    if(lux<minIntervalValue[0])
-    {
+    if (lux < minIntervalValue[0]) {
         return baseThresh;
     }
-    if(lux>maxIntervalValue[6]){
-        return baseThresh+42;
+
+    if (lux > maxIntervalValue[6]) {
+        return baseThresh + 42;
     }
-    int cnt=0;
-    for(int i=0;i<7;i++)
-    {
-        if(lux>=minIntervalValue[i] && lux<=maxIntervalValue[i])
-        {
-            foundIndex[cnt++]=i;
+
+    int cnt = 0;
+    for (int i = 0; i < 7; i++) {
+        if (lux >= minIntervalValue[i] && lux <= maxIntervalValue[i]) {
+            foundIndex[cnt++] = i;
         }
     }
-    for(int j=0;j<cnt;j++)
-    {
-        if(previousThresh==thresh[foundIndex[j]])
-        {
+
+    for (int j = 0; j < cnt; j++) {
+        if (previousThresh == thresh[foundIndex[j]]) {
             return thresh[foundIndex[j]];
         }
     }
+
     return thresh[foundIndex[0]];
 }
