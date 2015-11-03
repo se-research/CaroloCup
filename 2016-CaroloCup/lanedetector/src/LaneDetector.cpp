@@ -36,9 +36,6 @@ using namespace tools::player;
 using namespace cv;
 using namespace automotive::miniature;
 
-int containerTimestamp = 0;
-int previousContainerTimestamp = 0;
-
 int previousThresh=48;
 bool debug;
 Config cfg;
@@ -77,23 +74,6 @@ void LaneDetector::setUp()
             cvNamedWindow("WindowShowImage", CV_WINDOW_AUTOSIZE);
             cvMoveWindow("WindowShowImage", 300, 100);
         }
-
-    setupVPDataFile();
-}
-
-void LaneDetector::setupVPDataFile() const {
-    // get path
-    string path = getenv("HOME");
-    path += "/ld-data.csv";
-
-    // remove the old file
-    remove(path.c_str());
-
-    // append column names
-    std::ofstream csvexport;
-    csvexport.open(path.c_str(), ios_base::app);
-    csvexport << "VP_x,VP_y\n";
-    csvexport.close();
 }
 
     void LaneDetector::tearDown()
@@ -169,8 +149,6 @@ bool LaneDetector::readSharedImage(Container &c)
                                 cvReleaseImage(&image);
                             }
                     }
-
-                    containerTimestamp = c.getReceivedTimeStamp().getFractionalMicroseconds();
 
                     // Release the memory region so that the image produce (i.e. the camera for example) can provide the next raw image data.
                     m_sharedImageMemory->unlock();
@@ -266,8 +244,6 @@ void LaneDetector::processImage()
 
     lines.setCurrentLine(dataToDriver.currentLine);
 
-    printVPToCSV(dataToDriver);
-
     if (&lines != NULL)
         cout << "We have lines for frame " << m_frame_count << endl;
     LaneDetectionData data;
@@ -332,24 +308,6 @@ void LaneDetector::processImage()
     m_frame.release();
     waitKey(20);
 
-}
-
-void LaneDetector::printVPToCSV(const LaneDetectorDataToDriver &dataToDriver) const {
-    // skip if same frame
-    if (containerTimestamp == previousContainerTimestamp) return;
-
-    // get path
-    string path =  getenv("HOME");
-    path += "/ld-data.csv";
-
-    // apend vanishing point to file
-    Point vp = dataToDriver.rightGoalLines0.p1;
-    std::ofstream csvexport;
-    csvexport.open(path.c_str(), ios_base::app);
-    csvexport << vp.x << "," << vp.y << "\n";
-    csvexport.close();
-
-    previousContainerTimestamp = containerTimestamp;
 }
 
 // This method will do the main data processing job.
