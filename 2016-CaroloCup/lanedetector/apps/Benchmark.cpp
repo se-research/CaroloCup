@@ -1,6 +1,4 @@
-#include <opencv2/highgui/highgui_c.h>
 #include "Benchmark.h"
-
 
 int main() {
     root = getenv("HOME");
@@ -25,9 +23,11 @@ int main() {
                 hasAttachedToSharedImageMemory = true;
             }
 
-
             if (sharedImageMemory->isValid()) {
-                image = cvCreateImageHeader(cvSize(si.getWidth(), si.getHeight()), IPL_DEPTH_8U, si.getBytesPerPixel());
+                if (image == NULL) {
+                    image = cvCreateImageHeader(cvSize(si.getWidth(), si.getHeight()), IPL_DEPTH_8U, si.getBytesPerPixel());
+                }
+
                 image->imageData = (char *) sharedImageMemory->getSharedMemory();
             }
         }

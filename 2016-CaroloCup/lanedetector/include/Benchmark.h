@@ -8,6 +8,7 @@
 #include <GeneratedHeaders_CoreData.h>
 #include <core/wrapper/SharedMemoryFactory.h>
 #include <core/base/Lock.h>
+#include <opencv2/highgui/highgui_c.h>
 
 using namespace std;
 using namespace core;
