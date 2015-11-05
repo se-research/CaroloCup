@@ -8,12 +8,16 @@
 #include <pb_decode.h>
 #include <messageproto.pb.h>
 
+    const int flagEND = 19;
+    const int flagESC = 125;
+    const int varXOR  = 32;
+
     uint8_t enc_buffer[32];
     uint8_t dec_buffer[32];
     size_t message_length;
     bool status;
     String temp = "";
-    
+
 Car car(SERVO_PIN, ESC_PIN); //steering, esc
 SRF08 frontSonar, rearSonar;
 Sharp_IR rearLeftIR, rearRightIR, middleRearIR, middleFrontIR;
@@ -62,14 +66,14 @@ void setup() {
   encoderRight.begin();
   setupChangeInterrupt(OVERRIDE_THROTTLE_PIN);
   setupChangeInterrupt(OVERRIDE_SERVO_PIN);
-  Serial.begin(9600); //to HLB
+  Serial.begin(115200); //to HLB
   Serial3.begin(9600); //to LED driver
 }
 
 void loop() {
-//  handleOverride(); //look for an override signal and if it exists disable serial input from the HLB
+  handleOverride(); //look for an override signal and if it exists disable serial input from the HLB
   handleInput(); //look for a serial input if override is not triggered and act accordingly
-//  updateLEDs(); //update LEDs depending on the mode we are currently in
+  updateLEDs(); //update LEDs depending on the mode we are currently in
   transmitSensorData(); //fetch and transmit the sensor data in the correct intervals if bluetooth is connected
 }
 
@@ -110,17 +114,28 @@ void handleOverride() {
 }
 
 void handleInput() {
+  
+  char c;
   if (!overrideTriggered || (millis() > overrideRelease)) {
     if (overrideTriggered) { //this state is only entered when the OVERRIDE_TIMEOUT is over
       overrideTriggered = false;
       car.setSpeed(0); //after going out of the override mode, set speed and steering to initial position
       car.setAngle(0);
     }
+    //---------------------------------------------------------------------------------------------------------
     if (Serial.available()) {
-      processProto(decodedNetstring(Serial.readStringUntil(',')));
-      
-
+      String input = Serial.readStringUntil(flagEND);
+      for(int i = 0, pos = 0; i< input.length(); i++,pos++){
+        if(input[i] == flagESC){
+          i++;
+          dec_buffer[pos]=(int)input[i]^varXOR;
+        }else{
+          dec_buffer[pos]= input[i];
+        }
+      }
+      processProto(32);
     }
+    //---------------------------------------------------------------------------------------------------------
   } else { //we are in override mode now
     //handle override steering
     if (servoFreq) { //if you get 0, ignore it as it is not a valid value
@@ -151,19 +166,17 @@ void handleInput() {
     while (Serial.read() != -1); //discard incoming data while on override
   }
 }
-void processProto(String proto){
+void processProto(int length){
       bool protoDec;
-      for(int i=0; i<= proto.length(); i++){
-        dec_buffer[i] = proto[i];
-      } 
+      
       Control message;
-      pb_istream_t instream = pb_istream_from_buffer(dec_buffer, proto.length());
+      pb_istream_t instream = pb_istream_from_buffer(dec_buffer, length);
       protoDec = pb_decode(&instream, Control_fields, &message);
       
-     
      if(protoDec){
       car.setSpeed(message.acceleration);
       car.setAngle(message.steering);
+      
      }else{      
  /*     Serial.print("APL:");
       Serial.print(proto.length());
@@ -197,20 +210,27 @@ void transmitSensorData() {
     Sensors message;
     message.usFront = frontSonar.getDistance();
     message.usRear = rearSonar.getDistance();
-    message.irFrontRight = rearLeftIR.getDistance();
-    message.irRearRight = rearRightIR.getDistance();
-    message.irBackLeft = middleRearIR.getDistance();
-    message.irBackRight = middleFrontIR.getDistance();
+    message.irFrontRight = middleFrontIR.getDistance();
+    message.irRearRight = middleRearIR.getDistance();
+    message.irBackLeft = rearLeftIR.getDistance();
+    message.irBackRight = rearRightIR.getDistance();
     message.wheelFrontLeft = encoderLeft.getDistance();
     message.wheelRearRight = encoderRight.getDistance();
     pb_ostream_t outstream = pb_ostream_from_buffer(enc_buffer, sizeof(enc_buffer));
     status = pb_encode(&outstream, Sensors_fields, &message);
     message_length = outstream.bytes_written;
+    if(status){
     //send proto over serial
-    Serial.print(message_length);
-    Serial.print(':');
-    Serial.write(enc_buffer,message_length);
-    Serial.print(',');
+    for(int i = 0; i< message_length; i++){
+      if(enc_buffer[i] == flagEND || enc_buffer[i] == flagESC){
+        Serial.write(flagESC);
+        Serial.write(enc_buffer[i]^varXOR);
+        }else{
+          Serial.write(enc_buffer[i]);
+        }
+      }
+    Serial.write(flagEND);
+    }
     previousTransmission = millis();
   }
 }
