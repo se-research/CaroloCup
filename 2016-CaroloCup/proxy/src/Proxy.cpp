@@ -103,12 +103,16 @@ namespace automotive {
 		m_sensorBoardData.putTo_MapOfDistances(3, sd.getIrBackRight());
 		m_sensorBoardData.putTo_MapOfDistances(4, sd.getUsRear());
 		m_sensorBoardData.putTo_MapOfDistances(5, sd.getIrBackLeft());
+		m_sensorBoardData.putTo_MapOfDistances(6, sd.getWheelRearLeft());
+		m_sensorBoardData.putTo_MapOfDistances(7, sd.getWheelRearRight());
+		m_sensorBoardData.putTo_MapOfDistances(8, (int)sd.getGyroHeading());
+		m_sensorBoardData.putTo_MapOfDistances(9, sd.getButtonState());
 		Container sensorData(Container::USER_DATA_0, m_sensorBoardData);
 		return sensorData;
 	}
 	
 	void Proxy::nextString(const string &s) {
-	 // cout << s;
+	//  cout << s; 
 	 for(int i= 0; i< (int)s.length();i++){
 	   if(s[i] != flagESC && s[i] != flagEND){
 	    netstring << s[i];
@@ -117,7 +121,7 @@ namespace automotive {
 	     i++;
 	     netstring << (char)(s[i]^flagXOR);
 	   }
-	   if(s[i] == flagEND){
+	   if(s[i] == flagEND){ 
 	    /*
 	     for(int j= 0; j< (int)netstring.str().length();j++){
 	       cout << (int)netstring.str()[j] << ";";
@@ -127,7 +131,7 @@ namespace automotive {
 	     distribute(decodePayload(netstring.str()));
 	      netstring.str(std::string());
 	    }
-	  }
+	  } 
 	}
        
 
@@ -240,11 +244,10 @@ namespace automotive {
 	    VehicleControl vc = c.getData<VehicleControl>();
 	    
 	    automotive::carolocup::Control cc;
-	    
-	    cc.setAcceleration(vc.getSpeed());
-	    //vc.getSteeringWheelAngle()* (1.0 / (3.141592654 / 180.0))
-	    cc.setSteering(vc.getSteeringWheelAngle()* (1.0 / (3.141592654 / 180.0)));
+	    cc.setAcceleration((int)(vc.getSpeed() * 10));
+	    cc.setSteering((int)(vc.getSteeringWheelAngle()* (1.0 / (3.141592654 / 180.0))));
 	    cc.setLights(9);
+	    cc.setGyroTrigger(1);
 	    ProtoSerializerVisitor protoSerializerVisitor;
 	    cc.accept(protoSerializerVisitor);
 	    stringstream proto;
