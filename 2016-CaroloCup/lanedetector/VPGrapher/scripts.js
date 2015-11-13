@@ -1,10 +1,9 @@
 __VPGrapher = {
+    debugging: false,
     init: function() {
         this.handleCSVs();
     },
     handleCSVs: function() {
-        var debugging = false;
-
         var scenarioPath = "data/ground-truth/fulltrack2.csv",
             calculatedDataPath = "data/calculated/fulltrack2.csv";
 
@@ -21,7 +20,7 @@ __VPGrapher = {
 
                   data.push(distance);
 
-                  if (debugging) __VPGrapher.debug.printDistances(distance);
+                  if (__VPGrapher.debugging) __VPGrapher.debug.printDistances(distance);
                 });
 
                 __VPGrapher.draw.normalDistributionCDF(data);
@@ -146,7 +145,7 @@ __VPGrapher = {
                     return sign * (
                         1 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1)
                         * t * Math.exp(-x * x));
-                },
+                }
             }
         },
         getDistanceBetweenTwoPoints: function(point1, point2) {
