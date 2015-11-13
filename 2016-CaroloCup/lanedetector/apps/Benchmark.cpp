@@ -6,6 +6,7 @@ int main() {
     root = homePath + "/Ground_Truth/";
 
     getScenarioNames(root);
+    printScenarioNamesToJsonFile(homePath);
 
     for (int i = 0; i < scenarioNames.size(); i++) {
         string scenario = scenarioNames[i];
@@ -81,6 +82,20 @@ int main() {
     return 0;
 }
 
+void printScenarioNamesToJsonFile(string homePath) {
+    std::ofstream json;
+    string path = homePath + "/CaroloCup/2016-CaroloCup/lanedetector/VPGrapher/data/scenarios.json";
+
+    json.open(path.c_str(), ios_base::trunc);
+    json << "[";
+    for (int i = 0; i < scenarioNames.size(); i++) {
+        json << "\"" << scenarioNames[i] << "\"";
+
+        if (i !=(scenarioNames.size() - 1)) json << ",";
+    }
+    json << "]";
+}
+
 void printVPToCSVFile(string path) {
     Point vp = dataToDriver.rightGoalLines0.p1;
     csvexport.open(path.c_str(), ios_base::app);
@@ -89,11 +104,8 @@ void printVPToCSVFile(string path) {
 }
 
 void setupCSVFile(string path) {
-    // remove old file
-    remove(path.c_str());
-
     // append column names
-    csvexport.open(path.c_str(), ios_base::app);
+    csvexport.open(path.c_str(), ios_base::trunc);
     csvexport << "VP_x,VP_y\n";
     csvexport.close();
 }

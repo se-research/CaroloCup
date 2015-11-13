@@ -50,4 +50,5 @@ void setupConfig();
 int getDynamicThresh(int lux);
 void printVPToCSVFile(string path);
 void setupCSVFile(string path);
+void printScenarioNamesToJsonFile(string homePath);
 #endif //LANEDETECTOR_BENCHMARK_H
