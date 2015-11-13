@@ -24,8 +24,7 @@ __VPGrapher = {
                   if (debugging) __VPGrapher.debug.printDistances(distance);
                 });
 
-                __VPGrapher.draw.normalDistributionPDFGraph(data);
-                __VPGrapher.draw.normalDistributionCDFGraph(data);
+                __VPGrapher.draw.normalDistributionCDF(data);
             });
         });
     },
@@ -65,98 +64,7 @@ __VPGrapher = {
                .attr("text-anchor", "middle")
                .text(function(d) { return d.y; });
         },
-        normalDistributionPDFGraph: function(originalData) {
-            var frames = originalData.length;
-
-            var data = originalData.slice(), // copy array
-                mean = d3.mean(data),
-                deviation = d3.deviation(data);
-
-            data.forEach(function(value, index) {
-                data[index] = {x: value, y:__VPGrapher.science.gaussian.pdf(value, mean, deviation)};
-            });
-
-            data.sort(function(a, b) {
-                return a.x - b.x;
-            });
-
-            // draw graph
-            var margin = {
-                    top: 20,
-                    right: 20,
-                    bottom: 30,
-                    left: 50
-                },
-                width = 960 - margin.left - margin.right,
-                height = 500 - margin.top - margin.bottom;
-
-            var x = d3.scale.linear()
-                .range([0, width])
-                .domain([0, d3.max(data, function(d) { return d.x; })]);
-
-            var y = d3.scale.linear()
-                .range([height, 0])
-                .domain([0, 0.01]);
-
-            console.log(d3.max(data, function(d) { return d.y; }));
-
-            var xAxis = d3.svg.axis()
-                .scale(x)
-                .ticks(20)
-                .orient("bottom");
-
-            var yAxis = d3.svg.axis()
-                .scale(y)
-                .ticks(15)
-                .orient("left")
-                .tickFormat(function(d) { return parseInt(d * 10000, 10) + "%" });
-
-            var line = d3.svg.line()
-                .x(function(d) {
-                    return x(d.x);
-                })
-                .y(function(d) {
-                    return y(d.y);
-                });
-
-            var svg = d3.select("body").append("svg")
-                .attr("width", width + margin.left + margin.right)
-                .attr("height", height + margin.top + margin.bottom)
-                .append("g")
-                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-            __VPGrapher.draw.histogram(originalData, svg);
-
-            svg.append("g")
-                .attr("class", "x axis")
-                .attr("transform", "translate(0," + height + ")")
-                .call(xAxis);
-
-            svg.append("g")
-                .attr("class", "y axis")
-                .call(yAxis);
-
-            svg.append("path")
-                .datum(data)
-                .attr("class", "line")
-                .attr("d", line);
-
-            svg.append("text")
-                .attr("class", "x label")
-                .attr("text-anchor", "end")
-                .attr("x", width)
-                .attr("y", height - 6)
-                .text("distance");
-
-            svg.append("text")
-                .attr("class", "y label")
-                .attr("text-anchor", "end")
-                .attr("y", 6)
-                .attr("dy", ".75em")
-                .attr("transform", "rotate(-90)")
-                .text("frames");
-        },
-        normalDistributionCDFGraph: function(originalData) {
+        normalDistributionCDF: function(originalData) {
             var frames = originalData.length;
 
             var data = originalData.slice(), // copy array
@@ -250,12 +158,6 @@ __VPGrapher = {
     },
     science: {
         gaussian: {
-            pdf: function(x, mean, sigma) {
-                var gaussianConstant = 1 / Math.sqrt(2 * Math.PI);
-
-                x = (x - mean) / sigma;
-                return gaussianConstant * Math.exp(-.5 * x * x) / sigma;
-            },
             cdf: function(x, mean, sigma) {
                 x = (x - mean) / sigma;
                 return .5 * (1 + __VPGrapher.science.erf(x / Math.SQRT2));
