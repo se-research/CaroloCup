@@ -49,3 +49,4 @@ crashlytics-build.properties
 
 /data/calculated/*
 !/data/calculated/.gitkeep
+/data/scenarios.json
