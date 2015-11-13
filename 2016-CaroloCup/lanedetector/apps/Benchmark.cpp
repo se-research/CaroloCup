@@ -74,6 +74,8 @@ int main() {
                 }
             }
         }
+
+        hasAttachedToSharedImageMemory = false;
     }
 
     return 0;
