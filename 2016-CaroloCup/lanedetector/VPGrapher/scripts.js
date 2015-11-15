@@ -13,6 +13,11 @@ __VPGrapher = {
 
                 d3.csv(scenarioPath, function(scenarioData) { // load ground truth scenario file
                     d3.csv(calculatedDataPath, function (calculatedData) { // load calculated data scenario file
+                        if (calculatedData.length != scenarioData.length) {
+                            totalScenarios--;
+                            return;
+                        }
+
                         var distances = [];
 
                         scenarioData.forEach(function (scenario, index) {
