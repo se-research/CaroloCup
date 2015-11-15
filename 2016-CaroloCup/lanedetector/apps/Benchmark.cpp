@@ -85,7 +85,7 @@ int main() {
 
 void printScenarioNamesToJsonFile(string homePath) {
     std::ofstream json;
-    string path = homePath + vpGrapherPath + "data/scenarios.json";
+    string path = homePath + vpGrapherPath + "/data/scenarios.json";
 
     json.open(path.c_str(), ios_base::trunc);
     json << "[";
