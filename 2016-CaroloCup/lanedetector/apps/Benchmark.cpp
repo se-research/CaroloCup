@@ -8,75 +8,75 @@ int main() {
     getScenarioNames(root);
     printScenarioNamesToJsonFile(homePath);
 
-//    for (int i = 0; i < scenarioNames.size(); i++) {
-//        string scenario = scenarioNames[i];
-//        string scenarioPathString = "file://" + root + scenario + "/" + scenario + ".rec";
-//        URL scenarioPath(scenarioPathString.c_str());
-//
-//        cout << "Saving " << scenario << " vanishing points... " << "[" << (i + 1) << "/" << scenarioNames.size() << "]" << endl;
-//
-//        Player player(scenarioPath, AUTO_REWIND, MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS, THREADING);
-//
-//        // Set CSV file path
-//        string CSVPath = homePath + vpGrapherPath + "/data/calculated/" + scenario + ".csv";
-//        setupCSVFile(CSVPath);
-//
-//        while (player.hasMoreData()) {
-//            nextContainer = player.getNextContainerToBeSent();
-//
-//            if (nextContainer.getDataType() == Container::SHARED_IMAGE) {
-//                SharedImage si = nextContainer.getData<SharedImage>();
-//
-//                if (!hasAttachedToSharedImageMemory) {
-//                    sharedImageMemory = SharedMemoryFactory::attachToSharedMemory(si.getName());
-//
-//                    hasAttachedToSharedImageMemory = true;
-//                }
-//
-//                if (sharedImageMemory->isValid()) {
-//
-//                    if (image == NULL) {
-//                        imageHeight = si.getHeight();
-//                        imageWidth = si.getWidth();
-//                        image = cvCreateImageHeader(cvSize(imageWidth, imageHeight), IPL_DEPTH_8U,
-//                                                    si.getBytesPerPixel());
-//                    }
-//
-//                    image->imageData = (char *) sharedImageMemory->getSharedMemory();
-//
-//                    // Copy IplImage to Mat
-//                    Mat frame(image, true);
-//
-//                    cvReleaseImage(&image);
-//
-//                    // Crop top and bottom
-//                    frame = frame(cv::Rect(1, 2 * imageHeight / 16 - 1, imageWidth - 1, 10 * imageHeight / 16 - 1));
-//
-//                    // Set lighting conditions
-//                    previousThresh = cfg.th1;
-//                    int lux = -2;
-//                    SensorBoardData sdb;
-//                    if (sdb.containsKey_MapOfDistances(7)) lux = sdb.getValueForKey_MapOfDistances(7);
-//                    cfg.th1 = getDynamicThresh(lux);
-//
-//                    // Disable cout
-//                    cout.setstate(std::ios_base::failbit);
-//
-//                    // Run line detector
-//                    LineDetector road(frame, cfg, false, 1);
-//                    dataToDriver = *(road.getDriverData());
-//
-//                    // Re-enable cout
-//                    cout.clear();
-//
-//                    // Print vanishing point to CSV file
-//                    printVPToCSVFile(CSVPath);
-//                }
-//            }
-//        }
-//
-//        hasAttachedToSharedImageMemory = false;
-//    }
+    for (int i = 0; i < scenarioNames.size(); i++) {
+        string scenario = scenarioNames[i];
+        string scenarioPathString = "file://" + root + scenario + "/" + scenario + ".rec";
+        URL scenarioPath(scenarioPathString.c_str());
+
+        cout << "Saving " << scenario << " vanishing points... " << "[" << (i + 1) << "/" << scenarioNames.size() << "]" << endl;
+
+        Player player(scenarioPath, AUTO_REWIND, MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS, THREADING);
+
+        // Set CSV file path
+        string CSVPath = homePath + vpGrapherPath + "/data/calculated/" + scenario + ".csv";
+        setupCSVFile(CSVPath);
+
+        while (player.hasMoreData()) {
+            nextContainer = player.getNextContainerToBeSent();
+
+            if (nextContainer.getDataType() == Container::SHARED_IMAGE) {
+                SharedImage si = nextContainer.getData<SharedImage>();
+
+                if (!hasAttachedToSharedImageMemory) {
+                    sharedImageMemory = SharedMemoryFactory::attachToSharedMemory(si.getName());
+
+                    hasAttachedToSharedImageMemory = true;
+                }
+
+                if (sharedImageMemory->isValid()) {
+
+                    if (image == NULL) {
+                        imageHeight = si.getHeight();
+                        imageWidth = si.getWidth();
+                        image = cvCreateImageHeader(cvSize(imageWidth, imageHeight), IPL_DEPTH_8U,
+                                                    si.getBytesPerPixel());
+                    }
+
+                    image->imageData = (char *) sharedImageMemory->getSharedMemory();
+
+                    // Copy IplImage to Mat
+                    Mat frame(image, true);
+
+                    cvReleaseImage(&image);
+
+                    // Crop top and bottom
+                    frame = frame(cv::Rect(1, 2 * imageHeight / 16 - 1, imageWidth - 1, 10 * imageHeight / 16 - 1));
+
+                    // Set lighting conditions
+                    previousThresh = cfg.th1;
+                    int lux = -2;
+                    SensorBoardData sdb;
+                    if (sdb.containsKey_MapOfDistances(7)) lux = sdb.getValueForKey_MapOfDistances(7);
+                    cfg.th1 = getDynamicThresh(lux);
+
+                    // Disable cout
+                    cout.setstate(std::ios_base::failbit);
+
+                    // Run line detector
+                    LineDetector road(frame, cfg, false, 1);
+                    dataToDriver = *(road.getDriverData());
+
+                    // Re-enable cout
+                    cout.clear();
+
+                    // Print vanishing point to CSV file
+                    printVPToCSVFile(CSVPath);
+                }
+            }
+        }
+
+        hasAttachedToSharedImageMemory = false;
+    }
 
     runGraph();
 
