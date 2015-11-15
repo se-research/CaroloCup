@@ -13,13 +13,12 @@ int main() {
         string scenarioPathString = "file://" + root + scenario + "/" + scenario + ".rec";
         URL scenarioPath(scenarioPathString.c_str());
 
+        cout << "Saving " << scenario << " vanishing points... " << "[" << (i + 1) << "/" << scenarioNames.size() << "]" << endl;
+
         Player player(scenarioPath, AUTO_REWIND, MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS, THREADING);
 
         // Set CSV file path
-        string CSVPath = homePath;
-        CSVPath += "/CaroloCup/2016-CaroloCup/lanedetector/VPGrapher/data/calculated/";
-        CSVPath += scenario + ".csv";
-
+        string CSVPath = homePath + vpGrapherPath + "/data/calculated/" + scenario + ".csv";
         setupCSVFile(CSVPath);
 
         while (player.hasMoreData()) {
@@ -79,12 +78,14 @@ int main() {
         hasAttachedToSharedImageMemory = false;
     }
 
+    runGraph();
+
     return 0;
 }
 
 void printScenarioNamesToJsonFile(string homePath) {
     std::ofstream json;
-    string path = homePath + "/CaroloCup/2016-CaroloCup/lanedetector/VPGrapher/data/scenarios.json";
+    string path = homePath + vpGrapherPath + "data/scenarios.json";
 
     json.open(path.c_str(), ios_base::trunc);
     json << "[";
@@ -169,4 +170,19 @@ int getDynamicThresh(int lux) {
     }
 
     return thresh[foundIndex[0]];
+}
+
+void runGraph() {
+    string path = homePath + vpGrapherPath;
+    chdir(path.c_str());
+    cout << "Opening browser..." << endl;
+    thread browser(openBrowser, path);
+    cout << "Starting web server..." << endl;
+    system("php -S localhost:8000");
+}
+
+void openBrowser(string path) {
+    sleep(1); // make sure the php server spawns before the browser is opened
+    chdir(path.c_str());
+    system("firefox localhost:8000");
 }

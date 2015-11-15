@@ -14,6 +14,7 @@
 #include "core/base/module/ClientModule.h"
 #include <LineDetector.h>
 #include <LaneDetector.h>
+#include <thread>
 
 using namespace std;
 using namespace core;
@@ -44,6 +45,7 @@ LaneDetectorDataToDriver dataToDriver;
 int previousThresh=48;
 std::ofstream csvexport;
 string homePath = getenv("HOME");
+string vpGrapherPath = "/CaroloCup/2016-CaroloCup/lanedetector/VPGrapher";
 
 void getScenarioNames(const string &root);
 void setupConfig();
@@ -51,4 +53,6 @@ int getDynamicThresh(int lux);
 void printVPToCSVFile(string path);
 void setupCSVFile(string path);
 void printScenarioNamesToJsonFile(string homePath);
+void runGraph();
+void openBrowser(string path);
 #endif //LANEDETECTOR_BENCHMARK_H
