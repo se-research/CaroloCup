@@ -1,49 +1,54 @@
 __VPGrapher = {
+    data: [],
     debugging: false,
     init: function() {
-        this.handleCSVs();
-    },
-    handleCSVs: function() {
-        var scenarioPath = "data/ground-truth/fulltrack2.csv",
-            calculatedDataPath = "data/calculated/fulltrack2.csv";
+        console.log(d3.scale.category20());
 
-        d3.csv(scenarioPath, function(scenarioData) {
-            d3.csv(calculatedDataPath, function (calculatedData) {
-                var data = [];
+        d3.json("data/scenarios.json", function(scenarios) { // get all scenario names
+            var dispatch = d3.dispatch("dataLoaded", "scenarioLoaded");
+            var scenariosLoaded = 0,
+                totalScenarios = scenarios.length;
 
-                scenarioData.forEach(function (scenario, index) {
-                  var calculated = (calculatedData[index]) ? calculatedData[index] : {VP_x: 0, VP_y: 0};
+            scenarios.forEach(function(scenario) { // loop through each scenario
+                var scenarioPath = "data/ground-truth/" + scenario + ".csv",
+                    calculatedDataPath = "data/calculated/" + scenario + ".csv";
 
-                  var distance = __VPGrapher.science.getDistanceBetweenTwoPoints(scenario, calculated);
+                d3.csv(scenarioPath, function(scenarioData) { // load ground truth scenario file
+                    d3.csv(calculatedDataPath, function (calculatedData) { // load calculated data scenario file
+                        var distances = [];
 
-                  if (distance > 1000) return; // remove garbage data
+                        scenarioData.forEach(function (scenario, index) {
+                            var calculated = (calculatedData[index]) ? calculatedData[index] : {VP_x: 0, VP_y: 0};
 
-                  data.push(distance);
+                            var distance = __VPGrapher.science.getDistanceBetweenTwoPoints(scenario, calculated);
 
-                  if (__VPGrapher.debugging) __VPGrapher.debug.printDistances(distance);
+                            if (distance > 150) return; // remove garbage data
+
+                            distances.push(distance);
+
+                            if (__VPGrapher.debugging) __VPGrapher.debug.printDistances(distance);
+                        });
+
+                        __VPGrapher.data.push({name: scenario, data: distances});
+
+                        dispatch.scenarioLoaded();
+                    });
                 });
+            });
 
-                __VPGrapher.draw.normalDistributionCDF(data);
+            dispatch.on("scenarioLoaded", function() {
+                scenariosLoaded++;
+
+                if (scenariosLoaded == totalScenarios) dispatch.dataLoaded();
+            });
+
+            dispatch.on("dataLoaded", function() {
+                __VPGrapher.draw.normalDistributionCDF();
             });
         });
     },
     draw: {
-        normalDistributionCDF: function(originalData) {
-            var frames = originalData.length;
-
-            var data = originalData.slice(), // copy array
-                mean = d3.mean(data),
-                deviation = d3.deviation(data);
-
-            data.forEach(function(value, index) {
-                data[index] = {x: value, y: __VPGrapher.science.gaussian.cdf(value, mean, deviation)};
-            });
-
-            data.sort(function(a, b) {
-                return a.x - b.x;
-            });
-
-            // draw graph
+        normalDistributionCDF: function() {
             var margin = {
                     top: 20,
                     right: 20,
@@ -53,15 +58,18 @@ __VPGrapher = {
                 width = 960 - margin.left - margin.right,
                 height = 500 - margin.top - margin.bottom;
 
+            var maxDistances = [];
+            __VPGrapher.data.forEach(function(scenario) {
+                maxDistances.push(d3.max(scenario.data));
+            });
+
             var x = d3.scale.linear()
                 .range([0, width])
-                .domain([0, d3.max(data, function(d) { return d.x; })]);
+                .domain([0, d3.max(maxDistances)]);
 
             var y = d3.scale.linear()
                 .range([height, 0])
                 .domain([0, 1]);
-
-            console.log(d3.max(data, function(d) { return d.y; }));
 
             var xAxis = d3.svg.axis()
                 .scale(x)
@@ -73,14 +81,6 @@ __VPGrapher = {
                 .ticks(15)
                 .orient("left")
                 .tickFormat(function(d) { return parseInt(d * 100, 10) + "%" });
-
-            var line = d3.svg.line()
-                .x(function(d) {
-                    return x(d.x);
-                })
-                .y(function(d) {
-                    return y(d.y);
-                });
 
             var svg = d3.select("body").append("svg")
                 .attr("width", width + margin.left + margin.right)
@@ -97,11 +97,6 @@ __VPGrapher = {
                 .attr("class", "y axis")
                 .call(yAxis);
 
-            svg.append("path")
-                .datum(data)
-                .attr("class", "line")
-                .attr("d", line);
-
             svg.append("text")
                 .attr("class", "x label")
                 .attr("text-anchor", "end")
@@ -116,6 +111,49 @@ __VPGrapher = {
                 .attr("dy", ".75em")
                 .attr("transform", "rotate(-90)")
                 .text("frames");
+
+            __VPGrapher.data.forEach(function(scenario, index) {
+                var data = scenario.data,
+                    mean = d3.mean(data),
+                    deviation = d3.deviation(data);
+
+                data.forEach(function(value, index) {
+                    data[index] = {x: value, y: __VPGrapher.science.gaussian.cdf(value, mean, deviation)};
+                });
+
+                data.sort(function(a, b) {
+                    return a.x - b.x;
+                });
+
+                var line = d3.svg.line()
+                    .x(function(d) {
+                        return x(d.x);
+                    })
+                    .y(function(d) {
+                        return y(d.y);
+                    });
+
+                svg.append("path")
+                    .datum(data)
+                    .attr("class", "line")
+                    .attr("style", "stroke: " + __VPGrapher.colours(index))
+                    .attr("d", line);
+
+                svg.append("text")
+                    .attr("x", width - 30)
+                    .attr("y", height - 37 - (30 * index))
+                    .attr("text-anchor", "end")
+                    .text(scenario.name);
+
+                svg.append("rect")
+                    .attr("x", width - 20)
+                    .attr("y", height - 50 - (30 * index))
+                    .attr("width", 20)
+                    .attr("height", 20)
+                    .attr("stroke", "black")
+                    .attr("stroke-width", "0.5px")
+                    .attr("fill", __VPGrapher.colours(index));
+            });
         }
     },
     science: {
@@ -166,5 +204,6 @@ __VPGrapher = {
 
             container.html(html);
         }
-    }
+    },
+    colours: d3.scale.category20()
 };
