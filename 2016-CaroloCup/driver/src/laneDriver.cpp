@@ -26,7 +26,7 @@
 
 int indicators = -1;
 bool indicatorsOn = false;
-int initialSpeed;
+float initialSpeed;
 
 namespace msv
 {
@@ -63,7 +63,7 @@ laneDriver::~laneDriver() {}
 void laneDriver::setUp()
 {
     // This method will be call automatically _before_ running body().
-    m_speed = getKeyValueConfiguration().getValue<int32_t>("driver.realSpeed");
+    m_speed = getKeyValueConfiguration().getValue<float>("driver.realSpeed");
     initialSpeed =  m_speed;
     cout<<"speed"<<m_speed<<endl;
 }
@@ -189,7 +189,7 @@ coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode laneDriver::body()
             //cout << "Stee Sign: "<< steer_sign << "\nLast Steer: "<< last_steer <<endl;
 
             if( ldd.getLaneDetectionDataDriver().roadState == INTERSECTION){
-            	m_speed =  initialSpeed/2 + 1;
+            	m_speed =  initialSpeed/2 + 0.1;
             }else{
             	m_speed = initialSpeed;
             }
@@ -317,28 +317,30 @@ coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode laneDriver::body()
             //last_steer = desSteering;
             vc.setSteeringWheelAngle(int16_t(desSteering));
 
-            int speedVal;
+            float speedVal;
             //int runSpeed = 1565;
             speedVal = m_speed;
             if (abs(desSteering) < 4)
-                {
-                    increaseSpeed++;
-                }
+            {
+                increaseSpeed++;
+            }
             else
-                {
-                    increaseSpeed = 0;
-                }
-
+            {
+                increaseSpeed = 0;
+            }
+/*
             if (increaseSpeed >= 3 && increaseSpeed < 6)
-                {
-                    speedVal = m_speed + 1;
-                }
+            {
+                speedVal = m_speed + 0.1;
+            }
             else if (increaseSpeed >= 6)
-                {
-                    speedVal = m_speed + 2;
-                }
-
-            vc.setSpeed(speedVal);
+            {
+                speedVal = m_speed + 0.2;
+            }
+*/
+            cout << "Speed: " << speedVal << endl; 
+            cout << "SpeedDefault: " << initialSpeed << endl << endl; 
+            vc.setSpeed(initialSpeed);
 
             Container c(Container::VEHICLECONTROL, vc);
             getConference().send(c);
