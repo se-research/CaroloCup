@@ -18,18 +18,26 @@ __VPGrapher = {
                             return;
                         }
 
+                        var totalFrames = calculatedData.length,
+                            validFrames = totalFrames;
+
                         var errorAngles = [];
                         groundTruthData.forEach(function (groundTruth, index) {
                             var calculated = calculatedData[index];
 
                             var errorAngle = Math.abs(__VPGrapher.science.getAngle(groundTruth) - __VPGrapher.science.getAngle(calculated));
 
+                            if (errorAngle > 25) {
+                                validFrames--;
+                                return;
+                            }
+
                             errorAngles.push(errorAngle);
 
                             if (__VPGrapher.debugging) __VPGrapher.debug.printErrorAngles(errorAngle);
                         });
 
-                        __VPGrapher.data.push({name: scenario, data: errorAngles});
+                        __VPGrapher.data.push({name: scenario, data: errorAngles, frames: Math.round(validFrames / totalFrames * 100)});
 
                         dispatch.scenarioLoaded();
                     });
@@ -143,7 +151,7 @@ __VPGrapher = {
                     .attr("x", width - 30)
                     .attr("y", height - 37 - (30 * index))
                     .attr("text-anchor", "end")
-                    .text(scenario.name);
+                    .text("(" + scenario.frames + "% v.f.) " + scenario.name);
 
                 svg.append("rect")
                     .attr("x", width - 20)
