@@ -34,3 +34,13 @@ label {
     shape-rendering: crispEdges;
 }
 
+.debug {
+    display: inline-block;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.debug table {
+    float: left;
+}
+

@@ -50,3 +50,5 @@ crashlytics-build.properties
 /data/calculated/*
 !/data/calculated/.gitkeep
 /data/scenarios.json
+/data/angles-error/*
+!/data/angles-error/.gitkeep

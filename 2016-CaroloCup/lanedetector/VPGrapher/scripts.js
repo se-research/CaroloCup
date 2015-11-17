@@ -33,8 +33,6 @@ __VPGrapher = {
                             }
 
                             errorAngles.push(errorAngle);
-
-                            if (__VPGrapher.debugging) __VPGrapher.debug.printErrorAngles(errorAngle);
                         });
 
                         __VPGrapher.data.push({name: scenario, data: errorAngles, frames: Math.round(validFrames / totalFrames * 100)});
@@ -52,6 +50,8 @@ __VPGrapher = {
 
             dispatch.on("dataLoaded", function() {
                 __VPGrapher.draw.normalDistributionCDF();
+
+                if (__VPGrapher.debugging) __VPGrapher.printScenariosAnglesErrorToCSV();
             });
         });
     },
@@ -71,7 +71,6 @@ __VPGrapher = {
             __VPGrapher.data.forEach(function(scenario) {
                 maxErrorAngles.push(d3.max(scenario.data));
             });
-
             var x = d3.scale.linear()
                 .range([0, width])
                 .domain([0, d3.max(maxErrorAngles)]);
@@ -121,7 +120,7 @@ __VPGrapher = {
                 .text("frames");
 
             __VPGrapher.data.forEach(function(scenario, index) {
-                var data = scenario.data,
+                var data = clone(scenario.data, false),
                     mean = d3.mean(data),
                     deviation = d3.deviation(data);
 
@@ -210,15 +209,16 @@ __VPGrapher = {
             return Math.acos((BC*BC+AB*AB-AC*AC)/(2*BC*AB)) * (180/Math.PI);
         }
     },
-    debug: {
-        printErrorAngles: function(errorAngle) {
-            var container = d3.select("#print");
-
-            var html = container.html();
-            html += errorAngle + "<br>";
-
-            container.html(html);
-        }
-    },
-    colours: d3.scale.category20()
+    colours: d3.scale.category20(),
+    printScenariosAnglesErrorToCSV: function() {
+        __VPGrapher.data.forEach(function(scenario) {
+            nanoajax.ajax({
+                url: "print-csv.php",
+                method: "POST",
+                body: "scenario=" + JSON.stringify(scenario)
+            }, function(code, responseText) {
+                console.log(responseText);
+            });
+        });
+    }
 };
