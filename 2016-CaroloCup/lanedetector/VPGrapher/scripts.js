@@ -27,7 +27,7 @@ __VPGrapher = {
 
                             var errorAngle = Math.abs(__VPGrapher.science.getAngle(groundTruth) - __VPGrapher.science.getAngle(calculated));
 
-                            if (errorAngle > 25) {
+                            if (errorAngle > 45) { // ignore angles bigger than the wheel can handle
                                 validFrames--;
                                 return;
                             }
@@ -63,8 +63,9 @@ __VPGrapher = {
                     bottom: 30,
                     left: 50
                 },
-                width = 960 - margin.left - margin.right,
-                height = 500 - margin.top - margin.bottom;
+                width = 435,
+                height = 345;
+
 
             var maxErrorAngles = [];
             __VPGrapher.data.forEach(function(scenario) {
@@ -81,12 +82,11 @@ __VPGrapher = {
 
             var xAxis = d3.svg.axis()
                 .scale(x)
-                .ticks(20)
+                .ticks(5)
                 .orient("bottom");
 
             var yAxis = d3.svg.axis()
                 .scale(y)
-                .ticks(15)
                 .orient("left")
                 .tickFormat(function(d) { return parseInt(d * 100, 10) + "%" });
 
@@ -119,14 +119,6 @@ __VPGrapher = {
                 .attr("dy", ".75em")
                 .attr("transform", "rotate(-90)")
                 .text("frames");
-
-            svg.append("line")
-                .attr("x1", 0)
-                .attr("y1", height - 1)
-                .attr("x2", width)
-                .attr("y2", 0)
-                .attr("stroke", "#000")
-                .attr("stroke-width", "2.5px")
 
             __VPGrapher.data.forEach(function(scenario, index) {
                 var data = scenario.data,
