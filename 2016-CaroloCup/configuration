@@ -201,7 +201,7 @@ odsimvehicle.LinearBicycleModel.KdynamicBrake=60.0
 # CONFIGURATION FOR LANEFOLLOWER
 #
 lanefollower.camera_id = 2 # select here the proper camera
-lanefollower.debug = 1      # set to 0 to disable any windows and further output
+lanefollower.debug = 0      # set to 0 to disable any windows and further output
 
 
 ###############################################################################
