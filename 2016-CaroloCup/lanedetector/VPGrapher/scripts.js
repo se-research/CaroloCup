@@ -22,7 +22,7 @@ __VPGrapher = {
                         groundTruthData.forEach(function (groundTruth, index) {
                             var calculated = calculatedData[index];
 
-                            var errorAngle =  Math.abs(__VPGrapher.science.getAngle(groundTruth)  - __VPGrapher.science.getAngle(calculated));
+                            var errorAngle = Math.abs(__VPGrapher.science.getAngle(groundTruth) - __VPGrapher.science.getAngle(calculated));
 
                             errorAngles.push(errorAngle);
 
@@ -102,7 +102,7 @@ __VPGrapher = {
                 .attr("text-anchor", "end")
                 .attr("x", width)
                 .attr("y", height - 6)
-                .text("distance");
+                .text("error angle");
 
             svg.append("text")
                 .attr("class", "y label")
