@@ -8,31 +8,28 @@ __VPGrapher = {
                 totalScenarios = scenarios.length;
 
             scenarios.forEach(function(scenario) { // loop through each scenario
-                var scenarioPath = "data/ground-truth/" + scenario + ".csv",
+                var groundTruthDataPath = "data/ground-truth/" + scenario + ".csv",
                     calculatedDataPath = "data/calculated/" + scenario + ".csv";
 
-                d3.csv(scenarioPath, function(scenarioData) { // load ground truth scenario file
+                d3.csv(groundTruthDataPath, function(groundTruthData) { // load ground truth scenario file
                     d3.csv(calculatedDataPath, function (calculatedData) { // load calculated data scenario file
-                        if (calculatedData.length != scenarioData.length) {
+                        if (calculatedData.length != groundTruthData.length) {
                             totalScenarios--;
                             return;
                         }
 
-                        var distances = [];
+                        var errorAngles = [];
+                        groundTruthData.forEach(function (groundTruth, index) {
+                            var calculated = calculatedData[index];
 
-                        scenarioData.forEach(function (scenario, index) {
-                            var calculated = (calculatedData[index]) ? calculatedData[index] : {VP_x: 0, VP_y: 0};
+                            var errorAngle =  Math.abs(__VPGrapher.science.getAngle(groundTruth)  - __VPGrapher.science.getAngle(calculated));
 
-                            var distance = __VPGrapher.science.getDistanceBetweenTwoPoints(scenario, calculated);
+                            errorAngles.push(errorAngle);
 
-                            if (distance > 150) return; // remove garbage data
-
-                            distances.push(distance);
-
-                            if (__VPGrapher.debugging) __VPGrapher.debug.printDistances(distance);
+                            if (__VPGrapher.debugging) __VPGrapher.debug.printErrorAngles(errorAngle);
                         });
 
-                        __VPGrapher.data.push({name: scenario, data: distances});
+                        __VPGrapher.data.push({name: scenario, data: errorAngles});
 
                         dispatch.scenarioLoaded();
                     });
@@ -61,14 +58,14 @@ __VPGrapher = {
                 width = 960 - margin.left - margin.right,
                 height = 500 - margin.top - margin.bottom;
 
-            var maxDistances = [];
+            var maxErrorAngles = [];
             __VPGrapher.data.forEach(function(scenario) {
-                maxDistances.push(d3.max(scenario.data));
+                maxErrorAngles.push(d3.max(scenario.data));
             });
 
             var x = d3.scale.linear()
                 .range([0, width])
-                .domain([0, d3.max(maxDistances)]);
+                .domain([0, d3.max(maxErrorAngles)]);
 
             var y = d3.scale.linear()
                 .range([height, 0])
@@ -161,18 +158,18 @@ __VPGrapher = {
     },
     science: {
         gaussian: {
-            cdf: function(x, mean, sigma) {
+            cdf: function (x, mean, sigma) {
                 x = (x - mean) / sigma;
                 return .5 * (1 + __VPGrapher.science.gaussian.helper.erf(x / Math.SQRT2));
             },
             helper: {
-                erf: function(x) {
-                    var a1 =  0.254829592,
+                erf: function (x) {
+                    var a1 = 0.254829592,
                         a2 = -0.284496736,
-                        a3 =  1.421413741,
+                        a3 = 1.421413741,
                         a4 = -1.453152027,
-                        a5 =  1.061405429,
-                        p  =  0.3275911;
+                        a5 = 1.061405429,
+                        p = 0.3275911;
 
                     // Save the sign of x
                     var sign = x < 0 ? -1 : 1;
@@ -189,21 +186,28 @@ __VPGrapher = {
                 }
             }
         },
-        getDistanceBetweenTwoPoints: function(point1, point2) {
-            return Math.round(
-                Math.sqrt(
-                    Math.pow((point2['VP_x'] - point1['VP_x']), 2) +
-                    Math.pow((point2['VP_y'] - point1['VP_y']), 2)
-                )
-            );
+        /**
+         * Get angle between car line and vanishing point
+         * @returns {number}
+         * @param vp
+         */
+        getAngle: function (vp) {
+            var A = {x: vp["VP_x"], y: vp["VP_y"]},
+                B = {x: 376, y: 300}, // center point
+                C = {x: 376, y: 0};
+
+            var AB = Math.sqrt(Math.pow(B.x-A.x,2)+ Math.pow(B.y-A.y,2));
+            var BC = Math.sqrt(Math.pow(B.x-C.x,2)+ Math.pow(B.y-C.y,2));
+            var AC = Math.sqrt(Math.pow(C.x-A.x,2)+ Math.pow(C.y-A.y,2));
+            return Math.acos((BC*BC+AB*AB-AC*AC)/(2*BC*AB)) * (180/Math.PI);
         }
     },
     debug: {
-        printDistances: function(distance) {
+        printErrorAngles: function(errorAngle) {
             var container = d3.select("#print");
 
             var html = container.html();
-            html += distance + "<br>";
+            html += errorAngle + "<br>";
 
             container.html(html);
         }
