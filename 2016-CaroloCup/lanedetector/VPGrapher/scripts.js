@@ -120,6 +120,14 @@ __VPGrapher = {
                 .attr("transform", "rotate(-90)")
                 .text("frames");
 
+            svg.append("line")
+                .attr("x1", 0)
+                .attr("y1", height - 1)
+                .attr("x2", width)
+                .attr("y2", 0)
+                .attr("stroke", "#000")
+                .attr("stroke-width", "2.5px")
+
             __VPGrapher.data.forEach(function(scenario, index) {
                 var data = scenario.data,
                     mean = d3.mean(data),
@@ -144,14 +152,14 @@ __VPGrapher = {
                 svg.append("path")
                     .datum(data)
                     .attr("class", "line")
-                    .attr("style", "stroke: " + __VPGrapher.colours(index))
+                    .attr("stroke", __VPGrapher.colours(index))
                     .attr("d", line);
 
                 svg.append("text")
                     .attr("x", width - 30)
                     .attr("y", height - 37 - (30 * index))
                     .attr("text-anchor", "end")
-                    .text("(" + scenario.frames + "% v.f.) " + scenario.name);
+                    .text(scenario.name + " (" + scenario.frames + "% v.f.)");
 
                 svg.append("rect")
                     .attr("x", width - 20)
