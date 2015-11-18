@@ -1,6 +1,6 @@
 __VPGrapher = {
     data: [],
-    debugging: false,
+    debugging: true,
     init: function() {
         d3.json("data/scenarios.json", function(scenarios) { // get all scenario names
             var dispatch = d3.dispatch("dataLoaded", "scenarioLoaded");
@@ -206,18 +206,25 @@ __VPGrapher = {
             var AB = Math.sqrt(Math.pow(B.x-A.x,2)+ Math.pow(B.y-A.y,2));
             var BC = Math.sqrt(Math.pow(B.x-C.x,2)+ Math.pow(B.y-C.y,2));
             var AC = Math.sqrt(Math.pow(C.x-A.x,2)+ Math.pow(C.y-A.y,2));
-            return Math.acos((BC*BC+AB*AB-AC*AC)/(2*BC*AB)) * (180/Math.PI);
+            var result = Math.acos((BC*BC+AB*AB-AC*AC)/(2*BC*AB)) * (180/Math.PI);
+
+            return Math.round(result);
         }
     },
     colours: d3.scale.category20(),
     printScenariosAnglesErrorToCSV: function() {
         __VPGrapher.data.forEach(function(scenario) {
+            scenario = clone(scenario);
+            scenario.data.sort(function(a, b) {
+                return a - b;
+            });
+
             nanoajax.ajax({
                 url: "print-csv.php",
                 method: "POST",
                 body: "scenario=" + JSON.stringify(scenario)
-            }, function(code, responseText) {
-                console.log(responseText);
+            }, function() {
+                console.log(scenario.name + " done printing");
             });
         });
     }
