@@ -1,6 +1,6 @@
 __VPGrapher = {
     data: [],
-    debugging: true,
+    debugging: false,
     init: function() {
         d3.json("data/scenarios.json", function(scenarios) { // get all scenario names
             var dispatch = d3.dispatch("dataLoaded", "scenarioLoaded");
