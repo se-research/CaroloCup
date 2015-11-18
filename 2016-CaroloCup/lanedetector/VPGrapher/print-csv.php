@@ -7,7 +7,7 @@ if (! $scenario) return;
 
 $filePath = "data/angles-error/" . $scenario->name . ".csv";
 
-file_put_contents($filePath, $scenario->name . "\n");
+if (file_exists($filePath)) unlink($filePath);
 
 foreach ($scenario->data as $errorAngle) {
     file_put_contents($filePath, $errorAngle . "\n", FILE_APPEND);
