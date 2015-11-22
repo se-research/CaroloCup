@@ -132,14 +132,14 @@ __VPGrapher = {
 
             svg.append("path")
                 .datum(minimumLine)
-                .attr("fill", "pink")
+                .attr("fill", "#ffc0e4")
                 .attr("d", area);
 
             // append error angle text
             svg.append("text")
                 .attr("class", "x label")
                 .attr("text-anchor", "end")
-                .attr("x", width)
+                .attr("x", width - 6)
                 .attr("y", height - 6)
                 .text("error angle");
 
@@ -167,13 +167,13 @@ __VPGrapher = {
                     .attr("d", line);
 
                 svg.append("text")
-                    .attr("x", width - 30)
+                    .attr("x", width - 36)
                     .attr("y", height - 37 - (30 * i))
                     .attr("text-anchor", "end")
                     .text(__VPGrapher.data[i].name + " (" + __VPGrapher.data[i].framesValid + "% v.f.)");
 
                 svg.append("rect")
-                    .attr("x", width - 20)
+                    .attr("x", width - 26)
                     .attr("y", height - 50 - (30 * i))
                     .attr("width", 20)
                     .attr("height", 20)
