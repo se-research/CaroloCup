@@ -63,9 +63,8 @@ __VPGrapher = {
                     bottom: 30,
                     left: 50
                 },
-                width = 435,
-                height = 345;
-
+                width = 960 - margin.left - margin.right,
+                height = 500 - margin.top - margin.bottom;
 
             var maxErrorAngles = [];
             __VPGrapher.data.forEach(function(scenario) {
