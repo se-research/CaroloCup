@@ -190,6 +190,14 @@ __VPGrapher = {
                     .attr("cx", function(d) { return x(d.x); })
                     .attr("cy", function(d) { return y(d.y); });
             });
+
+            // append the area number
+            var areaNum = __VPGrapher.science.trapz(minimumLine);
+            svg.append("text")
+                .attr("x", width - 6)
+                .attr("y", 16)
+                .attr("text-anchor", "end")
+                .text("Area: " + areaNum + "/" + maxErrorAngle);
         },
         minimumLineCDF: function(data, svg, x, y, maxErrorAngle, height) {
             var minimumLine = [];
@@ -263,6 +271,18 @@ __VPGrapher = {
             var result = Math.acos((BC*BC+AB*AB-AC*AC)/(2*BC*AB)) * (180/Math.PI);
 
             return Math.round(result);
+        },
+        /**
+         * Returns area using trapezoidal rule
+         * @param data
+         * @returns {number}
+         */
+        trapz: function(data) {
+            var sum = 0;
+            for (var i = 1; i < data.length; i++) {
+                sum += (data[i].x - data[i-1].x) * (data[i].y + data[i-1].y);
+            }
+            return Math.round(sum * 0.5);
         }
     },
     colours: d3.scale.category20(),
