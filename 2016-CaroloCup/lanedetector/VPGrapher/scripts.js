@@ -35,7 +35,7 @@ __VPGrapher = {
                             errorAngles.push(errorAngle);
                         });
 
-                        __VPGrapher.data.push({name: scenario, data: errorAngles, frames: Math.round(validFrames / totalFrames * 100)});
+                        __VPGrapher.data.push({name: scenario, data: errorAngles, framesValid: Math.round(validFrames / totalFrames * 100)});
 
                         dispatch.scenarioLoaded();
                     });
@@ -71,9 +71,10 @@ __VPGrapher = {
             __VPGrapher.data.forEach(function(scenario) {
                 maxErrorAngles.push(d3.max(scenario.data));
             });
+            var maxErrorAngle = d3.max(maxErrorAngles);
             var x = d3.scale.linear()
                 .range([0, width])
-                .domain([0, d3.max(maxErrorAngles)]);
+                .domain([0, maxErrorAngle]);
 
             var y = d3.scale.linear()
                 .range([height, 0])
@@ -119,18 +120,22 @@ __VPGrapher = {
                 .attr("transform", "rotate(-90)")
                 .text("frames");
 
-            __VPGrapher.data.forEach(function(scenario, index) {
+            var dataCDF = [];
+
+            __VPGrapher.data.forEach(function(scenario, i) {
                 var data = clone(scenario.data, false),
                     mean = d3.mean(data),
                     deviation = d3.deviation(data);
 
-                data.forEach(function(value, index) {
-                    data[index] = {x: value, y: __VPGrapher.science.gaussian.cdf(value, mean, deviation)};
+                data.forEach(function(value, j) {
+                    data[j] = {x: value, y: __VPGrapher.science.gaussian.cdf(value, mean, deviation)};
                 });
 
                 data.sort(function(a, b) {
                     return a.x - b.x;
                 });
+
+                dataCDF.push(data);
 
                 var line = d3.svg.line()
                     .x(function(d) {
@@ -143,24 +148,63 @@ __VPGrapher = {
                 svg.append("path")
                     .datum(data)
                     .attr("class", "line")
-                    .attr("stroke", __VPGrapher.colours(index))
+                    .attr("stroke", __VPGrapher.colours(i))
                     .attr("d", line);
 
                 svg.append("text")
                     .attr("x", width - 30)
-                    .attr("y", height - 37 - (30 * index))
+                    .attr("y", height - 37 - (30 * i))
                     .attr("text-anchor", "end")
-                    .text(scenario.name + " (" + scenario.frames + "% v.f.)");
+                    .text(scenario.name + " (" + scenario.framesValid + "% v.f.)");
 
                 svg.append("rect")
                     .attr("x", width - 20)
-                    .attr("y", height - 50 - (30 * index))
+                    .attr("y", height - 50 - (30 * i))
                     .attr("width", 20)
                     .attr("height", 20)
                     .attr("stroke", "black")
                     .attr("stroke-width", "0.5px")
-                    .attr("fill", __VPGrapher.colours(index));
+                    .attr("fill", __VPGrapher.colours(i));
             });
+
+            __VPGrapher.draw.minimumLineCDF(dataCDF, svg, x, y, maxErrorAngle);
+        },
+        minimumLineCDF: function(data, svg, x, y, maxErrorAngle) {
+            var minimumLine = [];
+            for(var i = 0; i < maxErrorAngle - 1; i++) {
+                var minimumYs = [];
+
+                data.forEach(function (scenario) {
+                    // find x with distance i
+                    var x = scenario.map(function(d) {return d.x}).indexOf(i);
+
+                    if (x == -1) {
+                        minimumYs.push(Infinity);
+                    } else {
+                        minimumYs.push(scenario[x].y);
+                    }
+                });
+
+                var minimumY = d3.min(minimumYs);
+                if (minimumY != Infinity) {
+                    minimumLine.push({x: i, y: minimumY});
+                }
+            }
+
+            var line = d3.svg.line()
+                .x(function(d) {
+                    return x(d.x);
+                })
+                .y(function(d) {
+                    return y(d.y);
+                });
+
+            svg.append("path")
+                .datum(minimumLine)
+                .attr("class", "line")
+                .attr("stroke", "#000000")
+                .attr("stroke-width", "1.5px")
+                .attr("d", line);
         }
     },
     science: {
