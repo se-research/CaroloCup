@@ -104,6 +104,38 @@ __VPGrapher = {
                 .attr("class", "y axis")
                 .call(yAxis);
 
+            var dataCDF = [];
+
+            __VPGrapher.data.forEach(function(scenario) {
+                var data = clone(scenario.data, false),
+                    mean = d3.mean(data),
+                    deviation = d3.deviation(data);
+
+                data.forEach(function(value, i) {
+                    data[i] = {x: value, y: __VPGrapher.science.gaussian.cdf(value, mean, deviation)};
+                });
+
+                data.sort(function(a, b) {
+                    return a.x - b.x;
+                });
+
+                dataCDF.push(data);
+            });
+
+            var minimumLine = __VPGrapher.draw.minimumLineCDF(dataCDF, svg, x, y, maxErrorAngle, height);
+
+            // draw minimum line area
+            var area = d3.svg.area()
+                .x(function(d) { return x(d.x); })
+                .y0(height)
+                .y1(function(d) { return y(d.y); });
+
+            svg.append("path")
+                .datum(minimumLine)
+                .attr("fill", "pink")
+                .attr("d", area);
+
+            // append error angle text
             svg.append("text")
                 .attr("class", "x label")
                 .attr("text-anchor", "end")
@@ -119,23 +151,7 @@ __VPGrapher = {
                 .attr("transform", "rotate(-90)")
                 .text("frames");
 
-            var dataCDF = [];
-
-            __VPGrapher.data.forEach(function(scenario, i) {
-                var data = clone(scenario.data, false),
-                    mean = d3.mean(data),
-                    deviation = d3.deviation(data);
-
-                data.forEach(function(value, j) {
-                    data[j] = {x: value, y: __VPGrapher.science.gaussian.cdf(value, mean, deviation)};
-                });
-
-                data.sort(function(a, b) {
-                    return a.x - b.x;
-                });
-
-                dataCDF.push(data);
-
+            dataCDF.forEach(function(data, i) {
                 var line = d3.svg.line()
                     .x(function(d) {
                         return x(d.x);
@@ -154,7 +170,7 @@ __VPGrapher = {
                     .attr("x", width - 30)
                     .attr("y", height - 37 - (30 * i))
                     .attr("text-anchor", "end")
-                    .text(scenario.name + " (" + scenario.framesValid + "% v.f.)");
+                    .text(__VPGrapher.data[i].name + " (" + __VPGrapher.data[i].framesValid + "% v.f.)");
 
                 svg.append("rect")
                     .attr("x", width - 20)
@@ -166,9 +182,16 @@ __VPGrapher = {
                     .attr("fill", __VPGrapher.colours(i));
             });
 
-            __VPGrapher.draw.minimumLineCDF(dataCDF, svg, x, y, maxErrorAngle);
+            // draw minimum line circles
+            minimumLine.forEach(function(point) {
+                svg.append("circle")
+                    .datum(point)
+                    .attr("r", 2.5)
+                    .attr("cx", function(d) { return x(d.x); })
+                    .attr("cy", function(d) { return y(d.y); });
+            });
         },
-        minimumLineCDF: function(data, svg, x, y, maxErrorAngle) {
+        minimumLineCDF: function(data, svg, x, y, maxErrorAngle, height) {
             var minimumLine = [];
             for(var i = 0; i < maxErrorAngle - 1; i++) {
                 var minimumYs = [];
@@ -191,13 +214,7 @@ __VPGrapher = {
                 }
             }
 
-            minimumLine.forEach(function(point) {
-                svg.append("circle")
-                    .datum(point)
-                    .attr("r", 1.5)
-                    .attr("cx", function(d) { return x(d.x); })
-                    .attr("cy", function(d) { return y(d.y); });
-            });
+            return minimumLine;
         }
     },
     science: {
