@@ -193,7 +193,7 @@ __VPGrapher = {
         },
         minimumLineCDF: function(data, svg, x, y, maxErrorAngle, height) {
             var minimumLine = [];
-            for(var i = 0; i < maxErrorAngle - 1; i++) {
+            for(var i = 0; i <= maxErrorAngle; i++) {
                 var minimumYs = [];
 
                 data.forEach(function (scenario) {
