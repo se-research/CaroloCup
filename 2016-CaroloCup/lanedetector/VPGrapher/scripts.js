@@ -179,32 +179,26 @@ __VPGrapher = {
                     var x = scenario.map(function(d) {return d.x}).indexOf(i);
 
                     if (x == -1) {
-                        minimumYs.push(Infinity);
+                        minimumYs.push(undefined);
                     } else {
                         minimumYs.push(scenario[x].y);
                     }
                 });
 
                 var minimumY = d3.min(minimumYs);
-                if (minimumY != Infinity) {
+
+                if (minimumY != undefined) {
                     minimumLine.push({x: i, y: minimumY});
                 }
             }
 
-            var line = d3.svg.line()
-                .x(function(d) {
-                    return x(d.x);
-                })
-                .y(function(d) {
-                    return y(d.y);
-                });
-
-            svg.append("path")
-                .datum(minimumLine)
-                .attr("class", "line")
-                .attr("stroke", "#000000")
-                .attr("stroke-width", "1.5px")
-                .attr("d", line);
+            minimumLine.forEach(function(point) {
+                svg.append("circle")
+                    .datum(point)
+                    .attr("r", 1.5)
+                    .attr("cx", function(d) { return x(d.x); })
+                    .attr("cy", function(d) { return y(d.y); });
+            });
         }
     },
     science: {
