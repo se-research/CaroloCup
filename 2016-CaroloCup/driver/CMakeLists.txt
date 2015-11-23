@@ -78,6 +78,9 @@ TARGET_LINK_LIBRARIES (laneDriver_module ${PROJECT_NAME}lib-static ${MSVDATA_LIB
 ADD_EXECUTABLE (victorDriver_module "${CMAKE_CURRENT_SOURCE_DIR}/apps/victorDriver_module.cpp")
 TARGET_LINK_LIBRARIES (victorDriver_module ${PROJECT_NAME}lib-static ${MSVDATA_LIB} ${OPENDAVINCI_LIBRARIES} ${AUTOMOTIVEDATA_LIBRARIES})
 
+ADD_EXECUTABLE (improvedDriver_module "${CMAKE_CURRENT_SOURCE_DIR}/apps/improvedDriver_module.cpp")
+TARGET_LINK_LIBRARIES (improvedDriver_module ${PROJECT_NAME}lib-static ${MSVDATA_LIB} ${OPENDAVINCI_LIBRARIES} ${AUTOMOTIVEDATA_LIBRARIES})
+
 ADD_EXECUTABLE (obstacleDriver_module "${CMAKE_CURRENT_SOURCE_DIR}/apps/obstacleDriver_module.cpp")
 TARGET_LINK_LIBRARIES (obstacleDriver_module ${PROJECT_NAME}lib-static ${MSVDATA_LIB} ${OPENDAVINCI_LIBRARIES} ${AUTOMOTIVEDATA_LIBRARIES}) 
 
