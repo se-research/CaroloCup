@@ -2,14 +2,15 @@ __VPGrapher = {
     data: [],
     debugging: false,
     init: function() {
-        d3.json("data/scenarios.json", function(scenarios) { // get all scenario names
+        d3.json("data/scenarios.json", function(scenarios) { // get all scenarios
             var dispatch = d3.dispatch("dataLoaded", "scenarioLoaded");
             var scenariosLoaded = 0,
                 totalScenarios = scenarios.length;
 
             scenarios.forEach(function(scenario) { // loop through each scenario
-                var groundTruthDataPath = "data/ground-truth/" + scenario + ".csv",
-                    calculatedDataPath = "data/calculated/" + scenario + ".csv";
+                var scenarioName = scenario.name,
+                    groundTruthDataPath = "data/ground-truth/" + scenarioName + ".csv",
+                    calculatedDataPath = "data/calculated/" + scenarioName + ".csv";
 
                 d3.csv(groundTruthDataPath, function(groundTruthData) { // load ground truth scenario file
                     d3.csv(calculatedDataPath, function (calculatedData) { // load calculated data scenario file
@@ -35,7 +36,12 @@ __VPGrapher = {
                             errorAngles.push(errorAngle);
                         });
 
-                        __VPGrapher.data.push({name: scenario, data: errorAngles, framesValid: Math.round(validFrames / totalFrames * 100)});
+                        __VPGrapher.data.push({
+                            name: scenarioName,
+                            data: errorAngles,
+                            framesValid: Math.round(validFrames / totalFrames * 100),
+                            fps: scenario.fps
+                        });
 
                         dispatch.scenarioLoaded();
                     });
@@ -64,7 +70,7 @@ __VPGrapher = {
                     left: 50
                 },
                 width = 960 - margin.left - margin.right,
-                height = 500 - margin.top - margin.bottom;
+                height = 600 - margin.top - margin.bottom;
 
             var maxErrorAngles = [];
             __VPGrapher.data.forEach(function(scenario) {
@@ -170,7 +176,11 @@ __VPGrapher = {
                     .attr("x", width - 36)
                     .attr("y", height - 37 - (30 * i))
                     .attr("text-anchor", "end")
-                    .text(__VPGrapher.data[i].name + " (" + __VPGrapher.data[i].framesValid + "% v.f.)");
+                    .text(
+                        __VPGrapher.data[i].name
+                        + " (" + __VPGrapher.data[i].framesValid + "% v.f.)"
+                        + " (" + Math.round(__VPGrapher.data[i].fps) + " fps)"
+                    );
 
                 svg.append("rect")
                     .attr("x", width - 26)
@@ -199,7 +209,7 @@ __VPGrapher = {
                 .attr("text-anchor", "end")
                 .text("Area: " + areaNum + "/" + maxErrorAngle);
         },
-        minimumLineCDF: function(data, svg, x, y, maxErrorAngle, height) {
+        minimumLineCDF: function(data, svg, x, y, maxErrorAngle) {
             var minimumLine = [];
             for(var i = 0; i <= maxErrorAngle; i++) {
                 var minimumYs = [];
