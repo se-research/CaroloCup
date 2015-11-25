@@ -62,30 +62,6 @@ namespace automotive {
         {}
 
         Proxy::~Proxy() {}
-
-	string decodedNetstring(string netstring){
-	  //if the Netstring is less than 3 characters, it's either an invalid one or contains an empty string
-	  if (netstring.length() < 3) return "";
-	  int semicolonIndex = netstring.find(':');
-	  // if there's no semicolon, then it's an invalid Netstring
-	  if (semicolonIndex < 0) return "";
-	  //parse until the semicolon. Those should be the control digits
-	  string parsedDigits = netstring.substr(0, semicolonIndex);
-	  int controlDigits;
-	  stringstream ss(parsedDigits);
-	  ss>>controlDigits;
-	  //if the control digit is smaller than 1, then it's either not a digit or the Netstring is invalid
-	  if (controlDigits < 1) return "";
-	  //parse after the semicolon until the end of the string
-	  string command = netstring.substr(semicolonIndex+1);
-	  // if it's an empty string, return "error"
-	  if (command.empty()) return "";
-	  //if last character is a comma, remove it
-	  if (command.substr(command.length() -1) == ",") command.erase(command.length()-1);
-	  //if string's length isn't equal with the control digits, it's an invalid Netstring
-	  if ((int)command.length() != controlDigits) return "";
-	return command;
-	}
 	
 	Container decodePayload(string payload){
 	  stringstream proto(payload);
@@ -96,6 +72,10 @@ namespace automotive {
 	  sd.accept(protoDeserializerVisitor);
 	  
 	  cout << sd.toString()<< endl;
+		int temp = sd.getButtonState();
+		bool buttons[4] = {0,0,0,0};
+		for (int i = 3; i > 0; i--) buttons[i] = (temp & (1 << i)) != 0;
+	  
 	      SensorBoardData m_sensorBoardData;
 		m_sensorBoardData.putTo_MapOfDistances(0, sd.getUsFront());
 		m_sensorBoardData.putTo_MapOfDistances(1, sd.getIrFrontRight());
@@ -106,13 +86,15 @@ namespace automotive {
 		m_sensorBoardData.putTo_MapOfDistances(6, sd.getWheelRearLeft());
 		m_sensorBoardData.putTo_MapOfDistances(7, sd.getWheelRearRight());
 		m_sensorBoardData.putTo_MapOfDistances(8, (int)sd.getGyroHeading());
-		m_sensorBoardData.putTo_MapOfDistances(9, sd.getButtonState());
+		m_sensorBoardData.putTo_MapOfDistances(9, buttons[1]);
+		m_sensorBoardData.putTo_MapOfDistances(10, buttons[2]);
+		m_sensorBoardData.putTo_MapOfDistances(11, buttons[3]);
 		Container sensorData(Container::USER_DATA_0, m_sensorBoardData);
 		return sensorData;
 	}
 	
 	void Proxy::nextString(const string &s) {
-	//  cout << s; 
+ 	 // cout << s << endl; 
 	 for(int i= 0; i< (int)s.length();i++){
 	   if(s[i] != flagESC && s[i] != flagEND){
 	    netstring << s[i];
@@ -246,13 +228,19 @@ namespace automotive {
 	    automotive::carolocup::Control cc;
 	    cc.setAcceleration((int)(vc.getSpeed() * 10));
 	    cc.setSteering((int)(vc.getSteeringWheelAngle()* (1.0 / (3.141592654 / 180.0))));
-	    cc.setLights(9);
+	    bool lights[3] = {0,0,0}; //stop light, left blinker, right blinker
+	    lights[0] = vc.getBrakeLights();
+	    lights[1] = vc.getFlashingLightsLeft();
+	    lights[2] = vc.getFlashingLightsRight();
+	    uint lightsINT = 0;
+	    for(int i = 0; i < 3; i++) if(lights[i]) lightsINT |= 1 << (3 - i);
+	    cc.setLights(lightsINT);
 	    cc.setGyroTrigger(1);
 	    ProtoSerializerVisitor protoSerializerVisitor;
 	    cc.accept(protoSerializerVisitor);
 	    stringstream proto;
 	    protoSerializerVisitor.getSerializedDataNoHeader(proto);
-	    
+	    //cout << cc.toString() << endl;
 	      stringstream StreamToArduino;
 
 	      //char start_flag = 0x12; //18 in DEC
