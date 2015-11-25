@@ -6,19 +6,21 @@ int main() {
     root = homePath + "/Ground_Truth/";
 
     getScenarioNames(root);
-    printScenarioNamesToJsonFile(homePath);
 
-    for (int i = 0; i < scenarioNames.size(); i++) {
-        string scenario = scenarioNames[i];
-        string scenarioPathString = "file://" + root + scenario + "/" + scenario + ".rec";
+    for (int i = 0; i < scenarios.size(); i++) {
+        auto totalTime = 0;
+        auto frames = 0;
+
+        string scenarioName = scenarios[i].name;
+        string scenarioPathString = "file://" + root + scenarioName + "/" + scenarioName + ".rec";
         URL scenarioPath(scenarioPathString.c_str());
 
-        cout << "Saving " << scenario << " vanishing points... " << "[" << (i + 1) << "/" << scenarioNames.size() << "]" << endl;
+        cout << "Saving " << scenarioName << " vanishing points... " << "[" << (i + 1) << "/" << scenarios.size() << "]" << endl;
 
         Player player(scenarioPath, AUTO_REWIND, MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS, THREADING);
 
         // Set CSV file path
-        string CSVPath = homePath + vpGrapherPath + "/data/calculated/" + scenario + ".csv";
+        string CSVPath = homePath + vpGrapherPath + "/data/calculated/" + scenarioName + ".csv";
         setupCSVFile(CSVPath);
 
         while (player.hasMoreData()) {
@@ -63,8 +65,15 @@ int main() {
                     cout.setstate(std::ios_base::failbit);
 
                     // Run line detector
+                    auto startTimer = chrono::high_resolution_clock::now();
+
                     LineDetector road(frame, cfg, false, 1);
                     dataToDriver = *(road.getDriverData());
+
+                    auto endTimer = chrono::high_resolution_clock::now();
+                    auto timeSpent = chrono::duration_cast<chrono::microseconds>(endTimer - startTimer).count() / 1000;
+                    totalTime += timeSpent;
+                    frames++;
 
                     // Re-enable cout
                     cout.clear();
@@ -76,23 +85,30 @@ int main() {
         }
 
         hasAttachedToSharedImageMemory = false;
+
+        scenarios[i].fps = (float) totalTime / (float) frames * 60;
     }
+
+    printScenariosDataToJsonFile(homePath);
 
     runGraph();
 
     return 0;
 }
 
-void printScenarioNamesToJsonFile(string homePath) {
+void printScenariosDataToJsonFile(string homePath) {
     std::ofstream json;
     string path = homePath + vpGrapherPath + "/data/scenarios.json";
 
     json.open(path.c_str(), ios_base::trunc);
     json << "[";
-    for (int i = 0; i < scenarioNames.size(); i++) {
-        json << "\"" << scenarioNames[i] << "\"";
+    for (int i = 0; i < scenarios.size(); i++) {
+        json << "{";
+        json << "\"name\": " << "\"" << scenarios[i].name << "\", ";
+        json << "\"fps\": " << scenarios[i].fps;
+        json << "}";
 
-        if (i !=(scenarioNames.size() - 1)) json << ",";
+        if (i !=(scenarios.size() - 1)) json << ",";
     }
     json << "]";
 }
@@ -132,7 +148,9 @@ void getScenarioNames(const string &root) {
         if (entry->d_type == DT_DIR
             && scenarioName != "."
             && scenarioName != "..") {
-            scenarioNames.push_back(scenarioName);
+            scenario scenario;
+            scenario.name = scenarioName;
+            scenarios.push_back(scenario);
         }
 
         entry = readdir(dir);
