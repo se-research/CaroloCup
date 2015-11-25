@@ -5,6 +5,7 @@
  */
 
 #include <iostream>
+#include <ctime>
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
 #include "opencv2/imgproc/imgproc.hpp"
@@ -67,6 +68,7 @@ LaneDetector::~LaneDetector() {}
 
 void LaneDetector::setUp()
 {
+	cout << "Debug is " << m_debug << std::endl;
     // This method will be call automatically _before_ running body().
     if (m_debug)
         {
@@ -152,7 +154,8 @@ bool LaneDetector::readSharedImage(Container &c)
 
                     // Release the memory region so that the image produce (i.e. the camera for example) can provide the next raw image data.
                     m_sharedImageMemory->unlock();
-                    cout << "Memory unlock" << endl;
+                    if(m_debug)
+                    	cout << "Memory unlock" << endl;
                     // Mirror the image.
                     //cvFlip(m_image, 0, -1);
 
@@ -216,21 +219,22 @@ void LaneDetector::processImage()
     if(sdb.containsKey_MapOfDistances(7))
         lux=sdb.getValueForKey_MapOfDistances(7);
     
-    cout<<"LUX::"<<lux<<endl;
+    if(m_debug)
+    	cout<<"LUX::"<<lux<<endl;
     TimeStamp currentTime_strt1;
 
-    debug = m_debug;
-    cout << "Debug: " << debug << endl;
     previousThresh=m_config.th1;
     m_config.th1 =  getDynamicThresh(lux);
-    cout<<"Thresh:"<<m_config.th1<<endl;
+    
+    if(m_debug)
+    	cout<<"Thresh:"<<m_config.th1<<endl;
     cfg = m_config;
 
     Mat neededPart = m_frame(cv::Rect(1, 2 * height / 16 - 1, width - 1, 10 * height / 16 - 1));
 
-    LineDetector road(neededPart, cfg, debug, 1);
+    LineDetector road(neededPart, cfg, m_debug, 1);
 
-    if (debug)
+    if (m_debug)
     	showResult(road, neededPart);
 
     // Start fix. This code deactivates the old estimateLines and calculatesGoalLine()
@@ -244,7 +248,7 @@ void LaneDetector::processImage()
 
     lines.setCurrentLine(dataToDriver.currentLine);
 
-    if (&lines != NULL)
+    if (m_debug && &lines != NULL)
         cout << "We have lines for frame " << m_frame_count << endl;
     LaneDetectionData data;
     data.setLaneDetectionData(lines, dataToDriver);
@@ -259,7 +263,7 @@ void LaneDetector::processImage()
     TimeStamp currentTime_strt7;
     double timeStep_total = (currentTime_strt7.toMicroseconds()
                              - currentTime_strt1.toMicroseconds()) / 1000.0;
-    if (debug)
+    if (m_debug)
         cout << "Total  " << timeStep_total << "ms" << endl;
     if (avg_time == 0)
         {
@@ -271,7 +275,7 @@ void LaneDetector::processImage()
             avg_time = (avg_time * num_msmnt + timeStep_total) / (num_msmnt + 1);
             num_msmnt = (num_msmnt + 1) % 10;
         }
-    if (debug)
+    if (m_debug)
         {
             cout << dec;
             cout << "avg_time: " << avg_time << "ms" << endl;
@@ -315,6 +319,7 @@ void LaneDetector::processImage()
 coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode LaneDetector::body()
 {
 
+    
     // Get configuration data.
     KeyValueConfiguration kv = getKeyValueConfiguration();
 
@@ -353,10 +358,13 @@ coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode LaneDetector::body()
             player = new Player(url, AUTO_REWIND, MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS);
     */
 
+	float start = static_cast <float> (clock ());
+	float end; 
     // "Working horse."
     while (getModuleStateAndWaitForRemainingTimeInTimeslice() == coredata::dmcp::ModuleStateMessage::RUNNING)
         {
             bool has_next_frame = false;
+
             // Use the shared memory image.
             Container c;
             if (player != NULL)    // Read the next container from file.
@@ -382,16 +390,28 @@ coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode LaneDetector::body()
 
             // Process the read image.
             if (true == has_next_frame)
-                {
-                    ++m_frame_count;
-                    processImage();
-                }
+            {
+                ++m_frame_count;
+                processImage();
 
+                end = static_cast <float> (clock ());
+
+			    float deltaT = ( end - start) / (static_cast <float> (CLOCKS_PER_SEC));
+				float fps = 1.0f / deltaT;
+			    cout << "Delta: " << (int)(deltaT*1000) << "ms, fps: " << fps << endl;
+			    start = static_cast <float> (clock ());
+            }
         }
 
     OPENDAVINCI_CORE_DELETE_POINTER(player);
 
-    waitKey(20);
+    if (m_debug)
+    {
+		waitKey(20);
+	}
+
+
+
     return coredata::dmcp::ModuleExitCodeMessage::OKAY;
 }
 // All the showResult_* functions assumes that data is put in the sub result structs in LineDetector.

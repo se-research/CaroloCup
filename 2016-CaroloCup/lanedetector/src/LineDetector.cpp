@@ -52,7 +52,8 @@ LineDetector::LineDetector(const Mat &f, const Config &cfg, const bool debug,
     m_frame(), m_frameCanny(), m_lines(NULL), m_debug(debug), m_lastSolidRightTop(), detectedLines(), m_config(
         cfg), confidenceLevel(0)
 {
-    cout << "___start LineDetector" << endl;
+    if(m_debug)
+        cout << "___start LineDetector" << endl;
     m_frame = f.clone();
     //if (m_debug)
     //imshow("m_frame",m_frame);
@@ -67,7 +68,8 @@ LineDetector::LineDetector(const Mat &f, const Config &cfg, const bool debug,
     findLines();
     //cout << "Id:" << id << endl;
 
-    cout << "___end LineDetector" << endl;
+    if(m_debug)
+        cout << "___end LineDetector" << endl;
 }
 
 LineDetector::~LineDetector()
@@ -630,7 +632,7 @@ PolySize LineDetector::createPolySize (const RotatedRect &rect)
 
 void LineDetector::classification()
 {
-    bool printouts = true;
+    bool printouts = false;
     //confidenceLevel = 0;
     int sizeX;
     int sizeY;
@@ -655,10 +657,6 @@ void LineDetector::classification()
             rectCenter.y = rect.center.y;
             rect.angle = getLineSlope(shortSideMiddle, rectCenter);
 
-            if (printouts)
-                {
-
-                }
 
             if (sizeY > m_config.XTimesYMin * sizeX
                     && sizeY < m_config.XTimesYMax * sizeX
@@ -692,22 +690,29 @@ void LineDetector::classification()
                     YI = rectCenter.y;
                     intersectionRect = i;
                     bigRect = rects[i];
+                    
+                if (printouts)
+                {
                     cout << "area: " << area << endl;
                     cout << "intersectionRect: " << intersectionRect << endl;
+                }
 
                     //intersectionOn = true;
                     //foundIntersection = true;
                     float angle_thr = 10;
                     float height_thr = (1*h)/2;
-                    cout << "Possible INTERSECTION"
+                    
+                    if (printouts)
+                    {
+                        cout << "Possible INTERSECTION"
                          << "\tCenter: " << rectCenter.y << "ANgle: " << rect.angle
                          << endl;
                     //confidenceLevel = 2;
                     //roadState = INTERSECTION;rect.angle
 
-                    cout << "(abs(rect.angle) < angle_thr || 180 - abs(rect.angle) < angle_thr ) && rectCenter.y > height_thr" << endl;
-                    cout << "(" << abs(rect.angle) <<" <(?) " << angle_thr << " || "<< 180 - abs(rect.angle) << " <(?) " << angle_thr<< ") && " << rectCenter.y << " >(?) " << height_thr << endl;
-                    
+                        cout << "(abs(rect.angle) < angle_thr || 180 - abs(rect.angle) < angle_thr ) && rectCenter.y > height_thr" << endl;
+                        cout << "(" << abs(rect.angle) <<" <(?) " << angle_thr << " || "<< 180 - abs(rect.angle) << " <(?) " << angle_thr<< ") && " << rectCenter.y << " >(?) " << height_thr << endl;
+                    }
                     if ( (abs(rect.angle) < angle_thr || 180 - abs(rect.angle) < angle_thr ) && rectCenter.y > height_thr && roadState == NORMAL)
                         {
                             roadState = INTERSECTION;
@@ -719,7 +724,8 @@ void LineDetector::classification()
                             TimeStamp currentTime;
                             intersection_start = currentTime.toMicroseconds();
 
-                            cout << "INTERSECTION   !!!!!!!!!!!!" << endl;
+                            if (printouts)
+                                cout << "INTERSECTION   !!!!!!!!!!!!" << endl;
                             if (m_debug)
                                 {
                                     cout << "Intersection x: " << minXI << ", Intersection y: " << minYI
@@ -780,8 +786,9 @@ void LineDetector::classification()
 
     TimeStamp endTime;
     long time_taken_contour = (endTime.toMicroseconds() - intersection_start)/ 1000.0;
-    if (time_taken_contour > 800){
-        cout << "roadState set to NORMAL do TIMEOUT" << endl;
+    if (time_taken_contour > 800){        
+        if (printouts)
+            cout << "roadState set to NORMAL do TIMEOUT" << endl;
         roadState = NORMAL;
         intersectionOn = false;
         foundIntersection = false;
@@ -789,7 +796,8 @@ void LineDetector::classification()
     }
 
     if (intersectionRect == -1 && roadState == INTERSECTION){
-        cout << "STOPS updating intersection_goalLine: " << endl;
+        if (printouts)
+            cout << "STOPS updating intersection_goalLine: " << endl;
         calcIntersectionGoalLine = false;
     }
 
@@ -909,7 +917,7 @@ void LineDetector::finalFilter()
 
 void LineDetector::characteristicFiltering(LinesToUse *ltu)
 {
-    bool printouts = true;
+    bool printouts = false;
     // Now we got the lines which we actually shall work with
     if (printouts)
         {
@@ -1134,11 +1142,14 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
                 {
                     for (int i = 0; i < cntDash; i++)
                         {
-                            cout << "new iteration" << endl;
-                            for (int j = 0; j < cntDash; j++)
-                                {
-                                    cout << "Dash line. p1(" << dashLines[j].p1.x << "," << dashLines[j].p1.y << ") p2(" << dashLines[j].p2.x << "," << dashLines[j].p2.y << ")" << endl;
-                                }
+                            if (printouts)
+                            {
+                                cout << "new iteration" << endl;
+                                for (int j = 0; j < cntDash; j++)
+                                    {
+                                        cout << "Dash line. p1(" << dashLines[j].p1.x << "," << dashLines[j].p1.y << ") p2(" << dashLines[j].p2.x << "," << dashLines[j].p2.y << ")" << endl;
+                                    }
+                            }
                             //cout << "Dash y: " << max(dashLines[i].p1.y,dashLines[i].p2.y) << endl;
                             //cout << "Dash max: " << max(dashLines[i+1].p1.y,dashLines[i+1].p2.y) << " Dash min: " <<  min(dashLines[i].p1.y,dashLines[i].p2.y) << endl;
                             if (i != cntDash - 1 && max(dashLines[i + 1].p1.y, dashLines[i + 1].p2.y)
@@ -1159,13 +1170,15 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
                                         {
                                             dashLines.erase(dashLines.begin() + 1);
                                             cntDash--;
-                                            cout << "rm other" << endl;
+                                            if (printouts)
+                                                cout << "rm other" << endl;
                                         }
                                     else
                                         {
                                             dashLines.erase(dashLines.begin());
                                             cntDash--;
-                                            cout << "rm current" << endl;
+                                            if (printouts)
+                                                cout << "rm current" << endl;
                                         }
                                     if (i > 0)
                                         {
@@ -1331,10 +1344,14 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
     // This check is used to find out if we have passed an intersection.
     // If it is passed, it will set the roadState to NORMAL.
     //////////////////
-    cout << "_:_intersection checks start" << endl;
-    cout << "roadState: " << roadState << endl;
-    cout << "YI: " << YI << endl;
-    
+
+    if (printouts)
+    {
+        cout << "_:_intersection checks start" << endl;
+        cout << "roadState: " << roadState << endl;
+        cout << "YI: " << YI << endl;
+    }
+
     if(roadState == INTERSECTION){
         int minSlope = 40;
         if (printouts)
@@ -1384,9 +1401,11 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
 
             }
         }
-        cout << "leaving passed intersection check" << endl;
-    }
-    cout << "_:_intersection checks end" << endl;
+        if (printouts)
+            cout << "leaving passed intersection check" << endl;
+    }                
+    if (printouts)
+        cout << "_:_intersection checks end" << endl;
 
     if (printouts)
         {
@@ -1397,7 +1416,7 @@ void LineDetector::characteristicFiltering(LinesToUse *ltu)
 
 void LineDetector::createTrajectory(LinesToUse *ltu)
 {
-    bool printouts = true;
+    bool printouts = false;
     if (printouts)
         cout << "__start createTrajectory" << endl;
 
@@ -1742,7 +1761,7 @@ void LineDetector::createTrajectory(LinesToUse *ltu)
 // }
 
 void LineDetector::createIntersectionGoalLine(){
-    bool printouts = true;
+    bool printouts = false;
     if (printouts && m_debug)
         cout << "__start createIntersectionGoalLine" << endl;
 
@@ -3027,7 +3046,7 @@ void LineDetector::calculateGoalLine(LinesToUse *ltu)
 
 std::vector<CustomLine> LineDetector::findCurve(std::vector<CustomLine> lines)
 {
-    bool printouts = true;
+    bool printouts = false;
     if (printouts)
         cout << "__running findCurves" << endl;
     // This function is used to merge the dashes to one curve, or
