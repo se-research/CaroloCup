@@ -23,7 +23,7 @@ IF(NOT UEYE_FOUND)
               /usr/include/
     )
 
-    FIND_FILE(UEYE_LIBRARIES ueye_api
+    FIND_LIBRARY(UEYE_LIBRARIES ueye_api
         PATHS ${LIBUEYE_PATH}/lib/
               /usr/local/lib64/
               /usr/local/lib/
@@ -32,7 +32,7 @@ IF(NOT UEYE_FOUND)
               /usr/lib64/
               /usr/lib/
     )
-
+	
     IF(UEYE_INCLUDE_DIR AND UEYE_LIBRARIES)
         SET (UEYE_FOUND TRUE)
     ENDIF()
