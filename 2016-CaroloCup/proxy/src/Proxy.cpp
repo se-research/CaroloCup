@@ -251,8 +251,6 @@ namespace automotive {
 	      //The receiver unsuffs the escape byte and XORs the next byte with 0x20 again to get the original [6].
 
 
-	      // 8;0;16;0;24;19
-	      //8;125;93;16;125;51;24;0;19
 	      for(int i = 0; i < (int)proto.str().length(); i++) {
 		if(proto.str()[i] == flagEND || proto.str()[i] == flagESC) {
 		  StreamToArduino << flagESC << (char)(proto.str()[i]^flagXOR);
@@ -275,4 +273,3 @@ namespace automotive {
 
     }
 } // automotive::miniature
-

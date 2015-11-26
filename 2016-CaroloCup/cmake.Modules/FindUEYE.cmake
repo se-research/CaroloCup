@@ -32,7 +32,7 @@ IF(NOT UEYE_FOUND)
               /usr/lib64/
               /usr/lib/
     )
-
+	
     IF(UEYE_INCLUDE_DIR AND UEYE_LIBRARIES)
         SET (UEYE_FOUND TRUE)
     ENDIF()
