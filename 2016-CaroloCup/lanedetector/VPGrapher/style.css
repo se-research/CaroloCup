@@ -1,0 +1,46 @@
+body {
+    font: 12px sans-serif;
+    text-align: center;
+}
+
+label {
+    font-size: 14px;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.line {
+    fill: none;
+    stroke-width: 1.5px;
+}
+
+.bar rect {
+    fill: steelblue;
+    shape-rendering: crispEdges;
+}
+
+.bar text {
+    fill: #fff;
+}
+
+.axis path, .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.debug {
+    display: inline-block;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.debug table {
+    float: left;
+}
+

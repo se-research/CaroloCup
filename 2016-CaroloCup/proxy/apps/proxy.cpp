@@ -5,8 +5,16 @@
  */
 
 #include "Proxy.h"
+#include <iostream>
 
 int32_t main(int32_t argc, char **argv) {
-    msv::Proxy p(argc, argv);
-    return p.runModule();
+    int32_t result = 0;
+    try{
+    automotive::miniature::Proxy p(argc, argv);
+    result = p.runModule();
+    }
+    catch(std::string &exception) {
+        std::cerr << "Error while creating serial port: " << exception << std::endl;
+    }
+    return result;
 }
