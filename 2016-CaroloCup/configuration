@@ -275,8 +275,19 @@ proxy.sensor5.id=5 #second ultrasonic
 ###############################################################################
 ###############################################################################
 #
+# CONFIGURATION FOR THE DRIVER MANAGER
+#
+
+driverManager.Debug = 1
+
+###############################################################################
+###############################################################################
+#
 # CONFIGURATION FOR THE DRIVER
 #
+
+driver.Debug = 1
+
 driver.realSpeed = 11
 driver.startInBox = 1 # 1 - true, 0 - false
 driver.startboxLength = 2200 # in mm
@@ -304,7 +315,6 @@ driver.IRMinDist = 0
 driver.isSmallGapSize = 0
 driver.DesiredMoreStates = 5
 driver.MoreStates = 2
-
 
 ###############################################################################
 ###############################################################################
