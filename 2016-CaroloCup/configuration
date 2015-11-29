@@ -221,7 +221,7 @@ odsimvehicle.LinearBicycleModel.KdynamicBrake=60.0
 # CONFIGURATION FOR LANEFOLLOWER
 #
 lanefollower.camera_id = 2 # select here the proper camera
-lanefollower.debug = 1      # set to 0 to disable any windows and further output
+lanefollower.debug = 0      # set to 0 to disable any windows and further output
 
 
 ###############################################################################
@@ -230,7 +230,7 @@ lanefollower.debug = 1      # set to 0 to disable any windows and further output
 # CONFIGURATION FOR VCR
 #
 VCR.camera_id = 2 # select here the proper camera
-VCR.debug = 1      # set to 0 to disable any windows and further output
+VCR.debug = 0      # set to 0 to disable any windows and further output
 
 
 ###############################################################################
@@ -304,7 +304,7 @@ proxy.sensor11.id=11 #Button_3
 # CONFIGURATION FOR THE DRIVER MANAGER
 #
 
-driverManager.Debug = 1
+driverManager.Debug = 0
 
 ###############################################################################
 ###############################################################################
@@ -312,7 +312,7 @@ driverManager.Debug = 1
 # CONFIGURATION FOR THE DRIVER
 #
 
-driver.Debug = 1
+driver.Debug = 0
 
 driver.realSpeed = 11
 driver.startInBox = 1 # 1 - true, 0 - false
@@ -348,7 +348,7 @@ driver.MoreStates = 2
 # CONFIGURATION FOR LANEDETECTOR
 #
 lanedetector.camera_id = 2  # select here the proper camera
-lanedetector.debug = 1      # set to 0 to disable any windows and further output
+lanedetector.debug = 0      # set to 0 to disable any windows and further output
 lanedetector.inspect_rec = file://recording.rec # Config for lanedetector-inspection
 # Choose what to inspect, where
 # getContours = 1
