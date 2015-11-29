@@ -68,37 +68,45 @@ namespace msv {
             button2 = (bool) (int) sbd.getValueForKey_MapOfDistances(10);
             button3 = (bool) (int) sbd.getValueForKey_MapOfDistances(11);
 
-            if (debug)
-                cout << "DM - B1:" << button1 << ", b2:" << button2 << ", b3:" << button3 << endl;
 
+            if (debug) {
+                cout << endl << "DriverManager - B1:" << button1 << ", b2:" << button2 << ", b3:" << button3 << flush;
+                cout << ", state:" << state << endl;
+            }
 
             // Check if current buttons correspond to current state and driver
-            if (button1 && !button2 && !button3 && state != Lane_Following) {
-                driver_ptr = new LaneFollowingDriver(argc, argv);
-                if (!driver_ptr) {
-                    if (debug)
-                        cout << "Memory error" << endl;
-                    continue; // TODO Improve error management
+            if (button1 && !button2 && !button3) {
+                if (state != Lane_Following) {
+                    driver_ptr = new LaneFollowingDriver(argc, argv);
+                    if (!driver_ptr) {
+                        if (debug)
+                            cout << "Memory error" << endl;
+                        continue; // TODO Improve error management
+                    }
+                    state = Lane_Following;
                 }
-                state = Lane_Following;
             }
-            else if (!button1 && button2 && !button3 && state != Parking) {
-                //driver_ptr = new ParkingDriver(argc, argv);
-                if (!driver_ptr) {
-                    if (debug)
-                        cout << "Memory error" << endl;
-                    continue; // TODO Improve error management
+            else if (!button1 && button2 && !button3) {
+                if (state != Parking) {
+                    //driver_ptr = new ParkingDriver(argc, argv);
+                    if (!driver_ptr) {
+                        if (debug)
+                            cout << "Memory error" << endl;
+                        continue; // TODO Improve error management
+                    }
+                    state = Parking;
                 }
-                state = Parking;
             }
-            else if (!button1 && !button2 && button3 && state != Overtaking) {
-                //driver_ptr = new OvertakingDriver(argc, argv);
-                if (!driver_ptr) {
-                    if (debug)
-                        cout << "Memory error" << endl;
-                    continue; // TODO Improve error management
+            else if (!button1 && !button2 && button3) {
+                if (state != Overtaking) {
+                    //driver_ptr = new OvertakingDriver(argc, argv);
+                    if (!driver_ptr) {
+                        if (debug)
+                            cout << "Memory error" << endl;
+                        continue; // TODO Improve error management
+                    }
+                    state = Overtaking;
                 }
-                state = Overtaking;
             }
             else {
                 driver_ptr = 0;

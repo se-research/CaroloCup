@@ -304,7 +304,7 @@ proxy.sensor11.id=11 #Button_3
 # CONFIGURATION FOR THE DRIVER MANAGER
 #
 
-driverManager.Debug = 0
+driverManager.Debug = 1
 
 ###############################################################################
 ###############################################################################
@@ -312,7 +312,7 @@ driverManager.Debug = 0
 # CONFIGURATION FOR THE DRIVER
 #
 
-driver.Debug = 0
+driver.Debug = 1
 
 driver.realSpeed = 11
 driver.startInBox = 1 # 1 - true, 0 - false
