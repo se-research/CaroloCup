@@ -1,0 +1,14 @@
+//
+// Created by li on 2015-11-29.
+//
+
+#ifndef AUTOMOTIVE_CAROLOCUP_PARKINGDRIVER_H
+#define AUTOMOTIVE_CAROLOCUP_PARKINGDRIVER_H
+
+
+class ParkingDriver {
+
+};
+
+
+#endif //AUTOMOTIVE_CAROLOCUP_PARKINGDRIVER_H
