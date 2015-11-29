@@ -3,6 +3,7 @@
 //
 
 #include <LaneFollowingDriver.h>
+#include <ParkingDriver.h>
 #include "DriverManager.h"
 
 namespace msv {
@@ -101,6 +102,7 @@ namespace msv {
                     driver_ptr->runModule(); // Necessary to run it once to initialize the module entirely
                     state = Parking;
                 }
+                state = Parking;
             }
             else if (!button1 && !button2 && button3) {
                 if (state != Overtaking) {
@@ -113,6 +115,7 @@ namespace msv {
                     driver_ptr->runModule(); // Necessary to run it once to initialize the module entirely
                     state = Overtaking;
                 }
+                state = Overtaking;
             }
             else {
                 driver_ptr = 0;
@@ -137,6 +140,7 @@ namespace msv {
                 // Send container.
                 getConference().send(c);
             }
+
         }
 
         return coredata::dmcp::ModuleExitCodeMessage::OKAY;

@@ -1,0 +1,454 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeRunConfigurationManager" shouldGenerate="true" assignedExecutableTargets="true" buildAllGenerated="true">
+    <generated>
+      <config projectName="automotive_carolocup" targetName="improvedDriver_module" />
+      <config projectName="automotive_carolocup" targetName="driver" />
+      <config projectName="automotive_carolocup" targetName="LaneDetectorReplaySimulationTestSuite.h-TestSuite" />
+      <config projectName="automotive_carolocup" targetName="lanedetectorlib-static" />
+      <config projectName="automotive_carolocup" targetName="driverlib-static" />
+      <config projectName="automotive_carolocup" targetName="csvexporterlib-static" />
+      <config projectName="automotive_carolocup" targetName="lanedetector-demo" />
+      <config projectName="automotive_carolocup" targetName="2015-lanedetectorreplay" />
+      <config projectName="automotive_carolocup" targetName="ProxyTestSuite.h-TestSuite" />
+      <config projectName="automotive_carolocup" targetName="Benchmark" />
+      <config projectName="automotive_carolocup" targetName="lanedetector2csvextractor" />
+      <config projectName="automotive_carolocup" targetName="DriverTestSuite.h-TestSuite" />
+      <config projectName="automotive_carolocup" targetName="msv-datalib-static" />
+      <config projectName="automotive_carolocup" targetName="SensorBoardTestSuite.h-TestSuite" />
+      <config projectName="automotive_carolocup" targetName="2015-lanedetectorreplaylib-static" />
+      <config projectName="automotive_carolocup" targetName="victorDriver_module" />
+      <config projectName="automotive_carolocup" targetName="csvexporter" />
+      <config projectName="automotive_carolocup" targetName="obstacleDriver_module" />
+      <config projectName="automotive_carolocup" targetName="lanedetector" />
+      <config projectName="automotive_carolocup" targetName="csvexportsensor" />
+      <config projectName="automotive_carolocup" targetName="LaneDetectorTestSuite.h-TestSuite" />
+      <config projectName="automotive_carolocup" targetName="lanedetector_InspectionModule" />
+      <config projectName="automotive_carolocup" targetName="proxylib-static" />
+      <config projectName="automotive_carolocup" targetName="2015-lanedetectorreplay-CopyScenarioForSimulations" />
+      <config projectName="automotive_carolocup" targetName="proxy" />
+    </generated>
+  </component>
+  <component name="CMakeSettings" AUTO_RELOAD="false" GENERATION_PASS_SYSTEM_ENVIRONMENT="true">
+    <ADDITIONAL_GENERATION_ENVIRONMENT>
+      <envs />
+    </ADDITIONAL_GENERATION_ENVIRONMENT>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="e293e67c-2e61-4c74-a069-860a918550c6" name="Default" comment="">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/driver/include/ParkingDriver.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/driver/src/ParkingDriver.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/driver/CMakeLists.txt" afterPath="$PROJECT_DIR$/driver/CMakeLists.txt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/driver/src/DriverManager.cpp" afterPath="$PROJECT_DIR$/driver/src/DriverManager.cpp" />
+    </list>
+    <ignored path="2016-CaroloCup.iws" />
+    <ignored path=".idea/workspace.xml" />
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="TRACKING_ENABLED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ChangesViewManager" flattened_view="true" show_ignored="false" />
+  <component name="CreatePatchCommitExecutor">
+    <option name="PATCH_PATH" value="" />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
+  <component name="FavoritesManager">
+    <favorites_list name="2016-CaroloCup" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf>
+      <file leaf-file-name="ParkingDriver.cpp" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/driver/src/ParkingDriver.cpp">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.09375">
+              <caret line="4" column="0" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ParkingDriver.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/driver/include/ParkingDriver.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="26" column="0" selection-start-line="26" selection-start-column="0" selection-end-line="26" selection-end-column="0" />
+              <folding>
+                <element signature="e#131#157#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/driver/include/ParkingDriver.h" />
+        <option value="$PROJECT_DIR$/driver/src/ParkingDriver.cpp" />
+      </list>
+    </option>
+  </component>
+  <component name="JsBuildToolGruntFileManager" detection-done="true" />
+  <component name="JsBuildToolPackageJson" detection-done="true" />
+  <component name="JsGulpfileManager">
+    <detection-done>true</detection-done>
+  </component>
+  <component name="ProjectFrameBounds">
+    <option name="x" value="65" />
+    <option name="y" value="24" />
+    <option name="width" value="1301" />
+    <option name="height" value="744" />
+  </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <OptionsSetting value="true" id="Add" />
+    <OptionsSetting value="true" id="Remove" />
+    <OptionsSetting value="true" id="Checkout" />
+    <OptionsSetting value="true" id="Update" />
+    <OptionsSetting value="true" id="Status" />
+    <OptionsSetting value="true" id="Edit" />
+    <ConfirmationsSetting value="0" id="Add" />
+    <ConfirmationsSetting value="0" id="Remove" />
+  </component>
+  <component name="ProjectView">
+    <navigator currentView="ProjectPane" proportions="" version="1">
+      <flattenPackages />
+      <showMembers />
+      <showModules />
+      <showLibraryContents />
+      <hideEmptyPackages />
+      <abbreviatePackageNames />
+      <autoscrollToSource />
+      <autoscrollFromSource />
+      <sortByType />
+      <manualOrder />
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="ProjectPane">
+        <subPane>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="2016-CaroloCup" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="2016-CaroloCup" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="2016-CaroloCup" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="2016-CaroloCup" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="2016-CaroloCup" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="driver" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="2016-CaroloCup" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="2016-CaroloCup" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="driver" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="2016-CaroloCup" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="2016-CaroloCup" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="driver" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="include" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="2016-CaroloCup" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="2016-CaroloCup" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="driver" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="apps" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="js-jscs-nodeInterpreter" value="/usr/bin/node" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/driver/include" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Application.Build All">
+    <configuration default="true" type="CMakeGoogleTestRunConfigurationType" factoryName="Google Test" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="automotive_carolocup" TARGET_NAME="csvexporter" CONFIG_NAME="Debug" TEST_MODE="SUITE_TEST">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="automotive_carolocup" TARGET_NAME="csvexporter" CONFIG_NAME="Debug">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="true" type="JavascriptDebugType" factoryName="JavaScript Debug">
+      <method />
+    </configuration>
+    <configuration default="true" type="js.build_tools.gulp" factoryName="Gulp.js">
+      <method />
+    </configuration>
+    <configuration default="true" type="js.build_tools.npm" factoryName="npm">
+      <command value="run-script" />
+      <scripts />
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="Build All" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" CONFIG_NAME="Debug" EXPLICIT_BUILD_TARGET_NAME="all">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="csvexporter" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="automotive_carolocup" TARGET_NAME="csvexporter" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="automotive_carolocup" RUN_TARGET_NAME="csvexporter">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="csvexporterlib-static" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="automotive_carolocup" TARGET_NAME="csvexporterlib-static" CONFIG_NAME="Debug">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="csvexportsensor" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="automotive_carolocup" TARGET_NAME="csvexportsensor" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="automotive_carolocup" RUN_TARGET_NAME="csvexportsensor">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="driver" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="automotive_carolocup" TARGET_NAME="driver" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="automotive_carolocup" RUN_TARGET_NAME="driver">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="driverlib-static" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="automotive_carolocup" TARGET_NAME="driverlib-static" CONFIG_NAME="Debug">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="DriverTestSuite.h-TestSuite" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="automotive_carolocup" TARGET_NAME="DriverTestSuite.h-TestSuite" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="automotive_carolocup" RUN_TARGET_NAME="DriverTestSuite.h-TestSuite">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="improvedDriver_module" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="automotive_carolocup" TARGET_NAME="improvedDriver_module" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="automotive_carolocup" RUN_TARGET_NAME="improvedDriver_module">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="obstacleDriver_module" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="automotive_carolocup" TARGET_NAME="obstacleDriver_module" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="automotive_carolocup" RUN_TARGET_NAME="obstacleDriver_module">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="victorDriver_module" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="automotive_carolocup" TARGET_NAME="victorDriver_module" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="automotive_carolocup" RUN_TARGET_NAME="victorDriver_module">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="Benchmark" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="automotive_carolocup" TARGET_NAME="Benchmark" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="automotive_carolocup" RUN_TARGET_NAME="Benchmark">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="lanedetector" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="automotive_carolocup" TARGET_NAME="lanedetector" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="automotive_carolocup" RUN_TARGET_NAME="lanedetector">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="lanedetector-demo" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="automotive_carolocup" TARGET_NAME="lanedetector-demo" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="automotive_carolocup" RUN_TARGET_NAME="lanedetector-demo">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="lanedetector2csvextractor" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="automotive_carolocup" TARGET_NAME="lanedetector2csvextractor" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="automotive_carolocup" RUN_TARGET_NAME="lanedetector2csvextractor">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="lanedetector_InspectionModule" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="automotive_carolocup" TARGET_NAME="lanedetector_InspectionModule" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="automotive_carolocup" RUN_TARGET_NAME="lanedetector_InspectionModule">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="lanedetectorlib-static" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="automotive_carolocup" TARGET_NAME="lanedetectorlib-static" CONFIG_NAME="Debug">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="LaneDetectorTestSuite.h-TestSuite" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="automotive_carolocup" TARGET_NAME="LaneDetectorTestSuite.h-TestSuite" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="automotive_carolocup" RUN_TARGET_NAME="LaneDetectorTestSuite.h-TestSuite">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="msv-datalib-static" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="automotive_carolocup" TARGET_NAME="msv-datalib-static" CONFIG_NAME="Debug">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="SensorBoardTestSuite.h-TestSuite" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="automotive_carolocup" TARGET_NAME="SensorBoardTestSuite.h-TestSuite" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="automotive_carolocup" RUN_TARGET_NAME="SensorBoardTestSuite.h-TestSuite">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="proxy" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="automotive_carolocup" TARGET_NAME="proxy" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="automotive_carolocup" RUN_TARGET_NAME="proxy">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="proxylib-static" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="automotive_carolocup" TARGET_NAME="proxylib-static" CONFIG_NAME="Debug">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="ProxyTestSuite.h-TestSuite" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="automotive_carolocup" TARGET_NAME="ProxyTestSuite.h-TestSuite" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="automotive_carolocup" RUN_TARGET_NAME="ProxyTestSuite.h-TestSuite">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="2015-lanedetectorreplay" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="automotive_carolocup" TARGET_NAME="2015-lanedetectorreplay" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="automotive_carolocup" RUN_TARGET_NAME="2015-lanedetectorreplay">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="2015-lanedetectorreplay-CopyScenarioForSimulations" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="automotive_carolocup" TARGET_NAME="2015-lanedetectorreplay-CopyScenarioForSimulations" CONFIG_NAME="Debug">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="2015-lanedetectorreplaylib-static" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="automotive_carolocup" TARGET_NAME="2015-lanedetectorreplaylib-static" CONFIG_NAME="Debug">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="LaneDetectorReplaySimulationTestSuite.h-TestSuite" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="automotive_carolocup" TARGET_NAME="LaneDetectorReplaySimulationTestSuite.h-TestSuite" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="automotive_carolocup" RUN_TARGET_NAME="LaneDetectorReplaySimulationTestSuite.h-TestSuite">
+      <envs />
+      <method />
+    </configuration>
+    <list size="26">
+      <item index="0" class="java.lang.String" itemvalue="Application.Build All" />
+      <item index="1" class="java.lang.String" itemvalue="Application.csvexporter" />
+      <item index="2" class="java.lang.String" itemvalue="Application.csvexporterlib-static" />
+      <item index="3" class="java.lang.String" itemvalue="Application.csvexportsensor" />
+      <item index="4" class="java.lang.String" itemvalue="Application.driver" />
+      <item index="5" class="java.lang.String" itemvalue="Application.driverlib-static" />
+      <item index="6" class="java.lang.String" itemvalue="Application.DriverTestSuite.h-TestSuite" />
+      <item index="7" class="java.lang.String" itemvalue="Application.improvedDriver_module" />
+      <item index="8" class="java.lang.String" itemvalue="Application.obstacleDriver_module" />
+      <item index="9" class="java.lang.String" itemvalue="Application.victorDriver_module" />
+      <item index="10" class="java.lang.String" itemvalue="Application.Benchmark" />
+      <item index="11" class="java.lang.String" itemvalue="Application.lanedetector" />
+      <item index="12" class="java.lang.String" itemvalue="Application.lanedetector-demo" />
+      <item index="13" class="java.lang.String" itemvalue="Application.lanedetector2csvextractor" />
+      <item index="14" class="java.lang.String" itemvalue="Application.lanedetector_InspectionModule" />
+      <item index="15" class="java.lang.String" itemvalue="Application.lanedetectorlib-static" />
+      <item index="16" class="java.lang.String" itemvalue="Application.LaneDetectorTestSuite.h-TestSuite" />
+      <item index="17" class="java.lang.String" itemvalue="Application.msv-datalib-static" />
+      <item index="18" class="java.lang.String" itemvalue="Application.SensorBoardTestSuite.h-TestSuite" />
+      <item index="19" class="java.lang.String" itemvalue="Application.proxy" />
+      <item index="20" class="java.lang.String" itemvalue="Application.proxylib-static" />
+      <item index="21" class="java.lang.String" itemvalue="Application.ProxyTestSuite.h-TestSuite" />
+      <item index="22" class="java.lang.String" itemvalue="Application.2015-lanedetectorreplay" />
+      <item index="23" class="java.lang.String" itemvalue="Application.2015-lanedetectorreplay-CopyScenarioForSimulations" />
+      <item index="24" class="java.lang.String" itemvalue="Application.2015-lanedetectorreplaylib-static" />
+      <item index="25" class="java.lang.String" itemvalue="Application.LaneDetectorReplaySimulationTestSuite.h-TestSuite" />
+    </list>
+  </component>
+  <component name="ShelveChangesManager" show_recycled="false" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="e293e67c-2e61-4c74-a069-860a918550c6" name="Default" comment="" />
+      <created>1448810484422</created>
+      <option name="number" value="Default" />
+      <updated>1448810484422</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="65" y="24" width="1301" height="744" extended-state="6" />
+    <editor active="true" />
+    <layout>
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.24980783" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="CMake" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+    </layout>
+  </component>
+  <component name="VcsContentAnnotationSettings">
+    <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager />
+    <watches-manager />
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/CMakeLists.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/driver/include/ParkingDriver.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="26" column="0" selection-start-line="26" selection-start-column="0" selection-end-line="26" selection-end-column="0" />
+          <folding>
+            <element signature="e#131#157#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/driver/src/ParkingDriver.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.09375">
+          <caret line="4" column="0" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>

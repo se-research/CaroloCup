@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="CPP_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/Debug/driver/DriverTestSuite.h-TestSuite.cpp">
+      <sourceFolder url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/Debug/driver/DriverTestSuite.h-TestSuite.cpp" isTestSource="false" />
+    </content>
+    <content url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/Debug/lanedetector/LaneDetectorTestSuite.h-TestSuite.cpp">
+      <sourceFolder url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/Debug/lanedetector/LaneDetectorTestSuite.h-TestSuite.cpp" isTestSource="false" />
+    </content>
+    <content url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/Debug/msv-data/SensorBoardTestSuite.h-TestSuite.cpp">
+      <sourceFolder url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/Debug/msv-data/SensorBoardTestSuite.h-TestSuite.cpp" isTestSource="false" />
+    </content>
+    <content url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/Debug/proxy/ProxyTestSuite.h-TestSuite.cpp">
+      <sourceFolder url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/Debug/proxy/ProxyTestSuite.h-TestSuite.cpp" isTestSource="false" />
+    </content>
+    <content url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/Debug/studies/2015-lanedetectorreplay/LaneDetectorReplaySimulationTestSuite.h-Simulation.cpp">
+      <sourceFolder url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/Debug/studies/2015-lanedetectorreplay/LaneDetectorReplaySimulationTestSuite.h-Simulation.cpp" isTestSource="false" />
+    </content>
+    <content url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/MinSizeRel/driver/DriverTestSuite.h-TestSuite.cpp">
+      <sourceFolder url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/MinSizeRel/driver/DriverTestSuite.h-TestSuite.cpp" isTestSource="false" />
+    </content>
+    <content url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/MinSizeRel/lanedetector/LaneDetectorTestSuite.h-TestSuite.cpp">
+      <sourceFolder url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/MinSizeRel/lanedetector/LaneDetectorTestSuite.h-TestSuite.cpp" isTestSource="false" />
+    </content>
+    <content url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/MinSizeRel/msv-data/SensorBoardTestSuite.h-TestSuite.cpp">
+      <sourceFolder url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/MinSizeRel/msv-data/SensorBoardTestSuite.h-TestSuite.cpp" isTestSource="false" />
+    </content>
+    <content url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/MinSizeRel/proxy/ProxyTestSuite.h-TestSuite.cpp">
+      <sourceFolder url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/MinSizeRel/proxy/ProxyTestSuite.h-TestSuite.cpp" isTestSource="false" />
+    </content>
+    <content url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/MinSizeRel/studies/2015-lanedetectorreplay/LaneDetectorReplaySimulationTestSuite.h-Simulation.cpp">
+      <sourceFolder url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/MinSizeRel/studies/2015-lanedetectorreplay/LaneDetectorReplaySimulationTestSuite.h-Simulation.cpp" isTestSource="false" />
+    </content>
+    <content url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/RelWithDebInfo/driver/DriverTestSuite.h-TestSuite.cpp">
+      <sourceFolder url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/RelWithDebInfo/driver/DriverTestSuite.h-TestSuite.cpp" isTestSource="false" />
+    </content>
+    <content url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/RelWithDebInfo/lanedetector/LaneDetectorTestSuite.h-TestSuite.cpp">
+      <sourceFolder url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/RelWithDebInfo/lanedetector/LaneDetectorTestSuite.h-TestSuite.cpp" isTestSource="false" />
+    </content>
+    <content url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/RelWithDebInfo/msv-data/SensorBoardTestSuite.h-TestSuite.cpp">
+      <sourceFolder url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/RelWithDebInfo/msv-data/SensorBoardTestSuite.h-TestSuite.cpp" isTestSource="false" />
+    </content>
+    <content url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/RelWithDebInfo/proxy/ProxyTestSuite.h-TestSuite.cpp">
+      <sourceFolder url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/RelWithDebInfo/proxy/ProxyTestSuite.h-TestSuite.cpp" isTestSource="false" />
+    </content>
+    <content url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/RelWithDebInfo/studies/2015-lanedetectorreplay/LaneDetectorReplaySimulationTestSuite.h-Simulation.cpp">
+      <sourceFolder url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/RelWithDebInfo/studies/2015-lanedetectorreplay/LaneDetectorReplaySimulationTestSuite.h-Simulation.cpp" isTestSource="false" />
+    </content>
+    <content url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/Release/driver/DriverTestSuite.h-TestSuite.cpp">
+      <sourceFolder url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/Release/driver/DriverTestSuite.h-TestSuite.cpp" isTestSource="false" />
+    </content>
+    <content url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/Release/lanedetector/LaneDetectorTestSuite.h-TestSuite.cpp">
+      <sourceFolder url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/Release/lanedetector/LaneDetectorTestSuite.h-TestSuite.cpp" isTestSource="false" />
+    </content>
+    <content url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/Release/msv-data/SensorBoardTestSuite.h-TestSuite.cpp">
+      <sourceFolder url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/Release/msv-data/SensorBoardTestSuite.h-TestSuite.cpp" isTestSource="false" />
+    </content>
+    <content url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/Release/proxy/ProxyTestSuite.h-TestSuite.cpp">
+      <sourceFolder url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/Release/proxy/ProxyTestSuite.h-TestSuite.cpp" isTestSource="false" />
+    </content>
+    <content url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/Release/studies/2015-lanedetectorreplay/LaneDetectorReplaySimulationTestSuite.h-Simulation.cpp">
+      <sourceFolder url="file://$USER_HOME$/.CLion12/system/cmake/generated/7841d8d6/7841d8d6/Release/studies/2015-lanedetectorreplay/LaneDetectorReplaySimulationTestSuite.h-Simulation.cpp" isTestSource="false" />
+    </content>
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/cmake.Modules/CheckCxxTestEnvironment.cmake" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/cmake.Modules/CompileFlags.cmake" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/cmake.Modules/FindAutomotiveData.cmake" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/cmake.Modules/FindLibRT.cmake" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/cmake.Modules/FindOpenCV.cmake" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/cmake.Modules/FindOpenDaVINCI.cmake" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/cmake.Modules/FindUEYE.cmake" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/cmake.Modules/FindodSimulation.cmake" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/csvexporter/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/csvexporter/apps/csvexporter.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/csvexporter/apps/csvexportsensor.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/csvexporter/src/CsvExporter.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/csvexporter/src/CsvExporterSensors.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/driver/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/driver/apps/driver.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/driver/apps/improvedDriver_module.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/driver/apps/obstacleDriver_module.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/driver/apps/victorDriver_module.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/driver/include/DriverGeneric.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/driver/include/DriverManager.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/driver/include/LaneFollowingDriver.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/driver/src/Driver.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/driver/src/DriverGeneric.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/driver/src/DriverManager.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/driver/src/Driver_Improved.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/driver/src/Driver_victor.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/driver/src/LaneFollowingDriver.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/driver/src/ParkingDriver.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/driver/include/ParkingDriver.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/driver/src/obstacleDriver.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/driver/testsuites/DriverTestSuite.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lanedetector/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lanedetector/apps/Benchmark.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lanedetector/apps/InspectionModule.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lanedetector/apps/LaneDetectorToCSVExtractor.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lanedetector/apps/lanedetector-demo.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lanedetector/apps/lanedetector.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lanedetector/src/LaneDetector.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lanedetector/src/LaneDetector_inspection.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lanedetector/src/LineDetector.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lanedetector/src/Polynomial.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lanedetector/src/Transforms.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lanedetector/src/bsxfun.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lanedetector/src/errorNIETO.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lanedetector/src/lmmin.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lanedetector/src/nnRoadAngleCalc.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lanedetector/src/nnRoadAngleCalc_initialize.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lanedetector/src/nnRoadAngleCalc_terminate.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lanedetector/src/nnRoadSizeCalc.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lanedetector/src/rtGetInf.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lanedetector/src/rtGetNaN.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lanedetector/src/rt_nonfinite.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/lanedetector/testsuites/LaneDetectorTestSuite.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/msv-data/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/msv-data/src/LaneDetectionData.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/msv-data/testsuites/SensorBoardTestSuite.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/proxy/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/proxy/apps/proxy.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/proxy/src/Camera.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/proxy/src/OpenCVCamera.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/proxy/src/Proxy.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/proxy/src/uEyeCamera.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/proxy/testsuites/ProxyTestSuite.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/studies/2015-lanedetectorreplay/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/studies/2015-lanedetectorreplay/apps/2015-lanedetectorreplay.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/studies/2015-lanedetectorreplay/src/LaneDetectorReplaySimulation.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/studies/2015-lanedetectorreplay/testsuites/LaneDetectorReplaySimulationTestSuite.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/studies/CMakeLists.txt" isTestSource="false" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module-library">
+      <library name="Header Search Paths">
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/csvexporter/include" />
+          <root url="file://$MODULE_DIR$/cxxtest" />
+          <root url="file://$MODULE_DIR$/driver/include" />
+          <root url="file://$MODULE_DIR$/lanedetector/include" />
+          <root url="file://$MODULE_DIR$/msv-data/include" />
+          <root url="file://$MODULE_DIR$/proxy/include" />
+          <root url="file://$MODULE_DIR$/studies/2015-lanedetectorreplay/include" />
+          <root url="file:///usr/include" />
+          <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
+          <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed" />
+          <root url="file:///usr/local/include" />
+        </CLASSES>
+        <SOURCES>
+          <root url="file://$MODULE_DIR$/csvexporter/include" />
+          <root url="file://$MODULE_DIR$/cxxtest" />
+          <root url="file://$MODULE_DIR$/driver/include" />
+          <root url="file://$MODULE_DIR$/lanedetector/include" />
+          <root url="file://$MODULE_DIR$/msv-data/include" />
+          <root url="file://$MODULE_DIR$/proxy/include" />
+          <root url="file://$MODULE_DIR$/studies/2015-lanedetectorreplay/include" />
+          <root url="file:///usr/include" />
+          <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
+          <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed" />
+          <root url="file:///usr/local/include" />
+        </SOURCES>
+        <excluded>
+          <root url="file://$MODULE_DIR$/driver/include/DriverManager.h" />
+          <root url="file://$MODULE_DIR$/driver/include/DriverGeneric.h" />
+          <root url="file://$MODULE_DIR$/driver/include/LaneFollowingDriver.h" />
+        </excluded>
+      </library>
+    </orderEntry>
+  </component>
+</module>
