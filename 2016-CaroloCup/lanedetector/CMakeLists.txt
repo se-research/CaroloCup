@@ -99,19 +99,20 @@ ADD_LIBRARY (${PROJECT_NAME}lib-static STATIC ${thisproject-sources})
 ADD_EXECUTABLE (${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/apps/${PROJECT_NAME}.cpp")
 TARGET_LINK_LIBRARIES (${PROJECT_NAME} ${PROJECT_NAME}lib-static ${LIBRARIES})
 
-ADD_EXECUTABLE (lanedetector2csvextractor "${CMAKE_CURRENT_SOURCE_DIR}/apps/LaneDetectorToCSVExtractor.cpp")
-TARGET_LINK_LIBRARIES (lanedetector2csvextractor ${PROJECT_NAME}lib-static ${LIBRARIES})
-
-ADD_EXECUTABLE (lanedetector_InspectionModule "${CMAKE_CURRENT_SOURCE_DIR}/apps/InspectionModule.cpp")
-TARGET_LINK_LIBRARIES (lanedetector_InspectionModule ${PROJECT_NAME}lib-static ${LIBRARIES})
-
-ADD_EXECUTABLE (Benchmark "${CMAKE_CURRENT_SOURCE_DIR}/apps/Benchmark.cpp")
-TARGET_LINK_LIBRARIES (Benchmark  ${OPENDAVINCI_LIBRARIES} ${AUTOMOTIVEDATA_LIBRARIES} ${PROJECT_NAME}lib-static ${OpenCV_LIBS} )
-
 # lanedetector-demo is using libodsimulation for playback.
 IF(FOUND_ODSIMULATION)
+    ADD_EXECUTABLE (lanedetector_InspectionModule "${CMAKE_CURRENT_SOURCE_DIR}/apps/InspectionModule.cpp")
+    TARGET_LINK_LIBRARIES (lanedetector_InspectionModule ${PROJECT_NAME}lib-static ${LIBRARIES}) 
+
+    ADD_EXECUTABLE (lanedetector2csvextractor "${CMAKE_CURRENT_SOURCE_DIR}/apps/LaneDetectorToCSVExtractor.cpp")
+    TARGET_LINK_LIBRARIES (lanedetector2csvextractor ${PROJECT_NAME}lib-static ${LIBRARIES}) 
+
     ADD_EXECUTABLE (lanedetector-demo "${CMAKE_CURRENT_SOURCE_DIR}/apps/lanedetector-demo.cpp")
     TARGET_LINK_LIBRARIES (lanedetector-demo ${PROJECT_NAME}lib-static ${LIBRARIES})
+
+    ADD_EXECUTABLE(Benchmark "${CMAKE_CURRENT_SOURCE_DIR}/apps/Benchmark.cpp")
+    TARGET_LINK_LIBRARIES(Benchmark ${OPENDAVINCI_LIBRARIES} ${AUTOMOTIVEDATA_LIBRARIES} ${PROJECT_NAME}lib-static ${OpenCV_LIBS})
+
 ENDIF()
 
 ###########################################################################
@@ -148,10 +149,10 @@ ENDIF(CXXTEST_FOUND)
 ###########################################################################
 # Install this project.
 INSTALL(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin/carolocup COMPONENT software)
-INSTALL(TARGETS lanedetector2csvextractor RUNTIME DESTINATION bin/carolocup COMPONENT software)
-INSTALL(TARGETS lanedetector_InspectionModule RUNTIME DESTINATION bin/carolocup COMPONENT software)
 # lanedetector-demo is using libodsimulation for playback.
 IF(FOUND_ODSIMULATION)
+    INSTALL(TARGETS lanedetector2csvextractor RUNTIME DESTINATION bin/carolocup COMPONENT software)
+    INSTALL(TARGETS lanedetector_InspectionModule RUNTIME DESTINATION bin/carolocup COMPONENT software)
     INSTALL(TARGETS lanedetector-demo RUNTIME DESTINATION bin/carolocup COMPONENT software)
 ENDIF()
 # This project does not have a manual page so far.
