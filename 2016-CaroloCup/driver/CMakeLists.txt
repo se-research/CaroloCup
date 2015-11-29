@@ -69,7 +69,7 @@ SET (MSVDATA_LIB msv-datalib-static)
 FILE(GLOB_RECURSE thisproject-sources "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 ADD_LIBRARY (${PROJECT_NAME}lib-static STATIC ${thisproject-sources})
 
-ADD_EXECUTABLE(${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/apps/${PROJECT_NAME}.cpp" src/DriverGeneric.cpp include/DriverGeneric.h src/DriverManager.cpp include/DriverManager.h src/LaneFollowingDriver.cpp include/LaneFollowingDriver.h)
+ADD_EXECUTABLE(${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/apps/${PROJECT_NAME}.cpp" src/DriverGeneric.cpp include/DriverGeneric.h src/DriverManager.cpp include/DriverManager.h src/LaneFollowingDriver.cpp include/LaneFollowingDriver.h src/ParkingDriver.cpp include/ParkingDriver.h)
 TARGET_LINK_LIBRARIES (${PROJECT_NAME} ${PROJECT_NAME}lib-static ${MSVDATA_LIB} ${OPENDAVINCI_LIBRARIES} ${AUTOMOTIVEDATA_LIBRARIES}) 
 
 ADD_EXECUTABLE (victorDriver_module "${CMAKE_CURRENT_SOURCE_DIR}/apps/victorDriver_module.cpp")

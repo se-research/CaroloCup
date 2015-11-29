@@ -3,6 +3,7 @@
 //
 
 #include <LaneFollowingDriver.h>
+#include <ParkingDriver.h>
 #include "DriverManager.h"
 
 namespace msv {
@@ -83,7 +84,7 @@ namespace msv {
                 state = Lane_Following;
             }
             else if (!button1 && button2 && !button3 && state != Parking) {
-                //driver_ptr = new ParkingDriver(argc, argv);
+                driver_ptr = new ParkingDriver(argc, argv);
                 if (!driver_ptr) {
                     if (debug)
                         cout << "Memory error" << endl;
