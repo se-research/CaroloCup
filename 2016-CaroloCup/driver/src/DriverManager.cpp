@@ -98,6 +98,7 @@ namespace msv {
                             cout << "Memory error" << endl;
                         continue; // TODO Improve error management
                     }
+                    driver_ptr->runModule(); // Necessary to run it once to initialize the module entirely
                     state = Parking;
                 }
             }
@@ -109,12 +110,23 @@ namespace msv {
                             cout << "Memory error" << endl;
                         continue; // TODO Improve error management
                     }
+                    driver_ptr->runModule(); // Necessary to run it once to initialize the module entirely
                     state = Overtaking;
                 }
             }
             else {
                 driver_ptr = 0;
                 state = None;
+                // Create default control value for car waiting
+                VehicleControl vc;
+                vc.setSpeed(0);
+                vc.setSteeringWheelAngle(0);
+                vc.setBrakeLights(false);
+                vc.setFlashingLightsLeft(false);
+                vc.setFlashingLightsRight(false);
+                Container c(Container::VEHICLECONTROL, vc);
+                // Send container.
+                getConference().send(c);
             }
 
             // Call driver's body and send resulting vehicle control
