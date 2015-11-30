@@ -77,7 +77,7 @@ namespace msv {
         }
         //Start box logic
         LaneDetectorDataToDriver trajectoryData = ldd.getLaneDetectionDataDriver();
-        if (runStartBoxRoutine && !trajectoryData.noTrajectory) {
+        /*if (runStartBoxRoutine && !trajectoryData.noTrajectory) {
             cout << "Start box: dist travelled" << currDist - initialDist << endl;
             DriverGeneric::desiredSteering = 0;
             DriverGeneric::desiredSpeed = m_speed;//we just the default
@@ -101,7 +101,7 @@ namespace msv {
                 runStartBoxRoutine = false;
                 cout << "Leaving start box" << endl;
             }
-        }
+        }*/
 
 
         m_propGain = 4.5;//4.5;//2.05;
@@ -126,7 +126,8 @@ namespace msv {
 
         float desSteering = (float) (m_desiredSteeringWheelAngle * 180 / M_PI);
 
-        cout << "steeringAngle" << desSteering << endl;
+        cout << "steeringAngle" << flush;
+        cout << desSteering << endl;
 
         if (desSteering > 41) desSteering = 42;
         if (desSteering < -41) desSteering = -42;

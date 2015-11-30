@@ -60,10 +60,11 @@ SET(OpenCV_DIR "/usr")
 FIND_PACKAGE (OpenCV REQUIRED)
 
 ###########################################################################
-# Try to find odSimulation.
-SET(ODSIMULATION_DIR "${CMAKE_INSTALL_PREFIX}")
-FIND_PACKAGE (odSimulation)
-
+IF("NOT ${ARCH}" STREQUAL "armhf")
+	# Try to find odSimulation.
+	SET(ODSIMULATION_DIR "${CMAKE_INSTALL_PREFIX}")
+	FIND_PACKAGE (odSimulation)
+ENDIF()
 ###########################################################################
 # Set linking libraries to successfully link test suites and binaries.
 SET (LIBRARIES ${OPENDAVINCI_LIBRARIES} ${AUTOMOTIVEDATA_LIBRARIES} ${OpenCV_LIBS})

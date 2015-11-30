@@ -24,7 +24,12 @@ namespace msv {
             brakeLights(false),
             flashingLightsLeft(false),
             flashingLightsRight(false),
-            debug(false) { }
+            debug(false) {
+
+        cout << "DG: arg0: " << argv[0] << endl;
+        cout << "DG: arg1: " << argv[1] << endl;
+        cout << "DG: arg2: " << argv[2] << endl;
+    }
 
     DriverGeneric::~DriverGeneric() {
         if (debug)
@@ -35,6 +40,7 @@ namespace msv {
     coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode DriverGeneric::body() {
 
         if (!initialized) {
+            cout << "DriverGeneric: frequency:" << this->getFrequency() << endl;
             // Set the debug value
             KeyValueConfiguration config = getKeyValueConfiguration();
             debug = config.getValue<bool>("driver.Debug");
@@ -43,7 +49,9 @@ namespace msv {
             initialized = true;
         }
 
+        setUp(); // Necessary since the body is called in the manager directly and not through the runModule.
         Routine();
+        tearDown();
 
         return coredata::dmcp::ModuleExitCodeMessage::OKAY;
     }

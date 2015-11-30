@@ -68,52 +68,75 @@ namespace msv {
             button2 = (bool) (int) sbd.getValueForKey_MapOfDistances(10);
             button3 = (bool) (int) sbd.getValueForKey_MapOfDistances(11);
 
-            if (debug)
-                cout << "DM - B1:" << button1 << ", b2:" << button2 << ", b3:" << button3 << endl;
 
+            if (debug) {
+                cout << endl << "DriverManager: " << flush;
+                cout << "Button1:" << button1 << ", Button2:" << button2 << ", Button3:" << button3 << flush;
+                cout << ", state:" << state << endl;
+            }
 
             // Check if current buttons correspond to current state and driver
-            if (button1 && !button2 && !button3 && state != Lane_Following) {
-                driver_ptr = new LaneFollowingDriver(argc, argv);
-                if (!driver_ptr) {
+            if (button1 && !button2 && !button3) {
+                if (state != Lane_Following) {
                     if (debug)
-                        cout << "Memory error" << endl;
-                    continue; // TODO Improve error management
+                        cout << "Creation Lane Following driver" << endl;
+                    driver_ptr = new LaneFollowingDriver(argc, argv);
+                    if (!driver_ptr) {
+                        if (debug)
+                            cout << "Memory error" << endl;
+                        continue; // TODO Improve error management
+                    }
+                    driver_ptr->runModule(); // Necessary to run it once to initialize the module entirely
+                    state = Lane_Following;
                 }
-                state = Lane_Following;
             }
-            else if (!button1 && button2 && !button3 && state != Parking) {
-                //driver_ptr = new ParkingDriver(argc, argv);
-                if (!driver_ptr) {
-                    if (debug)
-                        cout << "Memory error" << endl;
-                    continue; // TODO Improve error management
+            else if (!button1 && button2 && !button3) {
+                if (state != Parking) {
+                    //driver_ptr = new ParkingDriver(argc, argv);
+                    if (!driver_ptr) {
+                        if (debug)
+                            cout << "Memory error" << endl;
+                        continue; // TODO Improve error management
+                    }
+                    driver_ptr->runModule(); // Necessary to run it once to initialize the module entirely
+                    state = Parking;
                 }
-                state = Parking;
             }
-            else if (!button1 && !button2 && button3 && state != Overtaking) {
-                //driver_ptr = new OvertakingDriver(argc, argv);
-                if (!driver_ptr) {
-                    if (debug)
-                        cout << "Memory error" << endl;
-                    continue; // TODO Improve error management
+            else if (!button1 && !button2 && button3) {
+                if (state != Overtaking) {
+                    //driver_ptr = new OvertakingDriver(argc, argv);
+                    if (!driver_ptr) {
+                        if (debug)
+                            cout << "Memory error" << endl;
+                        continue; // TODO Improve error management
+                    }
+                    driver_ptr->runModule(); // Necessary to run it once to initialize the module entirely
+                    state = Overtaking;
                 }
-                state = Overtaking;
             }
             else {
                 driver_ptr = 0;
                 state = None;
+                // Create default control value for car waiting
+                VehicleControl vc;
+                vc.setSpeed(0);
+                vc.setSteeringWheelAngle(0);
+                vc.setBrakeLights(false);
+                vc.setFlashingLightsLeft(false);
+                vc.setFlashingLightsRight(false);
+                Container c(Container::VEHICLECONTROL, vc);
+                // Send container.
+                getConference().send(c);
             }
 
             // Call driver's body and send resulting vehicle control
             if (driver_ptr != 0) {
-                driver_ptr->runModule();
+                driver_ptr->body();
                 // Create container for finally sending the data.
                 Container c(Container::VEHICLECONTROL, driver_ptr->GetControlData());
                 // Send container.
                 getConference().send(c);
             }
-
         }
 
         return coredata::dmcp::ModuleExitCodeMessage::OKAY;
