@@ -70,19 +70,23 @@ namespace msv {
 
 
             if (debug) {
-                cout << endl << "DriverManager - B1:" << button1 << ", b2:" << button2 << ", b3:" << button3 << flush;
+                cout << endl << "DriverManager: " << flush;
+                cout << "Button1:" << button1 << ", Button2:" << button2 << ", Button3:" << button3 << flush;
                 cout << ", state:" << state << endl;
             }
 
             // Check if current buttons correspond to current state and driver
             if (button1 && !button2 && !button3) {
                 if (state != Lane_Following) {
+                    if (debug)
+                        cout << "Creation Lane Following driver" << endl;
                     driver_ptr = new LaneFollowingDriver(argc, argv);
                     if (!driver_ptr) {
                         if (debug)
                             cout << "Memory error" << endl;
                         continue; // TODO Improve error management
                     }
+                    driver_ptr->runModule(); // Necessary to run it once to initialize the module entirely
                     state = Lane_Following;
                 }
             }
@@ -115,13 +119,12 @@ namespace msv {
 
             // Call driver's body and send resulting vehicle control
             if (driver_ptr != 0) {
-                driver_ptr->runModule();
+                driver_ptr->body();
                 // Create container for finally sending the data.
                 Container c(Container::VEHICLECONTROL, driver_ptr->GetControlData());
                 // Send container.
                 getConference().send(c);
             }
-
         }
 
         return coredata::dmcp::ModuleExitCodeMessage::OKAY;
