@@ -15,6 +15,16 @@ namespace msv {
     using namespace std;
     using namespace cv;
 
+    enum PARKING_STATE {
+        SEARCHSPOT=1,
+        FOUNDSPOT =2,
+        BACKRIGHT =3,
+        BACKLEFT  =4,
+        ADJUST    =5,
+        FINISH    =6,
+        NONE = 99
+    };
+
     class ParkingDriver : public DriverGeneric {
 
     public:
@@ -28,6 +38,7 @@ namespace msv {
         void Initialize();
 
     private:
+        PARKING_STATE parking_state ;
 
         void setUp() { };
 

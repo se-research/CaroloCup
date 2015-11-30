@@ -37,6 +37,7 @@ namespace msv {
         char **argv;
         DRIVER_STATE state;
         DriverGeneric *driver_ptr;
+        DriverGeneric *driverHelper_ptr;
         bool debug;
 
         DriverManager(const DriverManager &/*obj*/);

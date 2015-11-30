@@ -22,6 +22,7 @@ namespace msv {
               argv(argvi),
               state(None),
               driver_ptr(0),
+              driverHelper_ptr(0),
               debug(false) {
         // Deep copy of arguments
         argv = new char *[argci + 1];
@@ -36,7 +37,7 @@ namespace msv {
     DriverManager::~DriverManager() {
 
         delete (driver_ptr);
-
+        delete (driverHelper_ptr);
         for (int i = 0; i < argc; i++) {
             delete[] argv[i];
         }
@@ -93,13 +94,15 @@ namespace msv {
             }
             else if (!button1 && button2 && !button3) {
                 if (state != Parking) {
-                    //driver_ptr = new ParkingDriver(argc, argv);
-                    if (!driver_ptr) {
+                    driverHelper_ptr = new LaneFollowingDriver(argc, argv);
+                    driver_ptr = new ParkingDriver(argc, argv);
+                    if (!(driver_ptr&&driverHelper_ptr)) {
                         if (debug)
                             cout << "Memory error" << endl;
                         continue; // TODO Improve error management
                     }
                     driver_ptr->runModule(); // Necessary to run it once to initialize the module entirely
+                    driverHelper_ptr ->runModule();
                     state = Parking;
                 }
                 state = Parking;
