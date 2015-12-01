@@ -103,7 +103,7 @@ void processScenarios(string outputFolder) {
                     int lux = -2;
                     SensorBoardData sdb;
                     if (sdb.containsKey_MapOfDistances(7)) lux = sdb.getValueForKey_MapOfDistances(7);
-                    cfg.th1 = 70;
+                    cfg.th1 = getDynamicThresh(lux);
 
                     // Disable cout
                     cout.setstate(std::ios_base::failbit);
