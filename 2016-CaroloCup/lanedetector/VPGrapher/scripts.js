@@ -1,18 +1,21 @@
 __VPGrapher = {
     data: [],
     debugging: false,
-    init: function() {
-        d3.json("data/scenarios.json", function(scenarios) { // get all scenarios
-            var dispatch = d3.dispatch("dataLoaded", "scenarioLoaded");
+    dispatch: null,
+    secondaryScenariosLoaded: false,
+    processScenarios: function (inputFolder) {
+        __VPGrapher.data = []; // reset data
+
+        d3.json("data/calculated/" + inputFolder + "/scenarios.json", function (scenarios) { // get all scenarios
             var scenariosLoaded = 0,
                 totalScenarios = scenarios.length;
 
-            scenarios.forEach(function(scenario) { // loop through each scenario
+            scenarios.forEach(function (scenario) { // loop through each scenario
                 var scenarioName = scenario.name,
                     groundTruthDataPath = "data/ground-truth/" + scenarioName + ".csv",
-                    calculatedDataPath = "data/calculated/" + scenarioName + ".csv";
+                    calculatedDataPath = "data/calculated/" + inputFolder + "/" + scenarioName + ".csv";
 
-                d3.csv(groundTruthDataPath, function(groundTruthData) { // load ground truth scenario file
+                d3.csv(groundTruthDataPath, function (groundTruthData) { // load ground truth scenario file
                     d3.csv(calculatedDataPath, function (calculatedData) { // load calculated data scenario file
                         if (calculatedData.length != groundTruthData.length) {
                             totalScenarios--;
@@ -43,22 +46,37 @@ __VPGrapher = {
                             fps: scenario.fps
                         });
 
-                        dispatch.scenarioLoaded();
+                        __VPGrapher.dispatch.scenarioLoaded();
                     });
                 });
             });
 
-            dispatch.on("scenarioLoaded", function() {
+            __VPGrapher.dispatch.on("scenarioLoaded", function () {
                 scenariosLoaded++;
 
-                if (scenariosLoaded == totalScenarios) dispatch.dataLoaded();
+                if (scenariosLoaded == totalScenarios) __VPGrapher.dispatch.dataLoaded();
             });
 
-            dispatch.on("dataLoaded", function() {
+            __VPGrapher.dispatch.on("dataLoaded", function () {
                 __VPGrapher.draw.normalDistributionCDF();
+
+                __VPGrapher.dispatch.scenarioProcessed();
 
                 if (__VPGrapher.debugging) __VPGrapher.printScenariosAnglesErrorToCSV();
             });
+        });
+    },
+    init: function() {
+        this.dispatch = d3.dispatch("dataLoaded", "scenarioLoaded", "scenarioProcessed");
+
+        this.processScenarios("secondary");
+
+        this.dispatch.on("scenarioProcessed", function() {
+            // run once
+            if (! __VPGrapher.secondaryScenariosLoaded) {
+                __VPGrapher.processScenarios("primary");
+                __VPGrapher.secondaryScenariosLoaded = true;
+            }
         });
     },
     draw: {
