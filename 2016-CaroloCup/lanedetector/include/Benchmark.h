@@ -28,7 +28,6 @@ using namespace cv;
 using namespace msv;
 using namespace automotive::miniature;
 
-string root;
 const bool AUTO_REWIND = false;
 const uint32_t MEMORY_SEGMENT_SIZE = 1024 * 768;
 const uint32_t NUMBER_OF_SEGMENTS = 1;
@@ -44,7 +43,10 @@ LaneDetectorDataToDriver dataToDriver;
 int previousThresh=48;
 std::ofstream csvexport;
 string homePath = getenv("HOME");
-string vpGrapherPath = "/CaroloCup/2016-CaroloCup/lanedetector/VPGrapher";
+string projectPath = homePath + "/CaroloCup/2016-CaroloCup/";
+string vpGrapherPath = projectPath + "lanedetector/VPGrapher/";
+string groundTruthPath = homePath + "/Ground_Truth/";
+string tempFolderPath = homePath + "/VPGRAPHERTEMP/";
 struct scenario {
     string name;
     float fps;
@@ -56,7 +58,11 @@ void setupConfig();
 int getDynamicThresh(int lux);
 void printVPToCSVFile(string path);
 void setupCSVFile(string path);
-void printScenariosDataToJsonFile(string homePath);
+void printScenariosDataToJsonFile(string outputFolder);
 void runGraph();
 void openBrowser(string path);
+string getOutputFromCommand(string command);
+void processScenarios(string outputFolder);
+void setupTempFolder();
+void deconstructTempFolder();
 #endif //LANEDETECTOR_BENCHMARK_H

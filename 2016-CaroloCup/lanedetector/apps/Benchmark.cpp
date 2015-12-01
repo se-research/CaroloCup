@@ -3,16 +3,60 @@
 int main() {
     setupConfig();
 
-    root = homePath + "/Ground_Truth/";
+    setupTempFolder();
 
-    getScenarioNames(root);
+    getScenarioNames(groundTruthPath);
 
+    // save custom branch name
+    string branch = getOutputFromCommand("cd " + projectPath + " && git rev-parse --abbrev-ref --short HEAD");
+
+    // checkout to master branch
+    system(string("cd " + projectPath + " && git checkout master").c_str());
+
+    processScenarios("primary");
+
+    // checkout to custom branch
+    system(string("cd " + projectPath + " && git checkout " + branch).c_str());
+
+    processScenarios("secondary");
+
+    deconstructTempFolder();
+
+    runGraph();
+
+    return 0;
+}
+
+void deconstructTempFolder() {
+    system(string("rm -R " + vpGrapherPath + "data/calculated/*").c_str());
+    system(string("mv " + tempFolderPath + "* " + vpGrapherPath + "data/calculated/").c_str());
+    system(string("rmdir " + tempFolderPath).c_str());
+}
+
+void setupTempFolder() {
+    system(string("mkdir " + tempFolderPath).c_str());
+    system(string("mkdir " + tempFolderPath + "/primary").c_str());
+    system(string("mkdir " + tempFolderPath + "/secondary").c_str());
+}
+
+string getOutputFromCommand(string command) {
+    char buffer[50];
+    auto *fp = popen(command.c_str(), "r");
+    fgets(buffer, 50, fp);
+    string result(buffer);
+    result.erase(std::remove(result.begin(), result.end(), '\n'), result.end()); // remove new line character
+    pclose(fp);
+
+    return result;
+}
+
+void processScenarios(string outputFolder) {
     for (int i = 0; i < scenarios.size(); i++) {
         auto totalTime = 0;
         auto frames = 0;
 
         string scenarioName = scenarios[i].name;
-        string scenarioPathString = "file://" + root + scenarioName + "/" + scenarioName + ".rec";
+        string scenarioPathString = "file://" + groundTruthPath + scenarioName + "/" + scenarioName + ".rec";
         URL scenarioPath(scenarioPathString.c_str());
 
         cout << "Saving " << scenarioName << " vanishing points... " << "[" << (i + 1) << "/" << scenarios.size() << "]" << endl;
@@ -20,7 +64,7 @@ int main() {
         Player player(scenarioPath, AUTO_REWIND, MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS, THREADING);
 
         // Set CSV file path
-        string CSVPath = homePath + vpGrapherPath + "/data/calculated/" + scenarioName + ".csv";
+        string CSVPath = tempFolderPath + outputFolder + "/" + scenarioName + ".csv";
         setupCSVFile(CSVPath);
 
         while (player.hasMoreData()) {
@@ -89,16 +133,12 @@ int main() {
         scenarios[i].fps = (float) totalTime / (float) frames * 60;
     }
 
-    printScenariosDataToJsonFile(homePath);
-
-    runGraph();
-
-    return 0;
+    printScenariosDataToJsonFile(outputFolder);
 }
 
-void printScenariosDataToJsonFile(string homePath) {
+void printScenariosDataToJsonFile(string outputFolder) {
     std::ofstream json;
-    string path = homePath + vpGrapherPath + "/data/scenarios.json";
+    string path = tempFolderPath + outputFolder + "/scenarios.json";
 
     json.open(path.c_str(), ios_base::trunc);
     json << "[";
@@ -191,10 +231,9 @@ int getDynamicThresh(int lux) {
 }
 
 void runGraph() {
-    string path = homePath + vpGrapherPath;
-    chdir(path.c_str());
+    chdir(vpGrapherPath.c_str());
     cout << "Opening browser..." << endl;
-    thread browser(openBrowser, path);
+    thread browser(openBrowser, vpGrapherPath);
     /**
      * Need to run an HTTP server to ensure cross-browser compatibility.
      * While Firefox is more lenient when it comes to AJAX calls, i.e.
