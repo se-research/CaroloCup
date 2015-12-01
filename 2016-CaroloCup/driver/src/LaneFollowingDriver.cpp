@@ -7,7 +7,7 @@
 
 float initialSpeed;
 int increaseSpeed = 0;
-bool runStartBoxRoutine = true;
+bool runStartBoxRoutine = false;
 int startBoxLength;
 int initialDist;
 int currDist;
