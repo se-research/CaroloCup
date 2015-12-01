@@ -75,8 +75,6 @@ namespace msv {
                 cout << ", state:" << state << endl;
             }
 
-            button1 = 1;
-
             // Check if current buttons correspond to current state and driver
             if (button1 && !button2 && !button3) {
                 if (state != Lane_Following) {
