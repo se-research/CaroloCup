@@ -1,5 +1,7 @@
 #include "Benchmark.h"
 
+void setThresholdFromConfigFile();
+
 int main() {
     setupConfig();
 
@@ -51,6 +53,8 @@ string getOutputFromCommand(string command) {
 }
 
 void processScenarios(string outputFolder) {
+    setThresholdFromConfigFile();
+
     for (int i = 0; i < scenarios.size(); i++) {
         auto totalTime = 0;
         auto frames = 0;
@@ -100,10 +104,8 @@ void processScenarios(string outputFolder) {
 
                     // Set lighting conditions
                     previousThresh = cfg.th1;
-                    int lux = -2;
                     SensorBoardData sdb;
-                    if (sdb.containsKey_MapOfDistances(7)) lux = sdb.getValueForKey_MapOfDistances(7);
-                    cfg.th1 = getDynamicThresh(lux);
+                    cfg.th1 = thresholdConf;
 
                     // Disable cout
                     cout.setstate(std::ios_base::failbit);
@@ -134,6 +136,18 @@ void processScenarios(string outputFolder) {
     }
 
     printScenariosDataToJsonFile(outputFolder);
+}
+
+void setThresholdFromConfigFile() {
+    ifstream configFile;
+    char buffer[10];
+    configFile.open(benchConfigPath.c_str());
+    if (configFile.is_open()) {
+        while (! configFile.eof()) {
+            configFile >> buffer;
+        }
+    }
+    thresholdConf = atoi(buffer);
 }
 
 void printScenariosDataToJsonFile(string outputFolder) {

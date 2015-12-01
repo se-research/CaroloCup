@@ -47,6 +47,7 @@ string projectPath = homePath + "/CaroloCup/2016-CaroloCup/";
 string vpGrapherPath = projectPath + "lanedetector/VPGrapher/";
 string groundTruthPath = homePath + "/Ground_Truth/";
 string tempFolderPath = homePath + "/VPGRAPHERTEMP/";
+string benchConfigPath = projectPath + "lanedetector/src/benchmark.conf";
 struct scenario {
     string name;
     float fps;
@@ -65,4 +66,5 @@ string getOutputFromCommand(string command);
 void processScenarios(string outputFolder);
 void setupTempFolder();
 void deconstructTempFolder();
+int thresholdConf = 70;
 #endif //LANEDETECTOR_BENCHMARK_H
