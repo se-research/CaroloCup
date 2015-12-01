@@ -157,7 +157,6 @@ namespace msv {
         cout << "Speed: " << speedVal << endl;
         cout << "SpeedDefault: " << initialSpeed << endl << endl;
         DriverGeneric::desiredSpeed = initialSpeed;
-
     }
 
     void LaneFollowingDriver::Initialize() {
@@ -165,6 +164,7 @@ namespace msv {
         KeyValueConfiguration config = getKeyValueConfiguration();
         m_speed = config.getValue<float>("driver.realSpeed");
         initialSpeed = m_speed;
+        initialSpeed = 0.3;
         cout << "speed" << m_speed << endl;
 
         //Startbox values
