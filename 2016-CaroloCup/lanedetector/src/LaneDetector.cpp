@@ -224,7 +224,8 @@ void LaneDetector::processImage()
     TimeStamp currentTime_strt1;
 
     previousThresh=m_config.th1;
-    m_config.th1 =  getDynamicThresh(lux);
+    m_config.th1 =  150;
+//    m_config.th1 =  getDynamicThresh(lux);
     
     if(m_debug)
     	cout<<"Thresh:"<<m_config.th1<<endl;
