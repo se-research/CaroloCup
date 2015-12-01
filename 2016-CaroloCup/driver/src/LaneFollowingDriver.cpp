@@ -157,6 +157,7 @@ namespace msv {
         cout << "Speed: " << speedVal << endl;
         cout << "SpeedDefault: " << initialSpeed << endl << endl;
         DriverGeneric::desiredSpeed = initialSpeed;
+        DriverGeneric::desiredSpeed = 1;
 
     }
 
