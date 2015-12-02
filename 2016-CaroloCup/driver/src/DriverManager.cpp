@@ -73,6 +73,8 @@ namespace msv {
             button2 = (bool) (int) sbd.getValueForKey_MapOfDistances(10);
             button3 = (bool) (int) sbd.getValueForKey_MapOfDistances(11);
 
+            button1 = true;
+
             if (debug) {
                 cout << endl << "DriverManager: " << flush;
                 cout << "Button1:" << button1 << ", Button2:" << button2 << ", Button3:" << button3 << flush;

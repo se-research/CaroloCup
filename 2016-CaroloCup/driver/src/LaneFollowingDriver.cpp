@@ -133,6 +133,8 @@ namespace msv {
         if (desSteering > 41) desSteering = 42;
         if (desSteering < -41) desSteering = -42;
 
+        desSteering *= 0.60;
+
         cout << "steeringAngle" << flush;
         cout << desSteering << endl;
 
