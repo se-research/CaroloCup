@@ -115,8 +115,6 @@ namespace msv {
         bool res = laneFollowing(&ldd);
         //cout << "Stee Sign: "<< steer_sign << "\nLast Steer: "<< last_steer <<endl;
 
-        if (ldd.getLaneDetectionDataDriver().roadState == INTERSECTION) cout << "INTERSECTION" << endl;
-
         m_speed = initialSpeed;
 
         if (!res) {
@@ -126,6 +124,11 @@ namespace msv {
         }
 
         float desSteering = (float) (m_desiredSteeringWheelAngle * 180 / M_PI);
+
+        if (ldd.getLaneDetectionDataDriver().roadState == INTERSECTION) {
+            desSteering = 0;
+            cout << "INTERSECTION" << endl;
+        }
 
         if (desSteering > 41) desSteering = 42;
         if (desSteering < -41) desSteering = -42;
