@@ -316,7 +316,7 @@ driver.Debug = 1
 
 driver.realSpeed = 0.3
 driver.startInBox = 1 # 1 - true, 0 - false
-driver.startboxLength = 2200 # in mm
+driver.startboxLength = 70 # in mm
 
 #
 # CONFIGURATION FOR PARKING
