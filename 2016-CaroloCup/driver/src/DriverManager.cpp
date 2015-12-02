@@ -33,6 +33,11 @@ namespace msv {
     }
 
     DriverManager::~DriverManager() {
+        // stop car when killing driver
+        VehicleControl vc;
+        vc.setSpeed(0);
+        Container c(Container::VEHICLECONTROL, vc);
+        getConference().send(c);
 
         delete (driver_ptr);
 
@@ -67,8 +72,6 @@ namespace msv {
             button1 = (bool) (int) sbd.getValueForKey_MapOfDistances(9);
             button2 = (bool) (int) sbd.getValueForKey_MapOfDistances(10);
             button3 = (bool) (int) sbd.getValueForKey_MapOfDistances(11);
-
-            button1 = true;
 
             if (debug) {
                 cout << endl << "DriverManager: " << flush;
