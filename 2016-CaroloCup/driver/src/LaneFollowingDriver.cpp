@@ -7,7 +7,7 @@
 
 float initialSpeed;
 int increaseSpeed = 0;
-bool runStartBoxRoutine = false;
+bool runStartBoxRoutine = true;
 int startBoxLength;
 int initialDist;
 int currDist;
@@ -77,7 +77,7 @@ namespace msv {
         }
         //Start box logic
         LaneDetectorDataToDriver trajectoryData = ldd.getLaneDetectionDataDriver();
-        /*if (runStartBoxRoutine && !trajectoryData.noTrajectory) {
+        if (runStartBoxRoutine && ! trajectoryData.noTrajectory) {
             cout << "Start box: dist travelled" << currDist - initialDist << endl;
             DriverGeneric::desiredSteering = 0;
             DriverGeneric::desiredSpeed = m_speed;//we just the default
@@ -100,8 +100,9 @@ namespace msv {
             else {
                 runStartBoxRoutine = false;
                 cout << "Leaving start box" << endl;
+                vc.setBrakeLights(brakeIndicator);
             }
-        }*/
+        }
 
 
         m_propGain = 4.5;//4.5;//2.05;
