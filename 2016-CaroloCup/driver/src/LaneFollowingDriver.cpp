@@ -100,7 +100,8 @@ namespace msv {
             else {
                 runStartBoxRoutine = false;
                 cout << "Leaving start box" << endl;
-                vc.setBrakeLights(brakeIndicator);
+                VehicleControl vc;
+                vc.setBrakeLights(true);
             }
         }
 
