@@ -126,14 +126,15 @@ namespace msv {
 
         float desSteering = (float) (m_desiredSteeringWheelAngle * 180 / M_PI);
 
+        if (desSteering > 41) desSteering = 42;
+        if (desSteering < -41) desSteering = -42;
+
         cout << "steeringAngle" << flush;
         cout << desSteering << endl;
 
-        if (desSteering > 41) desSteering = 42;
-        if (desSteering < -41) desSteering = -42;
         //last_steer = desSteering;
 
-        DriverGeneric::desiredSteering = int16_t(desSteering);
+        DriverGeneric::desiredSteering = (float) (desSteering * M_PI / 180);
 
         float speedVal;
         //int runSpeed = 1565;
