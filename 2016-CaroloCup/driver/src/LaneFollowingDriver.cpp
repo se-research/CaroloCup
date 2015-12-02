@@ -127,7 +127,7 @@ namespace msv {
 
         if (ldd.getLaneDetectionDataDriver().roadState == INTERSECTION) {
             desSteering = 0;
-            cout << "INTERSECTION" << endl;
+            if (debug) cout << "INTERSECTION" << endl;
         }
 
         if (desSteering > 41) desSteering = 42;
