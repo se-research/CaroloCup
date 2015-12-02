@@ -786,7 +786,7 @@ void LineDetector::classification()
     int currentDistance =  m_config.currentDistance;
     int distanceTravelled = currentDistance - intersection_start;
 
-    if (distanceTravelled > 60){
+    if (distanceTravelled > 100){
         if (printouts)
             cout << "roadState set to NORMAL do TIMEOUT" << endl;
         roadState = NORMAL;
