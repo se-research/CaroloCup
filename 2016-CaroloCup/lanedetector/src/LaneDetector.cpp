@@ -225,6 +225,7 @@ void LaneDetector::processImage()
 
     previousThresh=m_config.th1;
     m_config.th1 =  150;
+    m_config.currentDistance =(sdb.containsKey_MapOfDistances(6)) ? (int) sdb.getValueForKey_MapOfDistances(6) : 0;
 //    m_config.th1 =  getDynamicThresh(lux);
     
     if(m_debug)

@@ -25,7 +25,7 @@ struct Config
 {
     int th1, th2, hlTh, caThVal, caThMax, caThTyp, pGain, intGain, derGain,
         houghMinAngle, houghMaxAngle, houghStartVal, houghMaxLines,
-        XTimesYMin, XTimesYMax, maxY, maxArea;
+        XTimesYMin, XTimesYMax, maxY, maxArea, currentDistance;
 };
 
 struct PolySize

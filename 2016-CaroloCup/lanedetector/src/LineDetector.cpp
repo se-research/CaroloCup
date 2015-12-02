@@ -44,7 +44,7 @@ bool foundIntersection = false;
 RoadState roadState = NORMAL;
 int intersectionRect;
 bool calcIntersectionGoalLine = false;
-long intersection_start;
+int intersection_start;
 
 
 LineDetector::LineDetector(const Mat &f, const Config &cfg, const bool debug,
@@ -721,8 +721,7 @@ void LineDetector::classification()
                             calcIntersectionGoalLine = true;
                             foundIntersection = true;
 
-                            TimeStamp currentTime;
-                            intersection_start = currentTime.toMicroseconds();
+                            intersection_start = m_config.currentDistance;
 
                             if (printouts)
                                 cout << "INTERSECTION   !!!!!!!!!!!!" << endl;
@@ -784,9 +783,10 @@ void LineDetector::classification()
                 }
         }
 
-    TimeStamp endTime;
-    long time_taken_contour = (endTime.toMicroseconds() - intersection_start)/ 1000.0;
-    if (time_taken_contour > 800){        
+    int currentDistance =  m_config.currentDistance;
+    int distanceTravelled = currentDistance - intersection_start;
+
+    if (distanceTravelled > 60){
         if (printouts)
             cout << "roadState set to NORMAL do TIMEOUT" << endl;
         roadState = NORMAL;
