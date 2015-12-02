@@ -115,6 +115,8 @@ namespace msv {
         bool res = laneFollowing(&ldd);
         //cout << "Stee Sign: "<< steer_sign << "\nLast Steer: "<< last_steer <<endl;
 
+        if (ldd.getLaneDetectionDataDriver().roadState == INTERSECTION) cout << "INTERSECTION" << endl;
+
         m_speed = initialSpeed;
 
         if (!res) {
