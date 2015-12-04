@@ -89,6 +89,7 @@ namespace automotive {
 		m_sensorBoardData.putTo_MapOfDistances(9, buttons[1]);
 		m_sensorBoardData.putTo_MapOfDistances(10, buttons[2]);
 		m_sensorBoardData.putTo_MapOfDistances(11, buttons[3]);
+		m_sensorBoardData.putTo_MapOfDistances(12, sd.getLightReading());
 		Container sensorData(Container::USER_DATA_0, m_sensorBoardData);
 		return sensorData;
 	}
@@ -226,7 +227,7 @@ namespace automotive {
 	    VehicleControl vc = c.getData<VehicleControl>();
 	    
 	    automotive::carolocup::Control cc;
-	    cc.setAcceleration((int)(vc.getSpeed() * 10));
+	    cc.setSpeed((int)(vc.getSpeed() * 10));
 	    cc.setSteering((int)(vc.getSteeringWheelAngle()* (1.0 / (3.141592654 / 180.0))));
 	    bool lights[3] = {0,0,0}; //stop light, left blinker, right blinker
 	    lights[0] = vc.getBrakeLights();
@@ -251,6 +252,8 @@ namespace automotive {
 	      //The receiver unsuffs the escape byte and XORs the next byte with 0x20 again to get the original [6].
 
 
+	      // 8;0;16;0;24;19
+	      //8;125;93;16;125;51;24;0;19
 	      for(int i = 0; i < (int)proto.str().length(); i++) {
 		if(proto.str()[i] == flagEND || proto.str()[i] == flagESC) {
 		  StreamToArduino << flagESC << (char)(proto.str()[i]^flagXOR);
@@ -273,3 +276,4 @@ namespace automotive {
 
     }
 } // automotive::miniature
+
