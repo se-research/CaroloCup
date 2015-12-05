@@ -83,34 +83,34 @@ TARGET_LINK_LIBRARIES (obstacleDriver_module ${PROJECT_NAME}lib-static ${MSVDATA
 
 ###########################################################################
 # Enable CxxTest for all available testsuites.
-IF(CXXTEST_FOUND)
-    FILE(GLOB thisproject-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
-    
-    FOREACH(testsuite ${thisproject-testsuites})
-        STRING(REPLACE "/" ";" testsuite-list ${testsuite})
-
-        LIST(LENGTH testsuite-list len)
-        MATH(EXPR lastItem "${len}-1")
-        LIST(GET testsuite-list "${lastItem}" testsuite-short)
-
-        SET(CXXTEST_TESTGEN_ARGS ${CXXTEST_TESTGEN_ARGS} --world=${PROJECT_NAME}-${testsuite-short})
-        CXXTEST_ADD_TEST(${testsuite-short}-TestSuite ${testsuite-short}-TestSuite.cpp ${testsuite})
-        IF(UNIX)        
-            IF(   ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
-               OR ("${CMAKE_SYSTEM_NAME}" STREQUAL "FreeBSD")
-               OR ("${CMAKE_SYSTEM_NAME}" STREQUAL "DragonFly") )
-                SET_SOURCE_FILES_PROPERTIES(${testsuite-short}-TestSuite.cpp PROPERTIES COMPILE_FLAGS "-Wno-effc++ -Wno-float-equal -Wno-error=suggest-attribute=noreturn")
-            ELSE()
-                SET_SOURCE_FILES_PROPERTIES(${testsuite-short}-TestSuite.cpp PROPERTIES COMPILE_FLAGS "-Wno-effc++ -Wno-float-equal")
-            ENDIF()
-        ENDIF()
-        IF(WIN32)
-            SET_SOURCE_FILES_PROPERTIES(${testsuite-short}-TestSuite.cpp PROPERTIES COMPILE_FLAGS "")
-        ENDIF()
-        SET_TESTS_PROPERTIES(${testsuite-short}-TestSuite PROPERTIES TIMEOUT 3000)
-        TARGET_LINK_LIBRARIES(${testsuite-short}-TestSuite ${PROJECT_NAME}lib-static ${MSVDATA_LIB} ${OPENDAVINCI_LIBRARIES} ${AUTOMOTIVEDATA_LIBRARIES})
-    ENDFOREACH()
-ENDIF(CXXTEST_FOUND)
+#IF(CXXTEST_FOUND)
+#    FILE(GLOB thisproject-testsuites "${CMAKE_CURRENT_SOURCE_DIR}/testsuites/*.h")
+#
+#    FOREACH(testsuite ${thisproject-testsuites})
+#        STRING(REPLACE "/" ";" testsuite-list ${testsuite})
+#
+#        LIST(LENGTH testsuite-list len)
+#        MATH(EXPR lastItem "${len}-1")
+#        LIST(GET testsuite-list "${lastItem}" testsuite-short)
+#
+#        SET(CXXTEST_TESTGEN_ARGS ${CXXTEST_TESTGEN_ARGS} --world=${PROJECT_NAME}-${testsuite-short})
+#        CXXTEST_ADD_TEST(${testsuite-short}-TestSuite ${testsuite-short}-TestSuite.cpp ${testsuite})
+#        IF(UNIX)
+#            IF(   ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
+#               OR ("${CMAKE_SYSTEM_NAME}" STREQUAL "FreeBSD")
+#               OR ("${CMAKE_SYSTEM_NAME}" STREQUAL "DragonFly") )
+#                SET_SOURCE_FILES_PROPERTIES(${testsuite-short}-TestSuite.cpp PROPERTIES COMPILE_FLAGS "-Wno-effc++ -Wno-float-equal -Wno-error=suggest-attribute=noreturn")
+#            ELSE()
+#                SET_SOURCE_FILES_PROPERTIES(${testsuite-short}-TestSuite.cpp PROPERTIES COMPILE_FLAGS "-Wno-effc++ -Wno-float-equal")
+#            ENDIF()
+#        ENDIF()
+#        IF(WIN32)
+#            SET_SOURCE_FILES_PROPERTIES(${testsuite-short}-TestSuite.cpp PROPERTIES COMPILE_FLAGS "")
+#        ENDIF()
+#        SET_TESTS_PROPERTIES(${testsuite-short}-TestSuite PROPERTIES TIMEOUT 3000)
+#        TARGET_LINK_LIBRARIES(${testsuite-short}-TestSuite ${PROJECT_NAME}lib-static ${MSVDATA_LIB} ${OPENDAVINCI_LIBRARIES} ${AUTOMOTIVEDATA_LIBRARIES})
+#    ENDFOREACH()
+#ENDIF(CXXTEST_FOUND)
 
 ###########################################################################
 # Install this project.

@@ -15,6 +15,7 @@
 #include "GeneratedHeaders_AutomotiveData.h"
 
 #include "Driver.h"
+bool debug = false;
 
 namespace msv {
 
@@ -94,7 +95,7 @@ namespace msv {
 
 
     double driving_speed;    // Speed of the car
-    int desiredSteeringWheelAngle;// Angle of the wheels
+    float desiredSteeringWheelAngle;// Angle of the wheels
 
 // This method will do the main data processing job.
     coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode Driver::body() {
@@ -181,9 +182,14 @@ namespace msv {
                     driving_speed = SpeedF2;
 //			desiredSteeringWheelAngle = -1;
 //			desiredSteeringWheelAngle = 0;
-                    if (gyro < 0) { desiredSteeringWheelAngle = 1; }
-                    else if (gyro > 0) { desiredSteeringWheelAngle = -1; }
-                    else { desiredSteeringWheelAngle = 0; }
+//                    if (gyro < 0) { desiredSteeringWheelAngle = 1; }
+//                    else if (gyro > 0) { desiredSteeringWheelAngle = -1; }
+//                    else { desiredSteeringWheelAngle = 0; }
+
+                    LaneDetectionData ldd;
+                    laneFollowing(&ldd);
+                    desiredSteeringWheelAngle = (float) (m_desiredSteeringWheelAngle * 180 / M_PI);
+                    desiredSteeringWheelAngle *= 0.60;
 
                     if ((USFront < SafeDistance && USFront > 2)) {
                         driving_state = NO_POSSIBLE_PARKING_PLACE;
@@ -301,7 +307,7 @@ namespace msv {
 
             // With setSteeringWheelAngle, you can steer in the range of -26 (left) .. 0 (straight) .. +25 (right)
             //double desiredSteeringWheelAngle = 0; // 4 degree but SteeringWheelAngle expects the angle in radians!
-            vc.setSteeringWheelAngle(desiredSteeringWheelAngle);
+            vc.setSteeringWheelAngle((float) (desiredSteeringWheelAngle * M_PI / 180));
 
             // You can also turn on or off various lights:
             vc.setBrakeLights(brakeIndicator);
@@ -340,7 +346,7 @@ namespace msv {
             case BACKWARDS_LEFT: {
 
                 driving_speed = SpeedB1; //driving_speed = SpeedB1;
-                desiredSteeringWheelAngle = -25;
+                desiredSteeringWheelAngle = -42; // -25
                 cout << "\t========  BACKWARDS_LEFT" << endl;
 //		if ((Distance > (CurrentDist2 + DesiredDistance3)) || (IRdis_RL < 10 && IRdis_RL > 2) || (IRdis_RR < 10 && IRdis_RR > 2)) {			
 //		if ((Distance > (CurrentDist2 + DesiredDistance3))) {			
@@ -437,6 +443,109 @@ namespace msv {
                 //desiredSteeringWheelAngle = 0;
             }
         }
+    }
+
+    bool Driver::laneFollowing(LaneDetectionData *data) {
+        if (debug)
+            cout << "enteredLaneFollowing" << endl;
+
+        LaneDetectionData ldd = *data;
+
+        LaneDetectorDataToDriver trajectoryData = ldd.getLaneDetectionDataDriver();
+
+        if (trajectoryData.noTrajectory) {
+            cout << "No trajectory" << endl;
+            return false;
+        }
+
+        if (debug) {
+            cout << ",propGain: " << m_propGain;
+            cout << ",intGain: " << m_intGain;
+            cout << ",derGain: " << m_derGain;
+            cout << endl;
+        }
+
+        float oldLateralError = (float) m_lateralError;
+
+        calculateErr(trajectoryData.currentLine, trajectoryData.rightGoalLines0, &m_angularError, &m_lateralError);
+
+        m_desiredSteeringWheelAngle = calculateDesiredHeading(oldLateralError);
+        if (debug) {
+            // cout << "  x_error: " << x_err;
+            cout << "  derLateral: " << m_derLateralError;
+            cout << "  intLateral: " << m_intLateralError;
+            cout << "  lateral: " << m_lateralError;
+            cout << "  orentation: " << m_angularError;
+            // cout << "  theta: " << theta;
+            cout << "  angle: " << m_desiredSteeringWheelAngle * 180 / M_PI;
+            cout << "  speed: " << m_speed;
+
+            cout << endl;
+        }
+        cout << "exit lane follwoing" << endl;
+        return true;
+    }
+
+    void Driver::calculateErr(CustomLine currLine, CustomLine goalLine, float *angError,
+                                           double *latError) {
+        float x_goal = goalLine.p2.x;
+        float x_pl = currLine.p2.x;
+
+        float a = (float) tan(goalLine.slope * M_PI / 180);
+        float b = goalLine.p1.y - goalLine.p1.x * a;
+        int x_coord = (int) (-b / a);
+        x_goal = (x_coord + x_goal) / 2;
+        float theta_avg = (float) (M_PI / 2);
+        if (abs(x_goal - x_pl) > 0.001) {
+            theta_avg = (0 - currLine.p2.y) / (x_goal - x_pl);
+            theta_avg = atan(theta_avg);
+        }
+        if (theta_avg < 0) {
+            theta_avg = (float) (180 + (theta_avg * 180 / M_PI));
+        }
+        else {
+            theta_avg = (float) (theta_avg * 180 / M_PI);
+        }
+
+        float theta_curr = currLine.slope;
+        if (debug) {
+            cout << "Position: " << x_pl << endl;
+            cout << "Goal: " << x_goal << endl;
+            cout << "Curr Orientation: " << theta_curr << endl;
+            cout << "Goal Orientation: " << theta_avg << endl;
+        }
+        *angError = theta_avg - theta_curr;
+        *latError = x_goal - x_pl;
+
+        return;
+    }
+
+    float Driver::calculateDesiredHeading(float oldLateralError) {
+        float desiredHeading;
+        float theta = (float) (m_angularError / 180 * M_PI);
+        //Scale from pixels to meters
+        m_lateralError = m_lateralError / SCALE_FACTOR;
+        if (m_timestamp != 0) {
+            TimeStamp now;
+            int32_t currTime = (int32_t) now.toMicroseconds();
+            double sec = (currTime - m_timestamp) / (1000000.0);
+            m_intLateralError = m_intLateralError
+                                + m_speed * cos(theta) * m_lateralError * sec;
+            if ((m_intLateralError > 2 * m_lateralError && m_lateralError > 0)
+                || (m_lateralError < 0 && m_intLateralError < 2 * m_lateralError)) {
+                m_intLateralError = 2 * m_lateralError;
+            }
+            m_derLateralError = (m_lateralError - oldLateralError) / sec;
+            //cout << endl;
+            //cout << "  sec: " << sec;
+        }
+        TimeStamp now;
+        m_timestamp = (int32_t) now.toMicroseconds();
+        //Simple proportional control law, propGain needs to be updated
+        desiredHeading = (float) (m_lateralError * m_propGain);
+        desiredHeading += m_intLateralError * m_intGain;
+        desiredHeading += m_derLateralError * m_derGain;
+        return desiredHeading;
     }
 
 } // msv

@@ -11,6 +11,11 @@
 
 #include "GeneratedHeaders_AutomotiveData.h"
 #include "GeneratedHeaders_CoreData.h"
+#include "core/io/conference/ContainerConference.h"
+#include "core/data/Container.h"
+#include "core/base/KeyValueConfiguration.h"
+#include "opencv2/opencv.hpp"
+#include <LaneDetectionData.h>
 
 namespace msv {
 
@@ -36,6 +41,24 @@ enum PARKING_STATE {
 	STOP = 4,
 	DONE = 5
 };
+
+// Define control parameters
+float m_angularError;
+float m_speed;
+double m_lateralError;
+double m_intLateralError;
+double m_derLateralError;
+float m_desiredSteeringWheelAngle;
+float m_propGain;
+float m_intGain;
+float m_derGain;
+double SCALE_FACTOR;    //For example, 12000 dpm (dots-per-meter)
+
+int32_t m_timestamp;
+
+cv::Vec4i m_leftLine;
+cv::Vec4i m_rightLine;
+cv::Vec4i m_dashedLine;
 
 /**
  * This class is a skeleton to send driving commands to Hesperia-light's vehicle driving dynamics simulation.
@@ -84,6 +107,9 @@ private:
 
 	virtual void tearDown();
 	void parking();
+    bool laneFollowing(LaneDetectionData *data);
+    void calculateErr(CustomLine currLine, CustomLine goalLine, float *angError, double *latError);
+    float calculateDesiredHeading(float oldLateralError);
 };
 
 } // msv
