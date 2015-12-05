@@ -89,63 +89,7 @@ int right_col_2 = 0;
 int mini_error_left_col = 0;
 int mini_error_right_col = 0;
 
-bool Left_scan = 0;
-bool right_scan = 1;
-
-bool right_scan_line(unsigned char *data, MyVector &pt, int row, int col, int cols) {
-    while(col > 0) {
-        if( data[col] == 0) {
-            col += 1;
-            continue;
-        }
-        if( data[col] > 0) {
-            right_col_1 = col;
-            while(cols > col) {
-                if( data[col] > 0) {
-                    col += 1;
-                    continue;
-                }
-                if( data[col] == 0) {
-                    right_col_2 = col - 1;
-                    pt.col = (right_col_1 + right_col_2) / 2;
-                    pt.row = row;
-                    return true;
-                }
-                col += 1;
-            }
-        }
-    }
-    return false;
-}
-bool left_scan_line(unsigned char *data, MyVector &pt, int row, int col) {
-    while(col > 0) {
-        if( data[col] == 0) {
-            col -= 1;
-            continue;
-        }
-        if( data[col] > 0) {
-            // Keep left first row and col
-            left_col_1 = col;
-            // Cross Gate
-            while(col > 0) {
-                if( data[col] > 0) {
-                    col -= 1;
-                    continue;
-                }
-                if( data[col] == 0) {
-                    left_col_2 = col + 1;
-                    pt.col = (left_col_1 + left_col_2) / 2;
-                    pt.row = row;
-                    return true;
-                }
-                col -= 1;
-            }
-        }
-    }
-    return false;
-}
-
-void create_scan_line(Mat &input, Mat &output,int step, int error) {
+void scan_straight_line(Mat &input, Mat &output,int step, int error) {
     int rows = input.rows;
     int cols = input.cols;
     int row = 0;
@@ -291,24 +235,15 @@ void create_scan_line(Mat &input, Mat &output,int step, int error) {
             int right_col = (right_col_1 + right_col_2) / 2;
             mini_error_left_col = left_col;
             mini_error_right_col = right_col;
-            // Push into the vector
-//            MyVector tLeft;
-//            tLeft.col = left_col;
-//            tLeft.row = row;
-//            leftLane.push_back(tLeft);
             leftLane.push_back(Point(left_col, row));
             rightLane.push_back(Point(right_col, row));
             centerLane.push_back(Point((left_col + right_col) / 2, row));
             // Draw the line
-//            line(output, Point(left_col, row), Point(left_col, row), Scalar(0, 255, 0), 3, 8, 0);
-//            line(output, Point(right_col, row), Point(right_col, row), Scalar(0, 255, 0), 3, 8, 0);
-//            line(output, Point((left_col + right_col) / 2, row), Point((left_col + right_col) / 2, row), Scalar(255, 0, 0), 3, 8, 0);
             isInitial = false;
         }
         if(foundLeft && foundRight && !isInitial) {
             int left_col = (left_col_1 + left_col_2) / 2;
             int right_col = (right_col_1 + right_col_2) / 2;
-
             if ( (abs(mini_error_left_col - left_col) < error ) && (abs(mini_error_right_col - right_col) < error) ) {
                 leftLane.push_back(Point(left_col, row));
                 rightLane.push_back(Point(right_col, row));
@@ -513,24 +448,16 @@ int32_t main(int32_t argc, char **argv)
                         }
                     }
 
-                    // Show the image using OpenCV.
-                    // Initial Frame
-//                    begin = clock();
+                    // Straight Line
                     frame = Mat(image, 0);
                     frame = frame(cv::Rect(1, 2 * frame.rows / 16 - 1, frame.cols - 1, 10 * frame.rows / 16 - 1));
                     pFrame = frame.clone();
                     scanLineFrame = frame.clone();
                     cvtColor(scanLineFrame, scanLineFrame, CV_GRAY2RGB);
-
-
                     // Apply static threshold
                     threshold(pFrame, pFrame, 48, 255, CV_THRESH_BINARY);
                     // Start scan line method
-
-                    create_scan_line(pFrame, scanLineFrame, 3, 5);
-//                    end = clock();
-//                    cout << "Time cost: " << (double)(end - begin) / CLOCKS_PER_SEC << endl;
-                    // Create scan line and denote.
+                    scan_straight_line(pFrame, scanLineFrame, 3, 5);
 
                     // if csv parameter is set
                     if(argc==4 || (argc==3 && string(argv[1]).compare("-l")!=0))
