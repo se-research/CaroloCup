@@ -76,7 +76,7 @@ namespace msv {
             lifo.clear();
 
             if (debug) {
-                cout << endl << "DriverManager" << flush;
+                cout << endl << "DriverManager: " << flush;
                 cout << "Button1:" << button1 << ", Button2:" << button2 << ", Button3:" << button3 << flush;
                 cout << ", state:" << state << endl;
             }
