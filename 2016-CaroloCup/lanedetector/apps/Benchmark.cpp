@@ -14,12 +14,12 @@ int main() {
 
     // checkout to master branch
     system(string("cd " + projectPath + " && git checkout master").c_str());
-
+    system(string("cd " + projectPath + "build && make").c_str());
     processScenarios("primary");
 
     // checkout to custom branch
     system(string("cd " + projectPath + " && git checkout " + branch).c_str());
-
+    system(string("cd " + projectPath + "build && make").c_str());
     processScenarios("secondary");
 
     deconstructTempFolder();
