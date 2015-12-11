@@ -3,6 +3,7 @@
 //
 
 #include <LaneFollowingDriver.h>
+#include <core/base/LIFOQueue.h>
 #include "DriverManager.h"
 
 namespace msv {
@@ -62,10 +63,13 @@ namespace msv {
         KeyValueConfiguration config = getKeyValueConfiguration();
         debug = config.getValue<bool>("driverManager.Debug");
 
+        core::base::LIFOQueue lifo;
+        addDataStoreFor(Container::USER_DATA_0, lifo);
+
         while (getModuleStateAndWaitForRemainingTimeInTimeslice() == coredata::dmcp::ModuleStateMessage::RUNNING) {
 
             // Get latest proxy data
-            proxyData = getKeyValueDataStore().get(Container::USER_DATA_0);
+            proxyData = lifo.pop();
             sbd = proxyData.getData<SensorBoardData>();
 
             // Get buttons data from proxy
@@ -73,7 +77,8 @@ namespace msv {
             button2 = (bool) (int) sbd.getValueForKey_MapOfDistances(10);
             button3 = (bool) (int) sbd.getValueForKey_MapOfDistances(11);
 
-            button1 = true;
+            // clear lifo to avoid filling memory
+            lifo.clear();
 
             if (debug) {
                 cout << endl << "DriverManager: " << flush;
