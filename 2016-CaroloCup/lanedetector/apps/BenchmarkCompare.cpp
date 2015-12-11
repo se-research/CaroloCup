@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
 }
 
 void runBenchmark(string folderName) {
-    system(string("./ " + projectPath + "build/lanedetector/Benchmark " + folderName).c_str());
+    system(string("cd " + projectPath + "build/lanedetector/ && ./Benchmark " + folderName).c_str());
 }
 
 void checkoutBranch() {
