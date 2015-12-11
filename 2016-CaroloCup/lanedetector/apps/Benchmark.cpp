@@ -1,6 +1,6 @@
 #include "Benchmark.h"
 
-int main(int argc, char** argv) {
+int main(int argc, char* argv[]) {
     setupConfig();
 
     getScenarioNames(groundTruthPath);
@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
         removeTempFolder();
         runGraph();
     } else {
-        processScenarios(string(argv[2]));
+        processScenarios(argv[1]);
     }
 
     return 0;
