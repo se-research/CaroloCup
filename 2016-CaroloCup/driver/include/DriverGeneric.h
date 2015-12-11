@@ -19,7 +19,8 @@ namespace msv {
     using namespace automotive::miniature;
 
 /**
- * This class is a skeleton to send driving commands to Hesperia-light's vehicle driving dynamics simulation.
+ * This class is virtual and represents the skeleton of a driver.
+ * To create a new driver, derive this class and define the virtual method.
  */
     class DriverGeneric : public core::base::module::TimeTriggeredConferenceClientModule {
 
@@ -50,13 +51,35 @@ namespace msv {
 
         virtual ~DriverGeneric();
 
+        /**
+         *  This method contains the main logic of the GenericDriver.
+         *  It takes care of the initialization and routine. This is the interface between opendavinci module's system
+         *  and the Driver implementation.
+         */
         coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode body();
 
+        /**
+         *  This is the main routine of the driver. This method is called at each iteration by the DriverManager.
+         *  It needs to be defined in child classes.
+         */
         virtual void Routine() = 0;
 
+        /**
+         *  Used for value initialization, this method is called once by the DriverManager before running the routine.
+         *  It needs to be defined in child classes.
+         */
         virtual void Initialize() = 0;
 
+        /**
+         *  @return A VehicleControl with current desiredSpeed, desiredSteering and light information.
+         */
         VehicleControl GetControlData();
+
+        /** This method allow the access to a vehicle data corresponding to a stopped vehicle.
+         *
+         *  @return A VehicleControl with speed and steering at 0 and all lights off.
+         */
+        static VehicleControl GetStopControlData();
 
     };
 
