@@ -61,7 +61,7 @@ LineDetector::LineDetector(const Mat &f, const Config &cfg, const bool debug,
     h = m_frame.size().height;
     offset = 2 * h / 16 - 1;
     /// Detect edges using Threshold
-    threshold(m_frame, m_frame, 0, 255, CV_THRESH_BINARY);
+    threshold(m_frame, m_frame, 150, 255, CV_THRESH_BINARY);
     cvtColor(m_frame, m_frame_color, CV_GRAY2BGR);
 
     // Run lineDetector and provide goalLines for the driver
