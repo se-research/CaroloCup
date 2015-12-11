@@ -2,8 +2,8 @@
 // Created by Mickaël on 2015-11-25.
 //
 
-#include <LaneFollowingDriver.h>
 #include <core/base/LIFOQueue.h>
+#include <LaneFollowingDriver.h>
 #include <ParkingDriver.h>
 #include "DriverManager.h"
 
@@ -90,7 +90,7 @@ namespace msv {
             if (button1 && !button2 && !button3) {
                 if (state != Lane_Following) {
                     if (debug)
-                        cout << "Creation Lane Following driver" << endl;
+                        cout << "Creating Lane Following driver" << endl;
                     driver_ptr = new LaneFollowingDriver(argc, argv);
                     if (!driver_ptr) {
                         if (debug)
@@ -103,6 +103,8 @@ namespace msv {
             }
             else if (!button1 && button2 && !button3) {
                 if (state != Parking) {
+                    if (debug)
+                        cout << "Creating Parking driver" << endl;
                     driver_ptr = new ParkingDriver(argc, argv);
                     if (!driver_ptr) {
                         if (debug)
