@@ -151,18 +151,47 @@ __VPGrapher = {
                 dataCDF.push(data);
             });
 
-            var minimumLine = __VPGrapher.draw.minimumLineCDF(dataCDF, svg, x, y, maxErrorAngle, height);
+            // draw perfect line area
+            var perfectLine = [{x: 0, y: 0.98}];
+            for (var i = 1; i <= maxErrorAngle; i++) {
+                perfectLine.push({x: i, y: 1});
+            }
+
+            var perfectArea = d3.svg.area()
+                .x(function(d) { return x(d.x); })
+                .y0(height)
+                .y1(function(d) { return y(d.y); });
+
+            svg.append("path")
+                .datum(perfectLine)
+                .attr("fill", "#EB7282")
+                .attr("d", perfectArea);
+
+            // draw maximum line area
+            var maximumLine = __VPGrapher.draw.minMaxLineCDF(dataCDF, svg, x, y, maxErrorAngle, false);
+
+            var maxArea = d3.svg.area()
+                .x(function(d) { return x(d.x); })
+                .y0(height)
+                .y1(function(d) { return y(d.y); });
+
+            svg.append("path")
+                .datum(maximumLine)
+                .attr("fill", "#FFF098")
+                .attr("d", maxArea);
 
             // draw minimum line area
-            var area = d3.svg.area()
+            var minimumLine = __VPGrapher.draw.minMaxLineCDF(dataCDF, svg, x, y, maxErrorAngle, true);
+
+            var minArea = d3.svg.area()
                 .x(function(d) { return x(d.x); })
                 .y0(height)
                 .y1(function(d) { return y(d.y); });
 
             svg.append("path")
                 .datum(minimumLine)
-                .attr("fill", "#ffc0e4")
-                .attr("d", area);
+                .attr("fill", "#7FBF90")
+                .attr("d", minArea);
 
             // append error angle text
             svg.append("text")
@@ -175,7 +204,8 @@ __VPGrapher = {
             svg.append("text")
                 .attr("class", "y label")
                 .attr("text-anchor", "end")
-                .attr("y", 6)
+                .attr("y", 9)
+                .attr("x", -15)
                 .attr("dy", ".75em")
                 .attr("transform", "rotate(-90)")
                 .text("frames");
@@ -215,6 +245,30 @@ __VPGrapher = {
                     .attr("fill", __VPGrapher.colours(i));
             });
 
+            // draw perfect line
+            var line = d3.svg.line()
+                .x(function(d) {
+                    return x(d.x);
+                })
+                .y(function(d) {
+                    return y(d.y);
+                });
+
+            svg.append("path")
+                .datum(perfectLine)
+                .attr("class", "line")
+                .attr("stroke", '#000')
+                .attr("d", line);
+
+            // draw maximum line circles
+            maximumLine.forEach(function(point) {
+                svg.append("circle")
+                    .datum(point)
+                    .attr("r", 2.5)
+                    .attr("cx", function(d) { return x(d.x); })
+                    .attr("cy", function(d) { return y(d.y); });
+            });
+
             // draw minimum line circles
             minimumLine.forEach(function(point) {
                 svg.append("circle")
@@ -224,38 +278,59 @@ __VPGrapher = {
                     .attr("cy", function(d) { return y(d.y); });
             });
 
-            // append the area number
-            var areaNum = __VPGrapher.science.trapz(minimumLine);
+            // append the left area number
+            var leftAreaNum = 45 - __VPGrapher.science.trapz(maximumLine);
             svg.append("text")
                 .attr("x", width - 6)
-                .attr("y", 16)
+                .attr("y", 20)
                 .attr("text-anchor", "end")
-                .text("Area: " + areaNum + "/" + maxErrorAngle);
+                .text("Left Area: " + leftAreaNum + "/" + maxErrorAngle);
+
+            // append the middle area number
+            var middleAreaNum = __VPGrapher.science.trapz(maximumLine) - __VPGrapher.science.trapz(minimumLine);
+            svg.append("text")
+                .attr("x", width - 6)
+                .attr("y", 40)
+                .attr("text-anchor", "end")
+                .text("Middle Area: " + middleAreaNum + "/" + maxErrorAngle);
+
+            // append the right area number
+            var rightAreaNum = __VPGrapher.science.trapz(minimumLine);
+            svg.append("text")
+                .attr("x", width - 6)
+                .attr("y", 60)
+                .attr("text-anchor", "end")
+                .text("Right Area: " + rightAreaNum + "/" + maxErrorAngle);
         },
-        minimumLineCDF: function(data, svg, x, y, maxErrorAngle) {
-            var minimumLine = [];
+        minMaxLineCDF: function(data, svg, x, y, maxErrorAngle, isMinimumLine) {
+            var line = [];
             for(var i = 0; i <= maxErrorAngle; i++) {
-                var minimumYs = [];
+                var Ys = [];
 
                 data.forEach(function (scenario) {
                     // find x with distance i
                     var x = scenario.map(function(d) {return d.x}).indexOf(i);
 
                     if (x == -1) {
-                        minimumYs.push(undefined);
+                        Ys.push(undefined);
                     } else {
-                        minimumYs.push(scenario[x].y);
+                        Ys.push(scenario[x].y);
                     }
                 });
 
-                var minimumY = d3.min(minimumYs);
+                var Y = true;
+                if (isMinimumLine) {
+                    Y = d3.min(Ys);
+                } else {
+                    Y = d3.max(Ys);
+                }
 
-                if (minimumY != undefined) {
-                    minimumLine.push({x: i, y: minimumY});
+                if (Y != undefined) {
+                    line.push({x: i, y: Y});
                 }
             }
 
-            return minimumLine;
+            return line;
         }
     },
     science: {
