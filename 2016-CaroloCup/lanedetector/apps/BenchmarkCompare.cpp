@@ -7,7 +7,7 @@ int main(int argc, char** argv) {
         cout << "No branch name supplied, using current branch!" << endl;
         branch = getBranchName();
     } else {
-        branch = string(argv[2]);
+        branch = string(argv[1]);
     }
 
     setupTempFolder();
