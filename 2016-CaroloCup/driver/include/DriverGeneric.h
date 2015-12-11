@@ -36,16 +36,13 @@ namespace msv {
 
         virtual void tearDown() = 0;
 
-
-    protected:
+    public:
         float desiredSpeed; // in m/s
         float desiredSteering; // in radians
         bool brakeLights;
         bool flashingLightsLeft;
         bool flashingLightsRight;
         bool debug;
-
-    public:
 
         DriverGeneric(const int32_t &argc, char **argv);
 
