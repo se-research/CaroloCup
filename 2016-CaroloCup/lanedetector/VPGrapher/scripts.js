@@ -60,7 +60,7 @@ __VPGrapher = {
             });
 
             __VPGrapher.dispatch.on("dataLoaded", function () {
-                __VPGrapher.draw.normalDistributionCDF();
+                __VPGrapher.draw.normalDistributionCDF(inputFolder);
 
                 __VPGrapher.dispatch.scenarioProcessed();
 
@@ -85,7 +85,7 @@ __VPGrapher = {
         }
     },
     draw: {
-        normalDistributionCDF: function() {
+        normalDistributionCDF: function(inputFolder) {
             var margin = {
                     top: 20,
                     right: 20,
@@ -118,7 +118,7 @@ __VPGrapher = {
                 .orient("left")
                 .tickFormat(function(d) { return parseInt(d * 100, 10) + "%" });
 
-            var svg = d3.select("body").append("svg")
+            var svg = d3.select("#" + inputFolder).append("svg")
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
                 .append("g")
