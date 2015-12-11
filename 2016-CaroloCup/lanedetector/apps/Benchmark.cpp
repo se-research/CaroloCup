@@ -7,7 +7,6 @@ int main(int argc, char** argv) {
 
     if (argc != 2) {
         compileBranch();
-        sleep(1);
         setupTempFolder();
         processScenarios("primary");
         removeTempFolder();
