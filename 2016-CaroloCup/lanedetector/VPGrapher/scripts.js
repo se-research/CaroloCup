@@ -3,6 +3,20 @@ __VPGrapher = {
     debugging: false,
     dispatch: null,
     secondaryScenariosLoaded: false,
+    compare: {
+        primary: {
+            l: 0,
+            m: 0,
+            r: 0,
+            max: 0
+        },
+        secondary: {
+            l: 0,
+            m: 0,
+            r: 0,
+            max: 0
+        }
+    },
     processScenarios: function (inputFolder) {
         __VPGrapher.data = []; // reset data
 
@@ -79,8 +93,10 @@ __VPGrapher = {
         function processPrimary() {
             // run once
             if (! __VPGrapher.secondaryScenariosLoaded) {
-                __VPGrapher.processScenarios("primary");
                 __VPGrapher.secondaryScenariosLoaded = true;
+                __VPGrapher.processScenarios("primary");
+            } else {
+                __VPGrapher.draw.comparison();
             }
         }
     },
@@ -279,7 +295,7 @@ __VPGrapher = {
             });
 
             // append the left area number
-            var leftAreaNum = 45 - __VPGrapher.science.trapz(maximumLine);
+            var leftAreaNum = maxErrorAngle - __VPGrapher.science.trapz(maximumLine);
             svg.append("text")
                 .attr("x", width - 6)
                 .attr("y", 20)
@@ -301,6 +317,12 @@ __VPGrapher = {
                 .attr("y", 60)
                 .attr("text-anchor", "end")
                 .text("Right Area: " + rightAreaNum + "/" + maxErrorAngle);
+
+            // save areas
+            __VPGrapher.compare[inputFolder].l = maxErrorAngle - __VPGrapher.science.trapz(maximumLine);
+            __VPGrapher.compare[inputFolder].m = __VPGrapher.science.trapz(maximumLine) - __VPGrapher.science.trapz(minimumLine);
+            __VPGrapher.compare[inputFolder].r = __VPGrapher.science.trapz(minimumLine);
+            __VPGrapher.compare[inputFolder].max = maxErrorAngle;
         },
         minMaxLineCDF: function(data, svg, x, y, maxErrorAngle, isMinimumLine) {
             var line = [];
@@ -331,6 +353,40 @@ __VPGrapher = {
             }
 
             return line;
+        },
+        comparison: function() {
+            var primary = __VPGrapher.compare.primary,
+                secondary = __VPGrapher.compare.secondary;
+
+            var leftAreaPrimary = Math.round((primary.max - primary.l) * 100 / primary.max),
+                middleAreaPrimary = Math.round((primary.max - primary.m) * 100 / primary.max),
+                rightAreaPrimary = Math.round(primary.r * 100 / primary.max);
+
+            var leftAreaSecondary = Math.round((secondary.max - secondary.l) * 100 / secondary.max),
+                middleAreaSecondary = Math.round((secondary.max - secondary.m) * 100 / secondary.max),
+                rightAreaSecondary = Math.round(secondary.r * 100 / secondary.max);
+
+            var leftArea = leftAreaSecondary - leftAreaPrimary  + "%",
+                middleArea = middleAreaSecondary - middleAreaPrimary + "%",
+                rightArea = rightAreaSecondary - rightAreaPrimary + "%";
+
+            var leftAreaContainer = document.createElement("span"),
+                middleAreaContainer = document.createElement("span"),
+                rightAreaContainer = document.createElement("span");
+
+            leftAreaContainer.style.color = "#EB7282";
+            middleAreaContainer.style.color = "#FFF098";
+            rightAreaContainer.style.color = "#7FBF90";
+
+            leftAreaContainer.innerHTML = leftArea + " / ";
+            middleAreaContainer.innerHTML = middleArea + " / ";
+            rightAreaContainer.innerHTML = rightArea;
+
+            document.getElementById("comparison")
+                .appendChild(leftAreaContainer)
+                .appendChild(middleAreaContainer)
+                .appendChild(rightAreaContainer);
+            console.log(leftArea + "/" + middleArea + "/" + rightArea);
         }
     },
     science: {
