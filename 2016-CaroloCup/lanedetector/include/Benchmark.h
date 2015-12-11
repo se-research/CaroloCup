@@ -53,7 +53,7 @@ struct scenario {
     float fps;
 };
 vector<scenario> scenarios;
-
+void setThresholdFromConfigFile();
 void getScenarioNames(const string &root);
 void setupConfig();
 int getDynamicThresh(int lux);
@@ -62,9 +62,9 @@ void setupCSVFile(string path);
 void printScenariosDataToJsonFile(string outputFolder);
 void runGraph();
 void openBrowser(string path);
-string getOutputFromCommand(string command);
 void processScenarios(string outputFolder);
 void setupTempFolder();
-void deconstructTempFolder();
+void removeTempFolder();
+void compileBranch();
 int thresholdConf = 70;
 #endif //LANEDETECTOR_BENCHMARK_H

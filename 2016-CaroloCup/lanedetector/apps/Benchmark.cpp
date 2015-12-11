@@ -1,37 +1,30 @@
 #include "Benchmark.h"
 
-void setThresholdFromConfigFile();
-
-int main() {
+int main(int argc, char** argv) {
     setupConfig();
-
-    setupTempFolder();
 
     getScenarioNames(groundTruthPath);
 
-    // save custom branch name
-    string branch = getOutputFromCommand("cd " + projectPath + " && git rev-parse --abbrev-ref --short HEAD");
-
-    // checkout to master branch
-    system(string("cd " + projectPath + " && git checkout master").c_str());
-    sleep(3);
-    system(string("cd " + projectPath + "build && make").c_str());
-    processScenarios("primary");
-
-    // checkout to custom branch
-    system(string("cd " + projectPath + " && git checkout " + branch).c_str());
-    sleep(3);
-    system(string("cd " + projectPath + "build && make").c_str());
-    processScenarios("secondary");
-
-    deconstructTempFolder();
-
-    runGraph();
+    if (argc != 2) {
+        compileBranch();
+        sleep(1);
+        setupTempFolder();
+        processScenarios("primary");
+        removeTempFolder();
+        runGraph();
+    } else {
+        processScenarios(string(argv[2]));
+    }
 
     return 0;
 }
 
-void deconstructTempFolder() {
+void compileBranch() {
+    system(string("rm -R " + projectPath + "build/*").c_str());
+    system(string("cd " + projectPath + "build && cmake .. && make -j8").c_str());
+}
+
+void removeTempFolder() {
     system(string("rm -R " + vpGrapherPath + "data/calculated/*").c_str());
     system(string("mv " + tempFolderPath + "* " + vpGrapherPath + "data/calculated/").c_str());
     system(string("rmdir " + tempFolderPath).c_str());
@@ -41,17 +34,6 @@ void setupTempFolder() {
     system(string("mkdir " + tempFolderPath).c_str());
     system(string("mkdir " + tempFolderPath + "/primary").c_str());
     system(string("mkdir " + tempFolderPath + "/secondary").c_str());
-}
-
-string getOutputFromCommand(string command) {
-    char buffer[50];
-    auto *fp = popen(command.c_str(), "r");
-    fgets(buffer, 50, fp);
-    string result(buffer);
-    result.erase(std::remove(result.begin(), result.end(), '\n'), result.end()); // remove new line character
-    pclose(fp);
-
-    return result;
 }
 
 void processScenarios(string outputFolder) {
@@ -247,7 +229,6 @@ int getDynamicThresh(int lux) {
 }
 
 void runGraph() {
-    chdir(vpGrapherPath.c_str());
     cout << "Opening browser..." << endl;
     thread browser(openBrowser, vpGrapherPath);
     /**
@@ -259,11 +240,10 @@ void runGraph() {
      * indefinitely.
      */
     cout << "Starting web server..." << endl;
-    system("php -S localhost:8000");
+    system(string("cd " + vpGrapherPath + " &&  php -S localhost:8000").c_str());
 }
 
 void openBrowser(string path) {
     sleep(1); // make sure the php server spawns before the browser is opened
-    chdir(path.c_str());
-    system("firefox localhost:8000");
+    system(string("cd " + vpGrapherPath + " && firefox localhost:8000").c_str());
 }

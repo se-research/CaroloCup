@@ -7,6 +7,8 @@ __VPGrapher = {
         __VPGrapher.data = []; // reset data
 
         d3.json("data/calculated/" + inputFolder + "/scenarios.json", function (scenarios) { // get all scenarios
+            if (! scenarios) __VPGrapher.dispatch.noCSV();
+
             var scenariosLoaded = 0,
                 totalScenarios = scenarios.length;
 
@@ -67,17 +69,20 @@ __VPGrapher = {
         });
     },
     init: function() {
-        this.dispatch = d3.dispatch("dataLoaded", "scenarioLoaded", "scenarioProcessed");
+        this.dispatch = d3.dispatch("dataLoaded", "scenarioLoaded", "scenarioProcessed", 'noCSV');
 
         this.processScenarios("secondary");
 
-        this.dispatch.on("scenarioProcessed", function() {
+        this.dispatch.on("noCSV", processPrimary);
+        this.dispatch.on("scenarioProcessed", processPrimary);
+
+        function processPrimary() {
             // run once
             if (! __VPGrapher.secondaryScenariosLoaded) {
                 __VPGrapher.processScenarios("primary");
                 __VPGrapher.secondaryScenariosLoaded = true;
             }
-        });
+        }
     },
     draw: {
         normalDistributionCDF: function() {
