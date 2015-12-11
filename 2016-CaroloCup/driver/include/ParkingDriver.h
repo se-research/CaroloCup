@@ -47,6 +47,7 @@ namespace msv {
 
         DRIVING_STATE driving_state;
         PARKING_STATE parking_state;
+        LaneFollowingDriver *laneDriver;
 
         void setUp() { };
 

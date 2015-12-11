@@ -2,6 +2,7 @@
 // Created by Mickaël on 2015-12-11.
 //
 
+#include <LaneFollowingDriver.h>
 #include "ParkingDriver.h"
 
 bool debug = false;
@@ -48,15 +49,24 @@ namespace msv {
     ParkingDriver::ParkingDriver(const int32_t &argc, char **argv) :
             DriverGeneric(argc, argv),
             driving_state(DRIVE),
-            parking_state(BACKWARDS_RIGHT) { }
-
-    ParkingDriver::~ParkingDriver() { }
-
-    void ParkingDriver::Initialize() {
+            parking_state(BACKWARDS_RIGHT),
+            laneDriver(0) {
+        //Create lane driver
+        laneDriver = new LaneFollowingDriver(argc, argv);
+        // Init laneDriver module
+        laneDriver->runModule();
         driving_state = DRIVE;
         parking_state = BACKWARDS_RIGHT;
         gapWidth = 0;
     }
+
+    ParkingDriver::~ParkingDriver() {
+        free(laneDriver);
+    }
+
+    void ParkingDriver::Initialize() {
+    }
+
 
     void ParkingDriver::Routine() {
 
@@ -97,9 +107,14 @@ namespace msv {
 
         // State machines
         switch (driving_state) {
-            case DRIVE: {
+            case DRIVE:
                 cout << "\t In drive mode" << endl;
+                // Run the lane driver
+                laneDriver->Routine();
+
+                desiredSteering = laneDriver->desiredSteering;
                 desiredSpeed = (float) SpeedF2;
+
                 //desiredSteeringWheelAngle = -1;
                 //desiredSteeringWheelAngle = 0;
                 //if (gyro < 0) { desiredSteeringWheelAngle = 1; }
@@ -107,7 +122,6 @@ namespace msv {
                 //else { desiredSteeringWheelAngle = 0; }
                 //LaneDetectionData ldd;
                 //laneFollowing(&ldd);
-                desiredSteering = 0;
 
                 if ((USFront < SafeDistance && USFront > 2)) {
                     driving_state = NO_POSSIBLE_PARKING_PLACE;
@@ -115,26 +129,26 @@ namespace msv {
                 if ((IRdis_SL < 25 && IRdis_SL > 2)) {
                     driving_state = START_OBST;
                 }
-            }
                 break;
 
-            case START_OBST: {
+            case START_OBST:
                 cout << "\t \t START_OBST mode" << endl;
+
+                // Run the lane driver
+                laneDriver->Routine();
+                desiredSteering = laneDriver->desiredSteering;
 
                 if ((USFront < SafeDistance && USFront > 2)) {
                     driving_state = NO_POSSIBLE_PARKING_PLACE;
-
                 }
-
 
                 if ((IRdis_SL > 25 || IRdis_SL < 2)) {
                     driving_state = POSSIBLE_SPOT;
                     CurrentDistSpot = Distance;
                 }
-            }
                 break;
 
-            case POSSIBLE_SPOT: {
+            case POSSIBLE_SPOT:
                 cout << "\t POSSIBLE_SPOT" << endl;;
 
                 if ((USFront < SafeDistance && USFront > 2)) {
@@ -153,12 +167,10 @@ namespace msv {
                         driving_state = DRIVE;
                     }
                 }
-
                 cout << "\t Parking spot length: " << gapWidth << endl;
-            }
                 break;
 
-            case STOP_FOR_PARKING: {
+            case STOP_FOR_PARKING:
                 desiredSpeed = 0;
                 flashingLightsRight = true;
                 cout << "\t STOP_FOR_PARKING" << endl;
@@ -175,33 +187,24 @@ namespace msv {
                     driving_state = PARKING;
                     desiredSpeed = Stop_Speed;
                 }
-
-            }
                 break;
 
-            case PARKING: {
+            case PARKING:
                 cout << "========: PARKING (calling parking)" << endl;
                 parking();
-            }
                 break;
 
-            case NO_POSSIBLE_PARKING_PLACE: {
-
+            case NO_POSSIBLE_PARKING_PLACE:
                 flashingLightsRight = false;
                 cout << "\t\t========  NO_POSSIBLE_PARKING_PLACE" << endl;
                 desiredSpeed = Stop_Speed;
-            }
                 break;
 
-
-            default: {
-
+            default:
                 cout << "Non of these states" << endl;
-
                 desiredSpeed = Stop_Speed;
-//			desiredSteeringWheelAngle = -1;
                 desiredSteering = 0;
-            }
+                break;
         }
         return;
     }
