@@ -63,7 +63,7 @@ string getBranchName() {
     auto *fp = popen(command.c_str(), "r");
     fgets(buffer, 50, fp);
     string result(buffer);
-    result = result.substr(0, result.size() - 2); // remove new line character
+    result = result.substr(0, result.size() - 1); // remove new line character
     pclose(fp);
 
     return result;
