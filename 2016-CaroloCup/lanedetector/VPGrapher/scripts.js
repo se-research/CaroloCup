@@ -47,10 +47,10 @@ __VPGrapher = {
 
                             var errorAngle = Math.abs(__VPGrapher.science.getAngle(groundTruth) - __VPGrapher.science.getAngle(calculated));
 
-                            if (errorAngle > 45) { // ignore angles bigger than the wheel can handle
-                                validFrames--;
-                                return;
-                            }
+                            //if (errorAngle > 45) { // ignore angles bigger than the wheel can handle
+                            //    validFrames--;
+                            //    return;
+                            //}
 
                             errorAngles.push(errorAngle);
                         });
