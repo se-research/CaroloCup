@@ -63,6 +63,38 @@ LineDetector::LineDetector(const Mat &f, const Config &cfg, const bool debug,
     /// Detect edges using Threshold
     threshold(m_frame, m_frame, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
     cvtColor(m_frame, m_frame_color, CV_GRAY2BGR);
+    Mat out(m_frame.rows , m_frame.cols, CV_8U, Scalar(0));
+
+    int middle = m_frame.cols / 2;
+
+    for (int i = 0; i < m_frame.rows; i++) {
+        bool jFlag = false;
+        bool kFlag = false;
+
+        for (int j = middle; j < m_frame.cols; j++) {
+            uchar color = m_frame.at<uchar>(i,j);
+
+            if (color == 255) {
+                out.at<uchar>(i,j) = 255;
+                jFlag = true;
+            }
+
+            if (! color && jFlag) break;
+        }
+
+        for (int k = middle; k > 0; k--) {
+            uchar color = m_frame.at<uchar>(i,k);
+
+            if (color == 255) {
+                out.at<uchar>(i,k) = 255;
+                kFlag = true;
+            }
+
+            if (! color && kFlag) break;
+        }
+    }
+
+    out.copyTo(m_frame);
 
     // Run lineDetector and provide goalLines for the driver
     findLines();
