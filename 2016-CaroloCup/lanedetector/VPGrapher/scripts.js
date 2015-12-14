@@ -300,7 +300,7 @@ __VPGrapher = {
                 .attr("x", width - 6)
                 .attr("y", 20)
                 .attr("text-anchor", "end")
-                .text("Left Area: " + leftAreaNum + "/" + maxErrorAngle);
+                .text("Left Area: " + (leftAreaNum / maxErrorAngle).toFixed(2) * 100 + "%");
 
             // append the middle area number
             var middleAreaNum = __VPGrapher.science.trapz(maximumLine) - __VPGrapher.science.trapz(minimumLine);
@@ -308,7 +308,7 @@ __VPGrapher = {
                 .attr("x", width - 6)
                 .attr("y", 40)
                 .attr("text-anchor", "end")
-                .text("Middle Area: " + middleAreaNum + "/" + maxErrorAngle);
+                .text("Middle Area: " + (middleAreaNum / maxErrorAngle).toFixed(2) * 100 + "%");
 
             // append the right area number
             var rightAreaNum = __VPGrapher.science.trapz(minimumLine);
@@ -316,7 +316,7 @@ __VPGrapher = {
                 .attr("x", width - 6)
                 .attr("y", 60)
                 .attr("text-anchor", "end")
-                .text("Right Area: " + rightAreaNum + "/" + maxErrorAngle);
+                .text("Right Area: " + (rightAreaNum / maxErrorAngle).toFixed(2) * 100 + "%");
 
             // save areas
             __VPGrapher.compare[inputFolder].l = maxErrorAngle - __VPGrapher.science.trapz(maximumLine);
