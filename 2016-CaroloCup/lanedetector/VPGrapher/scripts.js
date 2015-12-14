@@ -300,7 +300,7 @@ __VPGrapher = {
                 .attr("x", width - 6)
                 .attr("y", 20)
                 .attr("text-anchor", "end")
-                .text("Left Area: " + (leftAreaNum / maxErrorAngle).toFixed(2) * 100 + "%");
+                .text("Left Area: " + Math.round(leftAreaNum / maxErrorAngle * 100) + "%");
 
             // append the middle area number
             var middleAreaNum = __VPGrapher.science.trapz(maximumLine) - __VPGrapher.science.trapz(minimumLine);
@@ -308,7 +308,7 @@ __VPGrapher = {
                 .attr("x", width - 6)
                 .attr("y", 40)
                 .attr("text-anchor", "end")
-                .text("Middle Area: " + (middleAreaNum / maxErrorAngle).toFixed(2) * 100 + "%");
+                .text("Middle Area: " + Math.round(middleAreaNum / maxErrorAngle * 100) + "%");
 
             // append the right area number
             var rightAreaNum = __VPGrapher.science.trapz(minimumLine);
@@ -316,7 +316,7 @@ __VPGrapher = {
                 .attr("x", width - 6)
                 .attr("y", 60)
                 .attr("text-anchor", "end")
-                .text("Right Area: " + (rightAreaNum / maxErrorAngle).toFixed(2) * 100 + "%");
+                .text("Right Area: " + Math.round(rightAreaNum / maxErrorAngle * 100) + "%");
 
             // save areas
             __VPGrapher.compare[inputFolder].l = maxErrorAngle - __VPGrapher.science.trapz(maximumLine);
@@ -366,9 +366,13 @@ __VPGrapher = {
                 middleAreaSecondary = Math.round((secondary.max - secondary.m) * 100 / secondary.max),
                 rightAreaSecondary = Math.round(secondary.r * 100 / secondary.max);
 
-            var leftArea = leftAreaSecondary - leftAreaPrimary  + "%",
-                middleArea = middleAreaSecondary - middleAreaPrimary + "%",
-                rightArea = rightAreaSecondary - rightAreaPrimary + "%";
+            var leftArea = leftAreaSecondary - leftAreaPrimary,
+                middleArea = middleAreaSecondary - middleAreaPrimary,
+                rightArea = rightAreaSecondary - rightAreaPrimary;
+
+            if (leftArea > 0) leftArea = "+" + leftArea;
+            if (middleArea > 0) middleArea = "+" + middleArea;
+            if (rightArea > 0) rightArea = "+" + rightArea;
 
             var leftAreaContainer = document.createElement("span"),
                 middleAreaContainer = document.createElement("span"),
@@ -378,15 +382,14 @@ __VPGrapher = {
             middleAreaContainer.style.color = "#FFF098";
             rightAreaContainer.style.color = "#7FBF90";
 
-            leftAreaContainer.innerHTML = leftArea + " / ";
-            middleAreaContainer.innerHTML = middleArea + " / ";
-            rightAreaContainer.innerHTML = rightArea;
+            leftAreaContainer.innerHTML = leftArea  + "% / ";
+            middleAreaContainer.innerHTML = middleArea + "% / ";
+            rightAreaContainer.innerHTML = rightArea + "%";
 
             document.getElementById("comparison")
                 .appendChild(leftAreaContainer)
                 .appendChild(middleAreaContainer)
                 .appendChild(rightAreaContainer);
-            console.log(leftArea + "/" + middleArea + "/" + rightArea);
         }
     },
     science: {
