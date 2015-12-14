@@ -180,7 +180,7 @@ private:
     int getIntersectionWithTopP2(CustomLine l) const;
 	int getIntersectionWithY(CustomLine l, int y) const;
     CustomLine createLineFromRect(RotatedRect *rect, int sizeX, int sizeY, int polygonIndex);
-
+    void extractRoad();
 	Point getLowestOrHighestPoint(std::vector<Point> pts, bool getLowest);
     //Find contours
     void getContours();
