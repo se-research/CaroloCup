@@ -6,7 +6,7 @@ int main(int argc, char* argv[]) {
     getScenarioNames(groundTruthPath);
 
     if (argc != 2) {
-        compileBranch();
+//        compileBranch();
         setupTempFolder();
         processScenarios("primary");
         removeTempFolder();
@@ -83,7 +83,7 @@ void processScenarios(string outputFolder) {
                     cvReleaseImage(&image);
 
                     // Crop top and bottom
-                    frame = frame(cv::Rect(1, 2 * imageHeight / 16 - 1, imageWidth - 1, 10 * imageHeight / 16 - 1));
+                    frame = frame(cv::Rect(1, 2 * imageHeight / 16 + 40, imageWidth - 1, 10 * imageHeight / 16 - 1));
 
                     // Set lighting conditions
                     previousThresh = cfg.th1;
