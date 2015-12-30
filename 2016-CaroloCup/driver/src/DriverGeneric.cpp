@@ -2,6 +2,7 @@
 // Created by Mickaël on 2015-11-25.
 //
 
+#include <iostream>
 #include "core/io/conference/ContainerConference.h"
 #include "core/base/KeyValueConfiguration.h"
 
