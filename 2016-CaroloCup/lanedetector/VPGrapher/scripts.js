@@ -44,8 +44,10 @@ __VPGrapher = {
                         var errorAngles = [];
                         groundTruthData.forEach(function (groundTruth, index) {
                             var calculated = calculatedData[index];
+                            var groundAngle = __VPGrapher.science.getAngle(groundTruth);
+                            var calculatedAngle = __VPGrapher.science.getAngle(calculated);
 
-                            var errorAngle = Math.abs(__VPGrapher.science.getAngle(groundTruth) - __VPGrapher.science.getAngle(calculated));
+                            var errorAngle = Math.abs(groundAngle - calculatedAngle);
 
                             if (errorAngle > 45) { // ignore angles bigger than the wheel can handle
                                 validFrames--;
@@ -432,12 +434,14 @@ __VPGrapher = {
                 B = {x: 376, y: 300}, // center point
                 C = {x: 376, y: 0};
 
+            var swing = (vp["VP_x"] < B.x) ? -1 : 1;
+
             var AB = Math.sqrt(Math.pow(B.x-A.x,2)+ Math.pow(B.y-A.y,2));
             var BC = Math.sqrt(Math.pow(B.x-C.x,2)+ Math.pow(B.y-C.y,2));
             var AC = Math.sqrt(Math.pow(C.x-A.x,2)+ Math.pow(C.y-A.y,2));
             var result = Math.acos((BC*BC+AB*AB-AC*AC)/(2*BC*AB)) * (180/Math.PI);
 
-            return Math.round(result);
+            return Math.round(result) * swing;
         },
         /**
          * Returns area using trapezoidal rule
