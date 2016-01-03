@@ -69,17 +69,8 @@ SET (MSVDATA_LIB msv-datalib-static)
 FILE(GLOB_RECURSE thisproject-sources "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 ADD_LIBRARY (${PROJECT_NAME}lib-static STATIC ${thisproject-sources})
 
-ADD_EXECUTABLE(${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/apps/${PROJECT_NAME}.cpp" src/DriverGeneric.cpp include/DriverGeneric.h src/DriverManager.cpp include/DriverManager.h src/LaneFollowingDriver.cpp include/LaneFollowingDriver.h)
+ADD_EXECUTABLE(${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/apps/${PROJECT_NAME}.cpp" src/DriverGeneric.cpp include/DriverGeneric.h src/DriverManager.cpp include/DriverManager.h src/LaneFollowingDriver.cpp include/LaneFollowingDriver.h src/ParkingDriver.cpp include/ParkingDriver.h)
 TARGET_LINK_LIBRARIES (${PROJECT_NAME} ${PROJECT_NAME}lib-static ${MSVDATA_LIB} ${OPENDAVINCI_LIBRARIES} ${AUTOMOTIVEDATA_LIBRARIES}) 
-
-ADD_EXECUTABLE (victorDriver_module "${CMAKE_CURRENT_SOURCE_DIR}/apps/victorDriver_module.cpp")
-TARGET_LINK_LIBRARIES (victorDriver_module ${PROJECT_NAME}lib-static ${MSVDATA_LIB} ${OPENDAVINCI_LIBRARIES} ${AUTOMOTIVEDATA_LIBRARIES})
-
-ADD_EXECUTABLE (improvedDriver_module "${CMAKE_CURRENT_SOURCE_DIR}/apps/improvedDriver_module.cpp")
-TARGET_LINK_LIBRARIES (improvedDriver_module ${PROJECT_NAME}lib-static ${MSVDATA_LIB} ${OPENDAVINCI_LIBRARIES} ${AUTOMOTIVEDATA_LIBRARIES})
-
-ADD_EXECUTABLE (obstacleDriver_module "${CMAKE_CURRENT_SOURCE_DIR}/apps/obstacleDriver_module.cpp")
-TARGET_LINK_LIBRARIES (obstacleDriver_module ${PROJECT_NAME}lib-static ${MSVDATA_LIB} ${OPENDAVINCI_LIBRARIES} ${AUTOMOTIVEDATA_LIBRARIES}) 
 
 ###########################################################################
 # Enable CxxTest for all available testsuites.
@@ -115,7 +106,6 @@ TARGET_LINK_LIBRARIES (obstacleDriver_module ${PROJECT_NAME}lib-static ${MSVDATA
 ###########################################################################
 # Install this project.
 INSTALL(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin/carolocup COMPONENT software)
-INSTALL(TARGETS obstacleDriver_module RUNTIME DESTINATION bin/carolocup COMPONENT software)
 # This project does not have a manual page so far.
 #INSTALL(FILES man/${PROJECT_NAME}.1 DESTINATION man/man1 COMPONENT software)
 

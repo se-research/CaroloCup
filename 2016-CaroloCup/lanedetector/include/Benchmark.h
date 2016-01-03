@@ -1,5 +1,6 @@
 #ifndef LANEDETECTOR_BENCHMARK_H
 #define LANEDETECTOR_BENCHMARK_H
+#include <fstream>
 #include <opencv/cv.h>
 #include <dirent.h>
 #include <core/io/URL.h>

@@ -22,6 +22,9 @@ namespace msv {
     using namespace automotive;
     using namespace automotive::miniature;
 
+    /**
+     * Correspond to the different car states associated to buttons sequences.
+     */
     enum DRIVER_STATE {
         Lane_Following = 0,
         Parking = 1,
@@ -43,11 +46,21 @@ namespace msv {
 
         DriverManager &operator=(const DriverManager &/*obj*/);
 
-        // This method will be call automatically _before_ running body().
+        /**
+         * This method will be call automatically _before_ running body().
+         */
         virtual void setUp() { };
 
-        // This method will be call automatically _after_ return from body().
+        /**
+         * This method will be call automatically _after_ return from body().
+         */
         virtual void tearDown() { };
+
+
+        /**
+         * Stops the car by sending the VehicleControl data using the DriverGeneric stop values.
+         */
+        void stopCar();
 
     public:
         DriverManager(const int32_t &argci, char **argvi);

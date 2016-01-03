@@ -15,7 +15,7 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 
-#include "core/macros.h"
+#include "core/opendavinci.h"
 #include "core/base/KeyValueConfiguration.h"
 #include "core/data/Container.h"
 #include "core/io/conference/ContainerConference.h"

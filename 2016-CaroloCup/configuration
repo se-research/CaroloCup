@@ -314,7 +314,7 @@ driverManager.Debug = 1
 
 driver.Debug = 1
 
-driver.realSpeed = 1.5
+driver.realSpeed = 0.3
 driver.startInBox = 1 # 1 - true, 0 - false
 driver.startboxLength = 70 # in mm
 

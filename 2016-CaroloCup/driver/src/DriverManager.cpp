@@ -2,8 +2,9 @@
 // Created by Mickaël on 2015-11-25.
 //
 
-#include <LaneFollowingDriver.h>
 #include <core/base/LIFOQueue.h>
+#include <LaneFollowingDriver.h>
+#include <ParkingDriver.h>
 #include "DriverManager.h"
 
 namespace msv {
@@ -35,10 +36,7 @@ namespace msv {
 
     DriverManager::~DriverManager() {
         // stop car when killing driver
-        VehicleControl vc;
-        vc.setSpeed(0);
-        Container c(Container::VEHICLECONTROL, vc);
-        getConference().send(c);
+        stopCar();
 
         delete (driver_ptr);
 
@@ -63,6 +61,9 @@ namespace msv {
         KeyValueConfiguration config = getKeyValueConfiguration();
         debug = config.getValue<bool>("driverManager.Debug");
 
+        if (debug)
+            cout << endl << "DriverManager: " << flush;
+
         core::base::LIFOQueue lifo;
         addDataStoreFor(Container::USER_DATA_0, lifo);
 
@@ -81,7 +82,6 @@ namespace msv {
             lifo.clear();
 
             if (debug) {
-                cout << endl << "DriverManager: " << flush;
                 cout << "Button1:" << button1 << ", Button2:" << button2 << ", Button3:" << button3 << flush;
                 cout << ", state:" << state << endl;
             }
@@ -90,7 +90,7 @@ namespace msv {
             if (button1 && !button2 && !button3) {
                 if (state != Lane_Following) {
                     if (debug)
-                        cout << "Creation Lane Following driver" << endl;
+                        cout << "Creating Lane Following driver" << endl;
                     driver_ptr = new LaneFollowingDriver(argc, argv);
                     if (!driver_ptr) {
                         if (debug)
@@ -103,7 +103,9 @@ namespace msv {
             }
             else if (!button1 && button2 && !button3) {
                 if (state != Parking) {
-                    //driver_ptr = new ParkingDriver(argc, argv);
+                    if (debug)
+                        cout << "Creating Parking driver" << endl;
+                    driver_ptr = new ParkingDriver(argc, argv);
                     if (!driver_ptr) {
                         if (debug)
                             cout << "Memory error" << endl;
@@ -128,16 +130,7 @@ namespace msv {
             else {
                 driver_ptr = 0;
                 state = None;
-                // Create default control value for car waiting
-                VehicleControl vc;
-                vc.setSpeed(0);
-                vc.setSteeringWheelAngle(0);
-                vc.setBrakeLights(false);
-                vc.setFlashingLightsLeft(false);
-                vc.setFlashingLightsRight(false);
-                Container c(Container::VEHICLECONTROL, vc);
-                // Send container.
-                getConference().send(c);
+                stopCar();
             }
 
             // Call driver's body and send resulting vehicle control
@@ -153,5 +146,9 @@ namespace msv {
         return coredata::dmcp::ModuleExitCodeMessage::OKAY;
     }
 
+    void DriverManager::stopCar() {
+        Container c(Container::VEHICLECONTROL, DriverGeneric::GetStopControlData());
+        getConference().send(c);
+    }
 
 } // msv

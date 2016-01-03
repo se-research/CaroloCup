@@ -2,6 +2,7 @@
 // Created by Mickaël on 2015-11-25.
 //
 
+#include <iostream>
 #include "core/io/conference/ContainerConference.h"
 #include "core/base/KeyValueConfiguration.h"
 
@@ -36,7 +37,6 @@ namespace msv {
             cout << "DriverGeneric destroyed!" << endl;
     }
 
-// This method will do the main data processing job.
     coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode DriverGeneric::body() {
 
         if (!initialized) {
@@ -68,6 +68,16 @@ namespace msv {
         vc.setFlashingLightsLeft(flashingLightsLeft);
         vc.setFlashingLightsRight(flashingLightsRight);
 
+        return vc;
+    }
+
+    VehicleControl DriverGeneric::GetStopControlData() {
+        VehicleControl vc;
+        vc.setSpeed(0);
+        vc.setSteeringWheelAngle(0);
+        vc.setBrakeLights(false);
+        vc.setFlashingLightsLeft(false);
+        vc.setFlashingLightsRight(false);
         return vc;
     }
 } // msv
