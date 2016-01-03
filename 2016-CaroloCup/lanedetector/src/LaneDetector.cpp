@@ -233,7 +233,7 @@ void LaneDetector::processImage()
     	cout<<"Thresh:"<<m_config.th1<<endl;
     cfg = m_config;
 
-    Mat neededPart = m_frame(cv::Rect(1, 2 * height / 16 + 40, width - 1, 10 * height / 16 - 1));
+    Mat neededPart = m_frame(cv::Rect(0, 2 * height / 16 + 30, width - 1, 10 * height / 16 - 40));
 
     LineDetector road(neededPart, cfg, m_debug, 1);
 

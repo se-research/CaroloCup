@@ -92,77 +92,143 @@ Lines LineDetector::getLines()
 
 void LineDetector::extractRoad() {
     Mat out(m_frame.rows , m_frame.cols, CV_8U, Scalar(0));
-    int middle = m_frame.cols / 2;
 
     enum LineState {
-        NONE,
+        NO_LINE_FOUND,
         FIRST_LINE_FOUND,
         FIRST_LINE_PASSED,
         SECOND_LINE_FOUND,
         SECOND_LINE_PASSED
     };
 
-    int steps = 10;
-    int interval = m_frame.rows / steps;
-    vector<int> whites;
-    int limit = 10;
-    int lastPos = 0;
+    enum DashState {
+        NO_DASH_FOUND,
+        FIRST_DASH_START,
+        FIRST_DASH_END,
+        SECOND_DASH_START,
+        SECOND_DASH_END
+    };
 
-    for (int i = steps; i > 0; i--) {
-        if (i < steps * 0.6) break;
+    int maxWidth = m_frame.cols - 1;
+    int halfWidth = maxWidth / 2;
+    int maxHeight = m_frame.rows - 1;
+    int halfHeight = maxHeight / 2;
 
-        int row = i * interval;
+    int rightLineStartingPoint = maxWidth;
+    for (int row = maxHeight; row > halfHeight; row--) {
+        if (rightLineStartingPoint != maxWidth) break;
 
-        for (int k = middle; k > 0; k--) {
-            uchar color = m_frame.at<uchar>(row, k);
+        for (int col = halfWidth + halfWidth / 2; col < maxWidth; col++) {
+            uchar color = m_frame.at<uchar>(row, col);
 
             if (color == 255) {
-                whites.push_back(k);
+                rightLineStartingPoint = col;
                 break;
             }
         }
     }
+    int rightLineScan = rightLineStartingPoint;
 
-    if (whites.size()) lastPos = *max_element(whites.begin(), whites.end());
+    int dashStartingPoint = halfWidth;
+    for (int row = maxHeight; row > halfHeight - 10; row--) {
+        if (dashStartingPoint != halfWidth) break;
 
-    for (int i = 0; i < m_frame.rows; i++) {
-        LineState lineStateRight = NONE;
-        LineState lineStateLeft = NONE;
-
-        for (int j = middle; j < m_frame.cols; j++) {
-            uchar color = m_frame.at<uchar>(i,j);
+        for (int col = halfWidth; col > 0; col--) {
+            uchar color = m_frame.at<uchar>(row, col);
 
             if (color == 255) {
-                out.at<uchar>(i, j) = 255;
-                lineStateRight = FIRST_LINE_FOUND;
+                dashStartingPoint = col;
+                break;
             }
-
-            if (! color && lineStateRight == FIRST_LINE_FOUND) break;
         }
+    }
+    int dashScan = dashStartingPoint;
 
-        for (int k = middle; k > 0; k--) {
-            uchar color = m_frame.at<uchar>(i,k);
+    int lastFirstLinePoint = 0;
+    auto dashState = NO_DASH_FOUND;
+    int whitesCount = 0;
+    int maxWhites = 30;
+    int scanOffset = 3;
+
+    for (int row = maxHeight; row > 0; row--) {
+        auto leftLineState = NO_LINE_FOUND;
+        auto rightLineState = NO_LINE_FOUND;
+
+        if (dashState == SECOND_DASH_END) break;
+
+        for (int col = rightLineScan; col < maxWidth; col++) {
+            if (col > rightLineScan + maxWhites) break;
+
+            uchar color = m_frame.at<uchar>(row, col);
 
             if (color == 255) {
-                out.at<uchar>(i, k) = 255;
+                if (whitesCount++ > maxWhites) break;
 
-                if (lineStateLeft == NONE) {
-                    lineStateLeft = FIRST_LINE_FOUND;
-                } else if (lineStateLeft == FIRST_LINE_PASSED) {
-                    lineStateLeft = SECOND_LINE_FOUND;
+                out.at<uchar>(row, col) = 255;
+
+                if (rightLineState == NO_LINE_FOUND) {
+                    rightLineScan = col - scanOffset;
+                    rightLineState = FIRST_LINE_FOUND;
+                }
+            } else {
+                if (whitesCount) whitesCount = 0;
+
+                if (rightLineState == FIRST_LINE_FOUND) {
+                    rightLineState = FIRST_LINE_PASSED;
+                } else if (rightLineState == FIRST_LINE_PASSED) {
+                    break;
                 }
             }
+        }
 
-            if (! color && lineStateLeft == FIRST_LINE_FOUND) lineStateLeft = FIRST_LINE_PASSED;
+        whitesCount = 0;
 
-            // if can't find line, but reached the limit, assume it was found anyway
-            if (lineStateLeft == NONE) {
-                if (! color && k < (lastPos - limit)) lineStateLeft = FIRST_LINE_PASSED;
+        for (int col = dashScan; col > 0; col--) {
+            uchar color = m_frame.at<uchar>(row, col);
+
+            if (color == 255) {
+                out.at<uchar>(row, col) = 255;
+
+                if (leftLineState == NO_LINE_FOUND) {
+                    leftLineState = FIRST_LINE_FOUND;
+
+                    dashScan = col + scanOffset;
+
+                    if (dashState == NO_DASH_FOUND) {
+                        dashState = FIRST_DASH_START;
+                    } else if (dashState == FIRST_DASH_END) {
+                        dashState = SECOND_DASH_START;
+                    }
+                } else if (leftLineState == FIRST_LINE_PASSED) {
+                    leftLineState = SECOND_LINE_FOUND;
+                } else if (leftLineState == SECOND_LINE_FOUND) {
+                    if (whitesCount++ > maxWhites) break;
+                }
+            } else {
+                if (whitesCount) whitesCount = 0;
+
+                if (leftLineState == FIRST_LINE_FOUND) {
+                    leftLineState = FIRST_LINE_PASSED;
+
+                    lastFirstLinePoint = col - maxWhites;
+                    if (lastFirstLinePoint < 5) lastFirstLinePoint = 15;
+                } else if (leftLineState == NO_LINE_FOUND && col < lastFirstLinePoint) {
+                    leftLineState = FIRST_LINE_PASSED;
+
+                    dashScan += scanOffset;
+
+                    if (dashState == FIRST_DASH_START) {
+                        dashState = FIRST_DASH_END;
+                    } else if (dashState == SECOND_DASH_START) {
+                        dashState = SECOND_DASH_END;
+                    }
+
+                } else if (leftLineState == SECOND_LINE_FOUND) {
+                    leftLineState = SECOND_LINE_PASSED;
+                } else if (leftLineState == SECOND_LINE_PASSED) {
+                    break;
+                }
             }
-
-            if (! color && lineStateLeft == SECOND_LINE_FOUND) lineStateLeft = SECOND_LINE_PASSED;
-
-            if (lineStateLeft == SECOND_LINE_PASSED) break;
         }
     }
 
