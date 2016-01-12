@@ -94,6 +94,8 @@ Lines LineDetector::getLines()
 void LineDetector::extractRoad() {
     Mat out(m_frame.rows , m_frame.cols, CV_8U, Scalar(0));
 
+    erode(m_frame, m_frame, Mat::ones(2, 1, CV_8U));
+
     enum LineState {
         NO_LINE_FOUND,
         FIRST_LINE_FOUND,
@@ -107,7 +109,9 @@ void LineDetector::extractRoad() {
         FIRST_DASH_START,
         FIRST_DASH_END,
         SECOND_DASH_START,
-        SECOND_DASH_END
+        SECOND_DASH_END,
+        THIRD_DASH_START,
+        THIRD_DASH_END
     };
 
     int maxWidth = m_frame.cols - 1;
@@ -120,7 +124,7 @@ void LineDetector::extractRoad() {
     for (int row = maxHeight; row >= halfHeight - 50; row--) {
         if (rightLineStartingPoint != maxWidth) break;
 
-        for (int col = halfWidth + halfWidth / 2; col < maxWidth; col++) {
+        for (int col = halfWidth; col < maxWidth; col++) {
             uchar color = m_frame.at<uchar>(row, col);
 
             if (color == 255) {
@@ -140,7 +144,7 @@ void LineDetector::extractRoad() {
             uchar color = m_frame.at<uchar>(row, col);
 
             if (color == 255) {
-                if (col > rightLineStartingPoint - 200) continue;
+                if (col > rightLineStartingPoint - 250) continue;
 
                 dashStartingPoint = col;
                 break;
@@ -203,8 +207,12 @@ void LineDetector::extractRoad() {
                         dashState = FIRST_DASH_START;
                     } else if (dashState == FIRST_DASH_END) {
                         dashState = SECOND_DASH_START;
+                    } else if (dashState == SECOND_DASH_END) {
+                        dashState = THIRD_DASH_START;
                     } else if (dashState == SECOND_DASH_START && ! row) {
                         dashState = SECOND_DASH_END;
+                    } else if (dashState == THIRD_DASH_START && ! row) {
+                        dashState = THIRD_DASH_END;
                     }
 
                     if (! col) lastFirstLinePoint = 0;
@@ -230,6 +238,8 @@ void LineDetector::extractRoad() {
                         dashState = FIRST_DASH_END;
                     } else if (dashState == SECOND_DASH_START) {
                         dashState = SECOND_DASH_END;
+                    } else if (dashState == THIRD_DASH_START) {
+                        dashState = THIRD_DASH_END;
                     }
                 } else if (leftLineState == SECOND_LINE_FOUND) {
                     leftLineState = SECOND_LINE_PASSED;
