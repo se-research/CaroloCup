@@ -1732,9 +1732,18 @@ void LineDetector::createTrajectory(LinesToUse *ltu)
     else
         leftSplitted.push_back(getNoneCustomLine());
 
-    if (ltu->foundD)
+    if (ltu->foundD) {
+        if ((ltu->dashedCurve)[1].p1.x > 0 && (ltu->dashedCurve)[1].p1.y > 0) {
+            (ltu->dashedCurve)[0].p2.x = (ltu->dashedCurve)[1].p2.x;
+            (ltu->dashedCurve)[0].p2.y = (ltu->dashedCurve)[1].p2.y;
+            (ltu->dashedCurve)[0].slope = getLineSlope(
+                    (ltu->dashedCurve)[0].p1,
+                    (ltu->dashedCurve)[0].p2
+            );
+        }
+
         dashToUse.push_back((ltu->dashedCurve)[0]);
-    else
+    } else
         dashToUse.push_back(getNoneCustomLine());
     cutPoints.push_back(h);
     //////////////////
