@@ -50,7 +50,7 @@ LaneDetector::LaneDetector(const int32_t &argc, char **argv) :
     m_hasAttachedToSharedImageMemory(false),
     m_sharedImageMemory(),
     m_cameraId(-1),
-    m_debug(true),
+    m_debug(false),
     m_config(),
     m_frame(),
     m_frame_count(0)
@@ -211,7 +211,6 @@ int LaneDetector::getDynamicThresh(int lux)
 // You should start your work in this method.
 void LaneDetector::processImage()
 {
-    m_debug = true;
     SensorBoardData sdb;
     Container conUserData0 = getKeyValueDataStore ().get (Container::USER_DATA_0);
     sdb = conUserData0.getData<SensorBoardData> ();
