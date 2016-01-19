@@ -120,40 +120,8 @@ void LineDetector::extractRoad() {
     int halfHeight = maxHeight / 2;
     int scanOffset = 3;
 
-    int rightLineStartingPoint = maxWidth;
-    for (int row = maxHeight; row >= halfHeight - 50; row--) {
-        if (rightLineStartingPoint != maxWidth) break;
-
-        for (int col = halfWidth; col < maxWidth; col++) {
-            uchar color = m_frame.at<uchar>(row, col);
-
-            if (color == 255) {
-                rightLineStartingPoint = col;
-                break;
-            }
-        }
-    }
-    rightLineStartingPoint -= scanOffset;
-    int rightLineScan = rightLineStartingPoint;
-
-    int dashStartingPoint = halfWidth;
-    for (int row = maxHeight; row >= halfHeight - 50; row--) {
-        if (dashStartingPoint != halfWidth) break;
-
-        for (int col = halfWidth + 50; col >= 0; col--) {
-            uchar color = m_frame.at<uchar>(row, col);
-
-            if (color == 255) {
-                if (col > rightLineStartingPoint - 250) continue;
-
-                dashStartingPoint = col;
-                break;
-            }
-        }
-    }
-    dashStartingPoint += scanOffset;
-    int dashScan = dashStartingPoint;
-
+    int rightLineScan = halfWidth;
+    int dashScan = halfWidth;
     auto dashState = NO_DASH_FOUND;
     int whitesCount = 0;
     int maxWhites = 30;
@@ -166,8 +134,6 @@ void LineDetector::extractRoad() {
         if (dashState == SECOND_DASH_END) break;
 
         for (int col = rightLineScan; col <= maxWidth; col++) {
-            if (col > rightLineScan + maxWhites) break;
-
             uchar color = m_frame.at<uchar>(row, col);
 
             if (color == 255) {
