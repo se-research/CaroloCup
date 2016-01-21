@@ -85,29 +85,11 @@ namespace msv {
             //currDist++;//remove this
             if (currDist - initialDist < startBoxLength) {
                 return;
-            }
-            else {
+            } else {
                 runStartBoxRoutine = false;
                 cout << "Leaving start box" << endl;
             }
         }
-
-        if (trajectoryData.roadState == INTERSECTION) {
-            stop = true;
-        }
-
-//        if (! intersectionNoStopLine) {
-//            if (trajectoryData.noTrajectory) {
-//                intersectionNoStopLine = (int) sbd.getValueForKey_MapOfDistances(6);
-//            }
-//        } else {
-//            if (currDist - intersectionNoStopLine > 80) intersectionNoStopLine = 0;
-//
-//            cout << "DISTANCE: " << currDist - intersectionNoStopLine << endl;
-//            cout << "INTERSECTION" << endl;
-//
-//            return;
-//        }
 
         m_propGain = 4.5;//4.5;//2.05;
         m_intGain = 0.5;//1.0;//8.39; //8.39;
@@ -124,7 +106,8 @@ namespace msv {
 
         if (!res) {
             cout << "Waiting..." << endl;
-            DriverGeneric::desiredSpeed = m_speed;
+            DriverGeneric::desiredSpeed = initialSpeed;
+            DriverGeneric::desiredSteering = 0;
             return;
         }
 
@@ -179,7 +162,6 @@ namespace msv {
         startBoxLength = config.getValue<int32_t>("driver.startboxLength");
         initialDist = 0;
         currDist = 0;
-        intersectionNoStopLine = 0;
         firstRun = true;
         stop = false;
     }
