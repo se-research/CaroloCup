@@ -45,6 +45,7 @@ RoadState roadState = NORMAL;
 int intersectionRect;
 bool calcIntersectionGoalLine = false;
 int intersection_start;
+int intersectionType = 0; // 1 no stop line // 2 with stop line
 
 
 LineDetector::LineDetector(const Mat &f, const Config &cfg, const bool debug,
@@ -780,6 +781,42 @@ void LineDetector::classification()
     Point shortSideMiddle;
     intersectionRect = -1;
 
+    // Handle intersection with no stop line/sideways stop line
+    bool intersectionLineFirst = false;
+    bool intersectionLineSecond = false;
+
+    for (int i = 0; i < rects.size(); i++) {
+        RotatedRect rectangle = rects[i];
+
+        if (rectangle.size.height < 1 || rectangle.size.width < 1) continue;
+
+        if (! intersectionLineFirst) {
+            if (rectangle.center.x > 375 && rectangle.center.y > 125 && rectangle.angle < 10) {
+                if (rectangle.size.height > 200) {
+                    intersectionLineFirst = true;
+                }
+            }
+        } else if (! intersectionLineSecond) {
+            if (rectangle.center.x > 375 && rectangle.center.y < 125 && rectangle.angle < 10) {
+                if (rectangle.size.height > 50) {
+                    intersectionLineSecond = true;
+                }
+            }
+        }
+
+        if (intersectionLineFirst && intersectionLineSecond) {
+            cout << "INTERSECTION NO STOP LINE" << endl;
+            roadState = INTERSECTION;
+            intersectionOn = true;
+            calcIntersectionGoalLine = true;
+            foundIntersection = true;
+            intersection_start = m_config.currentDistance;
+            intersectionType = 1;
+            break;
+        }
+    }
+
+
     for (unsigned int i = 0; i < line_sizes.size(); i++)
         {
             sizeX = line_sizes[i].sizeX;
@@ -922,13 +959,26 @@ void LineDetector::classification()
     int currentDistance =  m_config.currentDistance;
     int distanceTravelled = currentDistance - intersection_start;
 
-    if (distanceTravelled > 120){
-        if (printouts)
-            cout << "roadState set to NORMAL do TIMEOUT" << endl;
-        roadState = NORMAL;
-        intersectionOn = false;
-        foundIntersection = false;
-        calcIntersectionGoalLine = false;
+    if (intersectionType == 1) { // no stop line
+        if (distanceTravelled < 20) {
+            roadState = NORMAL;
+        } else if (distanceTravelled > 20 && distanceTravelled < 60) {
+            roadState = INTERSECTION;
+        } else if (distanceTravelled > 60){
+            roadState = NORMAL;
+            intersectionOn = false;
+            foundIntersection = false;
+            calcIntersectionGoalLine = false;
+            intersectionType = 0;
+        }
+    } else if (intersectionType == 2) { // with stop line
+        if (distanceTravelled > 60){
+            roadState = NORMAL;
+            intersectionOn = false;
+            foundIntersection = false;
+            calcIntersectionGoalLine = false;
+            intersectionType = 0;
+        }
     }
 
     if (intersectionRect == -1 && roadState == INTERSECTION){
