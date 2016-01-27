@@ -70,12 +70,6 @@ void LaneDetector::setUp()
 {
 	cout << "Debug is " << m_debug << std::endl;
     // This method will be call automatically _before_ running body().
-    if (m_debug)
-        {
-            // Create an OpenCV-window.
-            cvNamedWindow("WindowShowImage", CV_WINDOW_AUTOSIZE);
-            cvMoveWindow("WindowShowImage", 300, 100);
-        }
 }
 
     void LaneDetector::tearDown()
@@ -218,7 +212,7 @@ void LaneDetector::processImage()
     int lux=-2;
     if(sdb.containsKey_MapOfDistances(7))
         lux=sdb.getValueForKey_MapOfDistances(7);
-    
+
     if(m_debug)
     	cout<<"LUX::"<<lux<<endl;
     TimeStamp currentTime_strt1;
@@ -420,13 +414,13 @@ coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode LaneDetector::body()
 
 void LaneDetector::showResult(LineDetector &road, Mat &f)
 {
+    showResult_getRectangles(road.getResult_getRectangles()->rects, f);
+
     // Fetch pointers to result data
     FinalOutput *res_createTrajectory = road.getResult_createTrajectory();
-    IntermediateResult *res_finalFilter = road.getResult_finalFilter();
 
     // Show final result window
     showResult_createTrajectory(res_createTrajectory, road, f);
-    showResult_finalFilter(res_finalFilter, road, f);
 
     // Create window to display text results
     cv::Mat txtRes = cv::Mat::zeros(150, 300, CV_8UC3);
@@ -435,6 +429,15 @@ void LaneDetector::showResult(LineDetector &road, Mat &f)
     int rB = 0; // Pixel where the row starts at
     int rS = 15; // The row interleaving in pixels
     string text;
+
+    // ----extractRoad() -----
+
+    rB += rS;
+    convert.str("");
+    convert << road.time_taken_extractRoad;
+    text = convert.str() + " - extractRoad()";
+    cv::putText(txtRes, text, cv::Point(1, rB),
+                FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
 
     // ----getContours() -----
 
@@ -462,25 +465,6 @@ void LaneDetector::showResult(LineDetector &road, Mat &f)
     text = convert.str() + " - classification()";
     cv::putText(txtRes, text, cv::Point(1, rB),
                 FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
-
-    // ----filterAndMerge() -----
-    rB += rS;
-    convert.str("");
-    convert << road.time_taken_filter_merge;
-    text = convert.str() + " - filterAndMerge()";
-    cv::putText(txtRes, text, cv::Point(1, rB),
-                FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
-
-
-
-    // ----finalFilter() -----
-    rB += rS;
-    convert.str("");
-    convert << road.time_taken_final_filter;
-    text = convert.str() + " - finalFilter()";
-    cv::putText(txtRes, text, cv::Point(1, rB),
-                FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
-
 
     // ----characteristicFiltering() -----
 
@@ -523,6 +507,26 @@ void LaneDetector::showResult_finalFilter(IntermediateResult *res, LineDetector 
         }
     frame.release();
 }
+
+void LaneDetector::showResult_getRectangles(vector<RotatedRect> rects, Mat &f) {
+    Mat frame = f.clone();
+
+    RotatedRect rect;
+
+    for (int i = 0; i < rects.size(); i++) {
+        rect = rects[i];
+        Point2f rect_points[4];
+        rect.points(rect_points);
+
+        for (int j = 0; j < 4; j++) {
+            line(frame, rect_points[j], rect_points[(j + 1) % 4], Scalar(255), 2);
+        }
+    }
+
+    imshow("Result from getRectangles", frame);
+    frame.release();
+}
+
 void LaneDetector::showResult_createTrajectory(FinalOutput *res, LineDetector &road, Mat &f)
 {
 	bool printouts = false;

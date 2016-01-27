@@ -86,6 +86,8 @@ private:
     virtual void tearDown();
 
     void processImage();
+
+    void showResult_getRectangles(vector<RotatedRect> res, Mat &f);
 };
 
 } // msv

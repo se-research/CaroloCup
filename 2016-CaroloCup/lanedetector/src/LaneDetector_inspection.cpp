@@ -422,6 +422,15 @@ void LaneDetector_inspection::showResult(LineDetector &road, Mat &f)
     cv::putText(txtRes, text, cv::Point(1, rB),
                 FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
 
+    // ----extractRoad() -----
+
+    rB += rS;
+    convert.str("");
+    convert << road.time_taken_extractRoad;
+    text = convert.str() + " - extractRoad()";
+    cv::putText(txtRes, text, cv::Point(1, rB),
+                FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
+
     // ----getContours() -----
 
     rB += rS;
@@ -462,25 +471,6 @@ void LaneDetector_inspection::showResult(LineDetector &road, Mat &f)
     text = convert.str() + " - classification()";
     cv::putText(txtRes, text, cv::Point(1, rB),
                 FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
-
-    // ----filterAndMerge() -----
-    rB += rS;
-    convert.str("");
-    convert << road.time_taken_filter_merge;
-    text = convert.str() + " - filterAndMerge()";
-    cv::putText(txtRes, text, cv::Point(1, rB),
-                FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
-
-
-
-    // ----finalFilter() -----
-    rB += rS;
-    convert.str("");
-    convert << road.time_taken_final_filter;
-    text = convert.str() + " - finalFilter()";
-    cv::putText(txtRes, text, cv::Point(1, rB),
-                FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
-
 
     // ----characteristicFiltering() -----
 
