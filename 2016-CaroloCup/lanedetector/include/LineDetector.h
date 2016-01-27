@@ -9,11 +9,8 @@
 #define MID_DASH_ANGLE -47
 #define CONFIDENCE_LEVEL_MAX 5
 
-#include <queue>
-#include "opencv2/opencv.hpp"
 #include "LineDetectorTypes.h"
 #include "LaneDetectionData.h"
-#include <numeric>
 
 using namespace cv;
 using namespace std;
@@ -136,11 +133,10 @@ public:
     	return confidenceLevel;
     }
 
+    long time_taken_extractRoad;
     long time_taken_contour;
     long time_taken_find_lines;
     long time_taken_classification;
-    long time_taken_filter_merge;
-    long time_taken_final_filter;
     long time_taken_characteristicFiltering;
     long time_taken_createTrajectory;
 
@@ -249,6 +245,24 @@ private:
 
     int confidenceLevel;
     RoadAngle_RoadSize_debug rrd;
+
+    enum IntersecionType {
+        NO_INTERSECTION, STOP_LINE_INTERSECTION, INTERSECTION_WITHOUT_STOP_LINE
+    } intersecionType;
+
+    struct LinesApproxPos {
+        Point rightLine;
+        Point firstDash;
+        Point secondDash;
+        Point leftLine;
+
+        void reset() {
+            rightLine = Point(-1, -1);
+            firstDash = Point(-1, -1);
+            secondDash = Point(-1, -1);
+            leftLine = Point(-1, -1);
+        }
+    } linesApproxPos;
 };
 
 }
