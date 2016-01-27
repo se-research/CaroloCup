@@ -77,23 +77,28 @@ namespace automotive {
 		int temp = sd.getButtonState();
 		bool buttons[4] = {0,0,0,0};
 		for (int i = 3; i > 0; i--) buttons[i] = (temp & (1 << i)) != 0;
-	  
-	      SensorBoardData m_sensorBoardData;
-		m_sensorBoardData.putTo_MapOfDistances(0, sd.getUsFront());
-		m_sensorBoardData.putTo_MapOfDistances(1, sd.getIrFrontRight());
-		m_sensorBoardData.putTo_MapOfDistances(2, sd.getIrRearRight());
-		m_sensorBoardData.putTo_MapOfDistances(3, sd.getIrBackRight());
-		m_sensorBoardData.putTo_MapOfDistances(4, sd.getUsRear());
-		m_sensorBoardData.putTo_MapOfDistances(5, sd.getIrBackLeft());
-		m_sensorBoardData.putTo_MapOfDistances(6, sd.getWheelRearLeft());
-		m_sensorBoardData.putTo_MapOfDistances(7, sd.getWheelRearRight());
-		m_sensorBoardData.putTo_MapOfDistances(8, (int)sd.getGyroHeading());
-		m_sensorBoardData.putTo_MapOfDistances(9, buttons[1]);
-		m_sensorBoardData.putTo_MapOfDistances(10, buttons[2]);
-		m_sensorBoardData.putTo_MapOfDistances(11, buttons[3]);
-		m_sensorBoardData.putTo_MapOfDistances(12, sd.getLightReading());
-		Container sensorData(Container::USER_DATA_0, m_sensorBoardData);
-		return sensorData;
+		Container emptyContainer;
+		if(temp < 20){
+		  SensorBoardData m_sensorBoardData;
+		  m_sensorBoardData.putTo_MapOfDistances(0, sd.getUsFront());
+		  m_sensorBoardData.putTo_MapOfDistances(1, sd.getIrFrontRight());
+		  m_sensorBoardData.putTo_MapOfDistances(2, sd.getIrRearRight());
+		  m_sensorBoardData.putTo_MapOfDistances(3, sd.getIrBackRight());
+		  m_sensorBoardData.putTo_MapOfDistances(4, sd.getUsRear());
+		  m_sensorBoardData.putTo_MapOfDistances(5, sd.getIrBackLeft());
+		  m_sensorBoardData.putTo_MapOfDistances(6, sd.getWheelRearLeft());
+		  m_sensorBoardData.putTo_MapOfDistances(7, sd.getWheelRearRight());
+		  m_sensorBoardData.putTo_MapOfDistances(8, (int)sd.getGyroHeading());
+		  m_sensorBoardData.putTo_MapOfDistances(9, buttons[1]);
+		  m_sensorBoardData.putTo_MapOfDistances(10, buttons[2]);
+		  m_sensorBoardData.putTo_MapOfDistances(11, buttons[3]);
+		  m_sensorBoardData.putTo_MapOfDistances(12, sd.getLightReading());
+		  Container sensorData(Container::USER_DATA_0, m_sensorBoardData);
+		  return sensorData;
+		}
+		cout << "disregarded <<<<<---------------------------------"<< endl;
+
+		return emptyContainer;
 	}
 	
 	void Proxy::nextString(const string &s) {
@@ -113,7 +118,7 @@ namespace automotive {
 	      
 	     }
 	     cout << endl; */
-	     distribute(decodePayload(netstring.str()));
+	    distribute(decodePayload(netstring.str()));
 	      netstring.str(std::string());
 	    }
 	  } 
