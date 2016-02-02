@@ -55,6 +55,11 @@ namespace msv {
 
         void parking();
 
+	int32_t m_timestamp;
+
+	float previousError ;
+        float SpeedControl(float setSpeed,float actualSpeed,double timeStep, float *); 
+
     };
 
 
