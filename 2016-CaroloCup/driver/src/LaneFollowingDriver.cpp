@@ -8,8 +8,8 @@ int startBoxLength;
 int initialDist;
 int currDist;
 bool firstRun;
-int intersectionNoStopLine;
-bool stop = false;
+float prevSteering;
+int correctionDistance = 0;
 
 namespace msv {
 
@@ -95,21 +95,29 @@ namespace msv {
         m_intGain = 0.5;//1.0;//8.39; //8.39;
         m_derGain = 0.23;//0.23;
 
-        //Check for intersection
-        // This algo needs to be changed to work according
-        // to the distance traveled in the intersection,
-        // instead of the time.
         bool res = laneFollowing(&ldd);
-        //cout << "Stee Sign: "<< steer_sign << "\nLast Steer: "<< last_steer <<endl;
 
         m_speed = initialSpeed;
 
-        if (!res) {
+        if (! res) {
             cout << "Waiting..." << endl;
             DriverGeneric::desiredSpeed = initialSpeed;
+
+            if (! correctionDistance) correctionDistance = (int) sbd.getValueForKey_MapOfDistances(6);
+
             DriverGeneric::desiredSteering = 0;
+
+            if (currDist - correctionDistance > 5) {
+                DriverGeneric::desiredSteering = 0;
+                correctionDistance = -1;
+            } else {
+                DriverGeneric::desiredSteering = prevSteering;
+            }
+
             return;
         }
+
+        correctionDistance = 0;
 
         float desSteering = (float) (m_desiredSteeringWheelAngle * 180 / M_PI);
 
@@ -121,33 +129,18 @@ namespace msv {
         cout << "steeringAngle" << flush;
         cout << desSteering << endl;
 
-        //last_steer = desSteering;
-
+        prevSteering = desSteering;
         DriverGeneric::desiredSteering = (float) (desSteering * M_PI / 180);
 
         float speedVal;
-        //int runSpeed = 1565;
-        speedVal = m_speed;
-        if (abs(desSteering) < 4) {
-            increaseSpeed++;
-        }
-        else {
-            increaseSpeed = 0;
-        }
-/*
-            if (increaseSpeed >= 3 && increaseSpeed < 6)
-            {
-                speedVal = m_speed + 0.1;
-            }
-            else if (increaseSpeed >= 6)
-            {
-                speedVal = m_speed + 0.2;
-            }
-*/
+
+        speedVal = initialSpeed;
+
+        if (abs(desSteering) < 4) speedVal = 1.6;
+
         cout << "Speed: " << speedVal << endl;
         cout << "SpeedDefault: " << initialSpeed << endl << endl;
-        DriverGeneric::desiredSpeed = initialSpeed;
-        if (stop) DriverGeneric::desiredSpeed = 0;
+        DriverGeneric::desiredSpeed = speedVal;
     }
 
     void LaneFollowingDriver::Initialize() {
@@ -163,7 +156,6 @@ namespace msv {
         initialDist = 0;
         currDist = 0;
         firstRun = true;
-        stop = false;
     }
 
 
