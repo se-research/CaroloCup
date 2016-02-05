@@ -2,6 +2,7 @@
 #include "Transforms.h"
 #include <fstream>
 #include <queue>
+#include <jmorecfg.h>
 #include "core/data/TimeStamp.h"
 
 namespace msv
@@ -35,6 +36,25 @@ int intersectionRect;
 bool calcIntersectionGoalLine = false;
 int intersection_start;
 
+enum IntersectionType {
+    NO_INTERSECTION, STOP_LINE_INTERSECTION, INTERSECTION_WITHOUT_STOP_LINE
+};
+IntersectionType intersectionType = NO_INTERSECTION;
+
+struct LinesApproxPos {
+    Point rightLine;
+    Point firstDash;
+    Point secondDash;
+    Point leftLine;
+
+    void reset() {
+        rightLine = Point(-1, -1);
+        firstDash = Point(-1, -1);
+        secondDash = Point(-1, -1);
+        leftLine = Point(-1, -1);
+    }
+} linesApproxPos;
+
 LineDetector::LineDetector(const Mat &f, const Config &cfg, const bool debug,
                            const int id) :
     m_frame(), m_frameCanny(), m_lines(NULL), m_debug(debug), m_lastSolidRightTop(), detectedLines(), m_config(
@@ -50,7 +70,8 @@ LineDetector::LineDetector(const Mat &f, const Config &cfg, const bool debug,
     offset = 2 * h / 16 - 1;
     /// Detect edges using Threshold
 //    threshold(m_frame, m_frame, 0, 255, CV_THRESH_BINARY + CV_THRESH_OTSU);
-    threshold(m_frame, m_frame, 80, 255, CV_THRESH_BINARY);
+//    threshold(m_frame, m_frame, m_config.th1, 255, CV_THRESH_BINARY);
+    threshold(m_frame, m_frame, 130, 255, CV_THRESH_BINARY);
     cvtColor(m_frame, m_frame_color, CV_GRAY2BGR);
 
     // Run lineDetector and provide goalLines for the driver
@@ -311,7 +332,7 @@ void LineDetector::findLines()
             time_taken_createTrajectory = endTime.toMicroseconds() - startTime;
             // Debug data is set inside the function
         }
-    createIntersectionGoalLine();
+//    createIntersectionGoalLine();
     // -- end testing
 
 
@@ -751,8 +772,6 @@ void LineDetector::classification()
     Point shortSideMiddle;
     intersectionRect = -1;
 
-    float angle_thr = 10;
-    float height_thr = (1 * h) / 2;
     bool intersectionLineFirst = false;
     bool intersectionLineSecond = false;
 
@@ -767,6 +786,8 @@ void LineDetector::classification()
     int distance;
 
     for (int i = 0; i < rects.size(); i++) {
+        if (roadState == INTERSECTION) break;
+
         rect = rects[i];
         sizeX = line_sizes[i].sizeX;
         sizeY = line_sizes[i].sizeY;
@@ -780,49 +801,43 @@ void LineDetector::classification()
         /**
          * Detect intersection.
          */
-        if (roadState == NORMAL) {
-            // Detect stop line.
-            if (area > m_config.maxArea * 10000) {
-                if ((abs(rect.angle) < angle_thr || 180 - abs(rect.angle) < angle_thr)
-                    && rectCenter.y > height_thr) {
-                    roadState = INTERSECTION;
-                    intersectionOn = true;
-                    calcIntersectionGoalLine = true;
-                    foundIntersection = true;
-                    intersecionType = STOP_LINE_INTERSECTION;
-                    intersection_start = m_config.currentDistance;
+        if (area > m_config.maxArea * 10000) { // Detect stop line.
+            roadState = INTERSECTION;
+            intersectionOn = true;
+            calcIntersectionGoalLine = true;
+            foundIntersection = true;
+            intersectionType = STOP_LINE_INTERSECTION;
+            intersection_start = m_config.currentDistance;
 
-                    cout << "STOP LINE INTERSECTION" << endl;
+            cout << "STOP LINE INTERSECTION" << endl;
 
-                    break;
-                }
-            } else { // Detect intersection with no stop line/sideways stop line.
-                if (! intersectionLineFirst) {
-                    if (rect.center.x > 375 && rect.center.y > 125 && rect.angle < 10) {
-                        if (rect.size.height > 200) {
-                            intersectionLineFirst = true;
-                        }
-                    }
-                } else if (! intersectionLineSecond) {
-                    if (rect.center.x > 375 && rect.center.y < 125 && rect.angle < 10) {
-                        if (rect.size.height > 50) {
-                            intersectionLineSecond = true;
-                        }
+            break;
+        } else { // Detect intersection with no stop line/sideways stop line.
+            if (! intersectionLineFirst) {
+                if (rect.center.x > 375 && rect.center.y > 125 && rect.angle < 10) {
+                    if (rect.size.height > 200) {
+                        intersectionLineFirst = true;
                     }
                 }
-
-                if (intersectionLineFirst && intersectionLineSecond) {
-                    roadState = INTERSECTION;
-                    intersectionOn = true;
-                    calcIntersectionGoalLine = true;
-                    foundIntersection = true;
-                    intersection_start = m_config.currentDistance;
-                    intersecionType = INTERSECTION_WITHOUT_STOP_LINE;
-
-                    cout << "INTERSECTION NO STOP LINE" << endl;
-
-                    break;
+            } else if (! intersectionLineSecond) {
+                if (rect.center.x > 375 && rect.center.y < 125 && rect.angle < 10) {
+                    if (rect.size.height > 50) {
+                        intersectionLineSecond = true;
+                    }
                 }
+            }
+
+            if (intersectionLineFirst && intersectionLineSecond) {
+                roadState = INTERSECTION;
+                intersectionOn = true;
+                calcIntersectionGoalLine = true;
+                foundIntersection = true;
+                intersection_start = m_config.currentDistance;
+                intersectionType = INTERSECTION_WITHOUT_STOP_LINE;
+
+                cout << "INTERSECTION NO STOP LINE" << endl;
+
+                break;
             }
         }
 
@@ -902,41 +917,21 @@ void LineDetector::classification()
     /**
      * Handle intersection state.
      */
-    int currentDistance =  m_config.currentDistance;
-    int distanceTravelled = currentDistance - intersection_start;
+    int distanceTravelled = m_config.currentDistance - intersection_start;
+    int distanceToTravel = 0;
 
-    if (m_debug) { // disable intersection on while debugging as you don't get wheel encoders data
+    if (intersectionType == INTERSECTION_WITHOUT_STOP_LINE) {
+        distanceToTravel = 80;
+    } else if (intersectionType == STOP_LINE_INTERSECTION) {
+        distanceToTravel = 120;
+    }
+
+    if (intersectionType && distanceTravelled > distanceToTravel){
         roadState = NORMAL;
         intersectionOn = false;
         foundIntersection = false;
         calcIntersectionGoalLine = false;
-        intersecionType = NO_INTERSECTION;
-    }
-
-    if (intersecionType == INTERSECTION_WITHOUT_STOP_LINE) {
-        if (distanceTravelled < 20) {
-            roadState = NORMAL;
-        } else if (distanceTravelled > 20 && distanceTravelled < 60) {
-            roadState = INTERSECTION;
-        }
-    }
-
-    if (intersecionType && distanceTravelled > 60){
-        roadState = NORMAL;
-        intersectionOn = false;
-        foundIntersection = false;
-        calcIntersectionGoalLine = false;
-        intersecionType = NO_INTERSECTION;
-    }
-
-    if (intersectionRect == -1 && roadState == INTERSECTION){
-        if (printouts)
-            cout << "STOPS updating intersection_goalLine: " << endl;
-        calcIntersectionGoalLine = false;
-    }
-
-    if (intersectionOn && ! foundIntersection) {
-        YI = h;
+        intersectionType = NO_INTERSECTION;
     }
 }
 
@@ -998,7 +993,7 @@ void LineDetector::createTrajectory(LinesToUse *ltu)
     }
 
     if (ltu->foundD) {
-        if ((ltu->dashedCurve)[1].p1.x > 0 && (ltu->dashedCurve)[1].p1.y > 0) {
+        if ((ltu->dashedCurve)[1].p1.x > -1 && (ltu->dashedCurve)[1].p1.y > -1) {
             (ltu->dashedCurve)[0].p2.x = (ltu->dashedCurve)[1].p2.x;
             (ltu->dashedCurve)[0].p2.y = (ltu->dashedCurve)[1].p2.y;
             (ltu->dashedCurve)[0].slope = getLineSlope(
@@ -1135,14 +1130,14 @@ void LineDetector::createIntersectionGoalLine(){
                 newRightGoalLine.p2.x = getIntersectionWithBottom(newRightGoalLine);
                 newRightGoalLine.p2.y = h;
                 newRightGoalLine.p1.x = getIntersectionWithTop(newRightGoalLine);
-                newRightGoalLine.p1.y = 0; 
+                newRightGoalLine.p1.y = 0;
                 // Derive left goal line
                 newLeftGoalLine = newRightGoalLine;
                 newLeftGoalLine.slope = abs(newRightGoalLine.slope) + ROAD_ANGLE*0.65;// 2*(90 - ROAD_ANGLE);//180 - abs(newRightGoalLine.slope) - ROAD_ANGLE;
                 newLeftGoalLine.p2.x = newRightGoalLine.p2.x - ROAD_SIZE;
                 newLeftGoalLine.p1.x = getIntersectionWithTopP2(newLeftGoalLine);
                 if (printouts && m_debug){
-                    cout << "changes to new goalLine!" << endl;            
+                    cout << "changes to new goalLine!" << endl;
                     cout << "newRightGoalLine slope: " << newRightGoalLine.slope << " p1(" << newRightGoalLine.p1.x << "," << newRightGoalLine.p1.y;
                     cout << ") p2(" << newRightGoalLine.p2.x << "," << newRightGoalLine.p2.y << ")" << endl;
                     cout << "newLeftGoalLine slope: " << newLeftGoalLine.slope << " p1(" << newLeftGoalLine.p1.x << "," << newLeftGoalLine.p1.y;
@@ -1178,12 +1173,12 @@ void LineDetector::createIntersectionGoalLine(){
         }
 
         if(isNoneCustomLine(newRightGoalLine)){
-            dataToDriver->noTrajectory = true;            
+            dataToDriver->noTrajectory = true;
         }else{
-            dataToDriver->noTrajectory = false;     
+            dataToDriver->noTrajectory = false;
             dataToDriver->rightGoalLines0 = newRightGoalLine;
             dataToDriver->leftGoalLines0 = newLeftGoalLine;
-            dataToDriver->currentLine = currentLine; 
+            dataToDriver->currentLine = currentLine;
         }
     }
     if (printouts && m_debug)
@@ -2841,3 +2836,4 @@ FinalOutput *LineDetector::getResult_createTrajectory()
 }
 
 }
+
