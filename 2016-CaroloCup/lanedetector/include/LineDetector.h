@@ -134,6 +134,7 @@ public:
     }
 
     long time_taken_extractRoad;
+    long time_taken_extractLines;
     long time_taken_contour;
     long time_taken_find_lines;
     long time_taken_classification;
@@ -178,6 +179,8 @@ private:
     CustomLine createLineFromRect(RotatedRect *rect, int sizeX, int sizeY, int polygonIndex);
     void extractRoad();
 	Point getLowestOrHighestPoint(std::vector<Point> pts, bool getLowest);
+    bool extractLine(vector<Point> line, int minArea, int index, CustomLine &lineContainer);
+    void extractLines();
     //Find contours
     void getContours();
     //Get all marked lines
@@ -246,23 +249,25 @@ private:
     int confidenceLevel;
     RoadAngle_RoadSize_debug rrd;
 
-    enum IntersecionType {
+    enum IntersectionType {
         NO_INTERSECTION, STOP_LINE_INTERSECTION, INTERSECTION_WITHOUT_STOP_LINE
-    } intersecionType;
+    };
 
-    struct LinesApproxPos {
-        Point rightLine;
-        Point firstDash;
-        Point secondDash;
-        Point leftLine;
+    IntersectionType intersectionType = NO_INTERSECTION;
+
+    struct LinesContour {
+        vector<Point> rightLine;
+        vector<Point> leftLine;
+        vector<Point> firstDash;
+        vector<Point> secondDash;
 
         void reset() {
-            rightLine = Point(-1, -1);
-            firstDash = Point(-1, -1);
-            secondDash = Point(-1, -1);
-            leftLine = Point(-1, -1);
+            rightLine = {};
+            leftLine = {};
+            firstDash = {};
+            secondDash = {};
         }
-    } linesApproxPos;
+    } linesContour;
 };
 
 }

@@ -36,25 +36,6 @@ int intersectionRect;
 bool calcIntersectionGoalLine = false;
 int intersection_start;
 
-enum IntersectionType {
-    NO_INTERSECTION, STOP_LINE_INTERSECTION, INTERSECTION_WITHOUT_STOP_LINE
-};
-IntersectionType intersectionType = NO_INTERSECTION;
-
-struct LinesApproxPos {
-    Point rightLine;
-    Point firstDash;
-    Point secondDash;
-    Point leftLine;
-
-    void reset() {
-        rightLine = Point(-1, -1);
-        firstDash = Point(-1, -1);
-        secondDash = Point(-1, -1);
-        leftLine = Point(-1, -1);
-    }
-} linesApproxPos;
-
 LineDetector::LineDetector(const Mat &f, const Config &cfg, const bool debug,
                            const int id) :
     m_frame(), m_frameCanny(), m_lines(NULL), m_debug(debug), m_lastSolidRightTop(), detectedLines(), m_config(
@@ -71,7 +52,7 @@ LineDetector::LineDetector(const Mat &f, const Config &cfg, const bool debug,
     /// Detect edges using Threshold
 //    threshold(m_frame, m_frame, 0, 255, CV_THRESH_BINARY + CV_THRESH_OTSU);
 //    threshold(m_frame, m_frame, m_config.th1, 255, CV_THRESH_BINARY);
-    threshold(m_frame, m_frame, 130, 255, CV_THRESH_BINARY);
+    threshold(m_frame, m_frame, 100, 255, CV_THRESH_BINARY);
     cvtColor(m_frame, m_frame_color, CV_GRAY2BGR);
 
     // Run lineDetector and provide goalLines for the driver
@@ -101,16 +82,19 @@ Lines LineDetector::getLines()
 }
 
 void LineDetector::extractRoad() {
-    Mat out(m_frame.rows , m_frame.cols, CV_8U, Scalar(0));
+    linesContour.reset();
 
-    linesApproxPos.reset();
+    struct LinesStartPos {
+        Point rightLine = Point(-1, -1);
+        Point firstDash = Point(-1, -1);
+        Point secondDash = Point(-1, -1);
+        Point leftLine = Point(-1, -1);
+    } linesStartPos;
 
     enum LineState {
         NO_LINE_FOUND,
-        FIRST_LINE_FOUND,
-        FIRST_LINE_PASSED,
-        SECOND_LINE_FOUND,
-        SECOND_LINE_PASSED
+        LINE_FOUND,
+        LINE_PASSED
     };
 
     enum DashState {
@@ -118,9 +102,7 @@ void LineDetector::extractRoad() {
         FIRST_DASH_START,
         FIRST_DASH_END,
         SECOND_DASH_START,
-        SECOND_DASH_END,
-        THIRD_DASH_START,
-        THIRD_DASH_END
+        SECOND_DASH_END
     };
 
     int maxWidth = m_frame.cols - 1;
@@ -129,45 +111,63 @@ void LineDetector::extractRoad() {
     int halfHeight = maxHeight / 2;
     int scanOffset = 3;
 
-    int rightLineScan = halfWidth;
-    int dashScan = halfWidth;
+    int rightLineScan = halfWidth + halfWidth / 5;
+    int dashLineScan = halfWidth - halfWidth / 5;
+    int leftLineScan = -1;
     auto dashState = NO_DASH_FOUND;
     int whitesCount = 0;
     int maxWhites = 30;
     int lastFirstLinePoint = -1;
+    int minLineHeight = 30;
 
     uchar* framePointer;
-    uchar* outPointer;
+
+    bool breakLoop = false;
+    bool breakRightLine = false;
+    bool breakLeftLine = false;
 
     for (int row = maxHeight; row >= 0; row--) {
-        auto leftLineState = NO_LINE_FOUND;
-        auto rightLineState = NO_LINE_FOUND;
+        if (breakLoop) break;
 
-        if (dashState == SECOND_DASH_END) break;
+        auto rightLineState = NO_LINE_FOUND;
+        auto dashLineState = NO_LINE_FOUND;
+        auto leftLineState = NO_LINE_FOUND;
 
         framePointer = m_frame.ptr<uchar>(row);
 
+        // scan right line
         for (int col = rightLineScan; col <= maxWidth; col++) {
+            if (breakRightLine) break;
+
             uchar color = framePointer[col];
 
             if (color == 255) {
                 if (whitesCount++ > maxWhites) break;
 
-                outPointer = out.ptr<uchar>(row);
-                outPointer[col] = 255;
-
                 if (rightLineState == NO_LINE_FOUND) {
                     rightLineScan = col - scanOffset;
-                    rightLineState = FIRST_LINE_FOUND;
+                    rightLineState = LINE_FOUND;
 
-                    if (linesApproxPos.rightLine.x < 0) linesApproxPos.rightLine = Point(col, row);
+                    if (linesStartPos.rightLine.x < 0) linesStartPos.rightLine = Point(col, row);
+                    linesContour.rightLine.push_back(Point(col, row));
                 }
             } else {
                 if (whitesCount) whitesCount = 0;
 
-                if (rightLineState == FIRST_LINE_FOUND) {
-                    rightLineState = FIRST_LINE_PASSED;
-                } else if (rightLineState == FIRST_LINE_PASSED) {
+                if (linesStartPos.rightLine.x > 0 && rightLineState == NO_LINE_FOUND) {
+                    if (col > rightLineScan + scanOffset + 1) {
+                        // stop scanning for the right line while keeping its last position for the dash line
+                        breakRightLine = true;
+
+                        break;
+                    }
+                }
+
+                if (rightLineState == LINE_FOUND) {
+                    rightLineState = LINE_PASSED;
+                } else if (rightLineState == LINE_PASSED) {
+                    linesContour.rightLine.push_back(Point(col, row));
+
                     break;
                 }
             }
@@ -175,84 +175,296 @@ void LineDetector::extractRoad() {
 
         whitesCount = 0;
 
-        for (int col = dashScan; col >= 0; col--) {
+        // scan left line
+        if (row < halfHeight && leftLineScan == -1) leftLineScan = 0;
+
+        for (int col = leftLineScan; col >= 0; col--) {
+            if (breakLeftLine) break;
+
             uchar color = framePointer[col];
 
             if (color == 255) {
+                if (whitesCount++ > maxWhites) break;
+
                 if (leftLineState == NO_LINE_FOUND) {
-                    leftLineState = FIRST_LINE_FOUND;
+                    leftLineState = LINE_FOUND;
+                    leftLineScan = col + scanOffset;
 
-                    dashScan = col + scanOffset;
-
-                    if (dashState == NO_DASH_FOUND) {
-                        dashState = FIRST_DASH_START;
-
-                        if (linesApproxPos.firstDash.x < 0) linesApproxPos.firstDash = Point(col, row);
-
-                    } else if (dashState == FIRST_DASH_END) {
-                        dashState = SECOND_DASH_START;
-
-                        if (linesApproxPos.secondDash.x < 0) linesApproxPos.secondDash = Point(col, row);
-                    } else if (dashState == SECOND_DASH_END) {
-                        dashState = THIRD_DASH_START;
-                    } else if (dashState == SECOND_DASH_START && ! row) {
-                        dashState = SECOND_DASH_END;
-                    } else if (dashState == THIRD_DASH_START && ! row) {
-                        dashState = THIRD_DASH_END;
-                    }
-
-                    if (! col) lastFirstLinePoint = 0;
-                } else if (leftLineState == FIRST_LINE_PASSED) {
-                    if (lastFirstLinePoint - col < 30) break;
-
-                    leftLineState = SECOND_LINE_FOUND;
-
-                    if (linesApproxPos.leftLine.x < 0) linesApproxPos.leftLine = Point(col, row);
-                } else if (leftLineState == SECOND_LINE_FOUND) {
-                    if (whitesCount++ > maxWhites) break;
+                    if (linesStartPos.leftLine.x < 0) linesStartPos.leftLine = Point(col, row);
+                    linesContour.leftLine.push_back(Point(col, row));
                 }
-
-                outPointer = out.ptr<uchar>(row);
-                outPointer[col] = 255;
             } else {
                 if (whitesCount) whitesCount = 0;
 
-                if (leftLineState == FIRST_LINE_FOUND) {
-                    leftLineState = FIRST_LINE_PASSED;
+                if (linesStartPos.leftLine.x > 0 && leftLineState == NO_LINE_FOUND) {
+                    int limit = col < leftLineScan + scanOffset + 1;
+                    if (limit < 0) limit = 1;
 
-                    lastFirstLinePoint = col - maxWhites;
-                    if (lastFirstLinePoint < 0) lastFirstLinePoint = 0;
-                } else if (leftLineState == NO_LINE_FOUND && col == lastFirstLinePoint) {
-                    leftLineState = FIRST_LINE_PASSED;
+                    if (col < limit) {
+                        // stop scanning for the right line while keeping its last position for the dash line
+                        breakRightLine = true;
 
-                    dashScan += scanOffset;
-
-                    if (dashState == FIRST_DASH_START) {
-                        dashState = FIRST_DASH_END;
-                    } else if (dashState == SECOND_DASH_START) {
-                        dashState = SECOND_DASH_END;
-                    } else if (dashState == THIRD_DASH_START) {
-                        dashState = THIRD_DASH_END;
+                        break;
                     }
-                } else if (leftLineState == SECOND_LINE_FOUND) {
-                    leftLineState = SECOND_LINE_PASSED;
-                } else if (leftLineState == SECOND_LINE_PASSED) {
+                }
+
+                if (leftLineState == LINE_FOUND) {
+                    leftLineState = LINE_PASSED;
+                } else if (leftLineState == LINE_PASSED) {
+                    linesContour.leftLine.push_back(Point(col, row));
+
                     break;
                 }
             }
         }
 
-        for (int col = dashScan; col <= rightLineScan; col++) {
+        whitesCount = 0;
+
+        // scan dash line
+        for (int col = dashLineScan; col >= 0; col--) {
+            if (row < halfHeight - halfHeight / 5 && linesStartPos.firstDash.x < 0) dashLineScan = -1;
+
+            // stop scanning if it touches one of the solid lines
+            if (linesStartPos.leftLine.x > -1 && col <= leftLineScan) break;
+            if (linesStartPos.rightLine.x > -1 && col >= rightLineScan) break;
+
             uchar color = framePointer[col];
 
             if (color == 255) {
-                outPointer = out.ptr<uchar>(row);
-                outPointer[col] = 255;
+                if (dashLineState == NO_LINE_FOUND) {
+                    dashLineState = LINE_FOUND;
+
+                    dashLineScan = col + scanOffset;
+
+                    if (dashState == NO_DASH_FOUND) {
+                        dashState = FIRST_DASH_START;
+
+                        if (linesStartPos.firstDash.x < 0) linesStartPos.firstDash = Point(col, row);
+                    } else if (dashState == FIRST_DASH_END) {
+                        dashState = SECOND_DASH_START;
+
+                        if (linesStartPos.secondDash.x < 0) linesStartPos.secondDash = Point(col, row);
+                    } else if (dashState == SECOND_DASH_START && ! row) {
+                        dashState = SECOND_DASH_END;
+                    }
+
+                    if (dashState == FIRST_DASH_START) {
+                        linesContour.firstDash.push_back(Point(col, row));
+                    } else if (dashState == SECOND_DASH_START) {
+                        linesContour.secondDash.push_back(Point(col, row));
+                    }
+
+                    if (! col) lastFirstLinePoint = 0;
+                }
+            } else {
+                if (dashLineState == LINE_FOUND) {
+                    dashLineState = LINE_PASSED;
+
+                    lastFirstLinePoint = col - maxWhites;
+                    if (lastFirstLinePoint < 0) lastFirstLinePoint = 0;
+                } else if (dashLineState == NO_LINE_FOUND && col == lastFirstLinePoint) {
+                    dashLineState = LINE_PASSED;
+
+                    dashLineScan += scanOffset;
+
+                    if (dashState == FIRST_DASH_START) {
+                        // checks if the dash is tall enough
+                        if (linesStartPos.firstDash.y - row > minLineHeight) {
+                            dashState = FIRST_DASH_END;
+                        } else {
+                            linesStartPos.firstDash = Point(-1, -1);
+                            linesContour.firstDash = {};
+                            dashState = NO_DASH_FOUND;
+                        }
+                    } else if (dashState == SECOND_DASH_START) {
+                        dashState = SECOND_DASH_END;
+
+                        breakLoop = true;
+                    }
+                } else if (dashLineState == LINE_PASSED) {
+                    if (dashState == FIRST_DASH_START) {
+                        linesContour.firstDash.push_back(Point(col, row));
+                    } else if (dashState == SECOND_DASH_START) {
+                        linesContour.secondDash.push_back(Point(col, row));
+                    }
+
+                    break;
+                }
+            }
+        }
+    }
+}
+
+bool LineDetector::extractLine(vector<Point> line, int minArea, int index, CustomLine &lineContainer) {
+    if (! line.size()) return false;
+
+    RotatedRect rect;
+    rect = minAreaRect(line);
+
+    if (rect.size.area() < minArea) return false;
+    if (index == 1 || index == 2) { // only relevant to dash lines
+        if (rect.center.y < 50 && rect.center.x < 50) return false; // abort if rectangle is in the left most corner
+        if (rect.angle <= -80 && rect.angle >= -90) return false; // remove horizontal lines
+        if (rect.angle >= 80 && rect.angle <= 90) return false; // remove horizontal lines
+        if (rect.angle >= -5 && rect.angle <= 5) return false; // remove horizontal lines
+        if (rect.angle > -20 && rect.angle < 20) return false; // remove lines that are too steep
+    }
+
+    Point2f rectPoints[4];
+    rect.points(rectPoints);
+
+    int sizeX = 0;
+    int sizeY = 0;
+    int sizeR = 0;
+    Point rectCenter;
+    Point shortSideMiddle;
+    Point longSideMiddle;
+
+    for (int j = 0; j < 4; j++) {
+        sizeR = (int) cv::sqrt(cv::pow((rectPoints[j].x - rectPoints[(j + 1) % 4].x), 2)
+                               + cv::pow((rectPoints[j].y - rectPoints[(j + 1) % 4].y), 2));
+
+        if (! sizeX) {
+            sizeX = sizeR;
+            shortSideMiddle.x = (int) ((rectPoints[j].x + rectPoints[(j + 1) % 4].x) / 2);
+            shortSideMiddle.y = (int) ((rectPoints[j].y + rectPoints[(j + 1) % 4].y) / 2);
+        } else if (! sizeY && sizeR != sizeX) {
+            sizeY = sizeR;
+            longSideMiddle.x = (int) ((rectPoints[j].x + rectPoints[(j + 1) % 4].x) / 2);
+            longSideMiddle.y = (int) ((rectPoints[j].y + rectPoints[(j + 1) % 4].y) / 2);
+        }
+    } if (sizeX > sizeY) {
+        Point2f temp;
+        sizeR = sizeX;
+        sizeX = sizeY;
+        sizeY = sizeR;
+        temp = longSideMiddle;
+        shortSideMiddle = temp;
+    }
+
+    rectCenter.x = (int) rect.center.x;
+    rectCenter.y = (int) rect.center.y;
+
+    rect.angle = getLineSlope(shortSideMiddle, rectCenter);
+
+    lineContainer = createLineFromRect(&rect, sizeX, sizeY, index);
+    lineContainer.center.x = (int) rect.center.x;
+    lineContainer.center.y = (int) rect.center.y;
+
+    return true;
+}
+
+void LineDetector::extractLines() {
+    CustomLine firstDash;
+    CustomLine secondDash;
+    CustomLine rightLine;
+    CustomLine leftLine;
+
+    bool rightLineFound = false;
+    bool leftLineFound = false;
+    bool firstDashFound = false;
+    bool secondDashFound = false;
+
+    firstDashFound = extractLine(linesContour.firstDash, 200, 1, firstDash) && firstDash.center.x <= 375;
+
+    if (firstDashFound) {
+        ltu.foundD = true;
+        ltu.dashedCurveFound = true;
+        ltu.dashedCurve.push_back(firstDash);
+
+        secondDashFound = extractLine(linesContour.secondDash, 200, 2, secondDash);
+
+        if (secondDashFound) {
+            int distance = (int) norm(firstDash.center - secondDash.center);
+
+            if (distance < 300) {
+                ltu.dashedCurve.push_back(secondDash);
             }
         }
     }
 
-    out.copyTo(m_frame);
+    leftLineFound = extractLine(linesContour.leftLine, 500, 3, leftLine);
+
+    if (leftLineFound) {
+        ltu.leftLine = leftLine;
+        ltu.foundL = true;
+    } else {
+        ltu.foundL = false;
+    }
+
+    rightLineFound = extractLine(linesContour.rightLine, 1500, 0, rightLine);
+
+    if (rightLineFound) {
+        ltu.rightLine = rightLine;
+        ltu.foundR = true;
+    }
+
+    int primaryLaneSizeMin = 160;
+    int parimaryLaneSizeMax = 640;
+    int primaryLaneScale = parimaryLaneSizeMax - primaryLaneSizeMin;
+    float primaryLaneRatio = (float) (primaryLaneScale * 1.0 / m_frame.rows);
+
+    int secondaryLaneSizeMin = 120;
+    int secondaryLaneSizeMax = 340;
+    int secondaryLaneScale = secondaryLaneSizeMax - secondaryLaneSizeMin;
+    float secondaryLaneRatio = (float) (secondaryLaneScale * 1.0 / m_frame.rows);
+
+    if (! firstDashFound) {
+        // attempt to reconstruct the dash line using the right line
+        if (rightLineFound) {
+            firstDash.p1.x = (int) (rightLine.p1.x - primaryLaneSizeMin - rightLine.p1.y * primaryLaneRatio);
+            firstDash.p1.y = rightLine.p1.y;
+            firstDash.p2.x = (int) (rightLine.p2.x - primaryLaneSizeMin - rightLine.p2.y * primaryLaneRatio);
+            firstDash.p2.y = rightLine.p2.y;
+            firstDash.slope = getLineSlope(firstDash.p1, firstDash.p2);
+
+            ltu.foundD = true;
+            ltu.dashedCurveFound = true;
+            ltu.dashedCurve.push_back(firstDash);
+        } else if (leftLineFound) {
+            firstDash.p1.x = (int) (leftLine.p1.x + secondaryLaneSizeMin + leftLine.p1.y * secondaryLaneRatio);
+            firstDash.p1.y = leftLine.p1.y;
+            firstDash.p2.x = (int) (leftLine.p2.x + secondaryLaneSizeMin + leftLine.p2.y * secondaryLaneRatio);
+            firstDash.p2.y = leftLine.p2.y;
+            firstDash.slope = getLineSlope(firstDash.p1, firstDash.p2);
+
+            ltu.foundD = true;
+            ltu.dashedCurveFound = true;
+            ltu.dashedCurve.push_back(firstDash);
+
+            firstDashFound = true;
+        } else {
+            ltu.foundD = false;
+            ltu.dashedCurveFound = false;
+        }
+    }
+
+    if (! rightLineFound) {
+        // attempt to reconstruct the right line using dashed lines
+
+        //TODO: extract this into a function
+        if (firstDashFound && secondDashFound) {
+            rightLine.p1.x = (int) (firstDash.p1.x + primaryLaneSizeMin + firstDash.p1.y * primaryLaneRatio);
+            rightLine.p1.y = firstDash.p1.y;
+            rightLine.p2.x = (int) (secondDash.p2.x + primaryLaneSizeMin + secondDash.p2.y * primaryLaneRatio);
+            rightLine.p2.y = secondDash.p2.y;
+            rightLine.slope = getLineSlope(rightLine.p1, rightLine.p2);
+
+            ltu.rightLine = rightLine;
+            ltu.foundR = true;
+        } else if (firstDashFound && ! secondDashFound) {
+            rightLine.p1.x = (int) (firstDash.p1.x + primaryLaneSizeMin + firstDash.p1.y * primaryLaneRatio);
+            rightLine.p1.y = firstDash.p1.y;
+            rightLine.p2.x = (int) (firstDash.p2.x + primaryLaneSizeMin + firstDash.p2.y * primaryLaneRatio);
+            rightLine.p2.y = firstDash.p2.y;
+            rightLine.slope = getLineSlope(rightLine.p1, rightLine.p2);
+
+            ltu.rightLine = rightLine;
+            ltu.foundR = true;
+        } else {
+            ltu.foundR = false;
+        }
+    }
 }
 
 // The "body"
@@ -273,53 +485,64 @@ void LineDetector::findLines()
             TimeStamp currentTime;
             startTime = currentTime.toMicroseconds();
         }
-    //Find contours
-    getContours();
+
+    extractLines();
 
     if (m_debug)
-        {
-            TimeStamp endTime;
-            time_taken_contour = endTime.toMicroseconds() - startTime;
-            result_getContours.contours = contours_poly;
-            TimeStamp currentTime;
-            startTime = currentTime.toMicroseconds();
-        }
-    //Get all marked lines
-    getRectangles();
-    if (m_debug)
-        {
-            TimeStamp endTime;
-            time_taken_find_lines = endTime.toMicroseconds() - startTime;
-            result_getRectangles.rects = rects;
-            TimeStamp currentTime;
-            startTime = currentTime.toMicroseconds();
-        }
+    {
+        TimeStamp endTime;
+        time_taken_extractLines = endTime.toMicroseconds() - startTime;
+        TimeStamp currentTime;
+        startTime = currentTime.toMicroseconds();
+    }
 
-    //Classify dash lines and solid lines
-    classification();
-    if (m_debug)
-        {
-            TimeStamp endTime;
-            time_taken_classification = endTime.toMicroseconds() - startTime;
-            result_classification.dashLines = dashLines;
-            result_classification.solidLines = solidLines;
-            result_classification.cntDash = cntDash;
-            result_classification.cntSolid = cntSolid;
-            result_classification.foundStopStartLine = foundStopStartLine;
-            result_classification.intersectionOn = intersectionOn;
-            result_classification.foundIntersection = foundIntersection;
-            TimeStamp currentTime;
-            startTime = currentTime.toMicroseconds();
-        }
-
-    characteristicFiltering(&ltu);
-    if (m_debug)
-        {
-            TimeStamp endTime;
-            time_taken_characteristicFiltering = endTime.toMicroseconds() - startTime;
-            // Debug data is not provided for this function. It is sufficient to look
-            // at the debug data from createTrajectory
-        }
+//    //Find contours
+//    getContours();
+//
+//    if (m_debug)
+//        {
+//            TimeStamp endTime;
+//            time_taken_contour = endTime.toMicroseconds() - startTime;
+//            result_getContours.contours = contours_poly;
+//            TimeStamp currentTime;
+//            startTime = currentTime.toMicroseconds();
+//        }
+//    //Get all marked lines
+//    getRectangles();
+//    if (m_debug)
+//        {
+//            TimeStamp endTime;
+//            time_taken_find_lines = endTime.toMicroseconds() - startTime;
+//            result_getRectangles.rects = rects;
+//            TimeStamp currentTime;
+//            startTime = currentTime.toMicroseconds();
+//        }
+//
+//    //Classify dash lines and solid lines
+//    classification();
+//    if (m_debug)
+//        {
+//            TimeStamp endTime;
+//            time_taken_classification = endTime.toMicroseconds() - startTime;
+//            result_classification.dashLines = dashLines;
+//            result_classification.solidLines = solidLines;
+//            result_classification.cntDash = cntDash;
+//            result_classification.cntSolid = cntSolid;
+//            result_classification.foundStopStartLine = foundStopStartLine;
+//            result_classification.intersectionOn = intersectionOn;
+//            result_classification.foundIntersection = foundIntersection;
+//            TimeStamp currentTime;
+//            startTime = currentTime.toMicroseconds();
+//        }
+//
+//    characteristicFiltering(&ltu);
+//    if (m_debug)
+//        {
+//            TimeStamp endTime;
+//            time_taken_characteristicFiltering = endTime.toMicroseconds() - startTime;
+//            // Debug data is not provided for this function. It is sufficient to look
+//            // at the debug data from createTrajectory
+//        }
 
     // The two commented functions are the old way of creating data to driver
     //estimateLines(&ltu);
@@ -846,41 +1069,41 @@ void LineDetector::classification()
          */
         rects[i].angle = getLineSlope(shortSideMiddle, rectCenter);
 
-        if (linesApproxPos.rightLine.x > -1) {
-            distance = (int) norm(linesApproxPos.rightLine - rectCenter);
-
-            if (rightLineDist < 0 || distance < rightLineDist) {
-                rightLineDist = distance;
-                rightLineIndex = i;
-            }
-        }
-
-        if (linesApproxPos.firstDash.x > -1) {
-            distance = (int) norm(linesApproxPos.firstDash - rectCenter);
-
-            if (firstDashDist < 0 || distance < firstDashDist) {
-                firstDashDist = distance;
-                firstDashIndex = i;
-            }
-        }
-
-        if (linesApproxPos.secondDash.x > -1) {
-            distance = (int) norm(linesApproxPos.secondDash - rectCenter);
-
-            if (secondDashDist < 0 || distance < secondDashDist) {
-                secondDashDist = distance;
-                secondDashIndex = i;
-            }
-        }
-
-        if (linesApproxPos.leftLine.x > -1) {
-            distance = (int) norm(linesApproxPos.leftLine - rectCenter);
-
-            if (leftLineDist < 0 || distance < leftLineDist) {
-                leftLineDist = distance;
-                leftLineIndex = i;
-            }
-        }
+//        if (linesApproxPos.rightLine.x > -1) {
+//            distance = (int) norm(linesApproxPos.rightLine - rectCenter);
+//
+//            if (rightLineDist < 0 || distance < rightLineDist) {
+//                rightLineDist = distance;
+//                rightLineIndex = i;
+//            }
+//        }
+//
+//        if (linesApproxPos.firstDash.x > -1) {
+//            distance = (int) norm(linesApproxPos.firstDash - rectCenter);
+//
+//            if (firstDashDist < 0 || distance < firstDashDist) {
+//                firstDashDist = distance;
+//                firstDashIndex = i;
+//            }
+//        }
+//
+//        if (linesApproxPos.secondDash.x > -1) {
+//            distance = (int) norm(linesApproxPos.secondDash - rectCenter);
+//
+//            if (secondDashDist < 0 || distance < secondDashDist) {
+//                secondDashDist = distance;
+//                secondDashIndex = i;
+//            }
+//        }
+//
+//        if (linesApproxPos.leftLine.x > -1) {
+//            distance = (int) norm(linesApproxPos.leftLine - rectCenter);
+//
+//            if (leftLineDist < 0 || distance < leftLineDist) {
+//                leftLineDist = distance;
+//                leftLineIndex = i;
+//            }
+//        }
     }
 
     /**
@@ -993,7 +1216,7 @@ void LineDetector::createTrajectory(LinesToUse *ltu)
     }
 
     if (ltu->foundD) {
-        if ((ltu->dashedCurve)[1].p1.x > -1 && (ltu->dashedCurve)[1].p1.y > -1) {
+        if (ltu->dashedCurve.size() > 1) {
             (ltu->dashedCurve)[0].p2.x = (ltu->dashedCurve)[1].p2.x;
             (ltu->dashedCurve)[0].p2.y = (ltu->dashedCurve)[1].p2.y;
             (ltu->dashedCurve)[0].slope = getLineSlope(
