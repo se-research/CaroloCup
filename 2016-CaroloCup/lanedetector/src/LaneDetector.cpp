@@ -70,12 +70,6 @@ void LaneDetector::setUp()
 {
 	cout << "Debug is " << m_debug << std::endl;
     // This method will be call automatically _before_ running body().
-    if (m_debug)
-        {
-            // Create an OpenCV-window.
-            cvNamedWindow("WindowShowImage", CV_WINDOW_AUTOSIZE);
-            cvMoveWindow("WindowShowImage", 300, 100);
-        }
 }
 
     void LaneDetector::tearDown()
@@ -209,8 +203,7 @@ int LaneDetector::getDynamicThresh(int lux)
 }
 
 // You should start your work in this method.
-void LaneDetector::processImage()
-{
+void LaneDetector::processImage() {
     SensorBoardData sdb;
     Container conUserData0 = getKeyValueDataStore ().get (Container::USER_DATA_0);
     sdb = conUserData0.getData<SensorBoardData> ();
@@ -218,7 +211,7 @@ void LaneDetector::processImage()
     int lux=-2;
     if(sdb.containsKey_MapOfDistances(7))
         lux=sdb.getValueForKey_MapOfDistances(7);
-    
+
     if(m_debug)
     	cout<<"LUX::"<<lux<<endl;
     TimeStamp currentTime_strt1;
@@ -227,12 +220,12 @@ void LaneDetector::processImage()
 //    m_config.th1 =  150;
     m_config.currentDistance =(sdb.containsKey_MapOfDistances(6)) ? (int) sdb.getValueForKey_MapOfDistances(6) : 0;
 //    m_config.th1 =  getDynamicThresh(lux);
-    
+
     if(m_debug)
     	cout<<"Thresh:"<<m_config.th1<<endl;
     cfg = m_config;
 
-    Mat neededPart = m_frame(cv::Rect(1, 2 * height / 16 - 1, width - 1, 10 * height / 16 - 1));
+    Mat neededPart = m_frame(cv::Rect(0, 2 * height / 16 + 30, width - 1, 10 * height / 16 - 40));
 
     LineDetector road(neededPart, cfg, m_debug, 1);
 
@@ -241,7 +234,8 @@ void LaneDetector::processImage()
 
     // Start fix. This code deactivates the old estimateLines and calculatesGoalLine()
     //msv::Lines lines = road.getLines();
-    msv::Lines lines = *(new Lines());
+//    msv::Lines lines = *(new Lines());
+        msv::Lines lines;
     // End fix.
 
     msv::LaneDetectorDataToDriver dataToDriver = *(road.getDriverData());
@@ -257,7 +251,6 @@ void LaneDetector::processImage()
     data.setFrameCount(m_frame_count);
     Container con(Container::USER_DATA_1, data);
 
-    
     // Send the data:
     //cout << "Send..." << endl;
     getConference().send(con);
@@ -321,7 +314,7 @@ void LaneDetector::processImage()
 coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode LaneDetector::body()
 {
 
-    
+
     // Get configuration data.
     KeyValueConfiguration kv = getKeyValueConfiguration();
 
@@ -361,7 +354,7 @@ coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode LaneDetector::body()
     */
 
 	float start = static_cast <float> (clock ());
-	float end; 
+	float end;
     // "Working horse."
     while (getModuleStateAndWaitForRemainingTimeInTimeslice() == coredata::dmcp::ModuleStateMessage::RUNNING)
         {
@@ -420,77 +413,77 @@ coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode LaneDetector::body()
 
 void LaneDetector::showResult(LineDetector &road, Mat &f)
 {
+    showResult_getRectangles(road.getResult_getRectangles()->rects, f);
+
     // Fetch pointers to result data
     FinalOutput *res_createTrajectory = road.getResult_createTrajectory();
-    IntermediateResult *res_finalFilter = road.getResult_finalFilter();
 
     // Show final result window
     showResult_createTrajectory(res_createTrajectory, road, f);
-    showResult_finalFilter(res_finalFilter, road, f);
 
     // Create window to display text results
-    cv::Mat txtRes = cv::Mat::zeros(150, 300, CV_8UC3);
+    Mat txtRes(150, 300, CV_8UC3, Scalar(0));
 
     ostringstream convert;
     int rB = 0; // Pixel where the row starts at
     int rS = 15; // The row interleaving in pixels
     string text;
 
-    // ----getContours() -----
+    // ----extractRoad() -----
 
     rB += rS;
     convert.str("");
-    convert << road.time_taken_contour;
-    text = convert.str() + " - getContours()";
-    cv::putText(txtRes, text, cv::Point(1, rB),
-                FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
-
-    // ----getRectangles() -----
-
-    rB += rS;
-    convert.str("");
-    convert << road.time_taken_find_lines;
-    text = convert.str() + " - getRectangles()";
-    cv::putText(txtRes, text, cv::Point(1, rB),
-                FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
-
-    // ----classification() -----
-
-    rB += rS;
-    convert.str("");
-    convert << road.time_taken_classification;
-    text = convert.str() + " - classification()";
-    cv::putText(txtRes, text, cv::Point(1, rB),
-                FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
-
-    // ----filterAndMerge() -----
-    rB += rS;
-    convert.str("");
-    convert << road.time_taken_filter_merge;
-    text = convert.str() + " - filterAndMerge()";
+    convert << road.time_taken_extractRoad;
+    text = convert.str() + " - extractRoad()";
     cv::putText(txtRes, text, cv::Point(1, rB),
                 FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
 
 
+    // ----extractLines() -----
 
-    // ----finalFilter() -----
     rB += rS;
     convert.str("");
-    convert << road.time_taken_final_filter;
-    text = convert.str() + " - finalFilter()";
+    convert << road.time_taken_extractLines;
+    text = convert.str() + " - extractLines()";
     cv::putText(txtRes, text, cv::Point(1, rB),
                 FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
 
-
-    // ----characteristicFiltering() -----
-
-    rB += rS;
-    convert.str("");
-    convert << road.time_taken_characteristicFiltering;
-    text = convert.str() + " - characteristicFiltering()";
-    cv::putText(txtRes, text, cv::Point(0, rB),
-                FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
-
+//    // ----getContours() -----
+//
+//    rB += rS;
+//    convert.str("");
+//    convert << road.time_taken_contour;
+//    text = convert.str() + " - getContours()";
+//    cv::putText(txtRes, text, cv::Point(1, rB),
+//                FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
+//
+//    // ----getRectangles() -----
+//
+//    rB += rS;
+//    convert.str("");
+//    convert << road.time_taken_find_lines;
+//    text = convert.str() + " - getRectangles()";
+//    cv::putText(txtRes, text, cv::Point(1, rB),
+//                FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
+//
+//    // ----classification() -----
+//
+//    rB += rS;
+//    convert.str("");
+//    convert << road.time_taken_classification;
+//    text = convert.str() + " - classification()";
+//    cv::putText(txtRes, text, cv::Point(1, rB),
+//                FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
+//
+//    // ----characteristicFiltering() -----
+//
+//    rB += rS;
+//    convert.str("");
+//    convert << road.time_taken_characteristicFiltering;
+//    text = convert.str() + " - characteristicFiltering()";
+//    cv::putText(txtRes, text, cv::Point(0, rB),
+//                FONT_HERSHEY_COMPLEX_SMALL, 0.65, cv::Scalar(0, 255, 0), 1, CV_AA);
+//
     // ----createTrajectory() -----
 
     rB += rS;
@@ -523,6 +516,26 @@ void LaneDetector::showResult_finalFilter(IntermediateResult *res, LineDetector 
         }
     frame.release();
 }
+
+void LaneDetector::showResult_getRectangles(vector<RotatedRect> rects, Mat &f) {
+    Mat frame = f.clone();
+
+    RotatedRect rect;
+
+    for (int i = 0; i < rects.size(); i++) {
+        rect = rects[i];
+        Point2f rect_points[4];
+        rect.points(rect_points);
+
+        for (int j = 0; j < 4; j++) {
+            line(frame, rect_points[j], rect_points[(j + 1) % 4], Scalar(255), 2);
+        }
+    }
+
+    imshow("Result from getRectangles", frame);
+    frame.release();
+}
+
 void LaneDetector::showResult_createTrajectory(FinalOutput *res, LineDetector &road, Mat &f)
 {
 	bool printouts = false;
@@ -538,7 +551,7 @@ void LaneDetector::showResult_createTrajectory(FinalOutput *res, LineDetector &r
             line(frame, res->rightGoalLines[0].p1, res->rightGoalLines[0].p2, Scalar(153, 106, 0), 2, CV_AA);
             line(frame, res->leftGoalLines[0].p1, res->leftGoalLines[0].p2, Scalar(153, 0, 76), 2, CV_AA);
 			line(frame, res->currentLine.p1, res->currentLine.p2, Scalar(255, 0, 255), 2, CV_AA);
-    
+
             if (m_debug && printouts)
                 {
                 	cout << "Intersection goalLine:" << endl;

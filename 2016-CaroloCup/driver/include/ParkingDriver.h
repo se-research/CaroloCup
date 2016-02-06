@@ -12,13 +12,13 @@ namespace msv {
     using namespace std;
 
     enum DRIVING_STATE {
-        DRIVE = 0,
-        START_OBST = 1,
-        POSSIBLE_SPOT = 2,
-        STOP_FOR_PARKING = 3,
-        PARKING = 4,
-        NO_POSSIBLE_PARKING_PLACE = 5
-
+        DRIVE,
+        START_OBST,
+        POSSIBLE_SPOT,
+        STOP_FOR_PARKING,
+        INIT_PARKING,
+        PARKING,
+        NO_POSSIBLE_PARKING_PLACE
     };
 
     enum PARKING_STATE {
@@ -43,6 +43,11 @@ namespace msv {
 
         void Initialize();
 
+        // Not implemented
+        ParkingDriver(const ParkingDriver &);
+
+        ParkingDriver &operator=(const ParkingDriver &driver);
+
     private:
 
         DRIVING_STATE driving_state;
@@ -54,6 +59,11 @@ namespace msv {
         void tearDown() { };
 
         void parking();
+
+	int32_t m_timestamp;
+
+	float previousError ;
+        float SpeedControl(float setSpeed,float actualSpeed,double timeStep, float *); 
 
     };
 

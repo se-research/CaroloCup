@@ -1,17 +1,14 @@
-//
-// Created by ubuntu on 2015-11-25.
-//
-
 #include "LaneFollowingDriver.h"
 #include "core/base/LIFOQueue.h"
 
 float initialSpeed;
 int increaseSpeed = 0;
-bool runStartBoxRoutine = true;
 int startBoxLength;
 int initialDist;
 int currDist;
 bool firstRun;
+float prevSteering;
+int correctionDistance = 0;
 
 namespace msv {
 
@@ -45,25 +42,23 @@ namespace msv {
     void LaneFollowingDriver::Routine() {
         LaneDetectionData ldd;
         Container conUserData1 = getKeyValueDataStore().get(Container::USER_DATA_1);
+        ldd = conUserData1.getData<LaneDetectionData>();
+        Container containerSensorBoardData = getKeyValueDataStore().get(Container::USER_DATA_0);
+        SensorBoardData sbd = containerSensorBoardData.getData<SensorBoardData>();
+        if (sbd.containsKey_MapOfDistances(6)) currDist = (int) sbd.getValueForKey_MapOfDistances(6);
 
         if ((conUserData1.getReceivedTimeStamp().getSeconds() +
              conUserData1.getReceivedTimeStamp().getFractionalMicroseconds()) < 1) {
             cout << "New lap. Waiting..." << endl;
         }
 
-        ldd = conUserData1.getData<LaneDetectionData>();
-
-        if (runStartBoxRoutine && firstRun) {
-            Container containerSensorBoardData = getKeyValueDataStore().get(
-                    Container::USER_DATA_0);
+        if (runStartBoxSequence && firstRun) {
             if ((containerSensorBoardData.getReceivedTimeStamp().getSeconds() +
                  containerSensorBoardData.getReceivedTimeStamp().getFractionalMicroseconds()) < 1) {
                 cout << "no sbd..." << endl;
                 return;
             }
             else {
-
-                SensorBoardData sbd = containerSensorBoardData.getData<SensorBoardData>();
                 //initialDist=sbd.getDistance(6);//mm
 
                 initialDist = -2;
@@ -77,93 +72,74 @@ namespace msv {
         }
         //Start box logic
         LaneDetectorDataToDriver trajectoryData = ldd.getLaneDetectionDataDriver();
-        if (runStartBoxRoutine && ! trajectoryData.noTrajectory) {
+        if (runStartBoxSequence) {
             cout << "Start box: dist travelled" << currDist - initialDist << endl;
             DriverGeneric::desiredSteering = 0;
             DriverGeneric::desiredSpeed = m_speed;//we just the default
 
-            Container containerSensorBoardData = getKeyValueDataStore().get(
-                    Container::USER_DATA_0);
-            SensorBoardData sbd = containerSensorBoardData.getData<SensorBoardData>();
             //currDist=sbd.getDistance(6);
-
-            currDist = -2;
-            if (sbd.containsKey_MapOfDistances(6))
-                currDist = (int) sbd.getValueForKey_MapOfDistances(6);
 
             cout << "Curr Distance" << currDist << endl;
             cout << "Initial Value" << initialDist << endl;
             //currDist++;//remove this
             if (currDist - initialDist < startBoxLength) {
                 return;
-            }
-            else {
-                runStartBoxRoutine = false;
+            } else {
+                runStartBoxSequence = false;
                 cout << "Leaving start box" << endl;
             }
         }
-
 
         m_propGain = 4.5;//4.5;//2.05;
         m_intGain = 0.5;//1.0;//8.39; //8.39;
         m_derGain = 0.23;//0.23;
 
-        //Check for intersection
-        // This algo needs to be changed to work according
-        // to the distance traveled in the intersection,
-        // instead of the time.
         bool res = laneFollowing(&ldd);
-        //cout << "Stee Sign: "<< steer_sign << "\nLast Steer: "<< last_steer <<endl;
 
         m_speed = initialSpeed;
 
-        if (!res) {
+        if (! res) {
             cout << "Waiting..." << endl;
-            DriverGeneric::desiredSpeed = m_speed;
+            DriverGeneric::desiredSpeed = initialSpeed;
+
+            if (! correctionDistance) correctionDistance = (int) sbd.getValueForKey_MapOfDistances(6);
+
+            DriverGeneric::desiredSteering = 0;
+
+            if (currDist - correctionDistance > 5) {
+                DriverGeneric::desiredSteering = 0;
+                correctionDistance = -1;
+            } else {
+                DriverGeneric::desiredSteering = prevSteering;
+            }
+
             return;
         }
 
-        float desSteering = (float) (m_desiredSteeringWheelAngle * 180 / M_PI);
+        correctionDistance = 0;
 
-        if (ldd.getLaneDetectionDataDriver().roadState == INTERSECTION) {
-            desSteering = 0;
-            if (debug) cout << "INTERSECTION" << endl;
-        }
+        float desSteering = (float) (m_desiredSteeringWheelAngle * 180 / M_PI);
 
         if (desSteering > 41) desSteering = 42;
         if (desSteering < -41) desSteering = -42;
 
-        desSteering *= 0.60;
+        desSteering *= 1;
 
         cout << "steeringAngle" << flush;
         cout << desSteering << endl;
 
-        //last_steer = desSteering;
-
+        prevSteering = desSteering;
         DriverGeneric::desiredSteering = (float) (desSteering * M_PI / 180);
 
         float speedVal;
-        //int runSpeed = 1565;
-        speedVal = m_speed;
-        if (abs(desSteering) < 4) {
-            increaseSpeed++;
-        }
-        else {
-            increaseSpeed = 0;
-        }
-/*
-            if (increaseSpeed >= 3 && increaseSpeed < 6)
-            {
-                speedVal = m_speed + 0.1;
-            }
-            else if (increaseSpeed >= 6)
-            {
-                speedVal = m_speed + 0.2;
-            }
-*/
+
+        speedVal = initialSpeed;
+
+        if (abs(desSteering) < 4) speedVal = 1.6;
+
         cout << "Speed: " << speedVal << endl;
         cout << "SpeedDefault: " << initialSpeed << endl << endl;
-        DriverGeneric::desiredSpeed = initialSpeed;
+        DriverGeneric::desiredSpeed = speedVal;
     }
 
     void LaneFollowingDriver::Initialize() {
@@ -174,7 +150,6 @@ namespace msv {
         cout << "speed" << m_speed << endl;
 
         //Startbox values
-        runStartBoxRoutine = config.getValue<int32_t>("driver.startInBox") == 1;
         startBoxLength = config.getValue<int32_t>("driver.startboxLength");
         initialDist = 0;
         currDist = 0;

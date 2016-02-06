@@ -7,6 +7,10 @@ label {
     font-size: 14px;
 }
 
+h2 {
+    margin: 10px 0 -10px;
+}
+
 .axis path,
 .axis line {
     fill: none;
@@ -42,5 +46,14 @@ label {
 
 .debug table {
     float: left;
+}
+
+.comparison {
+    background: #000;
+    display: inline-block;
+    font-size: 20px;
+    font-weight: bold;
+    margin: 10px 0;
+    padding: 5px 10px;
 }
 

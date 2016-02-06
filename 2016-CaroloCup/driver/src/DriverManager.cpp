@@ -128,13 +128,15 @@ namespace msv {
                 }
             }
             else {
-                driver_ptr = 0;
+                cout << "DriverManager: Sending default state." << endl;
                 state = None;
                 stopCar();
+                if (driver_ptr)
+                    delete driver_ptr;
             }
 
             // Call driver's body and send resulting vehicle control
-            if (driver_ptr != 0) {
+            if (driver_ptr) {
                 driver_ptr->body();
                 // Create container for finally sending the data.
                 Container c(Container::VEHICLECONTROL, driver_ptr->GetControlData());

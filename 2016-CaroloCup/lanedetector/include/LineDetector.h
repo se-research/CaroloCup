@@ -9,11 +9,8 @@
 #define MID_DASH_ANGLE -47
 #define CONFIDENCE_LEVEL_MAX 5
 
-#include <queue>
-#include "opencv2/opencv.hpp"
 #include "LineDetectorTypes.h"
 #include "LaneDetectionData.h"
-#include <numeric>
 
 using namespace cv;
 using namespace std;
@@ -136,11 +133,11 @@ public:
     	return confidenceLevel;
     }
 
+    long time_taken_extractRoad;
+    long time_taken_extractLines;
     long time_taken_contour;
     long time_taken_find_lines;
     long time_taken_classification;
-    long time_taken_filter_merge;
-    long time_taken_final_filter;
     long time_taken_characteristicFiltering;
     long time_taken_createTrajectory;
 
@@ -180,8 +177,10 @@ private:
     int getIntersectionWithTopP2(CustomLine l) const;
 	int getIntersectionWithY(CustomLine l, int y) const;
     CustomLine createLineFromRect(RotatedRect *rect, int sizeX, int sizeY, int polygonIndex);
-
+    void extractRoad();
 	Point getLowestOrHighestPoint(std::vector<Point> pts, bool getLowest);
+    bool extractLine(vector<Point> line, int minArea, int index, CustomLine &lineContainer);
+    void extractLines();
     //Find contours
     void getContours();
     //Get all marked lines
@@ -249,6 +248,26 @@ private:
 
     int confidenceLevel;
     RoadAngle_RoadSize_debug rrd;
+
+    enum IntersectionType {
+        NO_INTERSECTION, STOP_LINE_INTERSECTION, INTERSECTION_WITHOUT_STOP_LINE
+    };
+
+    IntersectionType intersectionType = NO_INTERSECTION;
+
+    struct LinesContour {
+        vector<Point> rightLine;
+        vector<Point> leftLine;
+        vector<Point> firstDash;
+        vector<Point> secondDash;
+
+        void reset() {
+            rightLine = {};
+            leftLine = {};
+            firstDash = {};
+            secondDash = {};
+        }
+    } linesContour;
 };
 
 }
