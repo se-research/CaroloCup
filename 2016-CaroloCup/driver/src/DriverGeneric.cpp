@@ -25,7 +25,8 @@ namespace msv {
             brakeLights(false),
             flashingLightsLeft(false),
             flashingLightsRight(false),
-            debug(false) {
+            debug(false),
+            runStartBoxSequence(true) {
 
         cout << "DG: arg0: " << argv[0] << endl;
         cout << "DG: arg1: " << argv[1] << endl;

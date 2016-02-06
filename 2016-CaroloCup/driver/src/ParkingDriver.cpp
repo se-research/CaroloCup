@@ -117,6 +117,7 @@ namespace msv {
             laneDriver(0),
             m_timestamp(0),
             previousError(0.0) {
+        runStartBoxSequence = false;
         //Create lane driver
         laneDriver = new LaneFollowingDriver(argc, argv);
         // Init laneDriver module

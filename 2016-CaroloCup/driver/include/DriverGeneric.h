@@ -43,6 +43,7 @@ namespace msv {
         bool flashingLightsLeft;
         bool flashingLightsRight;
         bool debug;
+        bool runStartBoxSequence;
 
         DriverGeneric(const int32_t &argc, char **argv);
 

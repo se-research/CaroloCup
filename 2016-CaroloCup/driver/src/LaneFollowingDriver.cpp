@@ -3,7 +3,6 @@
 
 float initialSpeed;
 int increaseSpeed = 0;
-bool runStartBoxRoutine = true;
 int startBoxLength;
 int initialDist;
 int currDist;
@@ -53,7 +52,7 @@ namespace msv {
             cout << "New lap. Waiting..." << endl;
         }
 
-        if (runStartBoxRoutine && firstRun) {
+        if (runStartBoxSequence && firstRun) {
             if ((containerSensorBoardData.getReceivedTimeStamp().getSeconds() +
                  containerSensorBoardData.getReceivedTimeStamp().getFractionalMicroseconds()) < 1) {
                 cout << "no sbd..." << endl;
@@ -73,7 +72,7 @@ namespace msv {
         }
         //Start box logic
         LaneDetectorDataToDriver trajectoryData = ldd.getLaneDetectionDataDriver();
-        if (runStartBoxRoutine) {
+        if (runStartBoxSequence) {
             cout << "Start box: dist travelled" << currDist - initialDist << endl;
             DriverGeneric::desiredSteering = 0;
             DriverGeneric::desiredSpeed = m_speed;//we just the default
@@ -86,7 +85,7 @@ namespace msv {
             if (currDist - initialDist < startBoxLength) {
                 return;
             } else {
-                runStartBoxRoutine = false;
+                runStartBoxSequence = false;
                 cout << "Leaving start box" << endl;
             }
         }
@@ -151,7 +150,6 @@ namespace msv {
         cout << "speed" << m_speed << endl;
 
         //Startbox values
-        runStartBoxRoutine = config.getValue<int32_t>("driver.startInBox") == 1;
         startBoxLength = config.getValue<int32_t>("driver.startboxLength");
         initialDist = 0;
         currDist = 0;
