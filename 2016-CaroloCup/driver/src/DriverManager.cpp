@@ -136,7 +136,7 @@ namespace msv {
             }
 
             // Call driver's body and send resulting vehicle control
-            if (state != None) {
+            if (driver_ptr) {
                 driver_ptr->body();
                 // Create container for finally sending the data.
                 Container c(Container::VEHICLECONTROL, driver_ptr->GetControlData());
