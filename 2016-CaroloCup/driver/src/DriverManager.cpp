@@ -1,6 +1,5 @@
 //
-// Created by Mickaël Fourgeaud on 2015-11-25.
-// Email: mfourgeaud@gmail.com
+// Created by Mickaël on 2015-11-25.
 //
 
 #include <core/base/LIFOQueue.h>
@@ -33,14 +32,9 @@ namespace msv {
             strcpy(argv[i], argvi[i]);
         }
         argv[argci] = NULL;
-        state = None;
     }
 
     DriverManager::~DriverManager() {
-
-        if (debug)
-            cout << "Destroying DriverManager!" << endl;
-
         // stop car when killing driver
         stopCar();
 
@@ -64,14 +58,14 @@ namespace msv {
         bool button2; // parking
         bool button3; // overtaking
 
-        core::base::LIFOQueue lifo;
-        addDataStoreFor(Container::USER_DATA_0, lifo);
-
         KeyValueConfiguration config = getKeyValueConfiguration();
         debug = config.getValue<bool>("driverManager.Debug");
 
         if (debug)
-            cout << endl << "DriverManager debug on. " << flush;
+            cout << endl << "DriverManager: " << flush;
+
+        core::base::LIFOQueue lifo;
+        addDataStoreFor(Container::USER_DATA_0, lifo);
 
         while (getModuleStateAndWaitForRemainingTimeInTimeslice() == coredata::dmcp::ModuleStateMessage::RUNNING) {
 
@@ -97,15 +91,14 @@ namespace msv {
                 if (state != Lane_Following) {
                     if (debug)
                         cout << "Creating Lane Following driver" << endl;
-                    state = Lane_Following;
                     driver_ptr = new LaneFollowingDriver(argc, argv);
                     if (!driver_ptr) {
-                        state = None;
                         if (debug)
-                            cout << "DriverManager: Memory error when creating driver." << endl;
+                            cout << "Memory error" << endl;
                         continue; // TODO Improve error management
                     }
                     driver_ptr->runModule(); // Necessary to run it once to initialize the module entirely
+                    state = Lane_Following;
                 }
             }
             else if (!button1 && button2 && !button3) {
@@ -114,9 +107,8 @@ namespace msv {
                         cout << "Creating Parking driver" << endl;
                     driver_ptr = new ParkingDriver(argc, argv);
                     if (!driver_ptr) {
-                        state = None;
                         if (debug)
-                            cout << "DriverManager: Memory error when creating driver." << endl;
+                            cout << "Memory error" << endl;
                         continue; // TODO Improve error management
                     }
                     driver_ptr->runModule(); // Necessary to run it once to initialize the module entirely
@@ -127,9 +119,8 @@ namespace msv {
                 if (state != Overtaking) {
                     //driver_ptr = new OvertakingDriver(argc, argv);
                     if (!driver_ptr) {
-                        state = None;
                         if (debug)
-                            cout << "DriverManager: Memory error when creating driver." << endl;
+                            cout << "Memory error" << endl;
                         continue; // TODO Improve error management
                     }
                     driver_ptr->runModule(); // Necessary to run it once to initialize the module entirely
@@ -137,18 +128,13 @@ namespace msv {
                 }
             }
             else {
-                cout << "DriverManager: Sending default state." << endl;
+                driver_ptr = 0;
                 state = None;
                 stopCar();
-                // TODO safe delete of pointer when switching state only
-                //if (driver_ptr)
-                //{
-                //   delete driver_ptr;
-                //}
             }
 
             // Call driver's body and send resulting vehicle control
-            if (state != None) {
+            if (driver_ptr != 0) {
                 driver_ptr->body();
                 // Create container for finally sending the data.
                 Container c(Container::VEHICLECONTROL, driver_ptr->GetControlData());
