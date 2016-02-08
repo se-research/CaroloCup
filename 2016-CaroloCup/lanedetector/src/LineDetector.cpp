@@ -109,7 +109,7 @@ void LineDetector::extractRoad() {
     int halfWidth = maxWidth / 2;
     int maxHeight = m_frame.rows - 1;
     int halfHeight = maxHeight / 2;
-    int scanOffset = 3;
+    int scanOffset = 2;
 
     int rightLineScan = halfWidth + halfWidth / 5;
     int dashLineScan = halfWidth - halfWidth / 5;
@@ -265,7 +265,7 @@ void LineDetector::extractRoad() {
                 } else if (dashLineState == NO_LINE_FOUND && col == lastFirstLinePoint) {
                     dashLineState = LINE_PASSED;
 
-                    dashLineScan += scanOffset;
+                    dashLineScan = lastFirstLinePoint + 150;
 
                     if (dashState == FIRST_DASH_START) {
                         // checks if the dash is tall enough
@@ -302,12 +302,17 @@ bool LineDetector::extractLine(vector<Point> line, int minArea, int index, Custo
     rect = minAreaRect(line);
 
     if (rect.size.area() < minArea) return false;
+
+    if (rect.center.y < 50 && rect.center.x < 50) return false; // abort if rectangle is in the left most corner
+
+    // TODO index == 1 || index == 2 is bad, we were in a rush so it had to be done quickly
     if (index == 1 || index == 2) { // only relevant to dash lines
-        if (rect.center.y < 50 && rect.center.x < 50) return false; // abort if rectangle is in the left most corner
         if (rect.angle <= -80 && rect.angle >= -90) return false; // remove horizontal lines
         if (rect.angle >= 80 && rect.angle <= 90) return false; // remove horizontal lines
         if (rect.angle >= -5 && rect.angle <= 5) return false; // remove horizontal lines
-        if (rect.angle > -20 && rect.angle < 20) return false; // remove lines that are too steep
+        if (index == 1) { // if first dash
+            if (rect.angle > -20 && rect.angle < 20) return false; // remove lines that are too steep
+        }
     }
 
     Point2f rectPoints[4];
