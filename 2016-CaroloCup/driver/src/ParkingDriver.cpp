@@ -46,6 +46,8 @@ namespace msv {
     float SpeedF2 = 0.5; // 1.1
     float SpeedF3 = 0.5;    // 0.9
     float SpeedB1 = -0.5;
+    float SpeedParkingBack = -0.3;
+    float SpeedParkingForward = 0.3;
     // -1.25
     float SpeedB2 = -0.5;
     // -1.4
@@ -436,7 +438,7 @@ namespace msv {
                     cout << "========  BACKWARDS_RIGHT" << endl;
                     cout << "========  OverallDistance " << OverallDistance << endl;
                     flashingLightsRight = true;
-                    desiredSpeed = SpeedB2;
+                    desiredSpeed = SpeedParkingBack;
                     desiredSteering = (42 * 3.14) / 180;
                 }
                 else {
@@ -454,7 +456,7 @@ namespace msv {
 
             case BACKWARDS_LEFT: {
 
-                desiredSpeed = SpeedB3;
+                desiredSpeed = SpeedParkingBack;
                 desiredSteering = -(42 * 3.14) / 180;
                 int BackStopLimit = 12;
                 cout << "\t========  BACKWARDS_LEFT" << endl;
@@ -482,7 +484,7 @@ namespace msv {
 
             case FORWARD_RIGHT: {
                 flashingLightsRight = false;
-                desiredSpeed = SpeedF3;
+                desiredSpeed = SpeedParkingForward;
                 desiredSteering = 42 * 3.14 / 180;
                 cout << "\t\t========  FORWARD_RIGHT" << endl;
                 int FrontStopLimit = 12;
@@ -503,7 +505,7 @@ namespace msv {
 
             case BACK_AGAIN:
                 cout << "\t\t========  BACKWARDS_STRAIGHT" << endl;
-                desiredSpeed = SpeedB1;
+                desiredSpeed = SpeedParkingBack;
                 desiredSteering = 0;
 //		if(Distance > CurrentDist2 + DesiredDistance4){
 //                if (USRear < UVStopValue && USRear > 0)  {
