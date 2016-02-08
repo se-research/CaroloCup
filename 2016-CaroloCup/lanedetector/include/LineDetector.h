@@ -249,12 +249,6 @@ private:
     int confidenceLevel;
     RoadAngle_RoadSize_debug rrd;
 
-    enum IntersectionType {
-        NO_INTERSECTION, STOP_LINE_INTERSECTION, INTERSECTION_WITHOUT_STOP_LINE
-    };
-
-    IntersectionType intersectionType = NO_INTERSECTION;
-
     struct LinesContour {
         vector<Point> rightLine;
         vector<Point> leftLine;
@@ -272,3 +266,4 @@ private:
 
 }
 #endif
+

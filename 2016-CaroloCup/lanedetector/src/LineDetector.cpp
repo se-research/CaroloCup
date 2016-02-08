@@ -36,6 +36,25 @@ int intersectionRect;
 bool calcIntersectionGoalLine = false;
 int intersection_start;
 
+enum IntersectionType {
+    NO_INTERSECTION, STOP_LINE_INTERSECTION, INTERSECTION_WITHOUT_STOP_LINE
+};
+IntersectionType intersectionType = NO_INTERSECTION;
+
+struct LinesApproxPos {
+    Point rightLine;
+    Point firstDash;
+    Point secondDash;
+    Point leftLine;
+
+    void reset() {
+        rightLine = Point(-1, -1);
+        firstDash = Point(-1, -1);
+        secondDash = Point(-1, -1);
+        leftLine = Point(-1, -1);
+    }
+} linesApproxPos;
+
 LineDetector::LineDetector(const Mat &f, const Config &cfg, const bool debug,
                            const int id) :
     m_frame(), m_frameCanny(), m_lines(NULL), m_debug(debug), m_lastSolidRightTop(), detectedLines(), m_config(
@@ -109,10 +128,10 @@ void LineDetector::extractRoad() {
     int halfWidth = maxWidth / 2;
     int maxHeight = m_frame.rows - 1;
     int halfHeight = maxHeight / 2;
-    int scanOffset = 2;
+    int scanOffset = 3;
 
-    int rightLineScan = halfWidth + halfWidth / 5;
-    int dashLineScan = halfWidth - halfWidth / 5;
+    int rightLineScan = halfWidth;
+    int dashLineScan = halfWidth;
     int leftLineScan = -1;
     auto dashState = NO_DASH_FOUND;
     int whitesCount = 0;
@@ -265,7 +284,7 @@ void LineDetector::extractRoad() {
                 } else if (dashLineState == NO_LINE_FOUND && col == lastFirstLinePoint) {
                     dashLineState = LINE_PASSED;
 
-                    dashLineScan = lastFirstLinePoint + 150;
+                    dashLineScan += scanOffset;
 
                     if (dashState == FIRST_DASH_START) {
                         // checks if the dash is tall enough
@@ -301,19 +320,9 @@ bool LineDetector::extractLine(vector<Point> line, int minArea, int index, Custo
     RotatedRect rect;
     rect = minAreaRect(line);
 
-    if (rect.size.area() < minArea) return false;
-
     if (rect.center.y < 50 && rect.center.x < 50) return false; // abort if rectangle is in the left most corner
-
-    // TODO index == 1 || index == 2 is bad, we were in a rush so it had to be done quickly
-    if (index == 1 || index == 2) { // only relevant to dash lines
-        if (rect.angle <= -80 && rect.angle >= -90) return false; // remove horizontal lines
-        if (rect.angle >= 80 && rect.angle <= 90) return false; // remove horizontal lines
-        if (rect.angle >= -5 && rect.angle <= 5) return false; // remove horizontal lines
-        if (index == 1) { // if first dash
-            if (rect.angle > -20 && rect.angle < 20) return false; // remove lines that are too steep
-        }
-    }
+    if ((int) rect.angle == -90 || (int) rect.angle == 90) return false; // remove horizontal lines
+    if (rect.size.area() < minArea) return false;
 
     Point2f rectPoints[4];
     rect.points(rectPoints);
@@ -353,122 +362,40 @@ bool LineDetector::extractLine(vector<Point> line, int minArea, int index, Custo
     rect.angle = getLineSlope(shortSideMiddle, rectCenter);
 
     lineContainer = createLineFromRect(&rect, sizeX, sizeY, index);
-    lineContainer.center.x = (int) rect.center.x;
-    lineContainer.center.y = (int) rect.center.y;
 
     return true;
 }
 
 void LineDetector::extractLines() {
-    CustomLine firstDash;
-    CustomLine secondDash;
     CustomLine rightLine;
-    CustomLine leftLine;
-
-    bool rightLineFound = false;
-    bool leftLineFound = false;
-    bool firstDashFound = false;
-    bool secondDashFound = false;
-
-    firstDashFound = extractLine(linesContour.firstDash, 200, 1, firstDash) && firstDash.center.x <= 375;
-
-    if (firstDashFound) {
-        ltu.foundD = true;
-        ltu.dashedCurveFound = true;
-        ltu.dashedCurve.push_back(firstDash);
-
-        secondDashFound = extractLine(linesContour.secondDash, 200, 2, secondDash);
-
-        if (secondDashFound) {
-            int distance = (int) norm(firstDash.center - secondDash.center);
-
-            if (distance < 300) {
-                ltu.dashedCurve.push_back(secondDash);
-            }
-        }
+    if (extractLine(linesContour.rightLine, 500, 0, rightLine)) {
+        ltu.rightLine = rightLine;
+        ltu.foundR = true;
+    } else {
+        ltu.foundR = false;
     }
 
-    leftLineFound = extractLine(linesContour.leftLine, 500, 3, leftLine);
-
-    if (leftLineFound) {
+    CustomLine leftLine;
+    if (extractLine(linesContour.leftLine, 500, 1, leftLine)) {
         ltu.leftLine = leftLine;
         ltu.foundL = true;
     } else {
         ltu.foundL = false;
     }
 
-    rightLineFound = extractLine(linesContour.rightLine, 1500, 0, rightLine);
+    CustomLine firstDash;
+    if (extractLine(linesContour.firstDash, 50, 2, firstDash)) {
+        ltu.foundD = true;
+        ltu.dashedCurveFound = true;
+        ltu.dashedCurve.push_back(firstDash);
 
-    if (rightLineFound) {
-        ltu.rightLine = rightLine;
-        ltu.foundR = true;
-    }
-
-    int primaryLaneSizeMin = 160;
-    int parimaryLaneSizeMax = 640;
-    int primaryLaneScale = parimaryLaneSizeMax - primaryLaneSizeMin;
-    float primaryLaneRatio = (float) (primaryLaneScale * 1.0 / m_frame.rows);
-
-    int secondaryLaneSizeMin = 120;
-    int secondaryLaneSizeMax = 340;
-    int secondaryLaneScale = secondaryLaneSizeMax - secondaryLaneSizeMin;
-    float secondaryLaneRatio = (float) (secondaryLaneScale * 1.0 / m_frame.rows);
-
-    if (! firstDashFound) {
-        // attempt to reconstruct the dash line using the right line
-        if (rightLineFound) {
-            firstDash.p1.x = (int) (rightLine.p1.x - primaryLaneSizeMin - rightLine.p1.y * primaryLaneRatio);
-            firstDash.p1.y = rightLine.p1.y;
-            firstDash.p2.x = (int) (rightLine.p2.x - primaryLaneSizeMin - rightLine.p2.y * primaryLaneRatio);
-            firstDash.p2.y = rightLine.p2.y;
-            firstDash.slope = getLineSlope(firstDash.p1, firstDash.p2);
-
-            ltu.foundD = true;
-            ltu.dashedCurveFound = true;
-            ltu.dashedCurve.push_back(firstDash);
-        } else if (leftLineFound) {
-            firstDash.p1.x = (int) (leftLine.p1.x + secondaryLaneSizeMin + leftLine.p1.y * secondaryLaneRatio);
-            firstDash.p1.y = leftLine.p1.y;
-            firstDash.p2.x = (int) (leftLine.p2.x + secondaryLaneSizeMin + leftLine.p2.y * secondaryLaneRatio);
-            firstDash.p2.y = leftLine.p2.y;
-            firstDash.slope = getLineSlope(firstDash.p1, firstDash.p2);
-
-            ltu.foundD = true;
-            ltu.dashedCurveFound = true;
-            ltu.dashedCurve.push_back(firstDash);
-
-            firstDashFound = true;
-        } else {
-            ltu.foundD = false;
-            ltu.dashedCurveFound = false;
-        }
-    }
-
-    if (! rightLineFound) {
-        // attempt to reconstruct the right line using dashed lines
-
-        //TODO: extract this into a function
-        if (firstDashFound && secondDashFound) {
-            rightLine.p1.x = (int) (firstDash.p1.x + primaryLaneSizeMin + firstDash.p1.y * primaryLaneRatio);
-            rightLine.p1.y = firstDash.p1.y;
-            rightLine.p2.x = (int) (secondDash.p2.x + primaryLaneSizeMin + secondDash.p2.y * primaryLaneRatio);
-            rightLine.p2.y = secondDash.p2.y;
-            rightLine.slope = getLineSlope(rightLine.p1, rightLine.p2);
-
-            ltu.rightLine = rightLine;
-            ltu.foundR = true;
-        } else if (firstDashFound && ! secondDashFound) {
-            rightLine.p1.x = (int) (firstDash.p1.x + primaryLaneSizeMin + firstDash.p1.y * primaryLaneRatio);
-            rightLine.p1.y = firstDash.p1.y;
-            rightLine.p2.x = (int) (firstDash.p2.x + primaryLaneSizeMin + firstDash.p2.y * primaryLaneRatio);
-            rightLine.p2.y = firstDash.p2.y;
-            rightLine.slope = getLineSlope(rightLine.p1, rightLine.p2);
-
-            ltu.rightLine = rightLine;
-            ltu.foundR = true;
-        } else {
-            ltu.foundR = false;
-        }
+        CustomLine secondDash;
+        if (extractLine(linesContour.secondDash, 50, 3, secondDash)) {
+            ltu.dashedCurve.push_back(secondDash);
+        };
+    } else {
+        ltu.foundD = false;
+        ltu.dashedCurveFound = false;
     }
 }
 
@@ -1074,41 +1001,41 @@ void LineDetector::classification()
          */
         rects[i].angle = getLineSlope(shortSideMiddle, rectCenter);
 
-//        if (linesApproxPos.rightLine.x > -1) {
-//            distance = (int) norm(linesApproxPos.rightLine - rectCenter);
-//
-//            if (rightLineDist < 0 || distance < rightLineDist) {
-//                rightLineDist = distance;
-//                rightLineIndex = i;
-//            }
-//        }
-//
-//        if (linesApproxPos.firstDash.x > -1) {
-//            distance = (int) norm(linesApproxPos.firstDash - rectCenter);
-//
-//            if (firstDashDist < 0 || distance < firstDashDist) {
-//                firstDashDist = distance;
-//                firstDashIndex = i;
-//            }
-//        }
-//
-//        if (linesApproxPos.secondDash.x > -1) {
-//            distance = (int) norm(linesApproxPos.secondDash - rectCenter);
-//
-//            if (secondDashDist < 0 || distance < secondDashDist) {
-//                secondDashDist = distance;
-//                secondDashIndex = i;
-//            }
-//        }
-//
-//        if (linesApproxPos.leftLine.x > -1) {
-//            distance = (int) norm(linesApproxPos.leftLine - rectCenter);
-//
-//            if (leftLineDist < 0 || distance < leftLineDist) {
-//                leftLineDist = distance;
-//                leftLineIndex = i;
-//            }
-//        }
+        if (linesApproxPos.rightLine.x > -1) {
+            distance = (int) norm(linesApproxPos.rightLine - rectCenter);
+
+            if (rightLineDist < 0 || distance < rightLineDist) {
+                rightLineDist = distance;
+                rightLineIndex = i;
+            }
+        }
+
+        if (linesApproxPos.firstDash.x > -1) {
+            distance = (int) norm(linesApproxPos.firstDash - rectCenter);
+
+            if (firstDashDist < 0 || distance < firstDashDist) {
+                firstDashDist = distance;
+                firstDashIndex = i;
+            }
+        }
+
+        if (linesApproxPos.secondDash.x > -1) {
+            distance = (int) norm(linesApproxPos.secondDash - rectCenter);
+
+            if (secondDashDist < 0 || distance < secondDashDist) {
+                secondDashDist = distance;
+                secondDashIndex = i;
+            }
+        }
+
+        if (linesApproxPos.leftLine.x > -1) {
+            distance = (int) norm(linesApproxPos.leftLine - rectCenter);
+
+            if (leftLineDist < 0 || distance < leftLineDist) {
+                leftLineDist = distance;
+                leftLineIndex = i;
+            }
+        }
     }
 
     /**
@@ -1221,7 +1148,7 @@ void LineDetector::createTrajectory(LinesToUse *ltu)
     }
 
     if (ltu->foundD) {
-        if (ltu->dashedCurve.size() > 1) {
+        if ((ltu->dashedCurve)[1].p1.x > -1 && (ltu->dashedCurve)[1].p1.y > -1) {
             (ltu->dashedCurve)[0].p2.x = (ltu->dashedCurve)[1].p2.x;
             (ltu->dashedCurve)[0].p2.y = (ltu->dashedCurve)[1].p2.y;
             (ltu->dashedCurve)[0].slope = getLineSlope(
@@ -3064,4 +2991,5 @@ FinalOutput *LineDetector::getResult_createTrajectory()
 }
 
 }
+
 

@@ -46,8 +46,6 @@ namespace msv {
     float SpeedF2 = 0.5; // 1.1
     float SpeedF3 = 0.5;    // 0.9
     float SpeedB1 = -0.5;
-    float SpeedParkingBack = -0.3;
-    float SpeedParkingForward = 0.3;
     // -1.25
     float SpeedB2 = -0.5;
     // -1.4
@@ -119,7 +117,6 @@ namespace msv {
             laneDriver(0),
             m_timestamp(0),
             previousError(0.0) {
-        runStartBoxSequence = false;
         //Create lane driver
         laneDriver = new LaneFollowingDriver(argc, argv);
         // Init laneDriver module
@@ -140,9 +137,7 @@ namespace msv {
         CurrentDist2 = 0;
         CurrentDist3 = 0;
         IRSideValue = 0;
-        brakeLights = false;
         flashingLightsRight = false;
-        flashingLightsLeft = false;
         USStrCheck = 0;
         countDeath = 0;
         IRFrontValue = 0;
@@ -209,7 +204,6 @@ namespace msv {
         Distance1 = OverallDistance;
 
 
-
 // Filters
 //        IrRearLeftReadings.push_front(IRdis_SR);
 //        IrRearRightReadings.push_front(IRdis_RR);
@@ -238,9 +232,6 @@ namespace msv {
         cout << " ===== IR Side Value :" << IRSideValue << endl;
         cout << " ===== US Straight Value :" << USStrCheck << "  Number Of Counts" << count << endl;
         cout << " ===== Ptime_takenIndicator: " << time_takenIndicator << endl;
-        cout << " ===== flashingLightsRight: " << flashingLightsRight << endl;
-        cout << " ===== flashingLightsLeft: " << flashingLightsLeft << endl;
-        cout << " ===== setBrakeLights: " << brakeLights << endl;
 
 
         // State machines
@@ -438,7 +429,7 @@ namespace msv {
                     cout << "========  BACKWARDS_RIGHT" << endl;
                     cout << "========  OverallDistance " << OverallDistance << endl;
                     flashingLightsRight = true;
-                    desiredSpeed = SpeedParkingBack;
+                    desiredSpeed = SpeedB2;
                     desiredSteering = (42 * 3.14) / 180;
                 }
                 else {
@@ -456,7 +447,7 @@ namespace msv {
 
             case BACKWARDS_LEFT: {
 
-                desiredSpeed = SpeedParkingBack;
+                desiredSpeed = SpeedB3;
                 desiredSteering = -(42 * 3.14) / 180;
                 int BackStopLimit = 12;
                 cout << "\t========  BACKWARDS_LEFT" << endl;
@@ -467,7 +458,7 @@ namespace msv {
                 }
                 else*/
 
-                if (((USFront > 0) && (USRear > 0) && ((USFront + USRear) <= USStraight)) || count >= 2) {
+                if ( ((USFront > 0) && (USRear > 0) && ((USFront + USRear) <= USStraight)) || count >= 2) {
                     USStrCheck = (USFront + USRear);
                     parking_state = STOP;
                     desiredSpeed = Stop_Speed_Backward;
@@ -484,10 +475,10 @@ namespace msv {
 
             case FORWARD_RIGHT: {
                 flashingLightsRight = false;
-                desiredSpeed = SpeedParkingForward;
+                desiredSpeed = 0.3;
                 desiredSteering = 42 * 3.14 / 180;
                 cout << "\t\t========  FORWARD_RIGHT" << endl;
-                int FrontStopLimit = 12;
+                int FrontStopLimit = 14;
 
                 if (((USFront > 0) && (USRear > 0) && ((USFront + USRear) <= USStraight)) || count >= 2) {
                     USStrCheck = (USFront + USRear);
@@ -505,7 +496,7 @@ namespace msv {
 
             case BACK_AGAIN:
                 cout << "\t\t========  BACKWARDS_STRAIGHT" << endl;
-                desiredSpeed = SpeedParkingBack;
+                desiredSpeed = SpeedB1;
                 desiredSteering = 0;
 //		if(Distance > CurrentDist2 + DesiredDistance4){
 //                if (USRear < UVStopValue && USRear > 0)  {
@@ -519,8 +510,6 @@ namespace msv {
 
             case STOP: {
                 if ((USRear > USCheck && USRear > 0) && (USFront > USCheck && USFront > 0)) {
-                    flashingLightsRight = true;
-                    flashingLightsLeft = true;
                     desiredSteering = 0;
                     desiredSpeed = 0.0;
                     parking_state = DONE;
@@ -538,6 +527,8 @@ namespace msv {
                 break;
 
             case DONE: {
+//                flashingLightsRight = true;
+                flashingLightsLeft = false;
                 cout << "\t\t========  DONE" << endl;
                 backStopValue = gyro;
                 desiredSpeed = 0.0;

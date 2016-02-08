@@ -28,25 +28,16 @@ enum RoadState{
   INTERSECTION
 };
 
-class  CustomLine
+class CustomLine
 {
 public:
     CustomLine () :
-        center(),
         p1(),
         p2(),
         slope(0),
         polygonIndex(-1) // This is a mapping to the polygon that the CustomLine was derived from.
     {}
     virtual ~CustomLine () {}
-
-    void reset() {
-        center = Point(0, 0),
-        p1 = Point(0, 0),
-        p2 = Point(0, 0),
-        slope = 0;
-        polygonIndex = -1;
-    }
 
     bool operator < (const CustomLine &other ) const
     {
@@ -63,7 +54,7 @@ public:
         return false;
     }
 
-    Point center, p1, p2;
+    Point p1, p2;
     float slope;
     int polygonIndex;
 };
