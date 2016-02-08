@@ -243,7 +243,7 @@ namespace automotive {
 	    uint lightsINT = 0;
 	    for(int i = 0; i < 3; i++) if(lights[i]) lightsINT |= 1 << (3 - i);
 	    cc.setLights(lightsINT);
-	    cc.setGyroTrigger(1);
+	    cc.setGyroTrigger(500);
 	    ProtoSerializerVisitor protoSerializerVisitor;
 	    cc.accept(protoSerializerVisitor);
 	    stringstream proto;
