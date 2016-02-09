@@ -467,7 +467,7 @@ namespace msv {
                 }
                 else*/
 
-                if (((USFront > 0) && (USRear > 0) && ((USFront + USRear) <= USStraight)) || count >= 2) {
+                if ( ((USFront > 0) && (USRear > 0) && ((USFront + USRear) <= USStraight)) || count >= 1) {
                     USStrCheck = (USFront + USRear);
                     parking_state = STOP;
                     desiredSpeed = Stop_Speed_Backward;
@@ -489,7 +489,7 @@ namespace msv {
                 cout << "\t\t========  FORWARD_RIGHT" << endl;
                 int FrontStopLimit = 12;
 
-                if (((USFront > 0) && (USRear > 0) && ((USFront + USRear) <= USStraight)) || count >= 2) {
+                if (((USFront > 0) && (USRear > 0) && ((USFront + USRear) <= USStraight)) || count >= 1) {
                     USStrCheck = (USFront + USRear);
                     desiredSpeed = Stop_Speed_Backward;
                     parking_state = STOP;
