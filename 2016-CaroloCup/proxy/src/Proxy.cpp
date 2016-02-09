@@ -43,7 +43,7 @@ using namespace core::base;
 using namespace core::data;
 using namespace tools::recorder;
 
-const string SERIAL_PORT = "/dev/ttyUSB0";
+const string SERIAL_PORT = "/dev/ttyACM0";
 const uint32_t BAUD_RATE = 115200;
 
 char flagEND = 19;
