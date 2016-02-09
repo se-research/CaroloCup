@@ -27,14 +27,14 @@ namespace msv {
     int SafeDistance = 30;
     int DesiredDistance1 = 33;    // Distance after finding the end of the spot
     int StopParkingDistance;
-    float SpeedF1 = 0.5; //0.95
-    float SpeedF2 = 0.5; // 1.1
-    float SpeedF3 = 0.5;    // 0.9
+    float SpeedF1 = 0.3; //0.95
+    float SpeedF2 = 0.3; // 1.1
+    float SpeedF3 = 0.3;    // 0.9
     float SpeedParkingBack = -0.3f;
-    float SpeedParkingForward = 0.3;
-    float SpeedB3 = -0.5f;
+    float SpeedParkingForward = 0.3f;
+    float SpeedB3 = -0.3f;
     float Stop_Speed_Forward = -0.3f;
-    float Stop_Speed_Backward = 0.3;
+    float Stop_Speed_Backward = 0.3f;
     float steeringFactor = 1.0;
     int USFront;
     int USRear;
@@ -79,6 +79,7 @@ namespace msv {
         runStartBoxSequence = false;
         //Create lane driver
         laneDriver = new LaneFollowingDriver(argc, argv);
+        laneDriver->runStartBoxSequence = false;
         // Init laneDriver module
         laneDriver->runModule();
         driving_state = DRIVE;
@@ -261,12 +262,14 @@ namespace msv {
                 }
                 else {
                     flashingLightsRight = true;
+                    brakeLights = true;
                     desiredSpeed = Stop_Speed_Forward;
 
                     // Check if car has stopped to move
                     if (ActualSpeed < 0.01) {
                         desiredSpeed = 0.0;
                         driving_state = INIT_PARKING;
+                        brakeLights = false;
                     }
                 }
                 break;
@@ -344,15 +347,14 @@ namespace msv {
 
             case BACKWARDS_LEFT: {
 
-                desiredSpeed = SpeedParkingBack;
-                desiredSteering = -maxSteeringPositive;
-                int BackStopLimit = 12;
+                int BackStopLimit = 14;
                 cout << "\t========  BACKWARDS_LEFT" << endl;
 
                 if (((USFront > 0) && (USRear > 0) && ((USFront + USRear) <= USStraight)) || countStop > 1) {
                     USStrCheck = (USFront + USRear);
                     parking_state = STOP;
                     desiredSpeed = Stop_Speed_Backward;
+                    brakeLights = true;
                 }
 
                 else if ((IR_BackLeft < BackStopLimit && IR_BackLeft > 0)
@@ -360,14 +362,18 @@ namespace msv {
                          || (USRear < BackStopLimit && USRear > 0)) {
                     parking_state = FORWARD_RIGHT;
                     desiredSpeed = Stop_Speed_Backward;
+                    brakeLights = true;
+                }
+                else {
+                    desiredSpeed = SpeedParkingBack;
+                    desiredSteering = -maxSteeringPositive;
+                    brakeLights = false;
                 }
             }
                 break;
 
             case FORWARD_RIGHT: {
                 flashingLightsRight = false;
-                desiredSpeed = SpeedParkingForward;
-                desiredSteering = maxSteeringPositive;
                 cout << "\t\t========  FORWARD_RIGHT" << endl;
                 int FrontStopLimit = 12;
 
@@ -375,11 +381,18 @@ namespace msv {
                     USStrCheck = (USFront + USRear);
                     desiredSpeed = Stop_Speed_Backward;
                     parking_state = STOP;
+                    brakeLights = true;
                 }
                 else if (USFront < FrontStopLimit && USFront > 0) {
                     desiredSpeed = Stop_Speed_Forward;
                     parking_state = BACKWARDS_LEFT;
+                    brakeLights = true;
                     countStop++;
+                }
+                else {
+                    brakeLights = false;
+                    desiredSpeed = SpeedParkingForward;
+                    desiredSteering = maxSteeringPositive;
                 }
             }
                 break;
@@ -394,17 +407,19 @@ namespace msv {
                 if (IR_BackLeft < IRStopValue && IR_BackLeft > 0) {
                     desiredSpeed = 0;
                     //backStraight = OverallDistance - CurrentDist2;
-                    desiredSteering =
+                    desiredSteering = 0;
                     parking_state = FORWARD_RIGHT;  // BACKWARDS_LEFT
                 }
                 break;
 
             case STOP: {
                 if ((USRear > USCheck && USRear > 0) && (USFront > USCheck && USFront > 0)) {
-                    flashingLightsRight = true;
-                    flashingLightsLeft = true;
                     desiredSteering = 0;
                     desiredSpeed = 0.0;
+                    brakeLights = true;
+
+                    flashingLightsRight = true;
+                    flashingLightsLeft = true;
                     parking_state = DONE;
                 } else if (USFront < USCheck && USFront > 0) {
                     desiredSteering = 0;
@@ -424,8 +439,11 @@ namespace msv {
                 desiredSpeed = 0.0;
                 desiredSteering = 0.0;
                 parking_state = DONE;
-            }
 
+                flashingLightsRight = false;
+                flashingLightsLeft = false;
+                brakeLights = false;
+            }
                 break;
 
             default: {
