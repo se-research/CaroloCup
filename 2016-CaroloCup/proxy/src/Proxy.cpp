@@ -33,96 +33,97 @@
 #include "OpenCVCamera.h"
 
 #ifdef HAVE_UEYE
-    #include "uEyeCamera.h"
+#include "uEyeCamera.h"
 #endif
 
 #include "Proxy.h"
 
-	using namespace std;
-        using namespace core::base;
-        using namespace core::data;
-        using namespace tools::recorder;
-	
-	  const string SERIAL_PORT = "/dev/ttyUSB0";
-	  const uint32_t BAUD_RATE = 115200;
-	  
-	      char flagEND   = 19; 
-	      char flagESC   = 125; 
-	      int  flagXOR   = 32;
-	  stringstream netstring;
-	  
+using namespace std;
+using namespace core::base;
+using namespace core::data;
+using namespace tools::recorder;
+
+const string SERIAL_PORT = "/dev/ttyUSB0";
+const uint32_t BAUD_RATE = 115200;
+
+char flagEND = 19;
+char flagESC = 125;
+int flagXOR = 32;
+stringstream netstring;
+
 namespace automotive {
     namespace miniature {
 
-        
+
         Proxy::Proxy(const int32_t &argc, char **argv) :
-	        TimeTriggeredConferenceClientModule(argc, argv, "proxy"),
-	    serial(core::wrapper::SerialPortFactory::createSerialPort(SERIAL_PORT, BAUD_RATE)),
-            m_recorder(NULL),
-            m_camera(NULL)
-        {}
+                TimeTriggeredConferenceClientModule(argc, argv, "proxy"),
+                serial(core::wrapper::SerialPortFactory::createSerialPort(SERIAL_PORT, BAUD_RATE)),
+                m_recorder(NULL),
+                m_camera(NULL) { }
 
-        Proxy::~Proxy() {}
-	
-	Container decodePayload(string payload){
-	  stringstream proto(payload);
-	  ProtoDeserializerVisitor protoDeserializerVisitor;
-          protoDeserializerVisitor.deserializeDataFromNoHeader(proto);
-	    
-	  automotive::carolocup::Sensors sd;
-	  sd.accept(protoDeserializerVisitor);
-	  
-	  cout << sd.toString()<< endl;
-		int temp = sd.getButtonState();
-		bool buttons[4] = {0,0,0,0};
-		for (int i = 3; i > 0; i--) buttons[i] = (temp & (1 << i)) != 0;
+        Proxy::~Proxy() { }
 
-        SensorBoardData m_sensorBoardData;
-		  m_sensorBoardData.putTo_MapOfDistances(0, sd.getUsFront());
-		  m_sensorBoardData.putTo_MapOfDistances(1, sd.getIrFrontRight());
-		  m_sensorBoardData.putTo_MapOfDistances(2, sd.getIrRearRight());
-		  m_sensorBoardData.putTo_MapOfDistances(3, sd.getIrBackRight());
-		  m_sensorBoardData.putTo_MapOfDistances(4, sd.getUsRear());
-		  m_sensorBoardData.putTo_MapOfDistances(5, sd.getIrBackLeft());
-		  m_sensorBoardData.putTo_MapOfDistances(6, sd.getWheelRearLeft());
-		  m_sensorBoardData.putTo_MapOfDistances(7, sd.getWheelRearRight());
-		  m_sensorBoardData.putTo_MapOfDistances(8, (int)sd.getGyroHeading());
-		  m_sensorBoardData.putTo_MapOfDistances(9, buttons[1]);
-		  m_sensorBoardData.putTo_MapOfDistances(10, buttons[2]);
-		  m_sensorBoardData.putTo_MapOfDistances(11, buttons[3]);
-		  m_sensorBoardData.putTo_MapOfDistances(12, sd.getLightReading());
-		  Container sensorData(Container::USER_DATA_0, m_sensorBoardData);
-		  return sensorData;
-	}
-	
-	void Proxy::nextString(const string &s) {
- 	 // cout << s << endl; 
-	 for(int i= 0; i< (int)s.length();i++){
-	   if(s[i] != flagESC && s[i] != flagEND){
-	    netstring << s[i];
-	   }
-	   if(s[i] == flagESC){
-	     i++;
-	     netstring << (char)(s[i]^flagXOR);
-	   }
-	   if(s[i] == flagEND){ 
-	    /*
-	     for(int j= 0; j< (int)netstring.str().length();j++){
-	       cout << (int)netstring.str()[j] << ";";
-	      
-	     }
-	     cout << endl; */
-	    distribute(decodePayload(netstring.str()));
-	      netstring.str(std::string());
-	    }
-	  } 
-	}
-       
+        Container decodePayload(string payload) {
+            stringstream proto(payload);
+            ProtoDeserializerVisitor protoDeserializerVisitor;
+            protoDeserializerVisitor.deserializeDataFromNoHeader(proto);
+
+            automotive::carolocup::Sensors sd;
+            sd.accept(protoDeserializerVisitor);
+
+            cout << sd.toString() << endl;
+            int temp = sd.getButtonState();
+            bool buttons[4] = {0, 0, 0, 0};
+            for (int i = 3; i > 0; i--) buttons[i] = (temp & (1 << i)) != 0;
+
+            SensorBoardData m_sensorBoardData;
+            m_sensorBoardData.putTo_MapOfDistances(0, sd.getUsFront());
+            m_sensorBoardData.putTo_MapOfDistances(1, sd.getIrFrontRight());
+            m_sensorBoardData.putTo_MapOfDistances(2, sd.getIrRearRight());
+            m_sensorBoardData.putTo_MapOfDistances(3, sd.getIrBackRight());
+            m_sensorBoardData.putTo_MapOfDistances(4, sd.getUsRear());
+            m_sensorBoardData.putTo_MapOfDistances(5, sd.getIrBackLeft());
+            m_sensorBoardData.putTo_MapOfDistances(6, sd.getWheelRearLeft());
+            m_sensorBoardData.putTo_MapOfDistances(7, sd.getWheelRearRight());
+            m_sensorBoardData.putTo_MapOfDistances(8, (int) sd.getGyroHeading());
+            m_sensorBoardData.putTo_MapOfDistances(9, buttons[1]);
+            m_sensorBoardData.putTo_MapOfDistances(10, buttons[2]);
+            m_sensorBoardData.putTo_MapOfDistances(11, buttons[3]);
+            m_sensorBoardData.putTo_MapOfDistances(12, sd.getLightReading());
+            Container sensorData(Container::USER_DATA_0, m_sensorBoardData);
+            return sensorData;
+        }
+
+        void Proxy::nextString(const string &s) {
+            // cout << s << endl;
+            for (int i = 0; i < (int) s.length(); i++) {
+                if (s[i] != flagESC && s[i] != flagEND) {
+                    netstring << s[i];
+                }
+                if (s[i] == flagESC) {
+                    i++;
+                    netstring << (char) (s[i] ^ flagXOR);
+                }
+                if (s[i] == flagEND) {
+                    /*
+                     for(int j= 0; j< (int)netstring.str().length();j++){
+                       cout << (int)netstring.str()[j] << ";";
+
+                     }
+                     cout << endl; */
+                    distribute(decodePayload(netstring.str()));
+                    netstring.str(std::string());
+                }
+            }
+        }
+
 
         void Proxy::setUp() {
-	        // This method will be call automatically _before_ running body().
+            // This method will be call automatically _before_ running body().
             if (getFrequency() < 20) {
-                cerr << endl << endl << "Proxy: WARNING! Running proxy with a LOW frequency (consequence: data updates are too seldom and will influence your algorithms in a negative manner!) --> suggestions: --freq=20 or higher! Current frequency: " << getFrequency() << " Hz." << endl << endl << endl;
+                cerr << endl << endl <<
+                "Proxy: WARNING! Running proxy with a LOW frequency (consequence: data updates are too seldom and will influence your algorithms in a negative manner!) --> suggestions: --freq=20 or higher! Current frequency: " <<
+                getFrequency() << " Hz." << endl << endl << endl;
             }
             // Get configuration data.
             KeyValueConfiguration kv = getKeyValueConfiguration();
@@ -134,15 +135,19 @@ namespace automotive {
                 stringstream recordingURL;
                 recordingURL << "file://" << "proxy_" << TimeStamp().getYYYYMMDD_HHMMSS() << ".rec";
                 // Size of memory segments.
-                const uint32_t MEMORY_SEGMENT_SIZE = getKeyValueConfiguration().getValue<uint32_t>("global.buffer.memorySegmentSize");
+                const uint32_t MEMORY_SEGMENT_SIZE = getKeyValueConfiguration().getValue<uint32_t>(
+                        "global.buffer.memorySegmentSize");
                 // Number of memory segments.
-                const uint32_t NUMBER_OF_SEGMENTS = getKeyValueConfiguration().getValue<uint32_t>("global.buffer.numberOfMemorySegments");
+                const uint32_t NUMBER_OF_SEGMENTS = getKeyValueConfiguration().getValue<uint32_t>(
+                        "global.buffer.numberOfMemorySegments");
                 // Run recorder in asynchronous mode to allow real-time recording in background.
                 const bool THREADING = true;
                 // Dump shared images and shared data?
-                const bool DUMP_SHARED_DATA = getKeyValueConfiguration().getValue<uint32_t>("proxy.recorder.dumpshareddata") == 1;
+                const bool DUMP_SHARED_DATA =
+                        getKeyValueConfiguration().getValue<uint32_t>("proxy.recorder.dumpshareddata") == 1;
 
-                m_recorder = new Recorder(recordingURL.str(), MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS, THREADING, DUMP_SHARED_DATA);
+                m_recorder = new Recorder(recordingURL.str(), MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS, THREADING,
+                                          DUMP_SHARED_DATA);
             }
 
             // Create the camera grabber.
@@ -158,44 +163,44 @@ namespace automotive {
                 m_camera = new OpenCVCamera(NAME, ID, WIDTH, HEIGHT, BPP);
             }
             if (TYPE.compare("ueye") == 0) {
-    #ifdef HAVE_UEYE
+#ifdef HAVE_UEYE
                 m_camera = new uEyeCamera(NAME, ID, WIDTH, HEIGHT, BPP);
-    #endif
+#endif
             }
 
             if (m_camera == NULL) {
                 cerr << "No valid camera type defined." << endl;
             }
-            
-	      
-	      // This instance will handle any bytes that are received
-	      // from our serial port.
-	      serial->setStringListener(this);
-	      
-	      // Start receiving bytes.
-	      serial->start();
+
+
+            // This instance will handle any bytes that are received
+            // from our serial port.
+            serial->setStringListener(this);
+
+            // Start receiving bytes.
+            serial->start();
         }
 
         void Proxy::tearDown() {
-	        // This method will be call automatically _after_ return from body().
+            // This method will be call automatically _after_ return from body().
             OPENDAVINCI_CORE_DELETE_POINTER(m_recorder);
             OPENDAVINCI_CORE_DELETE_POINTER(m_camera);
-	    // Stop receiving bytes and unregister our handler.
-	    /*
-	    automotive::carolocup::Control cc;
-	    cc.setAcceleration(0);
-	    cc.setSteering(0);
-	    cc.setLights(0);
-	    ProtoSerializerVisitor protoSerializerVisitor;
-	    cc.accept(protoSerializerVisitor);
-	    stringstream proto;
-	    protoSerializerVisitor.getSerializedDataNoHeader(proto);
-	    stringstream netstring;
-	    netstring << proto.str().length() << ':' << proto.str() << ',';
-	    serial->send(netstring.str());
-	    */
-	    serial->stop();
-	    serial->setStringListener(NULL);
+            // Stop receiving bytes and unregister our handler.
+            /*
+            automotive::carolocup::Control cc;
+            cc.setAcceleration(0);
+            cc.setSteering(0);
+            cc.setLights(0);
+            ProtoSerializerVisitor protoSerializerVisitor;
+            cc.accept(protoSerializerVisitor);
+            stringstream proto;
+            protoSerializerVisitor.getSerializedDataNoHeader(proto);
+            stringstream netstring;
+            netstring << proto.str().length() << ':' << proto.str() << ',';
+            serial->send(netstring.str());
+            */
+            serial->stop();
+            serial->setStringListener(NULL);
         }
 
         void Proxy::distribute(Container c) {
@@ -212,64 +217,63 @@ namespace automotive {
 
         // This method will do the main data processing job.
         coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode Proxy::body() {
-	    KeyValueDataStore &kvs = getKeyValueDataStore();
+            KeyValueDataStore &kvs = getKeyValueDataStore();
             uint32_t captureCounter = 0;
             while (getModuleStateAndWaitForRemainingTimeInTimeslice() == coredata::dmcp::ModuleStateMessage::RUNNING) {
                 // Capture frame.
                 if (m_camera != NULL) {
                     coredata::image::SharedImage si = m_camera->capture();
-		    
+
                     Container c(Container::SHARED_IMAGE, si);
                     distribute(c);
                     captureCounter++;
                 }
-		
-            Container c = kvs.get(Container::VEHICLECONTROL);
-	    VehicleControl vc = c.getData<VehicleControl>();
-	    
-	    automotive::carolocup::Control cc;
-	    cc.setSpeed((int)(vc.getSpeed() * 10));
-	    cc.setSteering((int)(vc.getSteeringWheelAngle()* (1.0 / (3.141592654 / 180.0))));
-	    bool lights[3] = {0,0,0}; //stop light, left blinker, right blinker
-	    lights[0] = vc.getBrakeLights();
-	    lights[1] = vc.getFlashingLightsLeft();
-	    lights[2] = vc.getFlashingLightsRight();
-	    uint lightsINT = 0;
-	    for(int i = 0; i < 3; i++) if(lights[i]) lightsINT |= 1 << (3 - i);
-	    cc.setLights(lightsINT);
-	    cc.setGyroTrigger(500);
-	    ProtoSerializerVisitor protoSerializerVisitor;
-	    cc.accept(protoSerializerVisitor);
-	    stringstream proto;
-	    protoSerializerVisitor.getSerializedDataNoHeader(proto);
-	    //cout << cc.toString() << endl;
-	      stringstream StreamToArduino;
 
-	      //char start_flag = 0x12; //18 in DEC
-	      
+                Container c = kvs.get(Container::VEHICLECONTROL);
+                VehicleControl vc = c.getData<VehicleControl>();
 
-	      //Whenever a flag or escape byte appears in the message, it is escaped by 0x7D and the byte itself is XOR-ed with 0x20. 
-	      //So, for example 0x7E becomes 0x7D 0x5E. Similarly 0x7D becomes 0x7D 0x5D. 
-	      //The receiver unsuffs the escape byte and XORs the next byte with 0x20 again to get the original [6].
+                automotive::carolocup::Control cc;
+                cc.setSpeed((int) (vc.getSpeed() * 10));
+                cc.setSteering((int) (vc.getSteeringWheelAngle() * (1.0 / (3.141592654 / 180.0))));
+                bool lights[3] = {0, 0, 0}; //stop light, left blinker, right blinker
+                lights[0] = vc.getBrakeLights();
+                lights[1] = vc.getFlashingLightsLeft();
+                lights[2] = vc.getFlashingLightsRight();
+                uint lightsINT = 0;
+                for (int i = 0; i < 3; i++) if (lights[i]) lightsINT |= 1 << (3 - i);
+                cc.setLights(lightsINT);
+                cc.setGyroTrigger(500);
+                ProtoSerializerVisitor protoSerializerVisitor;
+                cc.accept(protoSerializerVisitor);
+                stringstream proto;
+                protoSerializerVisitor.getSerializedDataNoHeader(proto);
+                //cout << cc.toString() << endl;
+                stringstream StreamToArduino;
+
+                //char start_flag = 0x12; //18 in DEC
 
 
-	      // 8;0;16;0;24;19
-	      //8;125;93;16;125;51;24;0;19
-	      for(int i = 0; i < (int)proto.str().length(); i++) {
-		if(proto.str()[i] == flagEND || proto.str()[i] == flagESC) {
-		  StreamToArduino << flagESC << (char)(proto.str()[i]^flagXOR);
-		  i++;
-		}
-		StreamToArduino << proto.str()[i];
-	      }
+                //Whenever a flag or escape byte appears in the message, it is escaped by 0x7D and the byte itself is XOR-ed with 0x20.
+                //So, for example 0x7E becomes 0x7D 0x5E. Similarly 0x7D becomes 0x7D 0x5D.
+                //The receiver unsuffs the escape byte and XORs the next byte with 0x20 again to get the original [6].
 
-	      StreamToArduino << flagEND;
-	      //cout << "length from proxy" << (int)netstring.str().length() << endl;
-	      serial->send(StreamToArduino.str());
-	      }
-	    
-	    
-	    
+
+                // 8;0;16;0;24;19
+                //8;125;93;16;125;51;24;0;19
+                for (int i = 0; i < (int) proto.str().length(); i++) {
+                    if (proto.str()[i] == flagEND || proto.str()[i] == flagESC) {
+                        StreamToArduino << flagESC << (char) (proto.str()[i] ^ flagXOR);
+                        i++;
+                    }
+                    StreamToArduino << proto.str()[i];
+                }
+
+                StreamToArduino << flagEND;
+                //cout << "length from proxy" << (int)netstring.str().length() << endl;
+                serial->send(StreamToArduino.str());
+            }
+
+
             cout << "Proxy: Captured " << captureCounter << " frames." << endl;
 
             return coredata::dmcp::ModuleExitCodeMessage::OKAY;
