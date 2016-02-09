@@ -76,10 +76,8 @@ namespace msv {
             laneDriver(0),
             m_timestamp(0),
             previousError(0.0) {
-        runStartBoxSequence = false;
         //Create lane driver
         laneDriver = new LaneFollowingDriver(argc, argv);
-        laneDriver->runStartBoxSequence = false;
         // Init laneDriver module
         laneDriver->runModule();
         driving_state = DRIVE;
@@ -126,8 +124,7 @@ namespace msv {
 
         //Sensors
         // new configuration
-        IR_SideFront = (int) sbd.getValueForKey_MapOfDistances(
-                1); // Side Left IR // *on legendary is //theFront-Side-Right
+        IR_SideFront = (int) sbd.getValueForKey_MapOfDistances(1); // Side Left IR // *on legendary is //theFront-Side-Right
         IR_SideBack = (int) sbd.getValueForKey_MapOfDistances(2); // Rear Left IR
         IR_BackRight = (int) sbd.getValueForKey_MapOfDistances(3); // Rear Right IR
         IR_BackLeft = (int) sbd.getValueForKey_MapOfDistances(5); // Side Right IR
@@ -234,7 +231,7 @@ namespace msv {
                     IRSideValue = IR_SideFront;
 
                     gapWidth = (OverallDistance - CurrentDistSpot);
-                    if (gapWidth > MinParkingDist1) {
+                    if (gapWidth > MinParkingDist1 && gapWidth <= MinParkingDist2) {
                         desiredSpeed = SpeedF1;
                         DistanceEndObstacle = OverallDistance;
                         driving_state = STOP_FOR_PARKING;
@@ -364,7 +361,7 @@ namespace msv {
                     desiredSpeed = Stop_Speed_Backward;
                     brakeLights = true;
                 }
-                else {
+                else{
                     desiredSpeed = SpeedParkingBack;
                     desiredSteering = -maxSteeringPositive;
                     brakeLights = false;
@@ -375,7 +372,7 @@ namespace msv {
             case FORWARD_RIGHT: {
                 flashingLightsRight = false;
                 cout << "\t\t========  FORWARD_RIGHT" << endl;
-                int FrontStopLimit = 12;
+                int FrontStopLimit = 14;
 
                 if (((USFront > 0) && (USRear > 0) && ((USFront + USRear) <= USStraight)) || countStop > 1) {
                     USStrCheck = (USFront + USRear);
@@ -383,13 +380,14 @@ namespace msv {
                     parking_state = STOP;
                     brakeLights = true;
                 }
-                else if (USFront < FrontStopLimit && USFront > 0) {
+//                else if (USFront < FrontStopLimit && USFront > 0)  {
+		else if ((USFront < FrontStopLimit && USFront > 0) || (IR_BackLeft>17 || IR_BackLeft == 0)) {
                     desiredSpeed = Stop_Speed_Forward;
                     parking_state = BACKWARDS_LEFT;
                     brakeLights = true;
                     countStop++;
                 }
-                else {
+                else{
                     brakeLights = false;
                     desiredSpeed = SpeedParkingForward;
                     desiredSteering = maxSteeringPositive;

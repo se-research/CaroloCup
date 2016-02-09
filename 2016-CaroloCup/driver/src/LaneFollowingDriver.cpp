@@ -135,7 +135,7 @@ namespace msv {
 
         speedVal = initialSpeed;
 
-        if (abs(desSteering) < 4) speedVal = 1.6;
+        if (abs(desSteering) < 4) speedVal = 1.5;
 
         cout << "Speed: " << speedVal << endl;
         cout << "SpeedDefault: " << initialSpeed << endl << endl;

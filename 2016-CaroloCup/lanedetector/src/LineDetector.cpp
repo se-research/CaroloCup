@@ -52,7 +52,16 @@ LineDetector::LineDetector(const Mat &f, const Config &cfg, const bool debug,
     /// Detect edges using Threshold
 //    threshold(m_frame, m_frame, 0, 255, CV_THRESH_BINARY + CV_THRESH_OTSU);
 //    threshold(m_frame, m_frame, m_config.th1, 255, CV_THRESH_BINARY);
-    threshold(m_frame, m_frame, 100, 255, CV_THRESH_BINARY);
+
+    TimeStamp currentTime;
+    startTime = currentTime.toMicroseconds();
+
+    threshold(m_frame, m_frame, 140, 255, CV_THRESH_BINARY);
+
+    TimeStamp endTime;
+    time_taken_threshold = endTime.toMicroseconds() - startTime;
+
+    if (m_debug)
     cvtColor(m_frame, m_frame_color, CV_GRAY2BGR);
 
     // Run lineDetector and provide goalLines for the driver
@@ -109,7 +118,7 @@ void LineDetector::extractRoad() {
     int halfWidth = maxWidth / 2;
     int maxHeight = m_frame.rows - 1;
     int halfHeight = maxHeight / 2;
-    int scanOffset = 2;
+    int scanOffset = 3;
 
     int rightLineScan = halfWidth + halfWidth / 5;
     int dashLineScan = halfWidth - halfWidth / 5;
@@ -234,7 +243,7 @@ void LineDetector::extractRoad() {
                 if (dashLineState == NO_LINE_FOUND) {
                     dashLineState = LINE_FOUND;
 
-                    dashLineScan = col + scanOffset;
+                    dashLineScan = col + scanOffset - 1;
 
                     if (dashState == NO_DASH_FOUND) {
                         dashState = FIRST_DASH_START;
@@ -265,7 +274,8 @@ void LineDetector::extractRoad() {
                 } else if (dashLineState == NO_LINE_FOUND && col == lastFirstLinePoint) {
                     dashLineState = LINE_PASSED;
 
-                    dashLineScan = lastFirstLinePoint + 150;
+//                    dashLineScan = lastFirstLinePoint + 150;
+                    dashLineScan += scanOffset + 1;
 
                     if (dashState == FIRST_DASH_START) {
                         // checks if the dash is tall enough
@@ -295,6 +305,14 @@ void LineDetector::extractRoad() {
     }
 }
 
+float LineDetector::getRealAngle(RotatedRect rectangle) {
+    if (rectangle.size.width < rectangle.size.height){
+        return rectangle.angle + 180;
+    } else {
+        return rectangle.angle + 90;
+    }
+}
+
 bool LineDetector::extractLine(vector<Point> line, int minArea, int index, CustomLine &lineContainer) {
     if (! line.size()) return false;
 
@@ -303,17 +321,13 @@ bool LineDetector::extractLine(vector<Point> line, int minArea, int index, Custo
 
     if (rect.size.area() < minArea) return false;
 
-    if (rect.center.y < 50 && rect.center.x < 50) return false; // abort if rectangle is in the left most corner
+    if (rect.center.y < 60 && rect.center.x < 60) return false; // abort if rectangle is in the left most corner
 
-    // TODO index == 1 || index == 2 is bad, we were in a rush so it had to be done quickly
-    if (index == 1 || index == 2) { // only relevant to dash lines
-        if (rect.angle <= -80 && rect.angle >= -90) return false; // remove horizontal lines
-        if (rect.angle >= 80 && rect.angle <= 90) return false; // remove horizontal lines
-        if (rect.angle >= -5 && rect.angle <= 5) return false; // remove horizontal lines
-        if (index == 1) { // if first dash
-            if (rect.angle > -20 && rect.angle < 20) return false; // remove lines that are too steep
-        }
-    }
+    float realAngle;
+
+    realAngle = getRealAngle(rect);
+
+    if (realAngle >= 80 && realAngle <= 120) return false; // remove horizontal lines
 
     Point2f rectPoints[4];
     rect.points(rectPoints);
@@ -388,7 +402,7 @@ void LineDetector::extractLines() {
         }
     }
 
-    leftLineFound = extractLine(linesContour.leftLine, 500, 3, leftLine);
+    leftLineFound = extractLine(linesContour.leftLine, 400, 3, leftLine);
 
     if (leftLineFound) {
         ltu.leftLine = leftLine;
@@ -404,13 +418,13 @@ void LineDetector::extractLines() {
         ltu.foundR = true;
     }
 
-    int primaryLaneSizeMin = 160;
-    int parimaryLaneSizeMax = 640;
+    int primaryLaneSizeMin = 200;
+    int parimaryLaneSizeMax = 670;
     int primaryLaneScale = parimaryLaneSizeMax - primaryLaneSizeMin;
     float primaryLaneRatio = (float) (primaryLaneScale * 1.0 / m_frame.rows);
 
-    int secondaryLaneSizeMin = 120;
-    int secondaryLaneSizeMax = 340;
+    int secondaryLaneSizeMin = 110;
+    int secondaryLaneSizeMax = 320;
     int secondaryLaneScale = secondaryLaneSizeMax - secondaryLaneSizeMin;
     float secondaryLaneRatio = (float) (secondaryLaneScale * 1.0 / m_frame.rows);
 
@@ -3064,4 +3078,5 @@ FinalOutput *LineDetector::getResult_createTrajectory()
 }
 
 }
+
 

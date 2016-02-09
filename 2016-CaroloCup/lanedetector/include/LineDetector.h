@@ -135,6 +135,7 @@ public:
 
     long time_taken_extractRoad;
     long time_taken_extractLines;
+    long time_taken_threshold;
     long time_taken_contour;
     long time_taken_find_lines;
     long time_taken_classification;
@@ -268,7 +269,10 @@ private:
             secondDash = {};
         }
     } linesContour;
+
+    float getRealAngle(RotatedRect rectangle);
 };
 
 }
 #endif
+
