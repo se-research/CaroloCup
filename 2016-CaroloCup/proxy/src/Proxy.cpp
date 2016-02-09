@@ -21,7 +21,6 @@
 
 #include "core/base/KeyValueConfiguration.h"
 #include "core/data/Container.h"
-#include "core/data/TimeStamp.h"
 
 #include <core/SharedPointer.h>
 #include <core/wrapper/SerialPort.h>
@@ -77,9 +76,8 @@ namespace automotive {
 		int temp = sd.getButtonState();
 		bool buttons[4] = {0,0,0,0};
 		for (int i = 3; i > 0; i--) buttons[i] = (temp & (1 << i)) != 0;
-		Container emptyContainer;
-		if(temp < 20){
-		  SensorBoardData m_sensorBoardData;
+
+        SensorBoardData m_sensorBoardData;
 		  m_sensorBoardData.putTo_MapOfDistances(0, sd.getUsFront());
 		  m_sensorBoardData.putTo_MapOfDistances(1, sd.getIrFrontRight());
 		  m_sensorBoardData.putTo_MapOfDistances(2, sd.getIrRearRight());
@@ -95,10 +93,6 @@ namespace automotive {
 		  m_sensorBoardData.putTo_MapOfDistances(12, sd.getLightReading());
 		  Container sensorData(Container::USER_DATA_0, m_sensorBoardData);
 		  return sensorData;
-		}
-		cout << "disregarded <<<<<---------------------------------"<< endl;
-
-		return emptyContainer;
 	}
 	
 	void Proxy::nextString(const string &s) {
