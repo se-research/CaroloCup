@@ -44,7 +44,7 @@
         using namespace core::data;
         using namespace tools::recorder;
 	
-	  const string SERIAL_PORT = "/dev/ttyUSB0";
+	  const string SERIAL_PORT = "/dev/ttyACM0";
 	  const uint32_t BAUD_RATE = 115200;
 	  
 	      char flagEND   = 19; 
@@ -78,7 +78,7 @@ namespace automotive {
 		bool buttons[4] = {0,0,0,0};
 		for (int i = 3; i > 0; i--) buttons[i] = (temp & (1 << i)) != 0;
 		Container emptyContainer;
-		if(temp < 20){
+		//if(temp < 20){
 		  SensorBoardData m_sensorBoardData;
 		  m_sensorBoardData.putTo_MapOfDistances(0, sd.getUsFront());
 		  m_sensorBoardData.putTo_MapOfDistances(1, sd.getIrFrontRight());
@@ -95,10 +95,10 @@ namespace automotive {
 		  m_sensorBoardData.putTo_MapOfDistances(12, sd.getLightReading());
 		  Container sensorData(Container::USER_DATA_0, m_sensorBoardData);
 		  return sensorData;
-		}
-		cout << "disregarded <<<<<---------------------------------"<< endl;
+		//}
+		//cout << "disregarded <<<<<---------------------------------"<< endl;
 
-		return emptyContainer;
+		// return emptyContainer;
 	}
 	
 	void Proxy::nextString(const string &s) {
@@ -243,7 +243,7 @@ namespace automotive {
 	    uint lightsINT = 0;
 	    for(int i = 0; i < 3; i++) if(lights[i]) lightsINT |= 1 << (3 - i);
 	    cc.setLights(lightsINT);
-	    cc.setGyroTrigger(500);
+	    cc.setGyroTrigger(1);
 	    ProtoSerializerVisitor protoSerializerVisitor;
 	    cc.accept(protoSerializerVisitor);
 	    stringstream proto;
