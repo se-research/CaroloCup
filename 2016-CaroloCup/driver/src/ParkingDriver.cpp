@@ -16,7 +16,7 @@ namespace msv {
     using namespace coredata;
 
 
-    float maxSteeringPositive = -42.f * 3.14f / 180.f;
+    float maxSteeringPositive = 42.f * 3.14f / 180.f;
     int OverallDistance;
     int Distance1;
     int CurrentDistSpot;
