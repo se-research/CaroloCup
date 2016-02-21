@@ -6,19 +6,19 @@
 #define AUTOMOTIVE_CAROLOCUP_DRIVERMANAGER_H
 
 
-#include "core/base/module/TimeTriggeredConferenceClientModule.h"
-#include "GeneratedHeaders_AutomotiveData.h"
-#include "GeneratedHeaders_CoreData.h"
-#include "core/io/conference/ContainerConference.h"
-#include "core/data/Container.h"
+#include "opendavinci/odcore/base/module/TimeTriggeredConferenceClientModule.h"
+#include "automotivedata/GeneratedHeaders_AutomotiveData.h"
+#include "opendavinci/GeneratedHeaders_OpenDaVINCI.h"
+#include "opendavinci/odcore/io/conference/ContainerConference.h"
+#include "opendavinci/odcore/data/Container.h"
 #include <DriverGeneric.h>
 
 
 namespace msv {
 
     using namespace std;
-    using namespace core::base;
-    using namespace core::data;
+    using namespace odcore::base;
+    using namespace odcore::data;
     using namespace automotive;
     using namespace automotive::miniature;
 
@@ -33,7 +33,7 @@ namespace msv {
     };
 
 
-    class DriverManager : public core::base::module::TimeTriggeredConferenceClientModule {
+    class DriverManager : public odcore::base::module::TimeTriggeredConferenceClientModule {
 
     private:
         int32_t argc;
@@ -67,7 +67,7 @@ namespace msv {
 
         virtual ~DriverManager();
 
-        coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode body();
+        odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode body();
     };
 
 } // msv

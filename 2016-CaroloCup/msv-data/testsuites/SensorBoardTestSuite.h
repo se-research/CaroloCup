@@ -10,7 +10,7 @@
 #include "cxxtest/TestSuite.h"
 
 // Include local header files.
-#include "GeneratedHeaders_AutomotiveData.h"
+#include "automotivedata/GeneratedHeaders_AutomotiveData.h"
 
 using namespace std;
 using namespace automotive::miniature;

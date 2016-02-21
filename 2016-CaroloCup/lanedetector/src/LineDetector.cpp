@@ -3,12 +3,12 @@
 #include <fstream>
 #include <queue>
 #include <jmorecfg.h>
-#include "core/data/TimeStamp.h"
+#include "opendavinci/odcore/data/TimeStamp.h"
 
 namespace msv
 {
 
-using namespace core::data;
+using namespace odcore::data;
 using namespace std;
 using namespace cv;
 

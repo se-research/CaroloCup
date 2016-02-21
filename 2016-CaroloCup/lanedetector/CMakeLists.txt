@@ -61,27 +61,27 @@ FIND_PACKAGE (OpenCV REQUIRED)
 
 ###########################################################################
 IF("NOT ${ARCH}" STREQUAL "armhf")
-	# Try to find odSimulation.
-	SET(ODSIMULATION_DIR "${CMAKE_INSTALL_PREFIX}")
-	FIND_PACKAGE (odSimulation)
+	# Try to find OpenDLV.
+	SET(OPENDLV_DIR "${CMAKE_INSTALL_PREFIX}")
+	FIND_PACKAGE (OpenDLV)
 ENDIF()
 ###########################################################################
 # Set linking libraries to successfully link test suites and binaries.
 SET (LIBRARIES ${OPENDAVINCI_LIBRARIES} ${AUTOMOTIVEDATA_LIBRARIES} ${OpenCV_LIBS})
-IF(FOUND_ODSIMULATION)
-    SET (LIBRARIES ${LIBRARIES} ${ODSIMULATION_LIBRARIES})
+IF(FOUND_OPENDLV)
+    SET (LIBRARIES ${LIBRARIES} ${OPENDLV_LIBRARIES})
 ENDIF()
 
 ###########################################################################
 # Set header files from OpenDaVINCI.
-INCLUDE_DIRECTORIES (${OPENDAVINCI_INCLUDE_DIRS}/opendavinci)
+INCLUDE_DIRECTORIES (${OPENDAVINCI_INCLUDE_DIRS})
 # Set header files from AutomotiveData.
-INCLUDE_DIRECTORIES (${AUTOMOTIVEDATA_INCLUDE_DIRS}/automotivedata)
+INCLUDE_DIRECTORIES (${AUTOMOTIVEDATA_INCLUDE_DIRS})
 # Set header files from OpenCV.
 INCLUDE_DIRECTORIES (${OpenCV_INCLUDE_DIR})
-# Set header files from odSimulation.
-IF(FOUND_ODSIMULATION)
-    INCLUDE_DIRECTORIES (${ODSIMULATION_INCLUDE_DIRS}/odsimulation)
+# Set header files from OpenDLV.
+IF(FOUND_OPENDLV)
+    INCLUDE_DIRECTORIES (${ODSIMULATION_INCLUDE_DIRS})
 ENDIF()
 # Set include directory.
 INCLUDE_DIRECTORIES(include)

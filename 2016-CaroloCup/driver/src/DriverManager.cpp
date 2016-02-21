@@ -2,7 +2,7 @@
 // Created by Mickaël on 2015-11-25.
 //
 
-#include <core/base/LIFOQueue.h>
+#include <opendavinci/odcore/base/LIFOQueue.h>
 #include <LaneFollowingDriver.h>
 #include <ParkingDriver.h>
 #include "DriverManager.h"
@@ -10,8 +10,8 @@
 namespace msv {
 
     using namespace std;
-    using namespace core::base;
-    using namespace core::data;
+    using namespace odcore::base;
+    using namespace odcore::data;
     using namespace automotive;
     using namespace automotive::miniature;
 
@@ -50,7 +50,7 @@ namespace msv {
     }
 
     // This method will do the main data processing job.
-    coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode DriverManager::body() {
+    odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode DriverManager::body() {
 
         Container proxyData;
         SensorBoardData sbd;
@@ -64,10 +64,10 @@ namespace msv {
         if (debug)
             cout << endl << "DriverManager: " << flush;
 
-        core::base::LIFOQueue lifo;
-        addDataStoreFor(Container::USER_DATA_0, lifo);
+        odcore::base::LIFOQueue lifo;
+        addDataStoreFor(SensorBoardData::ID(), lifo);
 
-        while (getModuleStateAndWaitForRemainingTimeInTimeslice() == coredata::dmcp::ModuleStateMessage::RUNNING) {
+        while (getModuleStateAndWaitForRemainingTimeInTimeslice() == odcore::data::dmcp::ModuleStateMessage::RUNNING) {
 
             // Get latest proxy data
             proxyData = lifo.pop();
@@ -137,17 +137,17 @@ namespace msv {
             if (driver_ptr != 0) {
                 driver_ptr->body();
                 // Create container for finally sending the data.
-                Container c(Container::VEHICLECONTROL, driver_ptr->GetControlData());
+                Container c(driver_ptr->GetControlData());
                 // Send container.
                 getConference().send(c);
             }
         }
 
-        return coredata::dmcp::ModuleExitCodeMessage::OKAY;
+        return odcore::data::dmcp::ModuleExitCodeMessage::OKAY;
     }
 
     void DriverManager::stopCar() {
-        Container c(Container::VEHICLECONTROL, DriverGeneric::GetStopControlData());
+        Container c(DriverGeneric::GetStopControlData());
         getConference().send(c);
     }
 

@@ -55,24 +55,24 @@ SET(OpenCV_DIR "/usr")
 FIND_PACKAGE (OpenCV REQUIRED)
 
 ###########################################################################
-# Try to find odSimulation.
-SET(ODSIMULATION_DIR "${CMAKE_INSTALL_PREFIX}")
-FIND_PACKAGE (odSimulation)
+# Try to find OpenDLV.
+SET(OPENDLV_DIR "${CMAKE_INSTALL_PREFIX}")
+FIND_PACKAGE (OpenDLV)
 
 ###########################################################################
 # Set linking libraries to successfully link simulations.
 SET (LIBRARIES ${OPENDAVINCI_LIBRARIES}
                ${AUTOMOTIVEDATA_LIBRARIES}
-               ${ODSIMULATION_LIBRARIES}
+               ${OPENDLV_LIBRARIES}
                ${OpenCV_LIBS})
 
 ###########################################################################
 # Set header files from OpenDaVINCI.
-INCLUDE_DIRECTORIES (${OPENDAVINCI_INCLUDE_DIRS}/opendavinci)
+INCLUDE_DIRECTORIES (${OPENDAVINCI_INCLUDE_DIRS})
 # Set header files from AutomotiveData.
-INCLUDE_DIRECTORIES (${AUTOMOTIVEDATA_INCLUDE_DIRS}/automotivedata)
+INCLUDE_DIRECTORIES (${AUTOMOTIVEDATA_INCLUDE_DIRS})
 # Set header files from odSimulation.
-INCLUDE_DIRECTORIES (${ODSIMULATION_INCLUDE_DIRS}/odsimulation)
+INCLUDE_DIRECTORIES (${ODSIMULATION_INCLUDE_DIRS})
 # Set include directory.
 INCLUDE_DIRECTORIES(include)
 

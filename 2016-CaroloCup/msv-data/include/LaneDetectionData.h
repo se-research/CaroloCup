@@ -8,9 +8,9 @@
 #define LANEDETECTIONDATA_H_
 
 // core/opendavinci.h must be included to setup platform-dependent header files and configurations.
-#include "core/opendavinci.h"
+#include "opendavinci/odcore/opendavinci.h"
 
-#include "core/data/SerializableData.h"
+#include "opendavinci/odcore/data/SerializableData.h"
 
 //#include <opencv/cv.h>
 #include "opencv2/opencv.hpp"
@@ -227,7 +227,7 @@ public:
 /**
  * This is an example how you can send data from one component to another.
  */
-class LaneDetectionData : public core::data::SerializableData
+class LaneDetectionData : public odcore::data::SerializableData
 {
 public:
     virtual ~LaneDetectionData();
@@ -272,6 +272,10 @@ public:
 
     void setClassification(const string &classfi);
 
+    static int32_t ID();
+    virtual int32_t getID() const;
+    virtual const string getLongName() const;
+    virtual const string getShortName() const;
     virtual ostream &operator<<(ostream &out) const;
     virtual istream &operator>>(istream &in);
     virtual const string toString() const;

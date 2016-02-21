@@ -4,18 +4,18 @@
  * This software is open source. Please see COPYING and AUTHORS for further information.
  */
 #include <iostream>
-#include "core/data/Container.h"
-#include "core/io/conference/ContainerConference.h"
-#include "core/io/URL.h"
-#include "core/io/StreamFactory.h"
+#include "opendavinci/odcore/data/Container.h"
+#include "opendavinci/odcore/io/conference/ContainerConference.h"
+#include "opendavinci/odcore/io/URL.h"
+#include "opendavinci/odcore/io/StreamFactory.h"
 #include "LaneDetectionData.h"
 #include "CsvExporter.h"
 
 namespace msv{
-	using namespace core::base;
-	using namespace core::data;
+	using namespace odcore::base;
+	using namespace odcore::data;
 	using std::cout;
-	using namespace core::io;
+	using namespace odcore::io;
 
 	CsvExporter::CsvExporter(const int32_t &argc, char **argv):
 		TimeTriggeredConferenceClientModule(argc, argv, "csveporter"),
@@ -43,16 +43,16 @@ namespace msv{
 
 	}
 
-	coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode CsvExporter::body(){
+	odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode CsvExporter::body(){
 
 		addDataStoreFor(m_fifo);
 		LaneDetectionData laneData;
 		Lines lines;
 		cout<< "waiting for data....."<< endl;
-		while (getModuleStateAndWaitForRemainingTimeInTimeslice() == coredata::dmcp::ModuleStateMessage::RUNNING) {
+		while (getModuleStateAndWaitForRemainingTimeInTimeslice() == odcore::data::dmcp::ModuleStateMessage::RUNNING) {
 			while (!m_fifo.isEmpty()) {
 			    Container c = m_fifo.leave();
-			    if(c.getDataType()==Container::USER_DATA_1){
+			    if(c.getDataType()==LaneDetectionData::ID()){
 
 			    	laneData = c.getData<LaneDetectionData> ();
 			    	lines=laneData.getLaneDetectionData();
@@ -106,7 +106,7 @@ namespace msv{
 		    m_out->flush();
 		}
 
-		return coredata::dmcp::ModuleExitCodeMessage::OKAY;
+		return odcore::data::dmcp::ModuleExitCodeMessage::OKAY;
 	}
 
 	void CsvExporter::tearDown(){

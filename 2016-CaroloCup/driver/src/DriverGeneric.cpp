@@ -3,16 +3,16 @@
 //
 
 #include <iostream>
-#include "core/io/conference/ContainerConference.h"
-#include "core/base/KeyValueConfiguration.h"
+#include "opendavinci/odcore/io/conference/ContainerConference.h"
+#include "opendavinci/odcore/base/KeyValueConfiguration.h"
 
 #include "DriverGeneric.h"
 
 namespace msv {
 
     using namespace std;
-    using namespace core::base;
-    using namespace core::data;
+    using namespace odcore::base;
+    using namespace odcore::data;
     using namespace automotive;
     using namespace automotive::miniature;
 
@@ -38,7 +38,7 @@ namespace msv {
             cout << "DriverGeneric destroyed!" << endl;
     }
 
-    coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode DriverGeneric::body() {
+    odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode DriverGeneric::body() {
 
         if (!initialized) {
             cout << "DriverGeneric: frequency:" << this->getFrequency() << endl;
@@ -54,7 +54,7 @@ namespace msv {
         Routine();
         tearDown();
 
-        return coredata::dmcp::ModuleExitCodeMessage::OKAY;
+        return odcore::data::dmcp::ModuleExitCodeMessage::OKAY;
     }
 
     VehicleControl DriverGeneric::GetControlData() {

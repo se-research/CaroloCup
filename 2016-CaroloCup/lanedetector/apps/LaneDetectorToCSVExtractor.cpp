@@ -8,30 +8,30 @@
 #include <string>
 #include <iostream>
 
-#include "core/SharedPointer.h"
-#include "core/data/Container.h"
-#include "core/io/URL.h"
-#include "core/io/StreamFactory.h"
-#include "core/data/TimeStamp.h"
+#include "opendavinci/odcore/SharedPointer.h"
+#include "opendavinci/odcore/data/Container.h"
+#include "opendavinci/odcore/io/URL.h"
+#include "opendavinci/odcore/io/StreamFactory.h"
+#include "opendavinci/odcore/data/TimeStamp.h"
 
-#include "context/base/DirectInterface.h"
-#include "context/base/RecordingContainer.h"
-#include "context/base/RuntimeControl.h"
-#include "context/base/RuntimeEnvironment.h"
-#include "context/base/PlaybackContainer.h"
-#include "vehiclecontext/VehicleRuntimeControl.h"
+#include "opendavinci/odcontext/base/DirectInterface.h"
+#include "opendavinci/odcontext/base/RecordingContainer.h"
+#include "opendavinci/odcontext/base/RuntimeControl.h"
+#include "opendavinci/odcontext/base/RuntimeEnvironment.h"
+#include "opendavinci/odcontext/base/PlaybackContainer.h"
+#include "opendlv/vehiclecontext/VehicleRuntimeControl.h"
 
 #include "LaneDetectionData.h"
 
 #include "LaneDetector.h"
 
 using namespace std;
-using namespace core;
-using namespace core::base;
-using namespace core::data;
-using namespace core::io;
-using namespace context::base;
-using namespace vehiclecontext;
+using namespace odcore;
+using namespace odcore::base;
+using namespace odcore::data;
+using namespace odcore::io;
+using namespace odcontext::base;
+using namespace opendlv::vehiclecontext;
 using namespace msv;
 
 class CSVExport : public SystemReportingComponent {
@@ -57,7 +57,7 @@ class CSVExport : public SystemReportingComponent {
             const uint32_t SIZE = getFIFO().getSize();
             for (uint32_t i = 0; i < SIZE; i++) {
                 Container c = getFIFO().leave();
-                if (c.getDataType() == Container::USER_DATA_1) {
+                if (c.getDataType() == LaneDetectionData::ID()) {
             		LaneDetectionData data = c.getData<LaneDetectionData>();
 
                     cerr << "(CSVExporter) Extracting '" << data.toString() << "'." << endl;

@@ -57,7 +57,7 @@ void processScenarios(string outputFolder) {
         while (player.hasMoreData()) {
             nextContainer = player.getNextContainerToBeSent();
 
-            if (nextContainer.getDataType() == Container::SHARED_IMAGE) {
+            if (nextContainer.getDataType() == SharedImage::ID()) {
                 SharedImage si = nextContainer.getData<SharedImage>();
 
                 if (!hasAttachedToSharedImageMemory) {
@@ -68,19 +68,19 @@ void processScenarios(string outputFolder) {
 
                 if (sharedImageMemory->isValid()) {
 
-                    if (image == NULL) {
+                    if (_image == NULL) {
                         imageHeight = si.getHeight();
                         imageWidth = si.getWidth();
-                        image = cvCreateImageHeader(cvSize(imageWidth, imageHeight), IPL_DEPTH_8U,
+                        _image = cvCreateImageHeader(cvSize(imageWidth, imageHeight), IPL_DEPTH_8U,
                                                     si.getBytesPerPixel());
                     }
 
-                    image->imageData = (char *) sharedImageMemory->getSharedMemory();
+                    _image->imageData = (char *) sharedImageMemory->getSharedMemory();
 
                     // Copy IplImage to Mat
-                    Mat frame(image, true);
+                    Mat frame(_image, true);
 
-                    cvReleaseImage(&image);
+                    cvReleaseImage(&_image);
 
                     // Crop top and bottom
                     frame = frame(cv::Rect(0, 2 * imageHeight / 16 + 30, imageWidth - 1, 10 * imageHeight / 16 - 40));

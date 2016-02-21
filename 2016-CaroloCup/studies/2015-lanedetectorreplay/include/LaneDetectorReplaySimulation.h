@@ -21,7 +21,7 @@
 #ifndef LANEDETECTORSIMULATION_H_
 #define LANEDETECTORSIMULATION_H_
 
-#include "core/opendavinci.h"
+#include "opendavinci/odcore/opendavinci.h"
 
 namespace simulation {
     class LaneDetectorSimulation {

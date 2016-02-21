@@ -26,7 +26,7 @@
 #include "../include/Proxy.h"
 
 using namespace std;
-using namespace core::data;
+using namespace odcore::data;
 using namespace automotive::miniature;
 
 /**
@@ -56,7 +56,7 @@ class ProxyTest : public CxxTest::TestSuite {
          */
         void setUp() {
             // Prepare the data that would be available from commandline.
-            string argv0("proxy-STM32F4");
+            string argv0("proxy");
             string argv1("--cid=100");
             int32_t argc = 2;
             char **argv;

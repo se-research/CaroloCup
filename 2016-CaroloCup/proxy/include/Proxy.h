@@ -22,16 +22,16 @@
 
 #include <map>
 
-#include "core/base/module/TimeTriggeredConferenceClientModule.h"
-#include "core/data/Container.h"
-#include "tools/recorder/Recorder.h"
+#include "opendavinci/odcore/base/module/TimeTriggeredConferenceClientModule.h"
+#include "opendavinci/odcore/data/Container.h"
+#include "opendavinci/odtools/recorder/Recorder.h"
 
-#include <core/SharedPointer.h>
-#include <core/wrapper/SerialPort.h>
-#include <core/wrapper/SerialPortFactory.h>
-#include <core/base/Thread.h>
+#include <opendavinci/odcore/SharedPointer.h>
+#include <opendavinci/odcore/wrapper/SerialPort.h>
+#include <opendavinci/odcore/wrapper/SerialPortFactory.h>
+#include <opendavinci/odcore/base/Thread.h>
 
-#include <core/io/StringListener.h>
+#include <opendavinci/odcore/io/StringListener.h>
 
 #include "Camera.h"
 
@@ -43,7 +43,7 @@ namespace automotive {
         /**
          * This class wraps the software/hardware interface board.
          */
-        class Proxy : public core::base::module::TimeTriggeredConferenceClientModule, public core::io::StringListener {
+        class Proxy : public odcore::base::module::TimeTriggeredConferenceClientModule, public odcore::io::StringListener {
             private:
                 /**
                  * "Forbidden" copy constructor. Goal: The compiler should warn
@@ -54,7 +54,7 @@ namespace automotive {
                  */
                 Proxy(const Proxy &/*obj*/);
 		
-		core::SharedPointer<core::wrapper::SerialPort> serial;
+		odcore::SharedPointer<odcore::wrapper::SerialPort> serial;
 		
         
 
@@ -82,17 +82,17 @@ namespace automotive {
 
                 virtual ~Proxy();
 
-                coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode body();
+                odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode body();
 
             private:
                 virtual void setUp();
 
                 virtual void tearDown();
 
-                void distribute(core::data::Container c);
+                void distribute(odcore::data::Container c);
             
 	    private:		
-                tools::recorder::Recorder *m_recorder;
+                odtools::recorder::Recorder *m_recorder;
                 Camera *m_camera;
         };
 

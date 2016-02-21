@@ -15,15 +15,15 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 
-#include "core/opendavinci.h"
-#include "core/base/KeyValueConfiguration.h"
-#include "core/data/Container.h"
-#include "core/io/conference/ContainerConference.h"
-#include "core/wrapper/SharedMemoryFactory.h"
-#include "tools/player/Player.h"
+#include "opendavinci/odcore/opendavinci.h"
+#include "opendavinci/odcore/base/KeyValueConfiguration.h"
+#include "opendavinci/odcore/data/Container.h"
+#include "opendavinci/odcore/io/conference/ContainerConference.h"
+#include "opendavinci/odcore/wrapper/SharedMemoryFactory.h"
+#include "opendavinci/odtools/player/Player.h"
 
-#include "GeneratedHeaders_CoreData.h"
-#include "GeneratedHeaders_AutomotiveData.h"
+#include "opendavinci/GeneratedHeaders_OpenDaVINCI.h"
+#include "automotivedata/GeneratedHeaders_AutomotiveData.h"
 
 
 #include "LaneDetector.h"
@@ -34,10 +34,10 @@ namespace msv
 {
 
     using namespace std;
-    using namespace core::base;
-    using namespace core::data;
-    using namespace coredata::image;
-    using namespace tools::player;
+    using namespace odcore::base;
+    using namespace odcore::data;
+    using namespace odcore::data::image;
+    using namespace odtools::player;
     using namespace cv;
     using namespace automotive::miniature;
 
@@ -101,7 +101,7 @@ namespace msv
         bool retVal = false;
         IplImage *image(NULL);
 
-        if (c.getDataType() == Container::SHARED_IMAGE)
+        if (c.getDataType() == SharedImage::ID())
         {
             SharedImage si = c.getData<SharedImage> ();
 
@@ -214,7 +214,7 @@ namespace msv
     void LaneDetector::processImage()
     {
         SensorBoardData sdb;
-        Container conUserData0 = getKeyValueDataStore ().get (Container::USER_DATA_0);
+        Container conUserData0 = getKeyValueDataStore ().get (SensorBoardData::ID());
         sdb = conUserData0.getData<SensorBoardData> ();
         //int lux = sdb.getDistance(7);
         int lux=-2;
@@ -254,7 +254,7 @@ namespace msv
         LaneDetectionData data;
         data.setLaneDetectionData(lines, dataToDriver);
         data.setFrameCount(m_frame_count);
-        Container con(Container::USER_DATA_1, data);
+        Container con(data, data::ID());
 
 
         // Send the data:
@@ -317,7 +317,7 @@ namespace msv
 
 // This method will do the main data processing job.
 // Therefore, it tries to open the real camera first. If that fails, the virtual camera images from camgen are used.
-    coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode LaneDetector::body()
+    odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode LaneDetector::body()
     {
 
         // Get configuration data.
@@ -359,7 +359,7 @@ namespace msv
         */
 
         // "Working horse."
-        while (getModuleStateAndWaitForRemainingTimeInTimeslice() == coredata::dmcp::ModuleStateMessage::RUNNING)
+        while (getModuleStateAndWaitForRemainingTimeInTimeslice() == odcore::data::dmcp::ModuleStateMessage::RUNNING)
         {
             bool has_next_frame = false;
             // Use the shared memory image.
@@ -376,10 +376,10 @@ namespace msv
             else     // Get the most recent available container for a SHARED_IMAGE.
             {
 
-                c = getKeyValueDataStore().get(Container::SHARED_IMAGE);
+                c = getKeyValueDataStore().get(SharedImage::ID());
             }
 
-            if (c.getDataType() == Container::SHARED_IMAGE)
+            if (c.getDataType() == SharedImage::ID())
             {
                 // Example for processing the received container.
                 has_next_frame = readSharedImage(c);
@@ -397,7 +397,7 @@ namespace msv
         OPENDAVINCI_CORE_DELETE_POINTER(player);
 
         waitKey(20);
-        return coredata::dmcp::ModuleExitCodeMessage::OKAY;
+        return odcore::data::dmcp::ModuleExitCodeMessage::OKAY;
     }
 // All the showResult_* functions assumes that data is put in the sub result structs in LineDetector.
 

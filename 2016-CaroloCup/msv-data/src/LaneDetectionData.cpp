@@ -8,17 +8,17 @@
 #include <stdc-predef.h>
 #endif
 
-#include "core/base/Hash.h"
-#include "core/base/Deserializer.h"
-#include "core/base/SerializationFactory.h"
-#include "core/base/Serializer.h"
+#include "opendavinci/odcore/base/Hash.h"
+#include "opendavinci/odcore/base/Deserializer.h"
+#include "opendavinci/odcore/base/SerializationFactory.h"
+#include "opendavinci/odcore/base/Serializer.h"
 
 #include "LaneDetectionData.h"
 
 namespace msv {
 
 	using namespace std;
-	using namespace core::base;
+	using namespace odcore::base;
 	using namespace cv;
 
 	LaneDetectionData::LaneDetectionData() :
@@ -70,6 +70,22 @@ namespace msv {
 			m_classification= classfi;
 		}
 
+    int32_t LaneDetectionData::ID() {
+        return 1001;
+    }
+
+    int32_t LaneDetectionData::getID() const {
+        return 1001;
+    }
+
+    const string LaneDetectionData::getLongName() const {
+        return "LaneDetectionData";
+    }
+
+    const string LaneDetectionData::getShortName() const {
+        return "LaneDetectionData";
+    }
+
 	const string LaneDetectionData::toString() const {
 		stringstream s;
 
@@ -104,7 +120,7 @@ namespace msv {
 
 	ostream& LaneDetectionData::operator<<(ostream &out) const {
         SerializationFactory& sf=SerializationFactory::getInstance();
-		core::SharedPointer<Serializer> s = sf.getSerializer(out);
+		odcore::SharedPointer<Serializer> s = sf.getSerializer(out);
 		s->write(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL7('e', 'x', 'a', 'm', 'p', 'l', 'e') >::RESULT,
 				(void*)&m_lines, sizeof(m_lines));
 
@@ -122,7 +138,7 @@ namespace msv {
 
 	istream& LaneDetectionData::operator>>(istream &in) {
         SerializationFactory& sf=SerializationFactory::getInstance();
-		core::SharedPointer<Deserializer> d = sf.getDeserializer(in);
+		odcore::SharedPointer<Deserializer> d = sf.getDeserializer(in);
 
 		d->read(CRC32 < OPENDAVINCI_CORE_STRINGLITERAL7('e', 'x', 'a', 'm', 'p', 'l', 'e') >::RESULT,
 				(void*)&m_lines, sizeof(m_lines));

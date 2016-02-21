@@ -3,28 +3,28 @@
 #include <fstream>
 #include <opencv/cv.h>
 #include <dirent.h>
-#include <core/io/URL.h>
-#include "tools/player/Player.h"
-#include <core/data/Container.h>
-#include <GeneratedHeaders_CoreData.h>
-#include <core/wrapper/SharedMemoryFactory.h>
-#include <core/base/Lock.h>
+#include <opendavinci/odcore/io/URL.h>
+#include "opendavinci/odtools/player/Player.h"
+#include <opendavinci/odcore/data/Container.h>
+#include <opendavinci/GeneratedHeaders_OpenDaVINCI.h>
+#include <opendavinci/odcore/wrapper/SharedMemoryFactory.h>
+#include <opendavinci/odcore/base/Lock.h>
 #include <opencv2/highgui/highgui_c.h>
-#include "GeneratedHeaders_AutomotiveData.h"
-#include "core/base/KeyValueConfiguration.h"
-#include "core/base/module/ClientModule.h"
+#include "automotivedata/GeneratedHeaders_AutomotiveData.h"
+#include "opendavinci/odcore/base/KeyValueConfiguration.h"
+#include "opendavinci/odcore/base/module/ClientModule.h"
 #include <LineDetector.h>
 #include <LaneDetector.h>
 #include <thread>
 
 using namespace std;
-using namespace core;
-using namespace core::io;
-using namespace tools::player;
-using namespace core::data;
-using namespace coredata::image;
-using namespace core::wrapper;
-using namespace core::base;
+using namespace odcore;
+using namespace odcore::io;
+using namespace odtools::player;
+using namespace odcore::data;
+using namespace odcore::data::image;
+using namespace odcore::wrapper;
+using namespace odcore::base;
 using namespace cv;
 using namespace msv;
 using namespace automotive::miniature;
@@ -34,7 +34,7 @@ const uint32_t MEMORY_SEGMENT_SIZE = 1024 * 768;
 const uint32_t NUMBER_OF_SEGMENTS = 1;
 const bool THREADING = false;
 Container nextContainer;
-IplImage *image = NULL;
+IplImage *_image = NULL;
 bool hasAttachedToSharedImageMemory = false;
 SharedPointer<SharedMemory> sharedImageMemory;
 Mat frame;

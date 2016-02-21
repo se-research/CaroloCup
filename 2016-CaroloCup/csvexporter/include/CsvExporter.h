@@ -8,15 +8,15 @@
 
 #include <ostream>
 
-#include "core/SharedPointer.h"
-#include "core/base/module/TimeTriggeredConferenceClientModule.h"
-#include "core/base/FIFOQueue.h"
+#include "opendavinci/odcore/SharedPointer.h"
+#include "opendavinci/odcore/base/module/TimeTriggeredConferenceClientModule.h"
+#include "opendavinci/odcore/base/FIFOQueue.h"
 
 namespace msv{
 
     using namespace std;
 
-    class CsvExporter:public core::base::module::TimeTriggeredConferenceClientModule{
+    class CsvExporter:public odcore::base::module::TimeTriggeredConferenceClientModule{
         private:
 	        /**
 	         * "Forbidden" copy constructor. Goal: The compiler should warn
@@ -48,13 +48,13 @@ namespace msv{
 
 	        virtual ~CsvExporter();
 
-	        coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode body();
+	        odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode body();
 
         private:
 	        uint32_t frame_count;
             bool m_debug;
-            core::base::FIFOQueue m_fifo;
-            core::SharedPointer<ostream> m_out;
+            odcore::base::FIFOQueue m_fifo;
+            odcore::SharedPointer<ostream> m_out;
 
 	        virtual void setUp();
 

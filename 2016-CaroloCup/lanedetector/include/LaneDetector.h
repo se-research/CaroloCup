@@ -8,9 +8,9 @@
 #define LANEDETECTOR_H_
 
 #include <opencv/cv.h>
-#include "core/SharedPointer.h"
-#include "core/base/module/TimeTriggeredConferenceClientModule.h"
-#include "core/wrapper/SharedMemory.h"
+#include "opendavinci/odcore/SharedPointer.h"
+#include "opendavinci/odcore/base/module/TimeTriggeredConferenceClientModule.h"
+#include "opendavinci/odcore/wrapper/SharedMemory.h"
 
 #include <LineDetector.h>
 
@@ -22,7 +22,7 @@ using namespace std;
 /**
  * This class is an exemplary skeleton for processing video data.
  */
-class LaneDetector: public core::base::module::TimeTriggeredConferenceClientModule
+class LaneDetector: public odcore::base::module::TimeTriggeredConferenceClientModule
 {
 private:
     /**
@@ -55,7 +55,7 @@ public:
 
     virtual ~LaneDetector();
 
-    coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode body();
+    odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode body();
 
 protected:
     /**
@@ -64,11 +64,11 @@ protected:
      * @param c Container to process.
      * @return true if c was successfully processed.
      */
-    bool readSharedImage(core::data::Container &c);
+    bool readSharedImage(odcore::data::Container &c);
 
 private:
     bool m_hasAttachedToSharedImageMemory;
-    core::SharedPointer<core::wrapper::SharedMemory> m_sharedImageMemory;
+    odcore::SharedPointer<odcore::wrapper::SharedMemory> m_sharedImageMemory;
     uint32_t m_cameraId;
     bool m_debug;
     Config m_config;

@@ -10,16 +10,16 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 
-#include "core/opendavinci.h"
-#include "core/base/KeyValueConfiguration.h"
-#include "core/data/Container.h"
-//#include "core/data/image/SharedImage.h" included by GeneratedHeaders_AutomotiveData.h
-#include "GeneratedHeaders_CoreData.h"
+#include "opendavinci/odcore/opendavinci.h"
+#include "opendavinci/odcore/base/KeyValueConfiguration.h"
+#include "opendavinci/odcore/data/Container.h"
+//#include "opendavinci/odcore/data/image/SharedImage.h" included by GeneratedHeaders_AutomotiveData.h
+#include "opendavinci/GeneratedHeaders_OpenDaVINCI.h"
 
-#include "core/io/conference/ContainerConference.h"
-#include "core/wrapper/SharedMemoryFactory.h"
+#include "opendavinci/odcore/io/conference/ContainerConference.h"
+#include "opendavinci/odcore/wrapper/SharedMemoryFactory.h"
 
-#include "tools/player/Player.h"
+#include "opendavinci/odtools/player/Player.h"
 
 // Data structures from msv-data library:
 //#include "SteeringData.h" included by GeneratedHeaders_AutomotiveData.h
@@ -31,10 +31,10 @@ namespace msv
 {
 
 using namespace std;
-using namespace core::base;
-using namespace core::data;
-using namespace coredata::image;
-using namespace tools::player;
+using namespace odcore::base;
+using namespace odcore::data;
+using namespace odcore::data::image;
+using namespace odtools::player;
 using namespace cv;
 
 bool debug, print_results = true;
@@ -97,7 +97,7 @@ bool LaneDetector_inspection::readSharedImage(Container &c)
     bool retVal = false;
     IplImage *image(NULL);
 
-    if (c.getDataType() == Container::SHARED_IMAGE)
+    if (c.getDataType() == SharedImage::ID())
         {
             SharedImage si = c.getData<SharedImage> ();
 
@@ -105,7 +105,7 @@ bool LaneDetector_inspection::readSharedImage(Container &c)
             if (!m_hasAttachedToSharedImageMemory)
                 {
                     m_sharedImageMemory
-                        = core::wrapper::SharedMemoryFactory::attachToSharedMemory(
+                        = odcore::wrapper::SharedMemoryFactory::attachToSharedMemory(
                               si.getName());
                 }
 
@@ -260,7 +260,7 @@ void LaneDetector_inspection::processImage()
     // end of inspection part --Need to make in nicer way --
 
     //seding all data to csv
-    Container con(Container::USER_DATA_1, data);
+    Container con(data);
 
     // Send the data:
     //cout << "Send..." << endl;
@@ -274,7 +274,7 @@ void LaneDetector_inspection::processImage()
 
 // This method will do the main data processing job.
 // Therefore, it tries to open the real camera first. If that fails, the virtual camera images from camgen are used.
-coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode LaneDetector_inspection::body()
+odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode LaneDetector_inspection::body()
 {
 
     // Get configuration data.
@@ -302,7 +302,7 @@ coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode LaneDetector_inspection::b
 
 
     // Lane-detector can also directly read the data from file. This might be interesting to inspect the algorithm step-wisely
-    core::io::URL url(kv.getValue<string>("lanedetector.inspect_rec"));
+    odcore::io::URL url(kv.getValue<string>("lanedetector.inspect_rec"));
 
 
     // Size of the memory buffer.
@@ -331,7 +331,7 @@ coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode LaneDetector_inspection::b
 
 
     // "Working horse."
-    while (getModuleStateAndWaitForRemainingTimeInTimeslice() == coredata::dmcp::ModuleStateMessage::RUNNING)
+    while (getModuleStateAndWaitForRemainingTimeInTimeslice() == odcore::data::dmcp::ModuleStateMessage::RUNNING)
         {
             bool has_next_frame = false;
             // Use the shared memory image.
@@ -348,10 +348,10 @@ coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode LaneDetector_inspection::b
             else     // Get the most recent available container for a SHARED_IMAGE.
                 {
 
-                    c = getKeyValueDataStore().get(Container::SHARED_IMAGE);
+                    c = getKeyValueDataStore().get(SharedImage::ID());
                 }
 
-            if (c.getDataType() == Container::SHARED_IMAGE)
+            if (c.getDataType() == SharedImage::ID())
                 {
                     // Example for processing the received container.
                     has_next_frame = readSharedImage(c);
@@ -369,7 +369,7 @@ coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode LaneDetector_inspection::b
     OPENDAVINCI_CORE_DELETE_POINTER(player);
 
     waitKey(20);
-    return coredata::dmcp::ModuleExitCodeMessage::OKAY;
+    return odcore::data::dmcp::ModuleExitCodeMessage::OKAY;
 }
 
 // All the showResult_* functions assumes that data is put in the sub result structs in LineDetector.

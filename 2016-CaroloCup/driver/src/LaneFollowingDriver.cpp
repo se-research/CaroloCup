@@ -1,5 +1,5 @@
 #include "LaneFollowingDriver.h"
-#include "core/base/LIFOQueue.h"
+#include "opendavinci/odcore/base/LIFOQueue.h"
 
 float initialSpeed;
 int increaseSpeed = 0;
@@ -13,8 +13,8 @@ int correctionDistance = 0;
 namespace msv {
 
     using namespace std;
-    using namespace core::base;
-    using namespace core::data;
+    using namespace odcore::base;
+    using namespace odcore::data;
     using namespace automotive;
     using namespace automotive::miniature;
 
@@ -41,9 +41,9 @@ namespace msv {
 
     void LaneFollowingDriver::Routine() {
         LaneDetectionData ldd;
-        Container conUserData1 = getKeyValueDataStore().get(Container::USER_DATA_1);
+        Container conUserData1 = getKeyValueDataStore().get(LaneDetectionData::ID());
         ldd = conUserData1.getData<LaneDetectionData>();
-        Container containerSensorBoardData = getKeyValueDataStore().get(Container::USER_DATA_0);
+        Container containerSensorBoardData = getKeyValueDataStore().get(SensorBoardData::ID());
         SensorBoardData sbd = containerSensorBoardData.getData<SensorBoardData>();
         if (sbd.containsKey_MapOfDistances(6)) currDist = (int) sbd.getValueForKey_MapOfDistances(6);
 

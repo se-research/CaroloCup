@@ -19,17 +19,17 @@
 
 #include <iostream>
 
-#include "core/base/KeyValueConfiguration.h"
-#include "core/data/Container.h"
-#include "core/data/TimeStamp.h"
+#include "opendavinci/odcore/base/KeyValueConfiguration.h"
+#include "opendavinci/odcore/data/Container.h"
+#include "opendavinci/odcore/data/TimeStamp.h"
 
-#include <core/SharedPointer.h>
-#include <core/wrapper/SerialPort.h>
-#include <core/wrapper/SerialPortFactory.h>
+#include <opendavinci/odcore/SharedPointer.h>
+#include <opendavinci/odcore/wrapper/SerialPort.h>
+#include <opendavinci/odcore/wrapper/SerialPortFactory.h>
 
-#include <core/base/ProtoSerializerVisitor.h>
-#include <core/base/ProtoDeserializerVisitor.h>
-#include "GeneratedHeaders_AutomotiveData.h"
+#include <opendavinci/odcore/base/ProtoSerializerVisitor.h>
+#include <opendavinci/odcore/base/ProtoDeserializerVisitor.h>
+#include "automotivedata/GeneratedHeaders_AutomotiveData.h"
 
 #include "OpenCVCamera.h"
 
@@ -40,9 +40,9 @@
 #include "Proxy.h"
 
 	using namespace std;
-        using namespace core::base;
-        using namespace core::data;
-        using namespace tools::recorder;
+        using namespace odcore::base;
+        using namespace odcore::data;
+        using namespace odtools::recorder;
 	
 	  const string SERIAL_PORT = "/dev/ttyACM0";
 	  const uint32_t BAUD_RATE = 115200;
@@ -58,7 +58,7 @@ namespace automotive {
         
         Proxy::Proxy(const int32_t &argc, char **argv) :
 	        TimeTriggeredConferenceClientModule(argc, argv, "proxy"),
-	    serial(core::wrapper::SerialPortFactory::createSerialPort(SERIAL_PORT, BAUD_RATE)),
+	    serial(odcore::wrapper::SerialPortFactory::createSerialPort(SERIAL_PORT, BAUD_RATE)),
             m_recorder(NULL),
             m_camera(NULL)
         {}
@@ -93,7 +93,7 @@ namespace automotive {
 		  m_sensorBoardData.putTo_MapOfDistances(10, buttons[2]);
 		  m_sensorBoardData.putTo_MapOfDistances(11, buttons[3]);
 		  m_sensorBoardData.putTo_MapOfDistances(12, sd.getLightReading());
-		  Container sensorData(Container::USER_DATA_0, m_sensorBoardData);
+		  Container sensorData(m_sensorBoardData);
 		  return sensorData;
 		}
 		cout << "disregarded <<<<<---------------------------------"<< endl;
@@ -217,20 +217,20 @@ namespace automotive {
         }
 
         // This method will do the main data processing job.
-        coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode Proxy::body() {
+        odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode Proxy::body() {
 	    KeyValueDataStore &kvs = getKeyValueDataStore();
             uint32_t captureCounter = 0;
-            while (getModuleStateAndWaitForRemainingTimeInTimeslice() == coredata::dmcp::ModuleStateMessage::RUNNING) {
+            while (getModuleStateAndWaitForRemainingTimeInTimeslice() == odcore::data::dmcp::ModuleStateMessage::RUNNING) {
                 // Capture frame.
                 if (m_camera != NULL) {
-                    coredata::image::SharedImage si = m_camera->capture();
+                    odcore::data::image::SharedImage si = m_camera->capture();
 		    
-                    Container c(Container::SHARED_IMAGE, si);
+                    Container c(si);
                     distribute(c);
                     captureCounter++;
                 }
 		
-            Container c = kvs.get(Container::VEHICLECONTROL);
+            Container c = kvs.get(VehicleControl::ID());
 	    VehicleControl vc = c.getData<VehicleControl>();
 	    
 	    automotive::carolocup::Control cc;
@@ -278,7 +278,7 @@ namespace automotive {
 	    
             cout << "Proxy: Captured " << captureCounter << " frames." << endl;
 
-            return coredata::dmcp::ModuleExitCodeMessage::OKAY;
+            return odcore::data::dmcp::ModuleExitCodeMessage::OKAY;
         }
 
     }

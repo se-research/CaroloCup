@@ -4,21 +4,21 @@
  * This software is open source. Please see COPYING and AUTHORS for further information.
  */
 #include <iostream>
-#include "core/data/Container.h"
-#include "core/io/conference/ContainerConference.h"
-#include "core/io/URL.h"
-#include "core/io/StreamFactory.h"
+#include "opendavinci/odcore/data/Container.h"
+#include "opendavinci/odcore/io/conference/ContainerConference.h"
+#include "opendavinci/odcore/io/URL.h"
+#include "opendavinci/odcore/io/StreamFactory.h"
 
-#include "GeneratedHeaders_AutomotiveData.h"
+#include "automotivedata/GeneratedHeaders_AutomotiveData.h"
 
 #include "CsvExporterSensor.h"
 
 namespace msv
 {
   using namespace std;
-  using namespace core::base;
-  using namespace core::data;
-  using namespace core::io;
+  using namespace odcore::base;
+  using namespace odcore::data;
+  using namespace odcore::io;
   using namespace automotive::miniature;
 
   CsvExporterSensor::CsvExporterSensor (const int32_t &argc, char **argv) :
@@ -50,7 +50,7 @@ namespace msv
 
   }
 
-  coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode
+  odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode
   CsvExporterSensor::body ()
   {
 
@@ -58,12 +58,12 @@ namespace msv
     SensorBoardData sensorData;
 
     cout << "waiting for data....." << endl;
-    while (getModuleStateAndWaitForRemainingTimeInTimeslice () == coredata::dmcp::ModuleStateMessage::RUNNING)
+    while (getModuleStateAndWaitForRemainingTimeInTimeslice () == odcore::data::dmcp::ModuleStateMessage::RUNNING)
       {
 	while (!m_fifo.isEmpty ())
 	  {
 	    Container c = m_fifo.leave ();
-	    if (c.getDataType () == Container::USER_DATA_0)
+	    if (c.getDataType () == SensorBoardData::ID())
 	      {
 		TimeStamp timeNow;
 		sensorData = c.getData<SensorBoardData> ();
@@ -145,7 +145,7 @@ namespace msv
 	m_out->flush ();
       }
 
-    return coredata::dmcp::ModuleExitCodeMessage::OKAY;
+    return odcore::data::dmcp::ModuleExitCodeMessage::OKAY;
   }
 
   void

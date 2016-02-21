@@ -5,16 +5,16 @@
 #ifndef AUTOMOTIVE_CAROLOCUP_DRIVERGENERIC_H
 #define AUTOMOTIVE_CAROLOCUP_DRIVERGENERIC_H
 
-#include "core/base/module/TimeTriggeredConferenceClientModule.h"
-#include "core/base/KeyValueConfiguration.h"
-#include "GeneratedHeaders_AutomotiveData.h"
-#include "GeneratedHeaders_CoreData.h"
+#include "opendavinci/odcore/base/module/TimeTriggeredConferenceClientModule.h"
+#include "opendavinci/odcore/base/KeyValueConfiguration.h"
+#include "automotivedata/GeneratedHeaders_AutomotiveData.h"
+#include "opendavinci/GeneratedHeaders_OpenDaVINCI.h"
 
 namespace msv {
 
     using namespace std;
-    using namespace core::base;
-    using namespace core::exceptions;
+    using namespace odcore::base;
+    using namespace odcore::exceptions;
     using namespace automotive;
     using namespace automotive::miniature;
 
@@ -22,7 +22,7 @@ namespace msv {
  * This class is virtual and represents the skeleton of a driver.
  * To create a new driver, derive this class and define the virtual method.
  */
-    class DriverGeneric : public core::base::module::TimeTriggeredConferenceClientModule {
+    class DriverGeneric : public odcore::base::module::TimeTriggeredConferenceClientModule {
 
     private:
 
@@ -54,7 +54,7 @@ namespace msv {
          *  It takes care of the initialization and routine. This is the interface between opendavinci module's system
          *  and the Driver implementation.
          */
-        coredata::dmcp::ModuleExitCodeMessage::ModuleExitCode body();
+        odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode body();
 
         /**
          *  This is the main routine of the driver. This method is called at each iteration by the DriverManager.

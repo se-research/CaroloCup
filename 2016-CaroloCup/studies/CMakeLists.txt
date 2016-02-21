@@ -45,9 +45,9 @@ SET(AUTOMOTIVEDATA_DIR "${CMAKE_INSTALL_PREFIX}")
 FIND_PACKAGE (AutomotiveData REQUIRED)
 
 ###########################################################################
-# Try to find odSimulation.
-SET(ODSIMULATION_DIR "${CMAKE_INSTALL_PREFIX}")
-FIND_PACKAGE (odSimulation)
+# Try to find OpenDLV.
+SET(OPENDLV_DIR "${CMAKE_INSTALL_PREFIX}")
+FIND_PACKAGE (OpenDLV)
 
 # Add subdirectories for studies. These parts of the software will only
 # be compiled and executed if libodsimulation is available.
