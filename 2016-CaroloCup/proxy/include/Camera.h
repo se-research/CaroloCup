@@ -21,9 +21,9 @@
 #define CAMERA_H_
 
 #include <stdint.h>
+#include <memory>
 #include <string>
 
-#include "opendavinci/odcore/SharedPointer.h"
 #include "opendavinci/odcore/wrapper/SharedMemory.h"
 #include "opendavinci/GeneratedHeaders_OpenDaVINCI.h"
 
@@ -104,7 +104,7 @@ namespace automotive {
 
             private:
                 odcore::data::image::SharedImage m_sharedImage;
-                odcore::SharedPointer<odcore::wrapper::SharedMemory> m_sharedMemory;
+                shared_ptr<odcore::wrapper::SharedMemory> m_sharedMemory;
                 
             protected:
                 string m_name;

@@ -88,7 +88,7 @@ void LaneDetector_inspection::tearDown()
 
     if (m_hasAttachedToSharedImageMemory)
         {
-            m_sharedImageMemory.release();
+            m_sharedImageMemory.reset();
         }
 }
 

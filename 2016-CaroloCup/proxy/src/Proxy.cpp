@@ -18,12 +18,12 @@
  */
 
 #include <iostream>
+#include <memory>
 
 #include "opendavinci/odcore/base/KeyValueConfiguration.h"
 #include "opendavinci/odcore/data/Container.h"
 #include "opendavinci/odcore/data/TimeStamp.h"
 
-#include <opendavinci/odcore/SharedPointer.h>
 #include <opendavinci/odcore/wrapper/SerialPort.h>
 #include <opendavinci/odcore/wrapper/SerialPortFactory.h>
 
@@ -59,8 +59,8 @@ namespace automotive {
         Proxy::Proxy(const int32_t &argc, char **argv) :
 	        TimeTriggeredConferenceClientModule(argc, argv, "proxy"),
 	    serial(odcore::wrapper::SerialPortFactory::createSerialPort(SERIAL_PORT, BAUD_RATE)),
-            m_recorder(NULL),
-            m_camera(NULL)
+            m_recorder(),
+            m_camera()
         {}
 
         Proxy::~Proxy() {}
@@ -148,7 +148,7 @@ namespace automotive {
                 // Dump shared images and shared data?
                 const bool DUMP_SHARED_DATA = getKeyValueConfiguration().getValue<uint32_t>("proxy.recorder.dumpshareddata") == 1;
 
-                m_recorder = new Recorder(recordingURL.str(), MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS, THREADING, DUMP_SHARED_DATA);
+                m_recorder = unique_ptr<Recorder>(new Recorder(recordingURL.str(), MEMORY_SEGMENT_SIZE, NUMBER_OF_SEGMENTS, THREADING, DUMP_SHARED_DATA));
             }
 
             // Create the camera grabber.
@@ -161,12 +161,12 @@ namespace automotive {
             const uint32_t BPP = getKeyValueConfiguration().getValue<uint32_t>("proxy.camera.bpp");
 
             if (TYPE.compare("opencv") == 0) {
-                m_camera = new OpenCVCamera(NAME, ID, WIDTH, HEIGHT, BPP);
+                m_camera = unique_ptr<Camera>(new OpenCVCamera(NAME, ID, WIDTH, HEIGHT, BPP));
             }
             if (TYPE.compare("ueye") == 0) {
-    #ifdef HAVE_UEYE
-                m_camera = new uEyeCamera(NAME, ID, WIDTH, HEIGHT, BPP);
-    #endif
+#ifdef HAVE_UEYE
+                m_camera = unique_ptr<Camera>(new uEyeCamera(NAME, ID, WIDTH, HEIGHT, BPP));
+#endif
             }
 
             if (m_camera == NULL) {
@@ -184,8 +184,6 @@ namespace automotive {
 
         void Proxy::tearDown() {
 	        // This method will be call automatically _after_ return from body().
-            OPENDAVINCI_CORE_DELETE_POINTER(m_recorder);
-            OPENDAVINCI_CORE_DELETE_POINTER(m_camera);
 	    // Stop receiving bytes and unregister our handler.
 	    /*
 	    automotive::carolocup::Control cc;
@@ -206,7 +204,7 @@ namespace automotive {
 
         void Proxy::distribute(Container c) {
             // Store data to recorder.
-            if (m_recorder != NULL) {
+            if (m_recorder.get()) {
                 // Time stamp data before storing.
                 c.setReceivedTimeStamp(TimeStamp());
                 m_recorder->store(c);
@@ -222,7 +220,7 @@ namespace automotive {
             uint32_t captureCounter = 0;
             while (getModuleStateAndWaitForRemainingTimeInTimeslice() == odcore::data::dmcp::ModuleStateMessage::RUNNING) {
                 // Capture frame.
-                if (m_camera != NULL) {
+                if (m_camera.get()) {
                     odcore::data::image::SharedImage si = m_camera->capture();
 		    
                     Container c(si);

@@ -6,7 +6,7 @@
 #ifndef CSVEXPORTERSENSOR_H_
 #define CSVEXPORTERSENSOR_H_
 
-#include "opendavinci/odcore/SharedPointer.h"
+#include <memory>
 #include "opendavinci/odcore/base/module/TimeTriggeredConferenceClientModule.h"
 #include "opendavinci/odcore/base/FIFOQueue.h"
 
@@ -55,7 +55,7 @@ namespace msv
     uint32_t frame_count;
     bool m_debug;
     odcore::base::FIFOQueue m_fifo;
-    odcore::SharedPointer<ostream> m_out;
+    shared_ptr<ostream> m_out;
 
     virtual void
     setUp ();

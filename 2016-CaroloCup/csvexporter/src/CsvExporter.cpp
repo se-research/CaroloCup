@@ -33,7 +33,7 @@ namespace msv{
 
 	CsvExporter::~CsvExporter(){
 		cout << "Clearing queue... ";
-		if (m_out.isValid()) {
+		if (m_out.get()) {
 		    m_out->flush();
 		}
 		cout << "done." << endl;
@@ -58,7 +58,7 @@ namespace msv{
 			    	lines=laneData.getLaneDetectionData();
 
 
-			    	if (m_out.isValid()) {
+			    	if (m_out.get()) {
 			    		cout<< " writing data for frame: " <<laneData.getFrameCount() << "\n";
 
 			    		/*------------------------------------DATA FORMAT(per line)----------------------------------------------------------------------
@@ -102,7 +102,7 @@ namespace msv{
 
 		}
 
-		if (m_out.isValid()) {
+		if (m_out.get()) {
 		    m_out->flush();
 		}
 

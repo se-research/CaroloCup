@@ -1,6 +1,7 @@
 #ifndef LANEDETECTOR_BENCHMARK_H
 #define LANEDETECTOR_BENCHMARK_H
 #include <fstream>
+#include <memory>
 #include <opencv/cv.h>
 #include <dirent.h>
 #include <opendavinci/odcore/io/URL.h>
@@ -36,7 +37,7 @@ const bool THREADING = false;
 Container nextContainer;
 IplImage *_image = NULL;
 bool hasAttachedToSharedImageMemory = false;
-SharedPointer<SharedMemory> sharedImageMemory;
+shared_ptr<SharedMemory> sharedImageMemory;
 Mat frame;
 int imageHeight, imageWidth;
 Config cfg;

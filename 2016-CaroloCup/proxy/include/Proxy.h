@@ -21,12 +21,12 @@
 #define PROXY_H_
 
 #include <map>
+#include <memory>
 
 #include "opendavinci/odcore/base/module/TimeTriggeredConferenceClientModule.h"
 #include "opendavinci/odcore/data/Container.h"
 #include "opendavinci/odtools/recorder/Recorder.h"
 
-#include <opendavinci/odcore/SharedPointer.h>
 #include <opendavinci/odcore/wrapper/SerialPort.h>
 #include <opendavinci/odcore/wrapper/SerialPortFactory.h>
 #include <opendavinci/odcore/base/Thread.h>
@@ -54,7 +54,7 @@ namespace automotive {
                  */
                 Proxy(const Proxy &/*obj*/);
 		
-		odcore::SharedPointer<odcore::wrapper::SerialPort> serial;
+		shared_ptr<odcore::wrapper::SerialPort> serial;
 		
         
 
@@ -91,9 +91,9 @@ namespace automotive {
 
                 void distribute(odcore::data::Container c);
             
-	    private:		
-                odtools::recorder::Recorder *m_recorder;
-                Camera *m_camera;
+            private:
+                unique_ptr<odtools::recorder::Recorder> m_recorder;
+                unique_ptr<Camera> m_camera;
         };
 
     }

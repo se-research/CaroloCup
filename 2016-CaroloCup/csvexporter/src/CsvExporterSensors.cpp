@@ -37,7 +37,7 @@ namespace msv
   CsvExporterSensor::~CsvExporterSensor ()
   {
     cout << "Clearing queue... ";
-    if (m_out.isValid())
+    if (m_out.get())
       {
 	m_out->flush ();
       }
@@ -106,7 +106,7 @@ namespace msv
 	    
 		//int Distance = sensorData.getDistance (6); // WheeelEncoder Data (mm)
 
-		if (m_out.isValid())
+		if (m_out.get())
 		  {
 		    cout << " writing sensor data : " << "\n";
 
@@ -140,7 +140,7 @@ namespace msv
 
       }
 
-    if (m_out.isValid())
+    if (m_out.get())
       {
 	m_out->flush ();
       }

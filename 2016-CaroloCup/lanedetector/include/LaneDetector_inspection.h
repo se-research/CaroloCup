@@ -7,8 +7,8 @@
 #ifndef LANEDETECTOR_H_
 #define LANEDETECTOR_H_
 
+#include <memory>
 #include <opencv/cv.h>
-#include "opendavinci/odcore/SharedPointer.h"
 #include "opendavinci/odcore/base/module/TimeTriggeredConferenceClientModule.h"
 #include "opendavinci/odcore/wrapper/SharedMemory.h"
 
@@ -68,7 +68,7 @@ protected:
 
 private:
     bool m_hasAttachedToSharedImageMemory;
-    odcore::SharedPointer<odcore::wrapper::SharedMemory> m_sharedImageMemory;
+    shared_ptr<odcore::wrapper::SharedMemory> m_sharedImageMemory;
     uint32_t m_cameraId;
     bool m_debug;
     Config m_config;
