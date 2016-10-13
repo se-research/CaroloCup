@@ -4,10 +4,10 @@
 float initialSpeed;
 int increaseSpeed = 0;
 int startBoxLength;
-int initialDist;
-int currDist;
+int initialDistance;
+int currentDistance;
 bool firstRun;
-float prevSteering;
+float previousSteering;
 int correctionDistance = 0;
 
 namespace msv {
@@ -40,49 +40,49 @@ namespace msv {
     LaneFollowingDriver::~LaneFollowingDriver() { }
 
     void LaneFollowingDriver::Routine() {
-        LaneDetectionData ldd;
-        Container conUserData1 = getKeyValueDataStore().get(LaneDetectionData::ID());
-        ldd = conUserData1.getData<LaneDetectionData>();
-        Container containerSensorBoardData = getKeyValueDataStore().get(SensorBoardData::ID());
-        SensorBoardData sbd = containerSensorBoardData.getData<SensorBoardData>();
-        if (sbd.containsKey_MapOfDistances(6)) currDist = (int) sbd.getValueForKey_MapOfDistances(6);
+        LaneDetectionData laneDetectionData;
+        Container userDataContainer = getKeyValueDataStore().get(LaneDetectionData::ID());
+        laneDetectionData = userDataContainer.getData<LaneDetectionData>();
+        Container sensorBoardDataContainer = getKeyValueDataStore().get(SensorBoardData::ID());
+        SensorBoardData sensorBoardData = sensorBoardDataContainer.getData<SensorBoardData>();
+        if (sensorBoardData.containsKey_MapOfDistances(6)) currentDistance = (int) sensorBoardData.getValueForKey_MapOfDistances(6);
 
-        if ((conUserData1.getReceivedTimeStamp().getSeconds() +
-             conUserData1.getReceivedTimeStamp().getFractionalMicroseconds()) < 1) {
+        if ((userDataContainer.getReceivedTimeStamp().getSeconds() +
+             userDataContainer.getReceivedTimeStamp().getFractionalMicroseconds()) < 1) {
             cout << "New lap. Waiting..." << endl;
         }
 
         if (runStartBoxSequence && firstRun) {
-            if ((containerSensorBoardData.getReceivedTimeStamp().getSeconds() +
-                 containerSensorBoardData.getReceivedTimeStamp().getFractionalMicroseconds()) < 1) {
+            if ((sensorBoardDataContainer.getReceivedTimeStamp().getSeconds() +
+                 sensorBoardDataContainer.getReceivedTimeStamp().getFractionalMicroseconds()) < 1) {
                 cout << "no sbd..." << endl;
                 return;
             }
             else {
-                //initialDist=sbd.getDistance(6);//mm
+                //initialDistance=sbd.getDistance(6);//mm
 
-                initialDist = -2;
-                if (sbd.containsKey_MapOfDistances(6))
-                    initialDist = (int) sbd.getValueForKey_MapOfDistances(6);
+                initialDistance = -2;
+                if (sensorBoardData.containsKey_MapOfDistances(6))
+                    initialDistance = (int) sensorBoardData.getValueForKey_MapOfDistances(6);
 
                 firstRun = false;
-                currDist = initialDist;
+                currentDistance = initialDistance;
             }
 
         }
         //Start box logic
-        LaneDetectorDataToDriver trajectoryData = ldd.getLaneDetectionDataDriver();
+        LaneDetectorDataToDriver trajectoryData = laneDetectionData.getLaneDetectionDataDriver();
         if (runStartBoxSequence) {
-            cout << "Start box: dist travelled" << currDist - initialDist << endl;
+            cout << "Start box: dist travelled" << currentDistance - initialDistance << endl;
             DriverGeneric::desiredSteering = 0;
             DriverGeneric::desiredSpeed = m_speed;//we just the default
 
-            //currDist=sbd.getDistance(6);
+            //currentDist=sbd.getDistance(6);
 
-            cout << "Curr Distance" << currDist << endl;
-            cout << "Initial Value" << initialDist << endl;
-            //currDist++;//remove this
-            if (currDist - initialDist < startBoxLength) {
+            cout << "Current Distance" << currentDistance << endl;
+            cout << "Initial Value" << initialDistance << endl;
+            //currentDistance++;//remove this
+            if (currentDistance - initialDistance < startBoxLength) {
                 return;
             } else {
                 runStartBoxSequence = false;
@@ -94,7 +94,7 @@ namespace msv {
         m_intGain = 0.5;//1.0;//8.39; //8.39;
         m_derGain = 0.23;//0.23;
 
-        bool res = laneFollowing(&ldd);
+        bool res = laneFollowing(&laneDetectionData);
 
         m_speed = initialSpeed;
 
@@ -102,15 +102,15 @@ namespace msv {
             cout << "Waiting..." << endl;
             DriverGeneric::desiredSpeed = initialSpeed;
 
-            if (! correctionDistance) correctionDistance = (int) sbd.getValueForKey_MapOfDistances(6);
+            if (! correctionDistance) correctionDistance = (int) sensorBoardData.getValueForKey_MapOfDistances(6);
 
             DriverGeneric::desiredSteering = 0;
 
-            if (currDist - correctionDistance > 5) {
+            if (currentDistance - correctionDistance > 5) {
                 DriverGeneric::desiredSteering = 0;
                 correctionDistance = -1;
             } else {
-                DriverGeneric::desiredSteering = prevSteering;
+                DriverGeneric::desiredSteering = previousSteering;
             }
 
             return;
@@ -118,24 +118,24 @@ namespace msv {
 
         correctionDistance = 0;
 
-        float desSteering = (float) (m_desiredSteeringWheelAngle * 180 / M_PI);
+        float desiredSteering = (float) (m_desiredSteeringWheelAngle * 180 / M_PI);
 
-        if (desSteering > 41) desSteering = 42;
-        if (desSteering < -41) desSteering = -42;
+        if (desiredSteering > 41) desiredSteering = 42;
+        if (desiredSteering < -41) desiredSteering = -42;
 
-        desSteering *= 1;
+        desiredSteering *= 1;
 
         cout << "steeringAngle" << flush;
-        cout << desSteering << endl;
+        cout << desiredSteering << endl;
 
-        prevSteering = desSteering;
-        DriverGeneric::desiredSteering = (float) (desSteering * M_PI / 180);
+        previousSteering = desiredSteering;
+        DriverGeneric::desiredSteering = (float) (desiredSteering * M_PI / 180);
 
         float speedVal;
 
         speedVal = initialSpeed;
 
-        if (abs(desSteering) < 4) speedVal = 1.5;
+        if (abs(desiredSteering) < 4) speedVal = 1.5;
 
         cout << "Speed: " << speedVal << endl;
         cout << "SpeedDefault: " << initialSpeed << endl << endl;
@@ -151,8 +151,8 @@ namespace msv {
 
         //Startbox values
         startBoxLength = config.getValue<int32_t>("driver.startboxLength");
-        initialDist = 0;
-        currDist = 0;
+        initialDistance = 0;
+        currentDistance = 0;
         firstRun = true;
     }
 
@@ -162,9 +162,9 @@ namespace msv {
         if (debug)
             cout << "enteredLaneFollowing" << endl;
 
-        LaneDetectionData ldd = *data;
+        LaneDetectionData laneDetectionData = *data;
 
-        LaneDetectorDataToDriver trajectoryData = ldd.getLaneDetectionDataDriver();
+        LaneDetectorDataToDriver trajectoryData = laneDetectionData.getLaneDetectionDataDriver();
 
         if (trajectoryData.noTrajectory) {
             cout << "No trajectory" << endl;
@@ -199,16 +199,16 @@ namespace msv {
         return true;
     }
 
-// float predictHeading(int time,float currSpeed, float currHeading)
+// float predictHeading(int time,float currentSpeed, float currentHeading)
 // {
 //     return;
 
 // }
 
-    void LaneFollowingDriver::calculateErr(CustomLine currLine, CustomLine goalLine, float *angError,
+    void LaneFollowingDriver::calculateErr(CustomLine currentLine, CustomLine goalLine, float *angError,
                                            double *latError) {
         float x_goal = goalLine.p2.x;
-        float x_pl = currLine.p2.x;
+        float x_pl = currentLine.p2.x;
 
         float a = (float) tan(goalLine.slope * M_PI / 180);
         float b = goalLine.p1.y - goalLine.p1.x * a;
@@ -216,7 +216,7 @@ namespace msv {
         x_goal = (x_coord + x_goal) / 2;
         float theta_avg = (float) (M_PI / 2);
         if (abs(x_goal - x_pl) > 0.001) {
-            theta_avg = (0 - currLine.p2.y) / (x_goal - x_pl);
+            theta_avg = (0 - currentLine.p2.y) / (x_goal - x_pl);
             theta_avg = atan(theta_avg);
         }
         if (theta_avg < 0) {
@@ -226,11 +226,11 @@ namespace msv {
             theta_avg = (float) (theta_avg * 180 / M_PI);
         }
 
-        float theta_curr = currLine.slope;
+        float theta_curr = currentLine.slope;
         if (debug) {
             cout << "Position: " << x_pl << endl;
             cout << "Goal: " << x_goal << endl;
-            cout << "Curr Orientation: " << theta_curr << endl;
+            cout << "Current Orientation: " << theta_curr << endl;
             cout << "Goal Orientation: " << theta_avg << endl;
         }
         *angError = theta_avg - theta_curr;
@@ -247,8 +247,8 @@ namespace msv {
         m_lateralError = m_lateralError / SCALE_FACTOR;
         if (m_timestamp != 0) {
             TimeStamp now;
-            int32_t currTime = (int32_t) now.toMicroseconds();
-            double sec = (currTime - m_timestamp) / (1000000.0);
+            int32_t currentTime = (int32_t) now.toMicroseconds();
+            double sec = (currentTime - m_timestamp) / (1000000.0);
             m_intLateralError = m_intLateralError
                                 + m_speed * cos(theta) * m_lateralError * sec;
             if ((m_intLateralError > 2 * m_lateralError && m_lateralError > 0)

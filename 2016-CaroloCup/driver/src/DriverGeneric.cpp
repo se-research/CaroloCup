@@ -59,26 +59,26 @@ namespace msv {
 
     VehicleControl DriverGeneric::GetControlData() {
         // Create vehicle control data.
-        VehicleControl vc;
+        VehicleControl vehicleControl;
 
         // With setSpeed you can set a desired speed for the vehicle in the range of -2.0 (backwards) .. 0 (stop) .. +2.0 (forwards)
-        vc.setSpeed(desiredSpeed);
-        vc.setSteeringWheelAngle(desiredSteering);
+        vehicleControl.setSpeed(desiredSpeed);
+        vehicleControl.setSteeringWheelAngle(desiredSteering);
         // You can also turn on or off various lights:
-        vc.setBrakeLights(brakeLights);
-        vc.setFlashingLightsLeft(flashingLightsLeft);
-        vc.setFlashingLightsRight(flashingLightsRight);
+        vehicleControl.setBrakeLights(brakeLights);
+        vehicleControl.setFlashingLightsLeft(flashingLightsLeft);
+        vehicleControl.setFlashingLightsRight(flashingLightsRight);
 
-        return vc;
+        return vehicleControl;
     }
 
     VehicleControl DriverGeneric::GetStopControlData() {
-        VehicleControl vc;
-        vc.setSpeed(0);
-        vc.setSteeringWheelAngle(0);
-        vc.setBrakeLights(false);
-        vc.setFlashingLightsLeft(false);
-        vc.setFlashingLightsRight(false);
-        return vc;
+        VehicleControl vehicleControl;
+        vehicleControl.setSpeed(0);
+        vehicleControl.setSteeringWheelAngle(0);
+        vehicleControl.setBrakeLights(false);
+        vehicleControl.setFlashingLightsLeft(false);
+        vehicleControl.setFlashingLightsRight(false);
+        return vehicleControl;
     }
 } // msv
