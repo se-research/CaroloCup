@@ -17,48 +17,48 @@ namespace msv {
 
 
     float maxSteeringPositive = 42.f * 3.14f / 180.f;
-    int OverallDistance;
-    int Distance1;
-    int CurrentDistSpot;
-    int DistanceEndObstacle;
-    int MinParkingDist;
-    int MinParkingDist1 = 53; // This is the value of a 63 spot, ie the IR is fucking slow to react. So it looks smaller to the car
-    int MinParkingDist2 = 64;
-    int SafeDistance = 30;
-    int DesiredDistance1 = 33;    // Distance after finding the end of the spot
-    int StopParkingDistance;
-    float SpeedF1 = 0.3; //0.95
-    float SpeedF2 = 0.3; // 1.1
-    float SpeedF3 = 0.3;    // 0.9
-    float SpeedParkingBack = -0.3f;
-    float SpeedParkingForward = 0.3f;
+    int overallDistance;
+    int initialDistance;
+    int currentDistanceSpot;
+    int distanceEndObstacle;
+    int minParkingDistance;
+    int firstMinParkingDistance = 53; // This is the value of a 63 spot, ie the IR is fucking slow to react. So it looks smaller to the car
+    int secondMinParkingDistance = 64;
+    int safeDistance = 30;
+    int desiredDistance = 33;    // Distance after finding the end of the spot
+    int stopParkingDistance;
+    float speedF1 = 0.3; //0.95
+    //float SpeedF2 = 0.3; // 1.1
+    //float SpeedF3 = 0.3;    // 0.9
+    float speedParkingBack = -0.3f;
+    float speedParkingForward = 0.3f;
     float SpeedB3 = -0.3f;
-    float Stop_Speed_Forward = -0.3f;
-    float Stop_Speed_Backward = 0.3f;
+    float stop_Speed_Forward = -0.3f;
+    float stop_Speed_Backward = 0.3f;
     float steeringFactor = 1.0;
-    int USFront;
-    int USRear;
-    int IR_SideFront;
-    int IR_SideBack;
-    int IR_BackRight;
-    int IR_BackLeft;
-    int IRStopValue = 12;
-    int IRSideValue;
-    int USCheck = 6;
-    int USStraight;
-    int USStraight1 = 25;  // 26
-    int USStraight2 = 31;
-    int USStrCheck;
-    double ParkAngle;
-    int gyroBackRight1 = 25; //7 11
+    int ultrasonic_Front;
+    int ultrasonic_Rear;
+    int infrared_SideFront;
+    int infrared_SideBack;
+    int infrared_BackRight;
+    int infrared_BackLeft;
+    int infraredStopValue = 12;
+    int infraredSideValue;
+    int ultrasonicCheck = 6;
+    int ulrasonicStraight;
+    int firstUltrasonicStraight = 25;  // 26
+    int secondUltrasonicStraight = 31;
+    int ultrasonicStrCheck;
+    double parkAngle;
+    int firstGyroBackRight = 25; //7 11
 //  25 18 10 20
-    int gyroBackRight2 = 29; // 26   // 63 cm gap 
-    int gyroBackRight3 = 29; // 70 cm gap 
+    int secondGyroBackRight = 29; // 26   // 63 cm gap 
+    int thirdGyroBackRight = 29; // 70 cm gap 
     int countStop;
-    int countStop1 = 0;
-    int countStop2 = 0;
-    int countDeath1 = 3;
-    int countDeath2 = 3;
+    int firstCountStop = 0;
+    int secondCountStop = 0;
+    //int countDeath1 = 3;
+    //int countDeath2 = 3;
     int gyroBackValue;
     int gyro;
     int forwardDistance;
@@ -73,34 +73,34 @@ namespace msv {
             DriverGeneric(argc, argv),
             driving_state(DRIVE),
             parking_state(BACKWARDS_RIGHT),
-            laneDriver(0),
+            laneFollowingDriver(0),
             m_timestamp(0),
             previousError(0.0) {
         //Create lane driver
-        laneDriver = new LaneFollowingDriver(argc, argv);
-        // Init laneDriver module
-        laneDriver->runModule();
+        laneFollowingDriver = new LaneFollowingDriver(argc, argv);
+        // Init laneFollowingDriver module
+        laneFollowingDriver->runModule();
         driving_state = DRIVE;
         parking_state = BACKWARDS_RIGHT;
-        OverallDistance = 0;
-        Distance1 = 0;
+        overallDistance = 0;
+        initialDistance = 0;
         gapWidth = 0;
-        MinParkingDist = 0;
+        minParkingDistance = 0;
         forwardDistance = 0;
         gyroBackValue = 0;
-        USStraight = 0;
+        ultrasonicStraight = 0;
         countStop = 0;
-        CurrentDistSpot = 0;
-        DistanceEndObstacle = 0;
-        IRSideValue = 0;
+        currentDistanceSpot = 0;
+        distanceEndObstacle = 0;
+        infraredSideValue = 0;
         brakeLights = false;
         flashingLightsRight = false;
         flashingLightsLeft = false;
-        USStrCheck = 0;
+        ultrasonicStrCheck = 0;
     }
 
     ParkingDriver::~ParkingDriver() {
-        free(laneDriver);
+        free(laneFollowingDriver);
     }
 
     void ParkingDriver::Initialize() {
@@ -124,19 +124,19 @@ namespace msv {
 
         //Sensors
         // new configuration
-        IR_SideFront = (int) sbd.getValueForKey_MapOfDistances(1); // Side Left IR // *on legendary is //theFront-Side-Right
-        IR_SideBack = (int) sbd.getValueForKey_MapOfDistances(2); // Rear Left IR
-        IR_BackRight = (int) sbd.getValueForKey_MapOfDistances(3); // Rear Right IR
-        IR_BackLeft = (int) sbd.getValueForKey_MapOfDistances(5); // Side Right IR
-        USFront = (int) sbd.getValueForKey_MapOfDistances(0); // Front UltraSonic
-        USRear = (int) sbd.getValueForKey_MapOfDistances(4); // Rear UltraSonic
+        infrared_SideFront = (int) sbd.getValueForKey_MapOfDistances(1); // Side Left IR // *on legendary is //theFront-Side-Right
+        infrared_SideBack = (int) sbd.getValueForKey_MapOfDistances(2); // Rear Left IR
+        infrared_BackRight = (int) sbd.getValueForKey_MapOfDistances(3); // Rear Right IR
+        infrared_BackLeft = (int) sbd.getValueForKey_MapOfDistances(5); // Side Right IR
+        ultrasonic_Front = (int) sbd.getValueForKey_MapOfDistances(0); // Front UltraSonic
+        ultrasonic_Rear = (int) sbd.getValueForKey_MapOfDistances(4); // Rear UltraSonic
         gyro = (int) sbd.getValueForKey_MapOfDistances(8); // Gyroscope
         //WheeelEncoder Data (mm)
-        OverallDistance = (int) ((sbd.getValueForKey_MapOfDistances(6) + sbd.getValueForKey_MapOfDistances(7)) / 2);
+        overallDistance = (int) ((sbd.getValueForKey_MapOfDistances(6) + sbd.getValueForKey_MapOfDistances(7)) / 2);
         // angle of the car
-        ParkAngle = (asin(abs(IR_BackRight - IR_BackLeft) / 11.5)) * 180 / 3.14; //11 = dist between IR's
-        ActualSpeed = abs(OverallDistance - Distance1) / (sec * 100);
-        Distance1 = OverallDistance;
+        parkAngle = (asin(abs(infrared_BackRight - infrared_BackLeft) / 11.5)) * 180 / 3.14; //11 = dist between IR's
+        ActualSpeed = abs(overallDistance - initialDistance) / (sec * 100);
+        initialDistance = overallDistance;
 
 
 
@@ -154,19 +154,19 @@ namespace msv {
 
 
 //Status
-        cout << " ===== IR - SideFront: " << IR_SideFront << " SideBack:" << IR_SideBack << endl;
-        cout << " ===== IR - BackLeft: " << IR_BackLeft << " BackRight:" << IR_BackRight << endl;
-        cout << " ===== US: Front:" << USFront << " Rear:" << USRear << endl;
-        cout << " ===== WheelEncoder Data (mm): " << OverallDistance << endl;
+        cout << " ===== IR - SideFront: " << infrared_SideFront << " SideBack:" << infrared_SideBack << endl;
+        cout << " ===== IR - BackLeft: " << infrared_BackLeft << " BackRight:" << infrared_BackRight << endl;
+        cout << " ===== US: Front:" << ultrasonic_Front << " Rear:" << ultrasonic_Rear << endl;
+        cout << " ===== WheelEncoder Data (mm): " << overallDistance << endl;
         cout << " ===== Desired speed: " << desiredSpeed << " Actual Speed: " << ActualSpeed << endl;
         cout << " ===== Desired steering: " << desiredSteering << endl;
         cout << " ===== Parking spot length: " << gapWidth << endl;
         cout << " ===== Parking Preparation length: " << forwardDistance << endl;
         cout << " ===== Gyro" << gyro << endl;
-        cout << " ===== Park Angle :" << ParkAngle << endl;
+        cout << " ===== Park Angle :" << parkAngle << endl;
         cout << " ===== Gyro Backwards Angle :" << gyroBackValue << endl;
-        cout << " ===== IR Side Value :" << IRSideValue << endl;
-        cout << " ===== US Straight Value :" << USStrCheck << "  Number Of Counts" << countStop << endl;
+        cout << " ===== IR Side Value :" << infaredSideValue << endl;
+        cout << " ===== US Straight Value :" << ultrasonicStrCheck << "  Number Of Counts" << countStop << endl;
         cout << " ===== Ptime_takenIndicator: " << time_takenIndicator << endl;
         cout << " ===== flashingLightsRight: " << flashingLightsRight << endl;
         cout << " ===== flashingLightsLeft: " << flashingLightsLeft << endl;
@@ -179,14 +179,14 @@ namespace msv {
                 foundBox = 0;
                 cout << "\t In drive mode" << endl;
                 // Run the lane driver
-                laneDriver->Routine();
-                desiredSteering = steeringFactor * laneDriver->desiredSteering;
-                desiredSpeed = SpeedF2;
+                laneFollowingDriver->Routine();
+                desiredSteering = steeringFactor * laneFollowingDriver->desiredSteering;
+                desiredSpeed = speedF1; //SpeedF2;
 
-                if ((USFront < SafeDistance && USFront > 2)) {
+                if ((ultrasonic_Front < safeDistance && ultrasonic_Front > 2)) {
                     driving_state = NO_POSSIBLE_PARKING_PLACE;
                 }
-                if ((IR_SideFront < 25 && IR_SideFront > 2)) {
+                if ((infrared_SideFront < 25 && infrared_SideFront > 2)) {
                     driving_state = START_OBST;
                 }
             }
@@ -194,22 +194,22 @@ namespace msv {
 
             case START_OBST: {
                 cout << "\t \t START_OBST mode" << endl;
-                desiredSpeed = SpeedF2;
-                laneDriver->Routine();
-                desiredSteering = steeringFactor * laneDriver->desiredSteering;
-                if ((USFront < SafeDistance && USFront > 2)) {
+                desiredSpeed = speedF1; //SpeedF2;
+                laneFollowingDriver->Routine();
+                desiredSteering = steeringFactor * laneFollowingDriver->desiredSteering;
+                if ((ultrasonic_Front < safeDistance && ultrasonic_Front > 2)) {
                     driving_state = NO_POSSIBLE_PARKING_PLACE;
 
                 }
 
 
-                if (IR_SideFront < 25 && IR_SideFront > 0) {
+                if (infrared_SideFront < 25 && infrared_SideFront > 0) {
                     foundBox = 1;
                 }
                 if (foundBox == 1) {
-                    if ((IR_SideFront > 25 || IR_SideFront < 2)) {
+                    if ((infrared_SideFront > 25 || infrared_SideFront < 2)) {
                         driving_state = POSSIBLE_SPOT;
-                        CurrentDistSpot = OverallDistance;
+                        currentDistanceSpot = overallDistance;
                         foundBox = 0;
                     }
                 }
@@ -218,22 +218,22 @@ namespace msv {
 
             case POSSIBLE_SPOT: {
                 cout << "\t POSSIBLE_SPOT" << endl;;
-                laneDriver->Routine();
-                desiredSteering = steeringFactor * laneDriver->desiredSteering;
+                laneFollowingDriver->Routine();
+                desiredSteering = steeringFactor * laneFollowingDriver->desiredSteering;
 
                 // Detection of end of lane
-                if ((USFront < SafeDistance && USFront > 2)) {
+                if ((ultrasonic_Front < safeDistance && ultrasonic_Front > 2)) {
                     driving_state = NO_POSSIBLE_PARKING_PLACE;
                 }
 
 
-                if (IR_SideFront < 25 && IR_SideFront > 0) {
-                    IRSideValue = IR_SideFront;
+                if (infrared_SideFront < 25 && infrared_SideFront > 0) {
+                    infraredSideValue = infrared_SideFront;
 
-                    gapWidth = (OverallDistance - CurrentDistSpot);
-                    if (gapWidth > MinParkingDist1 && gapWidth <= MinParkingDist2) {
-                        desiredSpeed = SpeedF1;
-                        DistanceEndObstacle = OverallDistance;
+                    gapWidth = (overallDistance - currentDistanceSpot);
+                    if (gapWidth > firstMinParkingDistance && gapWidth <= secondMinParkingDistance) {
+                        desiredSpeed = speedF1;
+                        distanceEndObstacle = overallDistance;
                         driving_state = STOP_FOR_PARKING;
                     } else {
                         driving_state = DRIVE;
@@ -247,20 +247,20 @@ namespace msv {
             case STOP_FOR_PARKING:
 
                 cout << "\t STOP_FOR_PARKING" << endl;
-                cout << "\t OverallDistance: " << OverallDistance << endl;
-                cout << "\t DistanceEndObstacle: " << DistanceEndObstacle << endl;
-                cout << "\t DesiredDistance1: " << DesiredDistance1 << endl;
+                cout << "\t overallDistance: " << overallDistance << endl;
+                cout << "\t distanceEndObstacle: " << distanceEndObstacle << endl;
+                cout << "\t desiredDistance: " << desiredDistance << endl;
 
-                laneDriver->Routine();
-                desiredSteering = steeringFactor * laneDriver->desiredSteering;
+                laneFollowingDriver->Routine();
+                desiredSteering = steeringFactor * laneFollowingDriver->desiredSteering;
 
-                if (OverallDistance <= DistanceEndObstacle + DesiredDistance1) {
-                    desiredSpeed = SpeedF2;
+                if (overallDistance <= distanceEndObstacle + desiredDistance) {
+                    desiredSpeed = speedF2; //SpeedF2;
                 }
                 else {
                     flashingLightsRight = true;
                     brakeLights = true;
-                    desiredSpeed = Stop_Speed_Forward;
+                    desiredSpeed = stop_Speed_Forward;
 
                     // Check if car has stopped to move
                     if (ActualSpeed < 0.01) {
@@ -274,27 +274,27 @@ namespace msv {
                 // Called once before parking to set up variables then switch to PARKING
             case INIT_PARKING:
                 cout << "========: INIT_PARKING" << endl;
-                StopParkingDistance = OverallDistance;
-                forwardDistance = OverallDistance - DistanceEndObstacle;
+                stopParkingDistance = overallDistance;
+                forwardDistance = overallDistance - distanceEndObstacle;
                 driving_state = PARKING;
                 desiredSpeed = 0.0;
                 countStop = 0;
 // For 55 cm Gap
-                if (gapWidth > MinParkingDist && gapWidth <= MinParkingDist1) {
-                    gyroBackValue = gyroBackRight1;
-                    countStop = countStop2;
+                if (gapWidth > minParkingDistance && gapWidth <= firstMinParkingDistance) {
+                    gyroBackValue = firstGyroBackRight;
+                    countStop = secondCountStop;
                 }
 // For 63 cm Gap
-                else if (gapWidth > MinParkingDist1 && gapWidth <= MinParkingDist2) {
-                    gyroBackValue = gyroBackRight2;
-                    USStraight = USStraight1;
-                    countStop = countStop1;
+                else if (gapWidth > firstMinParkingDistance && gapWidth <= secondMinParkingDistance) {
+                    gyroBackValue = secondGyroBackRight;
+                    ultrasonicStraight = firstUltrasonicStraight;
+                    countStop = firstCountStop;
                 }
 // For 70 cm Gap
-                else if (gapWidth > MinParkingDist2) {
-                    gyroBackValue = gyroBackRight3;
-                    countStop = countStop2;
-                    USStraight = USStraight2;
+                else if (gapWidth > secondMinParkingDistance) {
+                    gyroBackValue = thirdGyroBackRight;
+                    countStop = secondCountStop;
+                    ultrasonicStraight = secondUltrasonicStraight;
                 }
                 break;
 
@@ -329,11 +329,11 @@ namespace msv {
         cout << "\t\t========:  parking()" << endl;
         switch (parking_state) {
             case BACKWARDS_RIGHT: {
-                if (OverallDistance - StopParkingDistance <= 45) {
+                if (overallDistance - stopParkingDistance <= 45) {
                     cout << "========  BACKWARDS_RIGHT" << endl;
-                    cout << "========  OverallDistance " << OverallDistance << endl;
+                    cout << "========  overallDistance " << overallDistance << endl;
                     flashingLightsRight = true;
-                    desiredSpeed = SpeedParkingBack;
+                    desiredSpeed = speedParkingBack;
                     desiredSteering = maxSteeringPositive;
                 }
                 else {
@@ -347,22 +347,22 @@ namespace msv {
                 int BackStopLimit = 14;
                 cout << "\t========  BACKWARDS_LEFT" << endl;
 
-                if (((USFront > 0) && (USRear > 0) && ((USFront + USRear) <= USStraight)) || countStop > 1) {
-                    USStrCheck = (USFront + USRear);
+                if (((ultrasonic_Front > 0) && (ultrasonic_Rear > 0) && ((Ultrasonic_Front + ultrasonic_Rear) <= ultrasonicStraight)) || countStop > 1) {
+                    ultrasonicStrCheck = (ultrasonic_Front + ultrasonic_Rear);
                     parking_state = STOP;
-                    desiredSpeed = Stop_Speed_Backward;
+                    desiredSpeed = stop_Speed_Backward;
                     brakeLights = true;
                 }
 
-                else if ((IR_BackLeft < BackStopLimit && IR_BackLeft > 0)
-                         || (IR_BackRight < BackStopLimit && IR_BackRight > 0)
-                         || (USRear < BackStopLimit && USRear > 0)) {
+                else if ((infrared_BackLeft < BackStopLimit && infrared_BackLeft > 0)
+                         || (infrared_BackRight < BackStopLimit && infrared_BackRight > 0)
+                         || (ultrasonic_Rear < BackStopLimit && ultrasonic_Rear > 0)) {
                     parking_state = FORWARD_RIGHT;
-                    desiredSpeed = Stop_Speed_Backward;
+                    desiredSpeed = stop_Speed_Backward;
                     brakeLights = true;
                 }
                 else{
-                    desiredSpeed = SpeedParkingBack;
+                    desiredSpeed = speedParkingBack;
                     desiredSteering = -maxSteeringPositive;
                     brakeLights = false;
                 }
@@ -374,22 +374,22 @@ namespace msv {
                 cout << "\t\t========  FORWARD_RIGHT" << endl;
                 int FrontStopLimit = 14;
 
-                if (((USFront > 0) && (USRear > 0) && ((USFront + USRear) <= USStraight)) || countStop > 1) {
-                    USStrCheck = (USFront + USRear);
-                    desiredSpeed = Stop_Speed_Backward;
+                if (((ultrasonic_Front > 0) && (ultrasonic_Rear > 0) && ((ultrasonic_Front + ultrasonic_Rear) <= ultrasonicStraight)) || countStop > 1) {
+                    ultrasonicStrCheck = (ultrasonic_Front + ultrasonic_Rear);
+                    desiredSpeed = stop_Speed_Backward;
                     parking_state = STOP;
                     brakeLights = true;
                 }
-//                else if (USFront < FrontStopLimit && USFront > 0)  {
-		else if ((USFront < FrontStopLimit && USFront > 0) || (IR_BackLeft>17 || IR_BackLeft == 0)) {
-                    desiredSpeed = Stop_Speed_Forward;
+//                else if (ultrasonic_Front < FrontStopLimit && ultrasonic_Front > 0)  {
+		else if ((ultrasonic_Front < FrontStopLimit && ultrasonic_Front > 0) || (infrared_BackLeft>17 || infrared_BackLeft == 0)) {
+                    desiredSpeed = stop_Speed_Forward;
                     parking_state = BACKWARDS_LEFT;
                     brakeLights = true;
                     countStop++;
                 }
                 else{
                     brakeLights = false;
-                    desiredSpeed = SpeedParkingForward;
+                    desiredSpeed = speedParkingForward;
                     desiredSteering = maxSteeringPositive;
                 }
             }
@@ -398,20 +398,20 @@ namespace msv {
 
             case BACK_AGAIN:
                 cout << "\t\t========  BACKWARDS_STRAIGHT" << endl;
-                desiredSpeed = SpeedParkingBack;
+                desiredSpeed = speedParkingBack;
                 desiredSteering = 0;
 //		if(Distance > CurrentDist2 + DesiredDistance4){
-//                if (USRear < UVStopValue && USRear > 0)  {
-                if (IR_BackLeft < IRStopValue && IR_BackLeft > 0) {
+//                if (ultrasonic_Rear < UVStopValue && ultrasonic_Rear > 0)  {
+                if (infrared_BackLeft < infraredStopValue && infrared_BackLeft > 0) {
                     desiredSpeed = 0;
-                    //backStraight = OverallDistance - CurrentDist2;
+                    //backStraight = overallDistance - CurrentDist2;
                     desiredSteering = 0;
                     parking_state = FORWARD_RIGHT;  // BACKWARDS_LEFT
                 }
                 break;
 
             case STOP: {
-                if ((USRear > USCheck && USRear > 0) && (USFront > USCheck && USFront > 0)) {
+                if ((ultrasonic_Rear > ultrasonicCheck && ultrasonic_Rear > 0) && (ultrasonic_Front > ultrasonicCheck && ultrasonic_Front > 0)) {
                     desiredSteering = 0;
                     desiredSpeed = 0.0;
                     brakeLights = true;
@@ -419,14 +419,14 @@ namespace msv {
                     flashingLightsRight = true;
                     flashingLightsLeft = true;
                     parking_state = DONE;
-                } else if (USFront < USCheck && USFront > 0) {
+                } else if (ultrasonic_Front < ultrasonicCheck && ultrasonic_Front > 0) {
                     desiredSteering = 0;
                     desiredSpeed = SpeedB3;
                     parking_state = STOP;
                 }
-                else if (USRear < USCheck && USRear > 0) {
+                else if (ultrasonic_Rear < ultrasonicCheck && ultrasonic_Rear > 0) {
                     desiredSteering = 0;
-                    desiredSpeed = SpeedF3;
+                    desiredSpeed = speedF1; //SpeedF3;
                     parking_state = STOP;
                 }
             }

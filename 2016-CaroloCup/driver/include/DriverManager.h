@@ -29,7 +29,7 @@ namespace msv {
         Lane_Following = 0,
         Parking = 1,
         Overtaking = 2,
-        None = 99
+        Neutral = 99
     };
 
 
@@ -38,8 +38,8 @@ namespace msv {
     private:
         int32_t argc;
         char **argv;
-        DRIVER_STATE state;
-        DriverGeneric *driver_ptr;
+        DRIVER_STATE driver_state;
+        DriverGeneric *driverGeneric;
         bool debug;
 
         DriverManager(const DriverManager &/*obj*/);

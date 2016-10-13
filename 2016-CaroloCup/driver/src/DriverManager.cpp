@@ -21,8 +21,8 @@ namespace msv {
             : TimeTriggeredConferenceClientModule(argci, argvi, "DriverManager"),
               argc(argci),
               argv(argvi),
-              state(None),
-              driver_ptr(0),
+              driver_state(Neutral),
+              driverGeneric(0),
               debug(false) {
         // Deep copy of arguments
         argv = new char *[argci + 1];
@@ -38,7 +38,7 @@ namespace msv {
         // stop car when killing driver
         stopCar();
 
-        delete (driver_ptr);
+        delete (driverGeneric);
 
         for (int i = 0; i < argc; i++) {
             delete[] argv[i];
@@ -52,11 +52,11 @@ namespace msv {
     // This method will do the main data processing job.
     odcore::data::dmcp::ModuleExitCodeMessage::ModuleExitCode DriverManager::body() {
 
-        Container proxyData;
-        SensorBoardData sbd;
-        bool button1; // lane following
-        bool button2; // parking
-        bool button3; // overtaking
+        Container proxyDataContainer;
+        SensorBoardData sensorBoardData;
+        bool laneFollowingButton; // lane following
+        bool parkingButton; // parking
+        bool overtakingButton; // overtaking
 
         KeyValueConfiguration config = getKeyValueConfiguration();
         debug = config.getValue<bool>("driverManager.Debug");
@@ -70,76 +70,76 @@ namespace msv {
         while (getModuleStateAndWaitForRemainingTimeInTimeslice() == odcore::data::dmcp::ModuleStateMessage::RUNNING) {
 
             // Get latest proxy data
-            proxyData = lifo.pop();
-            sbd = proxyData.getData<SensorBoardData>();
+            proxyDataContainer = lifo.pop();
+            sensorBoardData = proxyDataContainer.getData<SensorBoardData>();
 
             // Get buttons data from proxy
-            button1 = (bool) (int) sbd.getValueForKey_MapOfDistances(9);
-            button2 = (bool) (int) sbd.getValueForKey_MapOfDistances(10);
-            button3 = (bool) (int) sbd.getValueForKey_MapOfDistances(11);
+            laneFollowingButton = (bool) (int) sensorBoardData.getValueForKey_MapOfDistances(9);
+            parkingButton = (bool) (int) sensorBoardData.getValueForKey_MapOfDistances(10);
+            overtakingButton = (bool) (int) sensorBoardData.getValueForKey_MapOfDistances(11);
 
             // clear lifo to avoid filling memory
             lifo.clear();
 
             if (debug) {
-                cout << "Button1:" << button1 << ", Button2:" << button2 << ", Button3:" << button3 << flush;
-                cout << ", state:" << state << endl;
+                cout << "LaneFollowingButton:" << laneFollowingButton << ", ParkingButton:" << parkingButton << ", Overtaking button:" << overtakingButton << flush;
+                cout << ", driver state:" << driver_state << endl;
             }
 
             // Check if current buttons correspond to current state and driver
-            if (button1 && !button2 && !button3) {
-                if (state != Lane_Following) {
+            if (laneFollowingButton && !parkingButton && !overtakingButton) {
+                if (driver_state != Lane_Following) {
                     if (debug)
                         cout << "Creating Lane Following driver" << endl;
-                    driver_ptr = new LaneFollowingDriver(argc, argv);
-                    if (!driver_ptr) {
+                    driverGeneric = new LaneFollowingDriver(argc, argv);
+                    if (!driverGeneric) {
                         if (debug)
                             cout << "Memory error" << endl;
                         continue; // TODO Improve error management
                     }
-                    driver_ptr->runModule(); // Necessary to run it once to initialize the module entirely
-                    state = Lane_Following;
+                    driverGeneric->runModule(); // Necessary to run it once to initialize the module entirely
+                    driver_state = Lane_Following;
                 }
             }
-            else if (!button1 && button2 && !button3) {
-                if (state != Parking) {
+            else if (!laneFollowingButton && parkingButton && !overtakingButton) {
+                if (driver_state != Parking) {
                     if (debug)
                         cout << "Creating Parking driver" << endl;
-                    driver_ptr = new ParkingDriver(argc, argv);
-                    if (!driver_ptr) {
+                    driverGeneric = new ParkingDriver(argc, argv);
+                    if (!driverGeneric) {
                         if (debug)
                             cout << "Memory error" << endl;
                         continue; // TODO Improve error management
                     }
-                    driver_ptr->runModule(); // Necessary to run it once to initialize the module entirely
-                    state = Parking;
+                    driverGeneric->runModule(); // Necessary to run it once to initialize the module entirely
+                    driver_state = Parking;
                 }
             }
-            else if (!button1 && !button2 && button3) {
-                if (state != Overtaking) {
-                    //driver_ptr = new OvertakingDriver(argc, argv);
-                    if (!driver_ptr) {
+            else if (!laneFollowingButton && !parkingButton && overtakingButton) {
+                if (driver_state != Overtaking) {
+                    //driverGeneric = new OvertakingDriver(argc, argv);
+                    if (!driverGeneric) {
                         if (debug)
                             cout << "Memory error" << endl;
                         continue; // TODO Improve error management
                     }
-                    driver_ptr->runModule(); // Necessary to run it once to initialize the module entirely
-                    state = Overtaking;
+                    driverGeneric->runModule(); // Necessary to run it once to initialize the module entirely
+                    driver_state = Overtaking;
                 }
             }
             else {
-                driver_ptr = 0;
-                state = None;
+                driverGeneric = 0;
+                driver_state = Neutral;
                 stopCar();
             }
 
             // Call driver's body and send resulting vehicle control
-            if (driver_ptr != 0) {
-                driver_ptr->body();
+            if (driverGeneric != 0) {
+                driverGeneric->body();
                 // Create container for finally sending the data.
-                Container c(driver_ptr->GetControlData());
+                Container container(driverGeneric->GetControlData());
                 // Send container.
-                getConference().send(c);
+                getConference().send(container);
             }
         }
 
@@ -147,8 +147,8 @@ namespace msv {
     }
 
     void DriverManager::stopCar() {
-        Container c(DriverGeneric::GetStopControlData());
-        getConference().send(c);
+        Container container(DriverGeneric::GetStopControlData());
+        getConference().send(container);
     }
 
 } // msv

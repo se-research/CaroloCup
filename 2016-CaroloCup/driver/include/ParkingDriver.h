@@ -6,7 +6,6 @@
 #define AUTOMOTIVE_CAROLOCUP_PARKINGDRIVER_H
 
 #include <DriverGeneric.h>
-
 namespace msv {
 
     using namespace std;
@@ -52,7 +51,7 @@ namespace msv {
 
         DRIVING_STATE driving_state;
         PARKING_STATE parking_state;
-        LaneFollowingDriver *laneDriver;
+        LaneFollowingDriver *laneFollowingDriver;
 
         void setUp() { };
 
